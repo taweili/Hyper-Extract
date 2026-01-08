@@ -17,11 +17,6 @@ class Entity(BaseModel):
     description: Optional[str] = Field(
         None, description="A brief summary of the entity found in the text."
     )
-    # Using a dict allows storing extra attributes without changing the schema structure
-    properties: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional attributes (e.g., {'age': 50, 'status': 'active'}).",
-    )
 
 
 class Relationship(BaseModel):
@@ -34,10 +29,6 @@ class Relationship(BaseModel):
     )
     description: Optional[str] = Field(
         None, description="Contextual details about this relationship."
-    )
-    weight: float = Field(
-        1.0,
-        description="The confidence score or strength of the connection (0.0 to 1.0).",
     )
 
 
@@ -56,12 +47,12 @@ class SimpleGraph(BaseKnowledge[GraphSchema]):
     def _get_schema_class(self):
         return GraphSchema
 
-    async def extract(self, text: str, **kwargs):
+    async def aextract(self, text: str, **kwargs):
         # 1. 构造 prompt
         prompt = f"Extract nodes and edges from: {text}"
 
         # 2. 调用自带的 LLM
-        response = await self.llm.ainvoke(prompt)
+        response = await self.llm_client.ainvoke(prompt)
 
         # 3. 解析结果 (假设 parsed_data 是解析后的 GraphSchema 对象)
         parsed_data = self._parse(response)
