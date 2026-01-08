@@ -5,7 +5,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
 
-# T 是具体的数据 Schema (如 GraphSchema, HypergraphSchema)
 T = TypeVar("T", bound=BaseModel)
 
 
