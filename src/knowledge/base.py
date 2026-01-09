@@ -1,329 +1,226 @@
-import asyncio
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Any, Dict, Optional, Type, List, Callable
+from pathlib import Path
+from typing import TypeVar, Generic, Any, Dict, Type, List
 from datetime import datetime
 from pydantic import BaseModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
-try:
-    from src.config import logger
-except ImportError:
-    import logging
-    logger = logging.getLogger(__name__)
-
 
 T = TypeVar("T", bound=BaseModel)
 
 
-# ===================== 提取器 (Extractor) =====================
+# ===================== 知识类 (Knowledge) =====================
 
 
-class BaseExtractor(ABC, Generic[T]):
+class BaseKnowledge(ABC, Generic[T]):
     """
-    矿工 - 无状态提取器基类。
-    
-    职责：从文本中提取结构化知识，不负责存储或融合。
-    """
+    统一的知识基类 - 集提取、存储、聚合、演化于一体。
 
-    def __init__(self, llm_client: BaseChatModel, schema_class: Type[T]):
-        """
-        :param llm_client: LangChain 的 ChatModel 实例
-        :param schema_class: 期望的返回 Schema 类（必须继承 BaseModel）
-        """
-        self.llm_client = llm_client
-        self.schema_class = schema_class
-    @abstractmethod
-    async def aparse(self, text: str, **kwargs) -> T:
-        """
-        异步解析文本，返回单个知识对象。
-        
-        :param text: 输入文本
-        :return: 解析后的知识对象
-        """
-        pass
-
-    def parse(self, text: str, **kwargs) -> T:
-        """
-        同步解析（子类可覆盖为真正的同步实现）。
-        
-        默认行为：需要在异步上下文中调用 aparse。
-        """
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                raise RuntimeError("Cannot use parse() in async context. Use aparse() instead.")
-            return loop.run_until_complete(self.aparse(text, **kwargs))
-        except RuntimeError:
-            raise
-
-    async def batch_parse(self, texts: List[str], **kwargs) -> List[T]:
-        """
-        批量解析多个文本。
-        
-        :param texts: 文本列表
-        :return: 解析结果列表
-        """
-        tasks = [self.aparse(text, **kwargs) for text in texts]
-        return await asyncio.gather(*tasks)
-
-    async def batch_parse_concurrent(
-        self,
-        texts: List[str],
-        max_concurrent: int = 5,
-        **kwargs
-    ) -> List[T]:
-        """
-        带并发限制的批量解析。
-        
-        :param texts: 文本列表
-        :param max_concurrent: 最大并发数
-        :return: 解析结果列表
-        """
-        from asyncio import Semaphore
-
-        semaphore = Semaphore(max_concurrent)
-
-        async def limited_parse(text: str) -> T:
-            async with semaphore:
-                return await self.aparse(text, **kwargs)
-
-        tasks = [limited_parse(text) for text in texts]
-        return await asyncio.gather(*tasks)
-
-
-
-
-
-# ===================== 集合/容器 (Collection) =====================
-
-
-class BaseCollection(ABC, Generic[T]):
-    """
-    仓库 - 有状态集合基类。
-    
-    职责：存储知识点、融合去重、演化优化、序列化。
+    职责：
+    1. 从文本中提取结构化知识（extract）
+    2. 自动处理长文本分块
+    3. 存储和聚合提取的知识
+    4. 演化优化内部知识
+    5. 序列化与反序列化
     """
 
     def __init__(
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        schema_class: Type[T],
-        storage: str = "memory",
+        *,
+        prompt: str = "",
+        chunk_size: int = 2000,
+        chunk_overlap: int = 200,
+        max_workers: int = 10,
+        show_progress: bool = True,
         **kwargs,
     ):
         """
-        :param llm_client: LLM 实例（用于演化等操作）
-        :param embedder: 向量化器实例（用于语义搜索等）
-        :param schema_class: 容器持有的知识 Schema 类
-        :param storage: 存储后端类型（"memory"、"postgres" 等）
+        初始化知识对象。
+
+        :param llm_client: LLM 客户端（用于提取和演化）
+        :param embedder: 向量化器（用于语义搜索和相似度计算）
+        :param prompt: 用户自定义的提示词（用于 extract）
+        :param chunk_size: 长文本分块大小
+        :param chunk_overlap: 分块重叠大小
+        :param max_workers: 最大并发数（用于并发提取）
+        :param show_progress: 是否显示进度信息
         """
         self.llm_client = llm_client
         self.embedder = embedder
-        self.schema_class = schema_class
-        self.storage = storage
-        self.metadata: Dict[str, Any] = {}
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self.prompt = prompt
+        self.max_workers = max_workers
+        self.show_progress = show_progress
 
-    # ================= 存储层 =================
+        # 向量存储相关（使用 FAISS）
+        self._index = None
+        self._index_dirty: bool = True  # 标记索引是否需要重建
+
+        # 内部状态：存储提取的知识
+        self._data: T = self._init_data()
+        self.metadata: Dict[str, Any] = {
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "total_extractions": 0,
+            "total_chunks_processed": 0,
+        }
+
+    @property
+    def schema_class(self) -> Type[T]:
+        """
+        返回当前知识类使用的 Schema 类。
+        子类可覆盖此属性，或在泛型参数中指定。
+        """
+        # 默认实现：从泛型参数推导（仅当子类未覆盖时）
+        raise NotImplementedError("schema_class must be implemented by subclass")
 
     @abstractmethod
-    async def add(self, item_id: str, item: T, **kwargs):
+    def _init_data(self) -> T:
         """
-        添加知识点。
-        
-        :param item_id: 唯一标识符
-        :param item: 知识对象
+        初始化内部数据结构。
+
+        :return: 初始化的知识容器
+        """
+        return self.schema_class()
+
+    # ==================== 向量索引管理（模板方法模式）====================
+
+    @abstractmethod
+    def build_index(self):
+        """
+        构建或重建向量索引。
+
+        子类必须实现此方法，定义如何构建向量索引。
+        使用 FAISS 作为向量存储后端。
         """
         pass
 
     @abstractmethod
-    async def remove(self, item_id: str, **kwargs) -> bool:
+    def clear(self):
+        """清空所有知识。"""
+        pass
+
+    # ==================== 核心方法：extract ====================
+
+    @abstractmethod
+    def extract(self, text: str, **kwargs) -> Dict[str, Any]:
         """
-        删除知识点。
-        
-        :return: 是否成功删除
+        主提取方法 - 自动处理长文本分块、提取、聚合。
+
+        流程：
+        1. 判断文本长度，决定是否分块
+        2. 对每个块调用 _extract_chunk() 进行提取
+        3. 调用 merge() 将提取结果聚合到 self._data
+        4. 返回提取统计信息
+
+        :param text: 输入文本（可以是短文本或长文本）
+        :return: 提取统计信息 {"chunks_processed": 3, "items_extracted": 15, ...}
         """
         pass
 
+    # ==================== 存储与聚合 ====================
+
     @abstractmethod
-    async def update(self, item_id: str, item: T, **kwargs):
+    def merge(self, items: List[T], **kwargs) -> Dict[str, Any]:
         """
-        更新知识点。
-        
-        :param item_id: 知识点 ID
-        :param item: 新的知识对象
+        将多个提取结果合并到内部状态 self._data。
+
+        职责：去重、合并、冲突解决。
+        子类必须实现此方法。
+
+        :param items: 从各个块提取的知识列表
+        :return: 合并统计信息 {"items_added": 10, "duplicates_removed": 2, ...}
         """
         pass
 
-    @abstractmethod
-    def get(self, item_id: str) -> Optional[T]:
-        """获取单个知识点"""
-        pass
+    # ==================== 查询接口 ====================
 
-    @abstractmethod
-    def list_all(self) -> List[T]:
-        """列出所有知识点"""
-        pass
-
-    @abstractmethod
-    def search(self, filter_fn: Callable[[T], bool]) -> List[T]:
+    @property
+    def data(self) -> T:
         """
-        按条件查询知识点。
-        
-        :param filter_fn: 过滤函数
+        获取所有存储的知识（只读）。
+
+        :return: 内部知识数据
+        """
+        return self._data
+
+    @abstractmethod
+    def search(self, query: str, top_k: int = 10, **kwargs) -> List[Any]:
+        """
+        语义搜索知识。
+
+        默认实现：
+        1. 确保索引已构建（调用 build_index）
+        2. 使用 vector_store.similarity_search 进行检索
+        3. 从 Document.metadata 恢复原始数据结构
+
+        子类可覆盖此方法实现自定义搜索逻辑。
+
+        :param query: 查询字符串
+        :param top_k: 返回结果数
+        :return: 相关知识列表
         """
         pass
 
     @abstractmethod
     def size(self) -> int:
-        """返回容器中知识点的数量"""
-        pass
-
-    # ================= 融合层 =================
-
-    @abstractmethod
-    async def aggregate(self, items: List[T], **kwargs) -> Dict[str, Any]:
         """
-        融合多个知识点。
-        
-        职责：清洗、去重、合并。
-        
-        :param items: 新提取的知识点列表
-        :return: 融合统计信息（去重数、合并数等）
+        返回知识点数量。
+        子类必须实现此方法。
+
+        :return: 知识点数量
         """
         pass
 
-    async def fuse_batch(self, new_items: List[T], iteration: int = 0) -> Dict[str, Any]:
-        """
-        融合一批新知识点到容器中。
-        
-        :param new_items: 新提取的知识点
-        :param iteration: 迭代号
-        :return: 融合统计信息
-        """
-        start_time = datetime.now()
-
-        try:
-            # 应用融合策略
-            stats = await self.aggregate(new_items, iteration=iteration)
-
-            stats["timestamp"] = start_time.isoformat()
-            stats["duration_ms"] = (datetime.now() - start_time).total_seconds() * 1000
-            stats["iteration"] = iteration
-
-            logger.info(f"Fused batch: {stats}")
-            return stats
-
-        except Exception as e:
-            logger.error(f"Error during fuse_batch: {e}")
-            raise
-
-    # ================= 演化层 =================
+    # ==================== 演化 ====================
 
     @abstractmethod
-    async def evolve(self, **kwargs) -> Dict[str, Any]:
+    def evolve(self, **kwargs) -> T:
         """
         演化内部知识。
-        
-        职责：推理新关系、剪枝低置信度、聚类等高级操作。
-        
-        :return: 演化统计信息
+        子类必须实现此方法。
+
+        职责：
+        - 推理隐含关系
+        - 剪枝低置信度节点
+        - 聚类优化
+        - 知识补全
+
+        :return: 新的内部知识数据
         """
         pass
 
-    # ================= 高级流程 =================
-
-    async def iterative_fuse_and_parse(
-        self,
-        extractor: "BaseExtractor[T]",
-        texts: List[str],
-        max_iterations: int = 3,
-        convergence_threshold: float = 0.95,
-    ) -> Dict[str, Any]:
-        """
-        迭代提取与融合流程。
-        
-        流程：
-        1. 第一次提取：从文本中提取所有知识点
-        2. 融合去重
-        3. 演化优化
-        4. 重复直到收敛或达到最大迭代数
-        
-        :param extractor: 知识提取器
-        :param texts: 输入文本列表
-        :param max_iterations: 最大迭代数
-        :param convergence_threshold: 收敛阈值
-        :return: 迭代结果摘要
-        """
-        iteration = 0
-        previous_size = 0
-        fusion_stats = []
-
-        while iteration < max_iterations:
-            logger.info(f"Iteration {iteration}: extracting...")
-
-            # 1. 提取新知识
-            extracted = await extractor.batch_parse(texts)
-
-            # 2. 融合
-            logger.info(f"Iteration {iteration}: fusing...")
-            fuse_result = await self.fuse_batch(extracted, iteration)
-            fusion_stats.append(fuse_result)
-
-            # 3. 演化
-            logger.info(f"Iteration {iteration}: evolving...")
-            evolve_result = await self.evolve(iteration=iteration)
-
-            # 4. 检查收敛
-            current_size = self.size()
-            logger.info(f"Iteration {iteration}: size={current_size}")
-
-            if previous_size > 0:
-                growth_rate = (current_size - previous_size) / previous_size
-                if growth_rate < (1 - convergence_threshold):
-                    logger.info(
-                        f"Converged at iteration {iteration} (growth_rate={growth_rate})"
-                    )
-                    break
-
-            previous_size = current_size
-            iteration += 1
-
-            await asyncio.sleep(0.1)
-
-        return {
-            "final_iteration": iteration,
-            "total_items": self.size(),
-            "fusion_history": fusion_stats,
-        }
-
-    # ================= 序列化 =================
+    # ==================== 序列化 ====================
 
     @abstractmethod
-    def dump(self, format: str = "json") -> Any:
+    def dump(self, folder_path: str | Path) -> Any:
         """
-        导出容器内的知识。
-        
-        :param format: 格式 ("json", "dict" 等)
+        导出知识到指定文件夹。
+        子类必须实现此方法。
+
+        需要保存到文件夹内：
+        1. 结构化数据 (self._data) - 保存为 JSON 文件
+        2. 向量索引 (self._index) - FAISS 索引文件
+
+        :param folder_path: 目标文件夹路径
+        :return: 序列化后的数据
         """
         pass
 
     @abstractmethod
-    def load(self, data: Any, **kwargs):
+    def load(self, folder_path: str | Path, **kwargs):
         """
-        从外部数据恢复知识。
-        
-        :param data: 外部数据 (dict, json string 或文件路径)
+        从文件夹加载知识。
+        子类必须实现此方法。
+
+        需要从文件夹加载：
+        1. 结构化数据 (self._data) - 从 JSON 文件加载
+        2. 向量索引 (self._index) - 从 FAISS 索引文件加载
+
+        :param folder_path: 文件夹路径
         """
         pass
-
-    def clear(self):
-        """清空所有知识点（可选实现）"""
-        pass
-
-
-# ===================== 通用实现 =====================
-
-
-

@@ -59,13 +59,13 @@ class SimpleGraph(BaseKnowledge[GraphSchema]):
 
         # 4. 【直接在这里做合并逻辑】
         # 简单的去重合并
-        existing_node_ids = {n.id for n in self.data.nodes}
+        existing_node_ids = {n.id for n in self._data.nodes}
         for node in parsed_data.nodes:
             if node.id not in existing_node_ids:
-                self.data.nodes.append(node)
-        self.data.edges.extend(parsed_data.edges)
+                self._data.nodes.append(node)
+        self._data.edges.extend(parsed_data.edges)
 
     def dump(self, format="json"):
         if format == "json":
-            return self.data.model_dump_json()
-        return self.data.model_dump()
+            return self._data.model_dump_json()
+        return self._data.model_dump()
