@@ -59,13 +59,6 @@ class GenericKnowledge(BaseKnowledge[T]):
         """返回当前使用的 Schema 类"""
         return self._schema_class
 
-    def _init_data(self) -> T:
-        """初始化为 Schema 类的空实例"""
-        try:
-            return self.schema_class()
-        except Exception:
-            return self.schema_class.model_construct()
-
     def build_index(self):
         """
         构建或重建向量索引（使用 FAISS）。
@@ -393,7 +386,10 @@ class GenericKnowledge(BaseKnowledge[T]):
 
     def clear(self):
         """清空所有知识"""
-        self._data = self._init_data()
+        try:
+            self._data = self.schema_class()
+        except Exception:
+            self._data = self.schema_class.model_construct()
         self._items.clear()
         self._item_hashes.clear()
         self.metadata["updated_at"] = datetime.now()

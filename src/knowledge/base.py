@@ -27,6 +27,7 @@ class BaseKnowledge(ABC, Generic[T]):
 
     def __init__(
         self,
+        data_schema: Type[T],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
@@ -40,6 +41,7 @@ class BaseKnowledge(ABC, Generic[T]):
         """
         初始化知识对象。
 
+        :param data_schema: 数据 Schema 类（必须是 Pydantic BaseModel 子类）
         :param llm_client: LLM 客户端（用于提取和演化）
         :param embedder: 向量化器（用于语义搜索和相似度计算）
         :param prompt: 用户自定义的提示词（用于 extract）
@@ -48,6 +50,7 @@ class BaseKnowledge(ABC, Generic[T]):
         :param max_workers: 最大并发数（用于并发提取）
         :param show_progress: 是否显示进度信息
         """
+        self._data_schema = data_schema
         self.llm_client = llm_client
         self.embedder = embedder
         self.chunk_size = chunk_size
@@ -61,7 +64,7 @@ class BaseKnowledge(ABC, Generic[T]):
         self._index_dirty: bool = True  # 标记索引是否需要重建
 
         # 内部状态：存储提取的知识
-        self._data: T = self._init_data()
+        self._data: T = self.data_schema()
         self.metadata: Dict[str, Any] = {
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -69,42 +72,32 @@ class BaseKnowledge(ABC, Generic[T]):
             "total_chunks_processed": 0,
         }
 
+    # ==================== 数据管理 ====================
+
     @property
-    def schema_class(self) -> Type[T]:
+    def data_schema(self) -> Type[T]:
         """
         返回当前知识类使用的 Schema 类。
-        子类可覆盖此属性，或在泛型参数中指定。
-        """
-        # 默认实现：从泛型参数推导（仅当子类未覆盖时）
-        raise NotImplementedError("schema_class must be implemented by subclass")
 
-    @abstractmethod
-    def _init_data(self) -> T:
+        :return: Pydantic Schema 类
         """
-        初始化内部数据结构。
+        return self._data_schema
 
-        :return: 初始化的知识容器
+    @property
+    def data(self) -> T:
         """
-        return self.schema_class()
+        获取所有存储的知识（只读）。
 
-    # ==================== 向量索引管理（模板方法模式）====================
-
-    @abstractmethod
-    def build_index(self):
+        :return: 内部知识数据
         """
-        构建或重建向量索引。
-
-        子类必须实现此方法，定义如何构建向量索引。
-        使用 FAISS 作为向量存储后端。
-        """
-        pass
+        return self._data
 
     @abstractmethod
     def clear(self):
         """清空所有知识。"""
         pass
 
-    # ==================== 核心方法：extract ====================
+    # ==================== 提取与聚合 ====================
 
     @abstractmethod
     def extract(self, text: str, **kwargs) -> Dict[str, Any]:
@@ -122,8 +115,6 @@ class BaseKnowledge(ABC, Generic[T]):
         """
         pass
 
-    # ==================== 存储与聚合 ====================
-
     @abstractmethod
     def merge(self, items: List[T], **kwargs) -> Dict[str, Any]:
         """
@@ -137,16 +128,35 @@ class BaseKnowledge(ABC, Generic[T]):
         """
         pass
 
-    # ==================== 查询接口 ====================
+    # ==================== 演化 ====================
 
-    @property
-    def data(self) -> T:
+    @abstractmethod
+    def evolve(self, **kwargs) -> T:
         """
-        获取所有存储的知识（只读）。
+        演化内部知识。
+        子类必须实现此方法。
 
-        :return: 内部知识数据
+        职责：
+        - 推理隐含关系
+        - 剪枝低置信度节点
+        - 聚类优化
+        - 知识补全
+
+        :return: 新的内部知识数据
         """
-        return self._data
+        pass
+
+    # ==================== 索引与查询 ====================
+
+    @abstractmethod
+    def build_index(self):
+        """
+        构建或重建向量索引。
+
+        子类必须实现此方法，定义如何构建向量索引。
+        使用 FAISS 作为向量存储后端。
+        """
+        pass
 
     @abstractmethod
     def search(self, query: str, top_k: int = 10, **kwargs) -> List[Any]:
@@ -173,24 +183,6 @@ class BaseKnowledge(ABC, Generic[T]):
         子类必须实现此方法。
 
         :return: 知识点数量
-        """
-        pass
-
-    # ==================== 演化 ====================
-
-    @abstractmethod
-    def evolve(self, **kwargs) -> T:
-        """
-        演化内部知识。
-        子类必须实现此方法。
-
-        职责：
-        - 推理隐含关系
-        - 剪枝低置信度节点
-        - 聚类优化
-        - 知识补全
-
-        :return: 新的内部知识数据
         """
         pass
 
