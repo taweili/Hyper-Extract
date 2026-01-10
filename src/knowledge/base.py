@@ -54,22 +54,13 @@ class BaseKnowledge(ABC, Generic[T]):
         self._data_schema = data_schema
         self.llm_client = llm_client
         self.embedder = embedder
+        self.prompt = prompt or self._default_prompt()
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_workers = max_workers
         self.show_progress = show_progress
 
         # 初始化提示词模板和 LLM 链
-        if not prompt:
-            self.prompt =(
-            "You are an expert knowledge extraction assistant. "
-            "Your task is to carefully analyze the following text and extract structured information "
-            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
-            "Extract all relevant details without adding information not present in the text.\n\n"
-            "### Source Text:\n"
-        )
-        else:
-            self.prompt = prompt
         self.prompt_template = ChatPromptTemplate.from_template(f"{self.prompt}{{chunk_text}}")
         self.llm_with_schema = self.llm_client.with_structured_output(self._data_schema)
         self.llm_chain = self.prompt_template | self.llm_with_schema
@@ -91,6 +82,17 @@ class BaseKnowledge(ABC, Generic[T]):
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
         }
+
+    @staticmethod
+    def _default_prompt() -> str:
+        """默认提取提示词"""
+        return (
+            "You are an expert knowledge extraction assistant. "
+            "Your task is to carefully analyze the following text and extract structured information "
+            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
+            "Extract all relevant details without adding information not present in the text.\n\n"
+            "### Source Text:\n"
+        )
 
     # ==================== 数据管理 ====================
 
@@ -120,7 +122,7 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== 提取与聚合 ====================
 
     @abstractmethod
-    def extract(self, text: str) -> Dict[str, Any]:
+    def extract(self, text: str) -> T:
         """
         主提取方法 - 自动处理长文本分块、提取、聚合。
 
@@ -128,29 +130,28 @@ class BaseKnowledge(ABC, Generic[T]):
         1. 判断文本长度，决定是否分块
         2. 对每个块调用 _extract_chunk() 进行提取
         3. 调用 merge() 将提取结果聚合到 self._data
-        4. 返回提取统计信息
+        4. 返回提取到的结果
 
         :param text: 输入文本（可以是短文本或长文本）
-        :return: 提取统计信息 {"chunks_processed": 3, "items_extracted": 15, ...}
+        :return: 提取到的知识数据
         """
         pass
 
     @abstractmethod
-    def merge(self, data_list: List[T]) -> Dict[str, Any]:
+    def merge(self, data_list: List[T]) -> T:
         """
         将多个提取结果合并到内部状态 self._data。
 
         职责：去重、合并、冲突解决。
-        子类必须实现此方法。
+        子类必须实现此方法.
 
         :param data_list: 从各个块提取的知识列表
-        :return: 合并统计信息 {"items_added": 10, "duplicates_removed": 2, ...}
+        :return: 合并后的知识数据
         """
         pass
 
     # ==================== 演化 ====================
 
-    @abstractmethod
     def evolve(self, **kwargs) -> T:
         """
         演化内部知识。

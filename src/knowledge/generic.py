@@ -59,7 +59,7 @@ class GenericKnowledge(BaseKnowledge[T]):
             data_schema,
             llm_client,
             embedder,
-            prompt=prompt,
+            prompt=prompt or self._default_prompt(),
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
@@ -67,25 +67,30 @@ class GenericKnowledge(BaseKnowledge[T]):
             **kwargs,
         )
 
+    @staticmethod
+    def _default_prompt() -> str:
+        """默认提取提示词"""
+        return (
+            "You are an expert knowledge extraction assistant. "
+            "Your task is to carefully analyze the following text and extract structured information "
+            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
+            "Extract all relevant details without adding information not present in the text.\n\n"
+            "### Source Text:\n"
+        )
+
     # ==================== 数据管理 ====================
 
     def clear(self):
         """清空所有知识"""
-        try:
-            self._data = self.data_schema()
-        except Exception:
-            self._data = self.data_schema.model_construct()
-
         self.metadata["updated_at"] = datetime.now()
-
+        self._data = self.data_schema()
         self._index = None
         self._index_dirty = True
-
         logger.info("Cleared all knowledge")
 
     # ==================== 提取与聚合 ====================
 
-    def extract(self, text: str) -> Dict[str, Any]:
+    def extract(self, text: str) -> T:
         """使用 LangChain 原生批处理提取知识"""
         start_time = datetime.now()
 
@@ -96,7 +101,7 @@ class GenericKnowledge(BaseKnowledge[T]):
                 logger.info(f"Processing single text (length: {len(text)})...")
             self._data = self.llm_chain.invoke({"chunk_text": text})
             self._index_dirty = True
-            extracted_data_list = [self._data]
+            extracted_data = self._data
         else:
             # 长文本：分块提取
             chunks = self.text_splitter.split_text(text)
@@ -113,37 +118,34 @@ class GenericKnowledge(BaseKnowledge[T]):
                 logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
             logger.info("Merging extracted knowledge...")
-            self.merge(extracted_data_list)
+            extracted_data = self.merge(extracted_data_list)
 
         # 更新元数据
         self.metadata["updated_at"] = datetime.now()
 
-        duration = (datetime.now() - start_time).total_seconds()
-        return {"success": True, "duration_seconds": duration}
+        logger.info("Knowledge extraction completed")
+        logger.info(f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds")
+        return extracted_data
 
-    def merge(self, data_list: List[T]) -> Dict[str, Any]:
+    def merge(self, data_list: List[T]) -> T:
         """
         增量合并：第一次提取的结果为准。
 
         使用 model_copy(update=...) 实现第一次优先合并。
 
         :param data_list: 从各 chunk 提取的结果列表
-        :return: 合并状态
+        :return: 合并后的知识数据
         """
 
-        try:
-            self._data = data_list[0].model_copy()
+        self._data = data_list[0].model_copy()
 
-            for item in data_list[1:]:
-                self._data = item.model_copy(
-                    update=self._data.model_dump(exclude_none=True)
-                )
+        for item in data_list[1:]:
+            self._data = item.model_copy(
+                update=self._data.model_dump(exclude_none=True)
+            )
 
-            self._index_dirty = True
-            return True
-        except Exception as e:
-            logger.error(f"Error during merge: {e}")
-            return False
+        self._index_dirty = True
+        return self.data
 
     # ==================== 查询与索引 ====================
 

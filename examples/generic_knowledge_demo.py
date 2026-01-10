@@ -98,7 +98,7 @@ def main():
 
     # 8. 保存知识
     print("\n[7] 保存知识到文件夹...")
-    save_path = "./.pytest_cache/article_knowledge"
+    save_path = "./tmp/article_knowledge"
     knowledge.dump(save_path)
     print(f"✓ 知识已保存到: {save_path}")
 
