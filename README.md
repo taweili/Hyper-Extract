@@ -1,111 +1,245 @@
+# Hyper-Extract 🧠✨
 
-# Hyper-Extract 🧠
-
-> **An Intelligent, LLM-Driven Knowledge Container Framework.**
+> **An Intelligent, LLM-Powered Knowledge Extraction & Evolution Framework**
 >
-> 一个基于 LLM 的智能知识提取与演化框架。不仅仅是存储数据，它能“阅读”、“思考”并“进化”。
+> Transform unstructured text into structured, evolving knowledge containers with the power of Large Language Models.
 
-## 📖 简介 (Introduction)
+---
 
-**Hyper-Extract** 是一个重新定义的非结构化数据处理框架。与传统的 ETL 工具不同，Hyper-Extract 的核心单元是 **Knowledge Container（知识容器）**。
+## 🎯 Vision
 
-每个容器（如 `SimpleGraph`, `HyperGraph`）都持有一个 **LLM 实例**。它们不仅仅是被动的数据结构，而是具有生命周期的智能体：
+**Hyper-Extract** reimagines knowledge extraction as an intelligent, self-evolving process. Rather than treating data structures as passive containers, we empower them with **LLM-driven intelligence** to actively extract, merge, evolve, and index knowledge from unstructured text.
 
-1.  **Extract (摄入)**: 主动利用 LLM 从文本中提取信息，并执行去重、对齐、合并。
-2.  **Evolve (演化)**: 对已有知识进行内省（Introspection）。包括推理新关系、剪枝错误节点、图卷积传播等。
-3.  **Dump (产出)**: 将清洗后的高质量知识导出为标准格式（JSON/NetworkX/Neo4j）。
+Every knowledge container in Hyper-Extract follows a unified lifecycle:
 
-## ✨ 核心特性 (Features)
+1. **Extract** - Intelligent extraction from text with automatic chunking and merging
+2. **Evolve** - Self-refinement through reasoning, pruning, and optimization
+3. **Index** - Semantic vector search capabilities
+4. **Serialize** - Persist and reload knowledge with full fidelity
 
-*   **LLM Native**: 容器初始化即绑定 LangChain 模型实例，所有操作皆由大模型驱动。
-*   **统一生命周期**: 所有知识类型遵循 `Extract` -> `Evolve` -> `Dump` 的标准范式。
-*   **多模态结构支持**:
-    *   **Graph**: 标准实体关系图谱 (Nodes + Edges)。
-    *   **Hypergraph**: 支持超边（Hyperedge）连接多个节点的复杂语义结构 (HyperRAG 实现)。
-*   **类型安全**: 全面基于 Pydantic Schema，确保结构化输出的稳定性。
+---
 
-## 🛠️ 安装 (Installation)
+## ✨ Key Features
 
-本项目使用 `uv` 进行包管理（也支持标准 pip）。
+### 🤖 LLM-Native Design
+- **Deep LangChain Integration**: Every container is initialized with LLM and embedder instances
+- **Structured Output**: Leverage `with_structured_output` for type-safe Pydantic schema extraction
+- **Intelligent Merging**: First-priority merge strategy for chunk-based extraction
 
+### 🏗️ Unified Architecture
+- **Abstract Base Class**: `BaseKnowledge[T]` provides consistent interface across all knowledge types
+- **Generic Type Support**: Full Python typing with `Generic[T]` for schema flexibility
+- **Lifecycle Management**: Standardized `extract` → `merge` → `evolve` → `search` → `dump/load` pipeline
+
+### 🔍 Semantic Search
+- **FAISS Integration**: Fast vector similarity search for knowledge retrieval
+- **Automatic Indexing**: Build and maintain indices with lazy loading and dirty tracking
+- **Field-Level Search**: Search across all schema fields with metadata preservation
+
+### 📦 Multiple Knowledge Types (Roadmap)
+- ✅ **GenericKnowledge**: Universal schema-agnostic knowledge extraction
+- 🚧 **EntityKnowledge**: Entity-centric extraction with attribute management
+- 🚧 **RelationKnowledge**: Relationship extraction with entity linking
+- 🚧 **GraphKnowledge**: Knowledge graph construction (nodes + edges)
+- 🚧 **HypergraphKnowledge**: Hypergraph representation for complex multi-entity relations
+- 🚧 **ExtractionExperience**: Meta-learning from extraction patterns
+
+---
+
+## 🛠️ Installation
+
+### Prerequisites
+- Python 3.10+
+- OpenAI API key (or compatible LLM provider)
+
+### Install with uv (Recommended)
 ```bash
-# 克隆项目
+# Clone the repository
 git clone https://github.com/your-username/hyper-extract.git
 cd hyper-extract
 
-# 使用 uv 安装依赖 (推荐)
+# Install dependencies with uv
 uv sync
+```
 
-# 或者使用 pip
+### Install with pip
+```bash
 pip install -r requirements.txt
 ```
 
-## 🚀 快速开始 (Quick Start)
+---
 
-### 1. 定义与初始化
+## 🚀 Quick Start
+
+### 1. Define Your Knowledge Schema
 
 ```python
-import asyncio
-from langchain_openai import ChatOpenAI
-from src.knowledge.graph.simple_graph import SimpleGraph
+from pydantic import BaseModel, Field
+from typing import List
 
-async def main():
-    # 1. 准备大模型实例
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
-
-    # 2. 初始化智能容器
-    # 容器就像一个空的大脑，准备好接收信息
-    kg = SimpleGraph(llm=llm)
-
-    # 3. Extract: 摄入知识
-    text = "Elon Musk co-founded OpenAI in 2015. He later left the board in 2018."
-    print(f"正在提取: {text}...")
-    await kg.extract(text)
-
-    # 4. Evolve: 知识演化 (可选)
-    # 例如：推断隐含关系或清理孤立节点
-    await kg.evolve()
-
-    # 5. Dump: 导出结果
-    data = kg.dump(format="json")
-    print("最终知识图谱:", data)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+class ArticleKnowledge(BaseModel):
+    """Schema for article knowledge extraction"""
+    title: str = Field(default="", description="Article title")
+    author: str = Field(default="", description="Author name")
+    summary: str = Field(default="", description="Article summary")
+    key_points: List[str] = Field(default_factory=list, description="Key points")
+    topics: List[str] = Field(default_factory=list, description="Topic tags")
 ```
 
-## 📂 项目结构 (Project Structure)
+### 2. Initialize Knowledge Container
 
-```text
-hyper-extract/
-├── src/
-│   ├── core/               # 核心抽象定义
-│   ├── driver/             # LLM 驱动与适配器
-│   ├── schema/             # Pydantic 数据结构定义 (GraphSchema, etc.)
-│   └── knowledge/          # 知识容器实现
-│       ├── base.py         # [核心] BaseKnowledge 基类
-│       ├── graph/          # 普通图谱实现
-│       │   ├── simple_graph.py     # 基础图提取
-│       │   └── kg_gen_graph.py     # 复杂生成式图谱
-│       └── hypergraph/     # 超图实现
-│           ├── simple_hypergraph.py
-│           └── hyperrag_hypergraph.py
-├── tests/                  # 测试用例
-├── main.py                 # 入口示例
-├── pyproject.toml          # 项目配置
-└── uv.lock                 # 依赖锁定
+```python
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from src.knowledge.generic import GenericKnowledge
+
+# Initialize LLM and embedder
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+embedder = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Create knowledge container
+knowledge = GenericKnowledge(
+    data_schema=ArticleKnowledge,
+    llm_client=llm,
+    embedder=embedder,
+    chunk_size=2000,  # Auto-split long texts
+    max_workers=5,    # Concurrent processing
+    show_progress=True
+)
 ```
 
-## 🧩 扩展指南 (Development)
+### 3. Extract Knowledge from Text
 
-如果你想添加一种新的知识结构（例如“思维导图”）：
+```python
+article_text = """
+Title: The Future of AI
+Author: Dr. Jane Smith
 
-1.  继承 `src.knowledge.base.BaseKnowledge`。
-2.  定义你的数据 Schema (Pydantic)。
-3.  实现 **`extract`**: 定义如何用 Prompt 将文本转化为你的 Schema。
-4.  实现 **`evolve`** (可选): 定义如何优化你的数据结构。
-5.  实现 **`dump`**: 定义导出格式。
+Artificial intelligence is transforming industries...
+[Your long article text here]
+"""
+
+# Extract with automatic chunking and merging
+result = knowledge.extract(article_text)
+print(f"Extraction completed: {result}")
+
+# Access extracted data
+print(f"Title: {knowledge.data.title}")
+print(f"Author: {knowledge.data.author}")
+print(f"Key points: {knowledge.data.key_points}")
+```
+
+### 4. Semantic Search
+
+```python
+# Build vector index
+knowledge.build_index()
+
+# Search with natural language
+results = knowledge.search("What are the main topics?", top_k=3)
+for result in results:
+    print(result)
+```
+
+### 5. Save and Load
+
+```python
+# Save to folder (includes data + FAISS index)
+knowledge.dump("./output/my_knowledge")
+
+# Load from folder
+knowledge.load("./output/my_knowledge")
+```
+
+---
+
+## 🏛️ Architecture
+
+### Design Principles
+
+1. **Template Method Pattern**: `BaseKnowledge` defines the extraction skeleton, subclasses customize behavior
+2. **First-Priority Merge**: `model_copy(update=model_dump(exclude_none=True))` for conflict resolution
+3. **Lazy Indexing**: Build FAISS indices only when needed, track with `_index_dirty` flag
+4. **Type Safety**: Leverage Pydantic for runtime validation and IDE support
+
+---
+
+## 📚 Examples
+
+Check out the `examples/` directory for complete working examples:
+
+- [`generic_knowledge_demo.py`](examples/generic_knowledge_demo.py) - Full GenericKnowledge walkthrough
+- More examples coming soon!
+
+---
+
+## 🗺️ Roadmap
+
+### Phase 1: Foundation (Current) ✅
+- [x] Abstract `BaseKnowledge` class
+- [x] `GenericKnowledge` implementation
+- [x] LangChain integration with structured output
+- [x] FAISS vector search
+- [x] Serialization (dump/load)
+
+### Phase 2: Specialized Knowledge Types 🚧
+- [ ] `EntityKnowledge` - Entity extraction with coreference resolution
+- [ ] `RelationKnowledge` - Relationship extraction and linking
+- [ ] `GraphKnowledge` - Full knowledge graph construction
+- [ ] `HypergraphKnowledge` - Hypergraph for complex relations
+
+### Phase 3: Evolution & Learning 🔮
+- [ ] `evolve()` implementation with reasoning
+- [ ] Extraction experience learning
+- [ ] Confidence scoring and quality metrics
+- [ ] Active learning for schema refinement
+
+### Phase 4: Advanced Features 🚀
+- [ ] Multi-modal extraction (images, tables, PDFs)
+- [ ] Incremental updates and versioning
+- [ ] Distributed processing for massive datasets
+- [ ] Integration with graph databases (Neo4j, NetworkX)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Whether it's:
+
+- 🐛 Bug reports and fixes
+- 💡 Feature suggestions
+- 📖 Documentation improvements
+- 🧪 New knowledge type implementations
+
+Please open an issue or submit a PR. Check out our [contributing guidelines](CONTRIBUTING.md) (coming soon).
+
+---
 
 ## 📄 License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [LangChain](https://github.com/langchain-ai/langchain) for LLM orchestration
+- Powered by [Pydantic](https://github.com/pydantic/pydantic) for data validation
+- Vector search by [FAISS](https://github.com/facebookresearch/faiss)
+- Inspired by the vision of self-evolving knowledge systems
+
+---
+
+## 📬 Contact
+
+- **GitHub Issues**: [Create an issue](https://github.com/yifanfeng97/hyper-extract/issues)
+- **Email**: evanfeng97@gmail.com
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it useful! ⭐**
+
+*Building the future of intelligent knowledge extraction, one container at a time.*
+
+</div>

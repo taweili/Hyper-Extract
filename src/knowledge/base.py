@@ -5,6 +5,8 @@ from datetime import datetime
 from pydantic import BaseModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -36,7 +38,6 @@ class BaseKnowledge(ABC, Generic[T]):
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
-        **kwargs,
     ):
         """
         初始化知识对象。
@@ -55,21 +56,40 @@ class BaseKnowledge(ABC, Generic[T]):
         self.embedder = embedder
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.prompt = prompt
         self.max_workers = max_workers
         self.show_progress = show_progress
+
+        # 初始化提示词模板和 LLM 链
+        if not prompt:
+            self.prompt =(
+            "You are an expert knowledge extraction assistant. "
+            "Your task is to carefully analyze the following text and extract structured information "
+            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
+            "Extract all relevant details without adding information not present in the text.\n\n"
+            "### Source Text:\n"
+        )
+        else:
+            self.prompt = prompt
+        self.prompt_template = ChatPromptTemplate.from_template(f"{self.prompt}{{chunk_text}}")
+        self.llm_with_schema = self.llm_client.with_structured_output(self._data_schema)
+        self.llm_chain = self.prompt_template | self.llm_with_schema
+
+        # 初始化文本分割器
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            separators=["\n\n", "\n", "。", "！", "？", ". ", "! ", "? ", " ", ""],
+        )
 
         # 向量存储相关（使用 FAISS）
         self._index = None
         self._index_dirty: bool = True  # 标记索引是否需要重建
 
         # 内部状态：存储提取的知识
-        self._data: T = self.data_schema()
+        self._data: T = self._data_schema()
         self.metadata: Dict[str, Any] = {
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
-            "total_extractions": 0,
-            "total_chunks_processed": 0,
         }
 
     # ==================== 数据管理 ====================
@@ -100,7 +120,7 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== 提取与聚合 ====================
 
     @abstractmethod
-    def extract(self, text: str, **kwargs) -> Dict[str, Any]:
+    def extract(self, text: str) -> Dict[str, Any]:
         """
         主提取方法 - 自动处理长文本分块、提取、聚合。
 
@@ -116,14 +136,14 @@ class BaseKnowledge(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def merge(self, items: List[T], **kwargs) -> Dict[str, Any]:
+    def merge(self, data_list: List[T]) -> Dict[str, Any]:
         """
         将多个提取结果合并到内部状态 self._data。
 
         职责：去重、合并、冲突解决。
         子类必须实现此方法。
 
-        :param items: 从各个块提取的知识列表
+        :param data_list: 从各个块提取的知识列表
         :return: 合并统计信息 {"items_added": 10, "duplicates_removed": 2, ...}
         """
         pass
@@ -159,7 +179,7 @@ class BaseKnowledge(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def search(self, query: str, top_k: int = 10, **kwargs) -> List[Any]:
+    def search(self, query: str, top_k: int = 3) -> List[Any]:
         """
         语义搜索知识。
 
