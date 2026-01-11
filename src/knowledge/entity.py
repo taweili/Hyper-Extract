@@ -4,17 +4,15 @@
 包含基于 GenericKnowledge 的实体提取实现。
 """
 
-import json
-from typing import List, Dict, Any, Type
+from typing import List, Dict, Type, TypeVar, Generic
 from datetime import datetime
-from pydantic import BaseModel, Field as PydanticField, create_model
+from pydantic import BaseModel, Field as PydanticField
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 
 from .generic import GenericKnowledge
-from .base import T
 
 try:
     from src.config import logger
@@ -24,7 +22,11 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-class BaseEntity(BaseModel):
+# 实体类型变量
+E = TypeVar("E", bound="BaseEntitySchema")
+
+
+class BaseEntitySchema(BaseModel):
     """
     实体基类 - 所有实体必须包含的核心字段。
 
@@ -41,7 +43,13 @@ class BaseEntity(BaseModel):
         validate_assignment = True  # 赋值时验证
 
 
-class EntityKnowledge(GenericKnowledge[T]):
+class EntityListSchema(BaseModel, Generic[E]):
+    """实体列表的容器类（泛型版本，支持类型推断）"""
+
+    entities: List[E] = PydanticField(default_factory=list, description="实体列表")
+
+
+class EntityKnowledge(GenericKnowledge[EntityListSchema[E]], Generic[E]):
     """
     专门用于实体提取和管理的知识类。
 
@@ -54,7 +62,7 @@ class EntityKnowledge(GenericKnowledge[T]):
 
     def __init__(
         self,
-        entity_schema: Type[BaseEntity],
+        entity_schema: Type[E],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
@@ -68,10 +76,9 @@ class EntityKnowledge(GenericKnowledge[T]):
         :param prompt: 自定义提示词
         """
         self._entity_schema = entity_schema
-        entity_list_schema = self._create_entity_list_schema(entity_schema)
 
         super().__init__(
-            data_schema=entity_list_schema,
+            data_schema=EntityListSchema[entity_schema],
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt or self._default_prompt(),
@@ -79,22 +86,10 @@ class EntityKnowledge(GenericKnowledge[T]):
         )
 
         self._merge_chain = self._create_merge_chain()
-        
-        # 全局实体映射（主存储）
-        self._entity_map: Dict[str, BaseEntity] = {}
-        self._entity_map_dirty = True  # 标记是否需要同步到 _data
 
-    @staticmethod
-    def _create_entity_list_schema(entity_class: Type[BaseEntity]) -> Type[BaseModel]:
-        """使用 pydantic.create_model 动态创建 EntityList Schema"""
-        return create_model(
-            f"{entity_class.__name__}List",
-            entities=(
-                List[entity_class],
-                PydanticField(default_factory=list, description="实体列表"),
-            ),
-            __base__=BaseModel,
-        )
+        # 全局实体映射（主存储，类型安全）
+        self._entity_map: Dict[str, E] = {}
+        self._entity_map_dirty = True  # 标记是否需要同步到 _data
 
     @staticmethod
     def _default_prompt() -> str:
@@ -134,13 +129,11 @@ Please merge these two entities intelligently and return the result."""
     # ==================== 数据管理 ====================
 
     @property
-    def data(self) -> T:
-        """懒更新：只在访问时才同步 entity_map 到 _data"""
+    def data(self) -> EntityListSchema[E]:
+        """懒更新：只在访问时才同步 entity_map 到 _data（零拷贝，直接引用）"""
         if self._entity_map_dirty:
-            self._data.entities = [
-                entity.model_copy(deep=True)
-                for entity in self._entity_map.values()
-            ]
+            # 直接引用 entity_map 的值，避免深拷贝
+            self._data.entities = list(self._entity_map.values())
             self._entity_map_dirty = False
         return self._data
 
@@ -156,7 +149,67 @@ Please merge these two entities intelligently and return the result."""
 
     # ==================== 提取与聚合 ====================
 
-    def merge(self, data_list: List[T]) -> T:
+    def extract(self, text: str, *, append_mode: bool = False) -> EntityListSchema[E]:
+        """
+        提取实体知识（支持替换/累积两种模式）。
+
+        模式说明：
+        - append_mode=False（默认）: 替换模式
+          先清空现有实体，然后提取新实体
+
+        - append_mode=True: 累积模式
+          保留现有实体，提取新实体并智能合并（LLM 去重）
+
+        :param text: 输入文本
+        :param append_mode: 是否累积模式（默认 False）
+        :return: 提取后的实体列表
+        """
+        # 替换模式：先清空
+        if not append_mode:
+            self.clear()
+
+        start_time = datetime.now()
+
+        # 判断是否需要分块
+        if len(text) <= self.chunk_size:
+            # 短文本：一次性提取
+            if self.show_progress:
+                logger.info(f"Processing single text (length: {len(text)})...")
+            extracted_list = [self.llm_chain.invoke({"chunk_text": text})]
+        else:
+            # 长文本：分块提取
+            chunks = self.text_splitter.split_text(text)
+            logger.info(f"Split text into {len(chunks)} chunks")
+
+            if self.show_progress:
+                logger.info(f"Processing {len(chunks)} chunk(s)...")
+
+            inputs = [{"chunk_text": chunk} for chunk in chunks]
+            extracted_list = self.llm_chain.batch(
+                inputs, config={"max_concurrency": self.max_workers}
+            )
+
+        # 合并到 entity_map
+        if self.show_progress:
+            mode_str = "Appending" if append_mode else "Extracting"
+            logger.info(f"{mode_str} entities...")
+
+        self.merge(extracted_list)
+
+        # 更新元数据
+        self.metadata["updated_at"] = datetime.now()
+
+        logger.info(
+            f"Entity extraction completed ({'append' if append_mode else 'replace'} mode)"
+        )
+        logger.info(f"Total entities: {len(self._entity_map)}")
+        logger.info(
+            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
+        )
+
+        return self.data
+
+    def merge(self, data_list: List[EntityListSchema[E]]) -> EntityListSchema[E]:
         """
         实体级别的智能合并（使用 LLM）。
 
@@ -165,7 +218,7 @@ Please merge these two entities intelligently and return the result."""
         2. 使用 name 作为唯一标识符去重
         3. 对于同名实体，调用 LLM 进行智能合并
 
-        :param data_list: 多个 EntityList 对象
+        :param data_list: 多个 EntityListSchema 对象
         :return: 合并后的实体数据
         """
         if not data_list:
@@ -176,8 +229,8 @@ Please merge these two entities intelligently and return the result."""
         duplicate_count = 0
 
         # 遍历新提取的数据，与已有的 entity_map 合并
-        for entity_list_obj in data_list:
-            for entity in entity_list_obj.entities:
+        for entity_list in data_list:
+            for entity in entity_list.entities:
                 total_entities += 1
                 entity_name = entity.name.strip()
 
@@ -211,15 +264,13 @@ Please merge these two entities intelligently and return the result."""
 
         return self.data
 
-    def _merge_entity_with_llm(
-        self, entity_a: BaseEntity, entity_b: BaseEntity
-    ) -> BaseEntity:
+    def _merge_entity_with_llm(self, entity_a: E, entity_b: E) -> E | None:
         """
         使用 LLM 智能合并两个同名实体。
 
         :param entity_a: 第一个实体
         :param entity_b: 第二个实体
-        :return: 合并后的实体（失败返回第一个实体）
+        :return: 合并后的实体（失败返回 None）
         """
         try:
             # 准备输入
@@ -239,7 +290,7 @@ Please merge these two entities intelligently and return the result."""
 
         except Exception as e:
             logger.error(f"Error merging entity '{entity_a.name}' with LLM: {e}")
-            return entity_a
+            return None
 
     # ==================== 查询与索引 ====================
 
@@ -248,7 +299,7 @@ Please merge these two entities intelligently and return the result."""
         为每个实体构建独立的向量索引文档。
 
         每个实体 → 一个 Document:
-        - page_content: "{name}: {description}"
+        - page_content: "{name}: {description} + 其他字段"
         - metadata: {"entity": entity.model_dump()}
         """
         if len(self._entity_map) == 0:
@@ -261,13 +312,25 @@ Please merge these two entities intelligently and return the result."""
         documents = []
         for entity in self._entity_map.values():
             # 构建文档内容（用于向量化）
-            content = self._build_entity_content(entity)
+            content_parts = [
+                f"name: {entity.name}",
+                f"description: {entity.description}",
+            ]
+
+            # 添加其他字段（如果用户扩展了）
+            for field_name in self._entity_schema.model_fields:
+                if field_name not in ("name", "description"):
+                    value = getattr(entity, field_name, None)
+                    if value is not None:
+                        content_parts.append(f"{field_name}: {value}")
+
+            content = "\n".join(content_parts)
 
             # 保存完整实体数据到 metadata
             documents.append(
                 Document(
                     page_content=content,
-                    metadata={"entity": entity.model_dump(), "name": entity.name},
+                    metadata={"raw": entity.model_dump()},
                 )
             )
 
@@ -281,31 +344,7 @@ Please merge these two entities intelligently and return the result."""
             logger.error("FAISS not available. Install: pip install faiss-cpu")
             raise
 
-    def _build_entity_content(self, entity: BaseEntity) -> str:
-        """
-        构建实体的文本表示（用于向量化）。
-
-        策略：
-        - 基础："{name}: {description}"
-        - 可选：添加其他字段
-        """
-        content_parts = [entity.name]
-
-        if entity.description:
-            content_parts.append(entity.description)
-
-        # 添加其他字段（如果用户扩展了）
-        for field_name in entity.model_fields:
-            if field_name not in ("name", "description"):
-                value = getattr(entity, field_name, None)
-                if value is not None:
-                    content_parts.append(f"{field_name}: {value}")
-
-        return "\n".join(content_parts)
-
-    def search(
-        self, query: str, top_k: int = 3, return_raw: bool = False
-    ) -> List[BaseEntity]:
+    def search(self, query: str, top_k: int = 3, return_raw: bool = False) -> List[E]:
         """
         语义搜索实体。
 
@@ -329,7 +368,7 @@ Please merge these two entities intelligently and return the result."""
         results = []
         for doc in docs:
             try:
-                entity_data = doc.metadata["entity"]
+                entity_data = doc.metadata["raw"]
                 if return_raw:
                     # 返回 Pydantic 对象
                     entity = self._entity_schema.model_validate(entity_data)
@@ -350,12 +389,12 @@ Please merge these two entities intelligently and return the result."""
     # ==================== 便捷属性 ====================
 
     @property
-    def entities(self) -> List[BaseEntity]:
+    def entities(self) -> List[E]:
         """快速访问实体列表（触发懒更新）"""
         return self.data.entities
 
     @property
-    def entity_schema(self) -> Type[BaseEntity]:
+    def entity_schema(self) -> Type[E]:
         """返回用户定义的实体 Schema"""
         return self._entity_schema
 
@@ -366,7 +405,7 @@ Please merge these two entities intelligently and return the result."""
 
     # ==================== 可选增强方法 ====================
 
-    def get_entity_by_name(self, name: str) -> BaseEntity:
+    def get_entity_by_name(self, name: str) -> E | None:
         """按名称获取实体（O(1) 字典查找）"""
         return self._entity_map.get(name)
 
@@ -388,8 +427,7 @@ Please merge these two entities intelligently and return the result."""
 
         # 从 _data 重建 entity_map
         self._entity_map = {
-            entity.name: entity.model_copy(deep=True)
-            for entity in self._data.entities
+            entity.name: entity.model_copy(deep=True) for entity in self._data.entities
         }
         self._entity_map_dirty = False
 

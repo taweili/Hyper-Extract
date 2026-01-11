@@ -101,7 +101,6 @@ class GenericKnowledge(BaseKnowledge[T]):
                 logger.info(f"Processing single text (length: {len(text)})...")
             self._data = self.llm_chain.invoke({"chunk_text": text})
             self._index_dirty = True
-            extracted_data = self._data
         else:
             # 长文本：分块提取
             chunks = self.text_splitter.split_text(text)
@@ -118,14 +117,14 @@ class GenericKnowledge(BaseKnowledge[T]):
                 logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
             logger.info("Merging extracted knowledge...")
-            extracted_data = self.merge(extracted_data_list)
+            self.merge(extracted_data_list)
 
         # 更新元数据
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
         logger.info(f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds")
-        return extracted_data
+        return self.data
 
     def merge(self, data_list: List[T]) -> T:
         """

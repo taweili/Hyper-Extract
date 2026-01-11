@@ -122,17 +122,21 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== 提取与聚合 ====================
 
     @abstractmethod
-    def extract(self, text: str) -> T:
+    def extract(self, text: str, *, append_mode: bool = False) -> T:
         """
         主提取方法 - 自动处理长文本分块、提取、聚合。
 
         流程：
-        1. 判断文本长度，决定是否分块
-        2. 对每个块调用 _extract_chunk() 进行提取
-        3. 调用 merge() 将提取结果聚合到 self._data
-        4. 返回提取到的结果
+        1. 根据 append_mode 决定是否清空现有数据
+        2. 判断文本长度，决定是否分块
+        3. 对每个块进行提取
+        4. 调用 merge() 将提取结果聚合到 self._data
+        5. 返回提取到的结果
 
         :param text: 输入文本（可以是短文本或长文本）
+        :param append_mode: 是否累积模式（默认 False）
+            - False（默认）: 替换模式 - 先清空现有知识，再提取新数据
+            - True: 累积模式 - 保留现有知识，合并新数据
         :return: 提取到的知识数据
         """
         pass
