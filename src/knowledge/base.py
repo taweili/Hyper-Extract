@@ -63,7 +63,7 @@ class BaseKnowledge(ABC, Generic[T]):
         # 初始化提示词模板和 LLM 链
         self.prompt_template = ChatPromptTemplate.from_template(f"{self.prompt}{{chunk_text}}")
         self.llm_with_schema = self.llm_client.with_structured_output(self._data_schema)
-        self.llm_chain = self.prompt_template | self.llm_with_schema
+        self.llm_chain_extract = self.prompt_template | self.llm_with_schema
 
         # 初始化文本分割器
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -214,7 +214,7 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== 序列化 ====================
 
     @abstractmethod
-    def dump(self, folder_path: str | Path) -> Any:
+    def dump(self, folder_path: str | Path):
         """
         导出知识到指定文件夹。
         子类必须实现此方法。
@@ -224,12 +224,11 @@ class BaseKnowledge(ABC, Generic[T]):
         2. 向量索引 (self._index) - FAISS 索引文件
 
         :param folder_path: 目标文件夹路径
-        :return: 序列化后的数据
         """
         pass
 
     @abstractmethod
-    def load(self, folder_path: str | Path, **kwargs):
+    def load(self, folder_path: str | Path):
         """
         从文件夹加载知识。
         子类必须实现此方法。

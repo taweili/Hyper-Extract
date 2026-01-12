@@ -1,15 +1,20 @@
 """
-通用 Generic 实现。
+基础知识模式实现。
 
-包含基于 BaseKnowledge 的具体实现。
+包含两种核心模式：
+- ItemKnowledge: 单对象模式（适用于摘要、元数据等）
+- ListKnowledge: 列表模式（适用于实体、事件等列表提取）
 """
 
 import json
-from typing import List, Dict, Any, Type
+from typing import List, Any, Type, TypeVar, Generic
 from datetime import datetime
+from pathlib import Path
+from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
+from langchain_community.vectorstores import FAISS
 
 from .base import BaseKnowledge, T
 
@@ -21,14 +26,14 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-class GenericKnowledge(BaseKnowledge[T]):
+class ItemKnowledge(BaseKnowledge[T]):
     """
-    通用知识实现 - 适用于任何 Pydantic Schema。
+    单例知识模式 (Single Item Pattern) - 适用于任何 Pydantic Schema。
 
     特点：
-    - 使用 LLM 的 with_structured_output 进行提取
-    - 智能合并：列表字段 append + 去重，其他字段 LLM 合并
-    - 支持向量化语义搜索
+    - 针对整篇文档提取 **唯一** 的一个结构化对象
+    - 合并策略：字段级更新 (Upsert/Patch)
+    - 索引策略：对对象的每个非空字段建立索引
     - 使用 LangChain 原生批处理（batch_as_completed）
     """
 
@@ -96,13 +101,11 @@ class GenericKnowledge(BaseKnowledge[T]):
 
         # 判断是否需要分块
         if len(text) <= self.chunk_size:
-            # 短文本：一次性提取
             if self.show_progress:
                 logger.info(f"Processing single text (length: {len(text)})...")
-            self._data = self.llm_chain.invoke({"chunk_text": text})
+            self._data = self.llm_chain_extract.invoke({"chunk_text": text})
             self._index_dirty = True
         else:
-            # 长文本：分块提取
             chunks = self.text_splitter.split_text(text)
             logger.info(f"Split text into {len(chunks)} chunks")
 
@@ -110,7 +113,7 @@ class GenericKnowledge(BaseKnowledge[T]):
                 logger.info(f"Processing {len(chunks)} chunk(s)...")
 
             inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = self.llm_chain.batch(
+            extracted_data_list = self.llm_chain_extract.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
             if self.show_progress:
@@ -123,7 +126,9 @@ class GenericKnowledge(BaseKnowledge[T]):
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
-        logger.info(f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds")
+        logger.info(
+            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
+        )
         return self.data
 
     def merge(self, data_list: List[T]) -> T:
@@ -169,15 +174,9 @@ class GenericKnowledge(BaseKnowledge[T]):
                     )
                 )
 
-        try:
-            from langchain_community.vectorstores import FAISS
-
-            self._index = FAISS.from_documents(documents, self.embedder)
-            self._index_dirty = False
-            logger.info(f"Built FAISS index with {len(documents)} documents")
-        except ImportError:
-            logger.error("FAISS not available. Install with: pip install faiss-cpu")
-            raise
+        self._index = FAISS.from_documents(documents, self.embedder)
+        self._index_dirty = False
+        logger.info(f"Built FAISS index with {len(documents)} documents")
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
         """
@@ -192,8 +191,10 @@ class GenericKnowledge(BaseKnowledge[T]):
             logger.warning("No items to search")
             return []
 
-        if self._index is None:
-            raise Exception("Vector store not initialized")
+        if self._index is None or self._index_dirty:
+            raise Exception(
+                "Index is not built or dirty, please build the index first."
+            )
 
         docs = self._index.similarity_search(query, k=top_k)
 
@@ -215,66 +216,70 @@ class GenericKnowledge(BaseKnowledge[T]):
 
     # ==================== 序列化 ====================
 
-    def dump(self, folder_path: str) -> Any:
+    def dump(self, folder_path: str | Path):
         """
         导出知识到指定文件夹。
 
         保存到文件夹内：
-        1. 结构化数据 (self._data) - 保存为 data.json
+        1. 结构化数据 (self._data) - 保存为 state.json
         2. 向量索引 (self._index) - FAISS 索引文件
 
         :param folder_path: 目标文件夹路径
-        :return: 序列化后的数据（JSON 字符串）
         """
-        from pathlib import Path
 
         folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
+        if folder.exists() and folder.is_file():
+            raise Exception("Folder path is a file, please provide a folder path.")
 
-        # 1. 保存结构化数据
-        data = {
-            "schema_name": self.data_schema.__name__,
-            "data": self.data.model_dump(),
-            "metadata": {
-                k: str(v) if isinstance(v, datetime) else v
-                for k, v in self.metadata.items()
-            },
-        }
+        if not folder.exists():
+            logger.info(f"Creating folder: {folder}")
+            folder.mkdir(parents=True, exist_ok=True)
 
-        json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
-        data_file = folder / "data.json"
-        with open(data_file, "w", encoding="utf-8") as f:
-            f.write(json_str)
-        logger.info(f"Saved data to {data_file}")
+        try:
+            # 1. 保存结构化数据
+            data = {
+                "schema_name": self.data_schema.__name__,
+                "data_schema": self.data_schema.model_json_schema(),
+                "data": self.data.model_dump(),
+                "metadata": {
+                    k: str(v) if isinstance(v, datetime) else v
+                    for k, v in self.metadata.items()
+                },
+            }
 
-        # 2. 保存向量索引
-        if self._index is not None:
-            index_path = str(folder / "faiss_index")
-            self._index.save_local(index_path)
-            logger.info(f"Saved FAISS index to {index_path}")
-        else:
-            logger.warning("No index to save")
+            json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+            data_file = folder / "state.json"
+            with open(data_file, "w", encoding="utf-8") as f:
+                f.write(json_str)
+            logger.info(f"Saved data to {data_file}")
 
-        return json_str
+            # 2. 保存向量索引
+            if self._index is not None:
+                index_path = str(folder / "faiss_index")
+                self._index.save_local(index_path)
+                logger.info(f"Saved FAISS index to {index_path}")
+            else:
+                logger.warning("No index to save")
 
-    def load(self, folder_path: str, **kwargs):
+        except Exception as e:
+            logger.error(f"Failed to dump knowledge: {e}")
+
+    def load(self, folder_path: str | Path):
         """
         从文件夹加载知识。
 
         从文件夹加载：
-        1. 结构化数据 (self._data) - 从 data.json 加载
+        1. 结构化数据 (self._data) - 从 state.json 加载
         2. 向量索引 (self._index) - 从 FAISS 索引文件加载
 
         :param folder_path: 文件夹路径
         """
-        from pathlib import Path
-
         folder = Path(folder_path)
         if not folder.is_dir():
             raise ValueError(f"Folder does not exist: {folder_path}")
 
         # 1. 加载结构化数据
-        data_file = folder / "data.json"
+        data_file = folder / "state.json"
         if not data_file.is_file():
             raise ValueError(f"Data file not found: {data_file}")
 
@@ -310,3 +315,303 @@ class GenericKnowledge(BaseKnowledge[T]):
             self._index_dirty = True
 
         logger.info(f"Loaded knowledge successfully with {self.size()} fields")
+
+
+# ==================== 两种基础知识模式 ====================
+
+# ItemKnowledge: 单对象模式（已在上方定义）
+# ListKnowledge: 列表模式（如下）
+Item = TypeVar("Item", bound=BaseModel)
+
+
+class ItemListSchema(BaseModel, Generic[Item]):
+    """列表容器的通用 Schema"""
+
+    items: List[Item] = Field(default_factory=list, description="Item list")
+
+
+class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
+    """
+    列表知识模式 (List Collection Pattern)。
+
+    特点：
+    - 针对整篇文档提取 **一组** 对象列表（如实体、事件、引用等）
+    - 合并策略：追加 (Append) + 基础去重（可由子类扩展）
+    - 索引策略：对列表中的每个 Item 独立建立索引
+
+    与 ItemKnowledge 的区别：
+    - ItemKnowledge: 提取单个结构化对象（如摘要、元数据）
+    - ListKnowledge: 提取多个独立对象的列表（如实体列表、事件列表）
+    """
+
+    def __init__(
+        self,
+        item_schema: Type[Item],
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        prompt: str = "",
+        chunk_size: int = 2000,
+        chunk_overlap: int = 200,
+        max_workers: int = 10,
+        show_progress: bool = True,
+        **kwargs,
+    ):
+        """
+        :param item_schema: 列表中单个元素的 Schema 类
+        :param llm_client: LLM 客户端
+        :param embedder: 向量化器
+        :param prompt: 自定义提示词
+        :param chunk_size: 长文本分块大小
+        :param chunk_overlap: 分块重叠大小
+        :param max_workers: 最大并发数
+        :param show_progress: 是否显示进度
+        """
+        self.item_schema = item_schema
+
+        # 使用显式定义的 ItemListSchema
+        self.container_schema = ItemListSchema[item_schema]
+
+        super().__init__(
+            data_schema=self.container_schema,
+            llm_client=llm_client,
+            embedder=embedder,
+            prompt=prompt or self._default_prompt(),
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            show_progress=show_progress,
+            **kwargs,
+        )
+
+    @staticmethod
+    def _default_prompt() -> str:
+        """默认列表提取提示词"""
+        return (
+            "You are an expert knowledge extraction assistant. "
+            "Extract all relevant items from the text into a list. "
+            "Be comprehensive and ensure no item is missed. "
+            "Extract all items without adding information not present in the text.\n\n"
+            "### Source Text:\n"
+        )
+
+    @property
+    def items(self) -> List[Item]:
+        """获取内部列表"""
+        return getattr(self._data, "items", [])
+
+    def clear(self):
+        """清空所有列表项"""
+        self.metadata["updated_at"] = datetime.now()
+        self._data = self.container_schema(items=[])
+        self._index = None
+        self._index_dirty = True
+        logger.info("Cleared list knowledge")
+
+    def extract(self, text: str) -> BaseModel:
+        """使用 LangChain 原生批处理提取列表"""
+        start_time = datetime.now()
+
+        # 判断是否需要分块
+        if len(text) <= self.chunk_size:
+            # 短文本：一次性提取
+            if self.show_progress:
+                logger.info(f"Processing single text (length: {len(text)})...")
+            result = self.llm_chain_extract.invoke({"chunk_text": text})
+            self._data = result
+            self._index_dirty = True
+        else:
+            # 长文本：分块提取
+            chunks = self.text_splitter.split_text(text)
+            logger.info(f"Split text into {len(chunks)} chunks")
+
+            if self.show_progress:
+                logger.info(f"Processing {len(chunks)} chunk(s)...")
+
+            inputs = [{"chunk_text": chunk} for chunk in chunks]
+            extracted_data_list = self.llm_chain_extract.batch(
+                inputs, config={"max_concurrency": self.max_workers}
+            )
+            if self.show_progress:
+                logger.info(f"Extracted {len(extracted_data_list)} chunks")
+
+            logger.info("Merging extracted knowledge...")
+            self.merge(extracted_data_list)
+
+        # 更新元数据
+        self.metadata["updated_at"] = datetime.now()
+
+        logger.info("Knowledge extraction completed")
+        logger.info(
+            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
+        )
+        return self.data
+
+    def merge(self, data_list: List[BaseModel]) -> BaseModel:
+        """
+        合并策略：列表追加 (Append)。
+        收集所有 Chunk 提取出的 items，合并到一个大列表中。
+        子类可以重写此方法实现更复杂的去重逻辑（如 EntityKnowledge）。
+
+        :param data_list: 从各 chunk 提取的结果列表（每个都是容器对象）
+        :return: 合并后的知识数据
+        """
+        all_items = []
+        for container in data_list:
+            if hasattr(container, "items") and container.items:
+                all_items.extend(container.items)
+
+        # 简单追加（子类可以重写实现去重）
+        self._data.items = all_items
+        self._index_dirty = True
+        return self.data
+
+    def build_index(self):
+        """为列表中的每个 Item 构建独立索引"""
+        items = self.items
+        if not items:
+            logger.warning("No items to index")
+            return
+
+        if not self._index_dirty and self._index is not None:
+            return
+
+        documents = []
+        for idx, item in enumerate(items):
+            # 序列化每个 Item 为 Document
+            content = item.model_dump_json()  # 使用 JSON 字符串作为内容
+            documents.append(
+                Document(
+                    page_content=content,
+                    metadata={"raw": item.model_dump(), "index": idx},
+                )
+            )
+
+        if documents:
+            try:
+                from langchain_community.vectorstores import FAISS
+
+                self._index = FAISS.from_documents(documents, self.embedder)
+                self._index_dirty = False
+                logger.info(f"Built FAISS index with {len(documents)} items")
+            except ImportError:
+                logger.error("FAISS not available. Install with: pip install faiss-cpu")
+                raise
+
+    def search(self, query: str, top_k: int = 3) -> List[Any]:
+        """
+        搜索列表中的 items。
+
+        :param query: 查询字符串
+        :param top_k: 返回结果数
+        :return: 相关的 item 列表
+        """
+        if not self.items:
+            logger.warning("No items to search")
+            return []
+
+        if self._index is None:
+            raise Exception("Vector store not initialized")
+
+        docs = self._index.similarity_search(query, k=top_k)
+        results = []
+        for doc in docs:
+            # 尝试还原为对象
+            try:
+                raw = doc.metadata.get("raw", {})
+                item = self.item_schema.model_validate(raw)
+                results.append(item)
+            except Exception as e:
+                logger.warning(f"Failed to restore item: {e}")
+                results.append(doc.metadata.get("raw"))
+
+        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
+        return results
+
+    def size(self) -> int:
+        """返回列表中的元素数量"""
+        return len(self.items)
+
+    def dump(self, folder_path: str) -> Any:
+        """
+        导出知识到指定文件夹（复用 ItemKnowledge 的实现）。
+        容器本质也是 BaseModel，可以直接使用相同的序列化逻辑。
+        """
+        from pathlib import Path
+
+        folder = Path(folder_path)
+        folder.mkdir(parents=True, exist_ok=True)
+
+        # 1. 保存结构化数据
+        data = {
+            "schema_name": self.container_schema.__name__,
+            "item_schema_name": self.item_schema.__name__,
+            "item_schema": self.item_schema.model_json_schema(),
+            "data": self.data.model_dump(),
+            "metadata": {
+                k: str(v) if isinstance(v, datetime) else v
+                for k, v in self.metadata.items()
+            },
+        }
+
+        json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+        data_file = folder / "state.json"
+        with open(data_file, "w", encoding="utf-8") as f:
+            f.write(json_str)
+        logger.info(f"Saved data to {data_file}")
+
+        # 2. 保存向量索引
+        if self._index is not None:
+            index_path = str(folder / "faiss_index")
+            self._index.save_local(index_path)
+            logger.info(f"Saved FAISS index to {index_path}")
+        else:
+            logger.warning("No index to save")
+
+        return json_str
+
+    def load(self, folder_path: str, **kwargs):
+        """从文件夹加载知识"""
+        from pathlib import Path
+
+        folder = Path(folder_path)
+        if not folder.is_dir():
+            raise ValueError(f"Folder does not exist: {folder_path}")
+
+        # 1. 加载结构化数据
+        data_file = folder / "state.json"
+        if not data_file.is_file():
+            raise ValueError(f"Data file not found: {data_file}")
+
+        with open(data_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info(f"Loaded data from {data_file}")
+
+        self._data = self.container_schema.model_validate(data.get("data", {}))
+
+        # 更新元数据
+        if "metadata" in data:
+            self.metadata.update(data["metadata"])
+        self.metadata["updated_at"] = datetime.now()
+
+        # 2. 加载向量索引
+        index_path = str(folder / "faiss_index")
+        if Path(index_path).exists():
+            try:
+                from langchain_community.vectorstores import FAISS
+
+                self._index = FAISS.load_local(
+                    index_path, self.embedder, allow_dangerous_deserialization=True
+                )
+                self._index_dirty = False
+                logger.info(f"Loaded FAISS index from {index_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load FAISS index: {e}")
+                self._index = None
+                self._index_dirty = True
+        else:
+            logger.warning("No index file found, will rebuild on next search")
+            self._index = None
+            self._index_dirty = True
+
+        logger.info(f"Loaded knowledge successfully with {self.size()} items")

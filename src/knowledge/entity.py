@@ -1,18 +1,19 @@
 """
 实体知识提取模块。
 
-包含基于 GenericKnowledge 的实体提取实现。
+基于 ListKnowledge 的实体提取实现。
 """
 
+from pathlib import Path
 from typing import List, Dict, Type, TypeVar, Generic
-from datetime import datetime
 from pydantic import BaseModel, Field as PydanticField
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.vectorstores import FAISS
 
-from .generic import GenericKnowledge
+from .generic import ListKnowledge
 
 try:
     from src.config import logger
@@ -43,13 +44,7 @@ class BaseEntitySchema(BaseModel):
         validate_assignment = True  # 赋值时验证
 
 
-class EntityListSchema(BaseModel, Generic[E]):
-    """实体列表的容器类（泛型版本，支持类型推断）"""
-
-    entities: List[E] = PydanticField(default_factory=list, description="实体列表")
-
-
-class EntityKnowledge(GenericKnowledge[EntityListSchema[E]], Generic[E]):
+class EntityKnowledge(ListKnowledge[E], Generic[E]):
     """
     专门用于实体提取和管理的知识类。
 
@@ -78,7 +73,7 @@ class EntityKnowledge(GenericKnowledge[EntityListSchema[E]], Generic[E]):
         self._entity_schema = entity_schema
 
         super().__init__(
-            data_schema=EntityListSchema[entity_schema],
+            item_schema=entity_schema,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt or self._default_prompt(),
@@ -89,7 +84,6 @@ class EntityKnowledge(GenericKnowledge[EntityListSchema[E]], Generic[E]):
 
         # 全局实体映射（主存储，类型安全）
         self._entity_map: Dict[str, E] = {}
-        self._entity_map_dirty = True  # 标记是否需要同步到 _data
 
     @staticmethod
     def _default_prompt() -> str:
@@ -128,28 +122,15 @@ Please merge these two entities intelligently and return the result."""
 
     # ==================== 数据管理 ====================
 
-    @property
-    def data(self) -> EntityListSchema[E]:
-        """懒更新：只在访问时才同步 entity_map 到 _data（零拷贝，直接引用）"""
-        if self._entity_map_dirty:
-            # 直接引用 entity_map 的值，避免深拷贝
-            self._data.entities = list(self._entity_map.values())
-            self._entity_map_dirty = False
-        return self._data
-
     def clear(self):
         """清空所有实体"""
+        super().clear()
         self._entity_map.clear()
-        self._entity_map_dirty = True
-        self._data = self.data_schema()
-        self._index = None
-        self._index_dirty = True
-        self.metadata["updated_at"] = datetime.now()
         logger.info("Cleared all entities")
 
     # ==================== 提取与聚合 ====================
 
-    def extract(self, text: str, *, append_mode: bool = False) -> EntityListSchema[E]:
+    def extract(self, text: str, *, append_mode: bool = False) -> BaseModel:
         """
         提取实体知识（支持替换/累积两种模式）。
 
@@ -162,107 +143,85 @@ Please merge these two entities intelligently and return the result."""
 
         :param text: 输入文本
         :param append_mode: 是否累积模式（默认 False）
-        :return: 提取后的实体列表
+        :return: 提取后的实体列表容器
         """
         # 替换模式：先清空
         if not append_mode:
             self.clear()
 
-        start_time = datetime.now()
-
-        # 判断是否需要分块
-        if len(text) <= self.chunk_size:
-            # 短文本：一次性提取
-            if self.show_progress:
-                logger.info(f"Processing single text (length: {len(text)})...")
-            extracted_list = [self.llm_chain.invoke({"chunk_text": text})]
-        else:
-            # 长文本：分块提取
-            chunks = self.text_splitter.split_text(text)
-            logger.info(f"Split text into {len(chunks)} chunks")
-
-            if self.show_progress:
-                logger.info(f"Processing {len(chunks)} chunk(s)...")
-
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_list = self.llm_chain.batch(
-                inputs, config={"max_concurrency": self.max_workers}
-            )
-
-        # 合并到 entity_map
-        if self.show_progress:
-            mode_str = "Appending" if append_mode else "Extracting"
-            logger.info(f"{mode_str} entities...")
-
-        self.merge(extracted_list)
-
-        # 更新元数据
-        self.metadata["updated_at"] = datetime.now()
+        # 调用父类提取方法
+        result = super().extract(text)
+        
+        # 提取完成后同步到 entity_map
+        self._sync_items_to_map()
 
         logger.info(
             f"Entity extraction completed ({'append' if append_mode else 'replace'} mode)"
         )
         logger.info(f"Total entities: {len(self._entity_map)}")
-        logger.info(
-            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
-        )
 
-        return self.data
+        return result
 
-    def merge(self, data_list: List[EntityListSchema[E]]) -> EntityListSchema[E]:
+    def merge(self, data_list: List[BaseModel]) -> BaseModel:
         """
         实体级别的智能合并（使用 LLM）。
 
         策略：
-        1. 与已有的 entity_map 合并（累积效果）
+        1. 先调用父类 merge 获得所有提取的 items
         2. 使用 name 作为唯一标识符去重
         3. 对于同名实体，调用 LLM 进行智能合并
+        4. 更新 self.items 为去重后的列表
 
-        :param data_list: 多个 EntityListSchema 对象
+        :param data_list: 多个容器对象
         :return: 合并后的实体数据
         """
-        if not data_list:
-            logger.warning("Empty data list for merge")
-            return self.data
+        # 调用父类 merge，获得所有原始 items
+        super().merge(data_list)
+        
+        # 同步到 entity_map 进行去重
+        self._sync_items_to_map()
+        
+        return self.data
 
+    def _sync_items_to_map(self):
+        """
+        将 self.items 同步到 entity_map，执行去重和 LLM 合并。
+        """
         total_entities = 0
         duplicate_count = 0
 
-        # 遍历新提取的数据，与已有的 entity_map 合并
-        for entity_list in data_list:
-            for entity in entity_list.entities:
-                total_entities += 1
-                entity_name = entity.name.strip()
+        # 遍历父类的 items，与已有的 entity_map 合并
+        for entity in self.items:
+            total_entities += 1
+            entity_name = entity.name.strip()
 
-                if not entity_name:  # 跳过空名称
-                    logger.warning(f"Skipping entity with empty name: {entity}")
-                    continue
+            if not entity_name:  # 跳过空名称
+                logger.warning(f"Skipping entity with empty name: {entity}")
+                continue
 
-                if entity_name in self._entity_map:
-                    # 实体已存在 - 使用 LLM 执行合并
-                    duplicate_count += 1
-                    existing = self._entity_map[entity_name]
-                    merged = self._merge_entity_with_llm(existing, entity)
-                    if merged:
-                        self._entity_map[entity_name] = merged
-                    else:
-                        logger.warning(
-                            f"LLM merge failed for entity '{entity_name}', keeping existing"
-                        )
+            if entity_name in self._entity_map:
+                # 实体已存在 - 使用 LLM 执行合并
+                duplicate_count += 1
+                existing = self._entity_map[entity_name]
+                merged = self._merge_entity_with_llm(existing, entity)
+                if merged:
+                    self._entity_map[entity_name] = merged
                 else:
-                    # 新实体 - 深拷贝后添加
-                    self._entity_map[entity_name] = entity.model_copy(deep=True)
+                    logger.warning(
+                        f"LLM merge failed for entity '{entity_name}', keeping existing"
+                    )
+            else:
+                # 新实体 - 深拷贝后添加
+                self._entity_map[entity_name] = entity.model_copy(deep=True)
 
-        # 标记需要同步
-        self._entity_map_dirty = True
+        # 将去重后的结果写回 self.items
+        self._data.items = list(self._entity_map.values())
         self._index_dirty = True
 
         logger.info(
             f"Merged {len(self._entity_map)} unique entities "
             f"from {total_entities} total (removed {duplicate_count} duplicates)"
         )
-
-        return self.data
 
     def _merge_entity_with_llm(self, entity_a: E, entity_b: E) -> E | None:
         """
@@ -334,15 +293,10 @@ Please merge these two entities intelligently and return the result."""
                 )
             )
 
-        try:
-            from langchain_community.vectorstores import FAISS
+        self._index = FAISS.from_documents(documents, self.embedder)
+        self._index_dirty = False
+        logger.info(f"Built FAISS index with {len(documents)} entities")
 
-            self._index = FAISS.from_documents(documents, self.embedder)
-            self._index_dirty = False
-            logger.info(f"Built FAISS index with {len(documents)} entities")
-        except ImportError:
-            logger.error("FAISS not available. Install: pip install faiss-cpu")
-            raise
 
     def search(self, query: str, top_k: int = 3, return_raw: bool = False) -> List[E]:
         """
@@ -353,15 +307,13 @@ Please merge these two entities intelligently and return the result."""
         :param return_raw: 是否返回原始实体对象（默认返回字典）
         :return: 实体列表
         """
-        if len(self.entities) == 0:
-            logger.warning("No entities to search")
+        if self.size() == 0:
+            logger.warning("No items to search")
             return []
 
-        # 确保索引已构建
         if self._index is None or self._index_dirty:
-            self.build_index()
+            raise Exception("Index is not built or dirty, please build the index first.")
 
-        # 向量搜索
         docs = self._index.similarity_search(query, k=top_k)
 
         # 恢复实体对象
@@ -390,8 +342,8 @@ Please merge these two entities intelligently and return the result."""
 
     @property
     def entities(self) -> List[E]:
-        """快速访问实体列表（触发懒更新）"""
-        return self.data.entities
+        """快速访问实体列表"""
+        return self.items
 
     @property
     def entity_schema(self) -> Type[E]:
@@ -410,10 +362,10 @@ Please merge these two entities intelligently and return the result."""
         return self._entity_map.get(name)
 
     def remove_entity(self, name: str) -> bool:
-        """删除指定实体（直接从 entity_map 删除）"""
+        """删除指定实体（从 entity_map 和 items 删除）"""
         if name in self._entity_map:
             del self._entity_map[name]
-            self._entity_map_dirty = True
+            self._data.items = list(self._entity_map.values())
             self._index_dirty = True
             logger.info(f"Removed entity: {name}")
             return True
@@ -425,10 +377,9 @@ Please merge these two entities intelligently and return the result."""
         """加载后重建 entity_map"""
         super().load(folder_path, **kwargs)
 
-        # 从 _data 重建 entity_map
+        # 从 items 重建 entity_map
         self._entity_map = {
-            entity.name: entity.model_copy(deep=True) for entity in self._data.entities
+            entity.name: entity.model_copy(deep=True) for entity in self.items
         }
-        self._entity_map_dirty = False
 
         logger.info(f"Loaded {len(self._entity_map)} entities")
