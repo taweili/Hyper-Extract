@@ -7,10 +7,10 @@
 """
 
 import json
-from typing import List, Any, Type, TypeVar, Generic
+from typing import List, Any, Type, TypeVar, Generic, TYPE_CHECKING
 from datetime import datetime
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
@@ -364,6 +364,10 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
     - ListKnowledge: 提取多个独立对象的列表（如实体列表、事件列表）
     """
 
+    if TYPE_CHECKING:
+        # 类型检查时使用泛型版本，保持完整的类型提示
+        item_list_schema: Type[ItemListSchema[Item]]
+
     def __init__(
         self,
         item_schema: Type[Item],
@@ -389,8 +393,11 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         """
         self.item_schema = item_schema
 
-        # 使用显式定义的 ItemListSchema
-        self.item_list_schema = ItemListSchema[item_schema]
+        container_name = f"{item_schema.__name__}List"
+        self.item_list_schema = create_model(
+            container_name,
+            items=(List[item_schema], Field(default_factory=list, description="Item list"))
+        )
 
         super().__init__(
             data_schema=self.item_list_schema,
@@ -428,7 +435,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         self._index_dirty = True
         logger.info("Cleared list knowledge")
 
-    def extract(self, text: str, *, merge_mode: bool = False) -> BaseModel:
+    def extract(self, text: str, *, merge_mode: bool = False) -> ItemListSchema:
         """
         使用 LangChain 原生批处理提取列表
 
@@ -654,3 +661,5 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             self._index_dirty = True
 
         logger.info(f"Loaded knowledge successfully with {self.size()} items")
+
+# Set Knowledge
