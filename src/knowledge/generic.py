@@ -2,8 +2,8 @@
 基础知识模式实现。
 
 包含两种核心模式：
-- ItemKnowledge: 单对象模式（适用于摘要、元数据等）
-- ListKnowledge: 列表模式（适用于实体、事件等列表提取）
+- UnitKnowledge: 单元知识模式（适用于摘要、元数据等）
+- ListKnowledge: 列表知识模式（适用于实体、事件等列表提取）
 """
 
 import json
@@ -25,10 +25,14 @@ except ImportError:
 
     logger = logging.getLogger(__name__)
 
+# ==================== 两种基础知识模式 ====================
 
-class ItemKnowledge(BaseKnowledge[T]):
+# UnitKnowledge: 单元知识模式
+
+
+class UnitKnowledge(BaseKnowledge[T]):
     """
-    单例知识模式 (Single Item Pattern) - 适用于任何 Pydantic Schema。
+    单元知识模式 (Unit Knowledge Pattern) - 适用于任何 Pydantic Schema。
 
     特点：
     - 针对整篇文档提取 **唯一** 的一个结构化对象
@@ -95,17 +99,33 @@ class ItemKnowledge(BaseKnowledge[T]):
 
     # ==================== 提取与聚合 ====================
 
-    def extract(self, text: str) -> T:
-        """使用 LangChain 原生批处理提取知识"""
+    def extract(self, text: str, *, merge_mode: bool = False) -> T:
+        """
+        使用 LangChain 原生批处理提取知识
+
+        :param text: 输入文本
+        :param merge_mode: 合并模式（默认 False）
+            - False: 替换模式 - 清空后仅使用新提取的数据
+            - True: 累积模式 - 将现有数据与新数据合并
+        :return: 提取到的知识数据
+        """
         start_time = datetime.now()
+
+        # 替换模式：先清空
+        if not merge_mode:
+            self.clear()
 
         # 判断是否需要分块
         if len(text) <= self.chunk_size:
+            # 短文本：直接提取
             if self.show_progress:
                 logger.info(f"Processing single text (length: {len(text)})...")
-            self._data = self.llm_chain_extract.invoke({"chunk_text": text})
-            self._index_dirty = True
+
+            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
+            extracted_data_list = [extracted_data]
+
         else:
+            # 长文本：分块提取
             chunks = self.text_splitter.split_text(text)
             logger.info(f"Split text into {len(chunks)} chunks")
 
@@ -116,13 +136,18 @@ class ItemKnowledge(BaseKnowledge[T]):
             extracted_data_list = self.llm_chain_extract.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
-            if self.show_progress:
-                logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
-            logger.info("Merging extracted knowledge...")
-            self.merge(extracted_data_list)
+        if self.show_progress:
+            logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
-        # 更新元数据
+        logger.info("Merging extracted knowledge...")
+        if merge_mode:
+            extracted_data_list.insert(0, self.data)
+
+        self._data = self.merge(extracted_data_list)
+
+        # 统一修改状态
+        self._index_dirty = True
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
@@ -133,23 +158,20 @@ class ItemKnowledge(BaseKnowledge[T]):
 
     def merge(self, data_list: List[T]) -> T:
         """
-        增量合并：第一次提取的结果为准。
+        纯数据合并方法 - 字段级更新策略。
 
+        合并策略：第一次提取的结果为准，后续只能补充缺失字段。
         使用 model_copy(update=...) 实现第一次优先合并。
 
-        :param data_list: 从各 chunk 提取的结果列表
-        :return: 合并后的知识数据
+        :param data_list: 需要合并的数据列表
+        :return: 合并后的知识数据（新对象）
         """
-
-        self._data = data_list[0].model_copy()
+        result = data_list[0].model_copy()
 
         for item in data_list[1:]:
-            self._data = item.model_copy(
-                update=self._data.model_dump(exclude_none=True)
-            )
+            result = item.model_copy(update=result.model_dump(exclude_none=True))
 
-        self._index_dirty = True
-        return self.data
+        return result
 
     # ==================== 查询与索引 ====================
 
@@ -317,10 +339,8 @@ class ItemKnowledge(BaseKnowledge[T]):
         logger.info(f"Loaded knowledge successfully with {self.size()} fields")
 
 
-# ==================== 两种基础知识模式 ====================
+# ==================== 列表知识模式 ===================
 
-# ItemKnowledge: 单对象模式（已在上方定义）
-# ListKnowledge: 列表模式（如下）
 Item = TypeVar("Item", bound=BaseModel)
 
 
@@ -339,8 +359,8 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
     - 合并策略：追加 (Append) + 基础去重（可由子类扩展）
     - 索引策略：对列表中的每个 Item 独立建立索引
 
-    与 ItemKnowledge 的区别：
-    - ItemKnowledge: 提取单个结构化对象（如摘要、元数据）
+    与 UnitKnowledge 的区别：
+    - UnitKnowledge: 提取单个结构化对象（如摘要、元数据）
     - ListKnowledge: 提取多个独立对象的列表（如实体列表、事件列表）
     """
 
@@ -370,10 +390,10 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         self.item_schema = item_schema
 
         # 使用显式定义的 ItemListSchema
-        self.container_schema = ItemListSchema[item_schema]
+        self.item_list_schema = ItemListSchema[item_schema]
 
         super().__init__(
-            data_schema=self.container_schema,
+            data_schema=self.item_list_schema,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt or self._default_prompt(),
@@ -403,23 +423,36 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
     def clear(self):
         """清空所有列表项"""
         self.metadata["updated_at"] = datetime.now()
-        self._data = self.container_schema(items=[])
+        self._data = self.item_list_schema(items=[])
         self._index = None
         self._index_dirty = True
         logger.info("Cleared list knowledge")
 
-    def extract(self, text: str) -> BaseModel:
-        """使用 LangChain 原生批处理提取列表"""
+    def extract(self, text: str, *, merge_mode: bool = False) -> BaseModel:
+        """
+        使用 LangChain 原生批处理提取列表
+
+        :param text: 输入文本
+        :param merge_mode: 合并模式（默认 False）
+            - False: 替换模式 - 清空后仅使用新提取的数据
+            - True: 累积模式 - 将现有数据与新数据合并
+        :return: 提取到的 items 列表
+        """
         start_time = datetime.now()
+
+        # 替换模式：先清空
+        if not merge_mode:
+            self.clear()
 
         # 判断是否需要分块
         if len(text) <= self.chunk_size:
             # 短文本：一次性提取
             if self.show_progress:
                 logger.info(f"Processing single text (length: {len(text)})...")
-            result = self.llm_chain_extract.invoke({"chunk_text": text})
-            self._data = result
-            self._index_dirty = True
+
+            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
+            extracted_data_list = [extracted_data]
+
         else:
             # 长文本：分块提取
             chunks = self.text_splitter.split_text(text)
@@ -432,39 +465,45 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             extracted_data_list = self.llm_chain_extract.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
-            if self.show_progress:
-                logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
-            logger.info("Merging extracted knowledge...")
-            self.merge(extracted_data_list)
+        if self.show_progress:
+            logger.info(f"Extracted {len(extracted_data_list)} chunks")
 
-        # 更新元数据
+        logger.info("Merging extracted knowledge...")
+        if merge_mode:
+            extracted_data_list.insert(0, self.data)
+
+        self._data = self.merge(extracted_data_list)
+
+        # 统一修改状态
+        self._index_dirty = True
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
         logger.info(
             f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
         )
-        return self.data
+        return self.items
 
-    def merge(self, data_list: List[BaseModel]) -> BaseModel:
+    def merge(self, data_list: List[ItemListSchema]) -> ItemListSchema:
         """
-        合并策略：列表追加 (Append)。
-        收集所有 Chunk 提取出的 items，合并到一个大列表中。
+        纯数据合并方法 - 列表追加策略。
+
+        合并策略：收集所有容器对象中的 items，合并到一个大列表中。
         子类可以重写此方法实现更复杂的去重逻辑（如 EntityKnowledge）。
 
-        :param data_list: 从各 chunk 提取的结果列表（每个都是容器对象）
-        :return: 合并后的知识数据
+        :param data_list: 需要合并的容器对象列表
+        :return: 合并后的知识数据（新的 ItemListSchema 对象）
         """
         all_items = []
-        for container in data_list:
-            if hasattr(container, "items") and container.items:
-                all_items.extend(container.items)
 
-        # 简单追加（子类可以重写实现去重）
-        self._data.items = all_items
-        self._index_dirty = True
-        return self.data
+        # 收集所有 items
+        for data in data_list:
+            copied_data = data.model_copy(deep=True)
+            all_items.extend(copied_data.items)
+
+        # 返回新的对象
+        return self.item_list_schema(items=all_items)
 
     def build_index(self):
         """为列表中的每个 Item 构建独立索引"""
@@ -534,7 +573,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
     def dump(self, folder_path: str) -> Any:
         """
-        导出知识到指定文件夹（复用 ItemKnowledge 的实现）。
+        导出知识到指定文件夹（复用 UnitKnowledge 的实现）。
         容器本质也是 BaseModel，可以直接使用相同的序列化逻辑。
         """
         from pathlib import Path
@@ -544,7 +583,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         # 1. 保存结构化数据
         data = {
-            "schema_name": self.container_schema.__name__,
+            "schema_name": self.item_list_schema.__name__,
             "item_schema_name": self.item_schema.__name__,
             "item_schema": self.item_schema.model_json_schema(),
             "data": self.data.model_dump(),
@@ -587,7 +626,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             data = json.load(f)
         logger.info(f"Loaded data from {data_file}")
 
-        self._data = self.container_schema.model_validate(data.get("data", {}))
+        self._data = self.item_list_schema.model_validate(data.get("data", {}))
 
         # 更新元数据
         if "metadata" in data:

@@ -130,33 +130,29 @@ Please merge these two entities intelligently and return the result."""
 
     # ==================== 提取与聚合 ====================
 
-    def extract(self, text: str, *, append_mode: bool = False) -> BaseModel:
+    def extract(self, text: str, *, merge_mode: bool = False) -> BaseModel:
         """
         提取实体知识（支持替换/累积两种模式）。
 
         模式说明：
-        - append_mode=False（默认）: 替换模式
-          先清空现有实体，然后提取新实体
+        - merge_mode=False（默认）: 替换模式
+          仅使用新提取的实体
 
-        - append_mode=True: 累积模式
+        - merge_mode=True: 累积模式
           保留现有实体，提取新实体并智能合并（LLM 去重）
 
         :param text: 输入文本
-        :param append_mode: 是否累积模式（默认 False）
+        :param merge_mode: 合并模式（默认 False）
         :return: 提取后的实体列表容器
         """
-        # 替换模式：先清空
-        if not append_mode:
-            self.clear()
-
-        # 调用父类提取方法
-        result = super().extract(text)
+        # 调用父类提取方法，传递 merge_mode
+        result = super().extract(text, merge_mode=merge_mode)
         
         # 提取完成后同步到 entity_map
         self._sync_items_to_map()
 
         logger.info(
-            f"Entity extraction completed ({'append' if append_mode else 'replace'} mode)"
+            f"Entity extraction completed ({'累积' if merge_mode else '替换'} mode)"
         )
         logger.info(f"Total entities: {len(self._entity_map)}")
 
@@ -168,20 +164,24 @@ Please merge these two entities intelligently and return the result."""
 
         策略：
         1. 先调用父类 merge 获得所有提取的 items
-        2. 使用 name 作为唯一标识符去重
-        3. 对于同名实体，调用 LLM 进行智能合并
-        4. 更新 self.items 为去重后的列表
+        2. 将结果赋值给 self._data
+        3. 同步到 entity_map 进行 LLM 去重
+        4. 返回去重后的数据
 
         :param data_list: 多个容器对象
         :return: 合并后的实体数据
         """
-        # 调用父类 merge，获得所有原始 items
-        super().merge(data_list)
+        # 调用父类 merge，获得合并后的结果
+        merged_result = super().merge(data_list)
+        
+        # 临时赋值给 self._data 以便 _sync_items_to_map 能访问 self.items
+        self._data = merged_result
         
         # 同步到 entity_map 进行去重
         self._sync_items_to_map()
         
-        return self.data
+        # 返回最终的 self._data（已经被 _sync_items_to_map 更新）
+        return self._data
 
     def _sync_items_to_map(self):
         """

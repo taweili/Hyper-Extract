@@ -37,7 +37,7 @@ Every knowledge container in Hyper-Extract follows a unified lifecycle:
 - **Field-Level Search**: Search across all schema fields with metadata preservation
 
 ### 📦 Multiple Knowledge Types (Roadmap)
-- ✅ **ItemKnowledge**: Universal schema-agnostic knowledge extraction
+- ✅ **UnitKnowledge**: Universal schema-agnostic knowledge extraction
 - 🚧 **EntityKnowledge**: Entity-centric extraction with attribute management
 - 🚧 **RelationKnowledge**: Relationship extraction with entity linking
 - 🚧 **GraphKnowledge**: Knowledge graph construction (nodes + edges)
@@ -90,14 +90,14 @@ class ArticleKnowledge(BaseModel):
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import ItemKnowledge
+from src.knowledge.generic import UnitKnowledge
 
 # Initialize LLM and embedder
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
 # Create knowledge container
-knowledge = ItemKnowledge(
+knowledge = UnitKnowledge(
     data_schema=ArticleKnowledge,
     llm_client=llm,
     embedder=embedder,
@@ -167,7 +167,7 @@ knowledge.load("./output/my_knowledge")
 
 Check out the `examples/` directory for complete working examples:
 
-- [`generic_knowledge_demo.py`](examples/generic_knowledge_demo.py) - Full ItemKnowledge walkthrough
+- [`generic_knowledge_demo.py`](examples/generic_knowledge_demo.py) - Full UnitKnowledge walkthrough
 - More examples coming soon!
 
 ---
@@ -176,7 +176,7 @@ Check out the `examples/` directory for complete working examples:
 
 ### Phase 1: Foundation (Current) ✅
 - [x] Abstract `BaseKnowledge` class
-- [x] `ItemKnowledge` implementation
+- [x] `UnitKnowledge` implementation
 - [x] LangChain integration with structured output
 - [x] FAISS vector search
 - [x] Serialization (dump/load)

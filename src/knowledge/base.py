@@ -122,21 +122,22 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== 提取与聚合 ====================
 
     @abstractmethod
-    def extract(self, text: str, *, append_mode: bool = False) -> T:
+    def extract(self, text: str, *, merge_mode: bool = False) -> T:
         """
         主提取方法 - 自动处理长文本分块、提取、聚合。
 
         流程：
-        1. 根据 append_mode 决定是否清空现有数据
+        1. 根据 merge_mode 决定是否清空现有数据
         2. 判断文本长度，决定是否分块
         3. 对每个块进行提取
-        4. 调用 merge() 将提取结果聚合到 self._data
-        5. 返回提取到的结果
+        4. 调用 merge() 合并数据（merge 不修改内部状态）
+        5. extract 负责将 merge 的返回值赋值给 self._data 并更新 self._index_dirty
+        6. 返回提取到的结果
 
         :param text: 输入文本（可以是短文本或长文本）
-        :param append_mode: 是否累积模式（默认 False）
-            - False（默认）: 替换模式 - 先清空现有知识，再提取新数据
-            - True: 累积模式 - 保留现有知识，合并新数据
+        :param merge_mode: 合并模式（默认 False）
+            - False（默认）: 替换模式 - 仅合并新提取的数据
+            - True: 累积模式 - 将现有知识与新数据合并
         :return: 提取到的知识数据
         """
         pass
@@ -144,13 +145,15 @@ class BaseKnowledge(ABC, Generic[T]):
     @abstractmethod
     def merge(self, data_list: List[T]) -> T:
         """
-        将多个提取结果合并到内部状态 self._data。
+        纯数据合并方法 - 不修改内部状态。
 
-        职责：去重、合并、冲突解决。
-        子类必须实现此方法.
+        职责：
+        - 实现具体的合并算法（去重、冲突解决等）
+        - 返回合并后的新数据对象
+        - 不修改任何实例属性
 
-        :param data_list: 从各个块提取的知识列表
-        :return: 合并后的知识数据
+        :param data_list: 需要合并的数据列表
+        :return: 合并后的知识数据（新对象）
         """
         pass
 

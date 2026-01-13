@@ -1,7 +1,7 @@
 """
-ItemKnowledge 使用示例
+UnitKnowledge 使用示例
 
-演示如何使用 ItemKnowledge 类进行知识提取、搜索、保存和加载。
+演示如何使用 UnitKnowledge 类进行知识提取、搜索、保存和加载。
 """
 
 import sys
@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import ItemKnowledge
+from src.knowledge.generic import UnitKnowledge
 
 
 # 1. 定义知识 Schema
@@ -30,7 +30,7 @@ class ArticleKnowledge(BaseModel):
 
 def main():
     print("=" * 60)
-    print("ItemKnowledge 使用示例")
+    print("UnitKnowledge 使用示例")
     print("=" * 60)
 
     # 2. 初始化 LLM 和 Embedder
@@ -38,9 +38,9 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # 3. 创建 ItemKnowledge 实例
-    print("[2] 创建 ItemKnowledge 实例...")
-    knowledge = ItemKnowledge(
+    # 3. 创建 UnitKnowledge 实例
+    print("[2] 创建 UnitKnowledge 实例...")
+    knowledge = UnitKnowledge(
         data_schema=ArticleKnowledge,
         llm_client=llm,
         embedder=embedder,
@@ -104,7 +104,7 @@ def main():
 
     # 9. 加载知识
     print("\n[8] 从文件夹加载知识...")
-    new_knowledge = ItemKnowledge(
+    new_knowledge = UnitKnowledge(
         data_schema=ArticleKnowledge,
         llm_client=llm,
         embedder=embedder,
