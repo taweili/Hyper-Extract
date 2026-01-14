@@ -1,18 +1,22 @@
-site_name: HyperExtract
-site_description: Context-aware knowledge extraction library.
-site_url: https://your-github-username.github.io/hyperextract/
+site_name: Hyper-Extract
+site_description: An intelligent, LLM-powered knowledge extraction and evolution framework
+site_url: https://your-github-username.github.io/hyper-extract/
+repo_url: https://github.com/your-username/hyper-extract
+repo_name: hyper-extract
 
-# 核心主题配置
+# Theme configuration
 theme:
   name: material
-  palette: 
-    # 切换日间/夜间模式的按钮
+  language: en
+  palette:
+    # Light mode
     - scheme: default
       primary: teal
       accent: purple
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
+    # Dark mode
     - scheme: slate
       primary: teal
       accent: lime
@@ -20,24 +24,80 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - content.code.copy # 代码块复制按钮
-    - navigation.tabs   # 顶部导航栏
+    - content.code.copy       # Code copy button
+    - content.code.annotate   # Code annotations
+    - navigation.tabs         # Top navigation tabs
+    - navigation.tabs.sticky  # Sticky tabs
+    - navigation.sections     # Navigation sections
+    - navigation.expand       # Expand navigation by default
+    - navigation.top          # Back to top button
+    - search.suggest          # Search suggestions
+    - search.highlight        # Highlight search results
+    - toc.follow              # TOC follows scroll
+  icon:
+    repo: fontawesome/brands/github
 
-# 插件配置
+# Plugins configuration
 plugins:
-  - search
+  - search:
+      lang:
+        - en
+        - zh
   - mkdocstrings:
       default_handler: python
       handlers:
         python:
-          paths: [src] # 告诉插件源码在哪里
+          paths: [.]
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 2
+            docstring_style: google
 
-# 导航栏结构
+# Markdown extensions
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+# Extra configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-username/hyper-extract
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: 中文
+      link: /zh/
+      lang: zh
+
+# Navigation structure
 nav:
   - Home: index.md
   - User Guide:
       - Getting Started: user-guide/getting-started.md
-      - Configuration: user-guide/configuration.md
-  - API Reference:      # 这里用来自动生成 API 文档
-      - Extractor: api/extractor.md
-      - Strategies: api/strategies.md
+      - Knowledge Patterns: user-guide/knowledge-patterns.md
+  - API Reference:
+      - Overview: api/index.md
+      - BaseKnowledge: api/base.md
+      - UnitKnowledge: api/unit.md
+      - ListKnowledge: api/list.md
+      - SetKnowledge: api/set.md
+  - 中文文档:
+      - 首页: zh/index.md
