@@ -129,25 +129,25 @@ class BaseKnowledge(ABC, Generic[T]):
     # ==================== Extraction & Aggregation ====================
 
     @abstractmethod
-    def extract(self, text: str, *, merge_mode: bool = False) -> T:
+    def extract(self, text: str, *, store: bool = True) -> T:
         """Extracts structured knowledge from text with automatic chunking and aggregation.
 
         This is the main entry point for knowledge extraction. It handles the complete pipeline
         from text preprocessing to knowledge aggregation.
 
         Extraction pipeline:
-            1. Decide whether to clear existing data based on merge_mode
-            2. Determine if text chunking is needed based on length
-            3. Extract knowledge from each chunk using LLM
-            4. Merge all extracted data using the merge() method
-            5. Update internal state (_data) and invalidate index via clear_index()
+            1. Determine if text chunking is needed based on length
+            2. Extract knowledge from each chunk using LLM
+            3. Merge all extracted data using the merge() method
+            4. If store=True: merge with existing data and update internal state
+            5. If store=False: return extracted data without modifying internal state
             6. Return the aggregated knowledge
 
         Args:
             text: Input text to extract knowledge from (can be short or long).
-            merge_mode: Controls how new data is combined with existing knowledge.
-                - False (default): Replace mode - only use newly extracted data
-                - True: Accumulative mode - merge new data with existing knowledge
+            store: Controls whether to store extracted knowledge internally.
+                - True (default): Store mode - merge with existing knowledge and update internal state
+                - False: Temporary mode - return extracted data without modifying internal state
 
         Returns:
             The extracted and aggregated knowledge data.
@@ -173,6 +173,80 @@ class BaseKnowledge(ABC, Generic[T]):
             A new merged knowledge object.
         """
         pass
+
+    def _create_new_instance(self) -> "BaseKnowledge[T]":
+        """Creates a new instance with the same configuration as this one.
+        
+        Subclasses can override this method if they have special initialization requirements.
+        
+        Returns:
+            A new knowledge instance with the same configuration.
+        """
+        return self.__class__(
+            data_schema=self._data_schema,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            prompt=self.prompt,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            max_workers=self.max_workers,
+            show_progress=self.show_progress,
+        )
+
+    def __add__(self, other: "BaseKnowledge[T]") -> "BaseKnowledge[T]":
+        """Operator overload for '+' to merge two knowledge instances.
+
+        Creates a new knowledge instance by merging the data from both instances.
+        The new instance inherits configuration from the left operand (self).
+
+        Usage:
+            >>> kb1 = UnitKnowledge(PersonSchema, ...)
+            >>> kb2 = UnitKnowledge(PersonSchema, ...)
+            >>> kb3 = kb1 + kb2  # ✅ Same schema, creates merged instance
+            >>> 
+            >>> kb4 = UnitKnowledge(CompanySchema, ...)
+            >>> kb5 = kb1 + kb4  # ❌ TypeError: Different schemas
+
+        Args:
+            other: Another knowledge instance of the same type to merge with.
+
+        Returns:
+            A new knowledge instance containing merged data.
+
+        Raises:
+            TypeError: If other is not an instance of the same knowledge class or has different data schema.
+        """
+        # Check 1: Both must be instances of the same knowledge class
+        if not isinstance(other, self.__class__):
+            raise TypeError(
+                f"Cannot add {type(other).__name__} to {type(self).__name__}. "
+                f"Both operands must be instances of the same knowledge class."
+            )
+
+        # Check 2: Both must have the same data schema
+        if self._data_schema != other._data_schema:
+            raise TypeError(
+                f"Cannot add knowledge instances with different data schemas. "
+                f"Left schema: {self._data_schema.__name__}, "
+                f"Right schema: {other._data_schema.__name__}. "
+                f"Both operands must have the same data schema to be merged."
+            )
+
+        # Merge the data from both instances
+        merged_data = self.merge([self._data, other._data])
+
+        # Create a new instance with the same configuration
+        new_instance = self._create_new_instance()
+
+        # Set the merged data and update metadata
+        new_instance._data = merged_data
+        new_instance.metadata["created_at"] = min(
+            self.metadata["created_at"], other.metadata["created_at"]
+        )
+        new_instance.metadata["updated_at"] = datetime.now()
+        new_instance.clear_index()  # Index needs to be rebuilt
+
+        return new_instance
 
     # ==================== Evolution ====================
 

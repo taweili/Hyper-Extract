@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import ListKnowledge
+from hyperextract.knowledge.generic import ListKnowledge
 
 
 # 定义单个新闻事件的 Schema
@@ -151,10 +151,10 @@ def main():
         show_progress=True,
     )
 
-    # 4. 提取知识 (替换模式)
-    print("\n[4] 提取新闻事件列表 (替换模式)...")
+    # 4. 提取知识 (默认存储模式)
+    print("\n[4] 提取新闻事件列表 (默认存储模式)...")
     print("-" * 80)
-    events = knowledge.extract(news_text, merge_mode=False)
+    events = knowledge.extract(news_text)
     print("-" * 80)
 
     # 5. 显示提取结果
@@ -194,8 +194,8 @@ def main():
             print(f"      [{i}] {event.title} ({event.date})")
             print(f"          地点: {event.location}")
 
-    # 9. 测试增量提取（合并模式）
-    print("\n[9] 测试增量提取（合并模式）...")
+    # 9. 测试增量提取（默认合并模式）
+    print("\n[9] 测试增量提取（默认合并模式）...")
     additional_news = """
     ### 事件11: 华为发布6G测试网络
     2024年6月15日，华为在深圳总部宣布建成全球首个6G技术测试网络。
@@ -205,7 +205,7 @@ def main():
 
     print("   添加补充新闻...")
     before_count = len(knowledge)
-    knowledge.extract(additional_news, merge_mode=True)
+    knowledge.extract(additional_news)  # 默认 store=True，自动合并
     after_count = len(knowledge)
     print(f"   合并前: {before_count} 个事件")
     print(f"   合并后: {after_count} 个事件")
@@ -217,6 +217,7 @@ def main():
         for event in knowledge.items[-3:]:
             print(f"      - {event.title} ({event.date})")
 
+    knowledge.build_index()
     # 11. 保存知识
     print("\n[10] 保存知识到文件...")
     save_path = Path(__file__).parent.parent / "tmp" / "list_knowledge_multi_chunk"

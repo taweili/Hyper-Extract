@@ -1,5 +1,5 @@
 [project]
-name = "hyper-extract"
+name = "hyperextract"
 version = "0.1.0"
 description = "An intelligent, LLM-powered knowledge extraction and evolution framework with semantic search capabilities"
 readme = "README.md"

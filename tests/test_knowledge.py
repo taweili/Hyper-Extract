@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from unittest.mock import MagicMock, AsyncMock
 import json
 
-from src.knowledge.base import Knowledge
+from hyperextract.knowledge.base import Knowledge
 
 
 # 定义测试用的 Schema

@@ -90,7 +90,7 @@ class ArticleKnowledge(BaseModel):
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import UnitKnowledge
+from hyperextract.knowledge.generic import UnitKnowledge
 
 # Initialize LLM and embedder
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)

@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import UnitKnowledge
+from hyperextract.knowledge.generic import UnitKnowledge
 
 
 # 定义文档知识 Schema
@@ -161,10 +161,10 @@ def main():
         show_progress=True,
     )
 
-    # 4. 提取知识 (替换模式)
-    print("\n[4] 提取知识 (替换模式)...")
+    # 4. 提取知识 (默认存储模式)
+    print("\n[4] 提取知识 (默认存储模式)...")
     print("-" * 80)
-    extracted_data = knowledge.extract(document, merge_mode=False)
+    extracted_data = knowledge.extract(document)
     print("-" * 80)
 
     # 5. 显示提取结果
@@ -203,15 +203,15 @@ def main():
             field_value = result[field_name]
             print(f"      [{i}] {field_name}: {str(field_value)[:80]}...")
 
-    # 9. 测试增量提取（合并模式）
-    print("\n[9] 测试增量提取（合并模式）...")
+    # 9. 测试增量提取（默认合并模式）
+    print("\n[9] 测试增量提取（默认合并模式）...")
     additional_text = """
     补充信息：
     本研究获得了国家自然科学基金支持，项目编号：NSFC-2023-12345。
     研究团队来自清华大学医学院和北京协和医院。
     """
     print("   添加补充文本...")
-    knowledge.extract(additional_text, merge_mode=True)
+    knowledge.extract(additional_text)  # 默认 store=True，自动合并
     print(f"   更新后的作者信息: {knowledge.data.author}")
 
     # 10. 保存知识

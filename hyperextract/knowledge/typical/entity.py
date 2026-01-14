@@ -11,10 +11,10 @@ from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 
-from .generic import ListKnowledge
+from ..generic import ListKnowledge
 
 try:
-    from src.config import logger
+    from hyperextract.config import logger
 except ImportError:
     import logging
 
@@ -127,34 +127,37 @@ Please merge these two entities intelligently and return the result."""
 
     # ==================== Extraction & Aggregation ====================
 
-    def extract(self, text: str, *, merge_mode: bool = False) -> BaseModel:
-        """Extracts entity knowledge with support for replace/accumulate modes.
+    def extract(self, text: str, *, store: bool = True) -> BaseModel:
+        """Extracts entity knowledge with support for store/temporary modes.
 
         Mode explanation:
-            - merge_mode=False (default): Replace mode
-              Only uses newly extracted entities
+            - store=True (default): Store mode
+              Merges newly extracted entities with existing knowledge and updates internal state
 
-            - merge_mode=True: Accumulate mode
-              Keeps existing entities, extracts new entities and intelligently merges
-              (LLM-powered deduplication)
+            - store=False: Temporary mode
+              Returns extracted entities without modifying internal state
 
         Args:
             text: Input text to extract entities from.
-            merge_mode: Merge mode (default False).
+            store: Whether to store extracted knowledge (default True).
 
         Returns:
             Container with extracted entities.
         """
-        # Call parent extraction method with merge_mode
-        result = super().extract(text, merge_mode=merge_mode)
+        # Call parent extraction method with store parameter
+        result = super().extract(text, store=store)
         
-        # Synchronize extracted items to entity_map after extraction
-        self._sync_items_to_map()
-
-        logger.info(
-            f"Entity extraction completed ({'Accumulate' if merge_mode else 'Replace'} mode)"
-        )
-        logger.info(f"Total entities: {len(self._entity_map)}")
+        # Only synchronize to entity_map if storing internally
+        if store:
+            self._sync_items_to_map()
+            logger.info(
+                "Entity extraction completed (Store mode)"
+            )
+            logger.info(f"Total entities: {len(self._entity_map)}")
+        else:
+            logger.info(
+                "Entity extraction completed (Temporary mode)"
+            )
 
         return result
 

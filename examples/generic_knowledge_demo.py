@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from src.knowledge.generic import UnitKnowledge
+from hyperextract.knowledge.generic import UnitKnowledge
 
 
 # 1. 定义知识 Schema
