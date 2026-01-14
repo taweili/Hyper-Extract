@@ -64,7 +64,9 @@ class BaseKnowledge(ABC, Generic[T]):
         self.show_progress = show_progress
 
         # Initialize prompt template and LLM chain for structured extraction
-        self.prompt_template = ChatPromptTemplate.from_template(f"{self.prompt}{{chunk_text}}")
+        self.prompt_template = ChatPromptTemplate.from_template(
+            f"{self.prompt}{{chunk_text}}"
+        )
         self.llm_with_schema = self.llm_client.with_structured_output(self._data_schema)
         self.llm_chain_extract = self.prompt_template | self.llm_with_schema
 
@@ -84,6 +86,25 @@ class BaseKnowledge(ABC, Generic[T]):
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
         }
+
+    def _create_new_instance(self) -> "BaseKnowledge[T]":
+        """Creates a new instance with the same configuration as this one.
+
+        Subclasses can override this method if they have special initialization requirements.
+
+        Returns:
+            A new knowledge instance with the same configuration.
+        """
+        return self.__class__(
+            data_schema=self._data_schema,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            prompt=self.prompt,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            max_workers=self.max_workers,
+            show_progress=self.show_progress,
+        )
 
     @staticmethod
     def _default_prompt() -> str:
@@ -126,14 +147,14 @@ class BaseKnowledge(ABC, Generic[T]):
         """Clears the vector index without affecting the stored data."""
         self._index = None
 
-    # ==================== Extraction & Aggregation ====================
+    # ==================== Extraction & Merge ====================
 
     @abstractmethod
     def extract(self, text: str, *, store: bool = True) -> T:
-        """Extracts structured knowledge from text with automatic chunking and aggregation.
+        """Extracts structured knowledge from text with automatic chunking and merging.
 
         This is the main entry point for knowledge extraction. It handles the complete pipeline
-        from text preprocessing to knowledge aggregation.
+        from text preprocessing to knowledge merging.
 
         Extraction pipeline:
             1. Determine if text chunking is needed based on length
@@ -141,7 +162,7 @@ class BaseKnowledge(ABC, Generic[T]):
             3. Merge all extracted data using the merge() method
             4. If store=True: merge with existing data and update internal state
             5. If store=False: return extracted data without modifying internal state
-            6. Return the aggregated knowledge
+            6. Return the merged knowledge
 
         Args:
             text: Input text to extract knowledge from (can be short or long).
@@ -150,7 +171,7 @@ class BaseKnowledge(ABC, Generic[T]):
                 - False: Temporary mode - return extracted data without modifying internal state
 
         Returns:
-            The extracted and aggregated knowledge data.
+            The extracted and merged knowledge data.
         """
         pass
 
@@ -173,80 +194,6 @@ class BaseKnowledge(ABC, Generic[T]):
             A new merged knowledge object.
         """
         pass
-
-    def _create_new_instance(self) -> "BaseKnowledge[T]":
-        """Creates a new instance with the same configuration as this one.
-        
-        Subclasses can override this method if they have special initialization requirements.
-        
-        Returns:
-            A new knowledge instance with the same configuration.
-        """
-        return self.__class__(
-            data_schema=self._data_schema,
-            llm_client=self.llm_client,
-            embedder=self.embedder,
-            prompt=self.prompt,
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap,
-            max_workers=self.max_workers,
-            show_progress=self.show_progress,
-        )
-
-    def __add__(self, other: "BaseKnowledge[T]") -> "BaseKnowledge[T]":
-        """Operator overload for '+' to merge two knowledge instances.
-
-        Creates a new knowledge instance by merging the data from both instances.
-        The new instance inherits configuration from the left operand (self).
-
-        Usage:
-            >>> kb1 = UnitKnowledge(PersonSchema, ...)
-            >>> kb2 = UnitKnowledge(PersonSchema, ...)
-            >>> kb3 = kb1 + kb2  # ✅ Same schema, creates merged instance
-            >>> 
-            >>> kb4 = UnitKnowledge(CompanySchema, ...)
-            >>> kb5 = kb1 + kb4  # ❌ TypeError: Different schemas
-
-        Args:
-            other: Another knowledge instance of the same type to merge with.
-
-        Returns:
-            A new knowledge instance containing merged data.
-
-        Raises:
-            TypeError: If other is not an instance of the same knowledge class or has different data schema.
-        """
-        # Check 1: Both must be instances of the same knowledge class
-        if not isinstance(other, self.__class__):
-            raise TypeError(
-                f"Cannot add {type(other).__name__} to {type(self).__name__}. "
-                f"Both operands must be instances of the same knowledge class."
-            )
-
-        # Check 2: Both must have the same data schema
-        if self._data_schema != other._data_schema:
-            raise TypeError(
-                f"Cannot add knowledge instances with different data schemas. "
-                f"Left schema: {self._data_schema.__name__}, "
-                f"Right schema: {other._data_schema.__name__}. "
-                f"Both operands must have the same data schema to be merged."
-            )
-
-        # Merge the data from both instances
-        merged_data = self.merge([self._data, other._data])
-
-        # Create a new instance with the same configuration
-        new_instance = self._create_new_instance()
-
-        # Set the merged data and update metadata
-        new_instance._data = merged_data
-        new_instance.metadata["created_at"] = min(
-            self.metadata["created_at"], other.metadata["created_at"]
-        )
-        new_instance.metadata["updated_at"] = datetime.now()
-        new_instance.clear_index()  # Index needs to be rebuilt
-
-        return new_instance
 
     # ==================== Evolution ====================
 
@@ -297,18 +244,6 @@ class BaseKnowledge(ABC, Generic[T]):
         """
         pass
 
-    @abstractmethod
-    def __len__(self) -> int:
-        """Returns the number of knowledge items in the collection.
-
-        Subclasses must implement this method to report their specific size metric.
-        This enables using len() function on knowledge instances.
-
-        Returns:
-            The count of knowledge items.
-        """
-        pass
-
     # ==================== Serialization ====================
 
     @abstractmethod
@@ -340,3 +275,60 @@ class BaseKnowledge(ABC, Generic[T]):
             folder_path: Source folder path containing saved knowledge.
         """
         pass
+
+    # ==================== Operator Overloads ====================
+
+    def __add__(self, other: "BaseKnowledge[T]") -> "BaseKnowledge[T]":
+        """Operator overload for '+' to merge two knowledge instances.
+
+        Creates a new knowledge instance by merging the data from both instances.
+        The new instance inherits configuration from the left operand (self).
+
+        Usage:
+            >>> kb1 = UnitKnowledge(PersonSchema, ...)
+            >>> kb2 = UnitKnowledge(PersonSchema, ...)
+            >>> kb3 = kb1 + kb2  # ✅ Same schema, creates merged instance
+            >>>
+            >>> kb4 = UnitKnowledge(CompanySchema, ...)
+            >>> kb5 = kb1 + kb4  # ❌ TypeError: Different schemas
+
+        Args:
+            other: Another knowledge instance of the same type to merge with.
+
+        Returns:
+            A new knowledge instance containing merged data.
+
+        Raises:
+            TypeError: If other is not an instance of the same knowledge class or has different data schema.
+        """
+        # Check 1: Both must be instances of the same knowledge class
+        if not isinstance(other, self.__class__):
+            raise TypeError(
+                f"Cannot add {type(other).__name__} to {type(self).__name__}. "
+                f"Both operands must be instances of the same knowledge class."
+            )
+
+        # Check 2: Both must have the same data schema
+        if self._data_schema != other._data_schema:
+            raise TypeError(
+                f"Cannot add knowledge instances with different data schemas. "
+                f"Left schema: {self._data_schema.__name__}, "
+                f"Right schema: {other._data_schema.__name__}. "
+                f"Both operands must have the same data schema to be merged."
+            )
+
+        # Merge the data from both instances
+        merged_data = self.merge([self._data, other._data])
+
+        # Create a new instance with the same configuration
+        new_instance = self._create_new_instance()
+
+        # Set the merged data and update metadata
+        new_instance._data = merged_data
+        new_instance.metadata["created_at"] = min(
+            self.metadata["created_at"], other.metadata["created_at"]
+        )
+        new_instance.metadata["updated_at"] = datetime.now()
+        new_instance.clear_index()  # Index needs to be rebuilt
+
+        return new_instance

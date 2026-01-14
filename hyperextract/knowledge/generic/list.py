@@ -16,6 +16,7 @@ try:
     from hyperextract.config import logger
 except ImportError:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
@@ -114,9 +115,9 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
     def _create_new_instance(self) -> "ListKnowledge[Item]":
         """Creates a new instance with the same configuration as this one.
-        
+
         Overrides base class method to handle ListKnowledge's item_schema parameter.
-        
+
         Returns:
             A new ListKnowledge instance with the same configuration.
         """
@@ -130,63 +131,6 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             max_workers=self.max_workers,
             show_progress=self.show_progress,
         )
-
-    def __add__(self, other):
-        """Operator overload for '+' to combine knowledge instances.
-
-        Supports multiple combination patterns:
-        - ListKnowledge + ListKnowledge → ListKnowledge (merge lists)
-        - ListKnowledge + UnitKnowledge → ListKnowledge (append unit to list)
-
-        This enables chain operations like: unit1 + unit2 + unit3
-
-        Args:
-            other: Another ListKnowledge or UnitKnowledge with compatible schema.
-
-        Returns:
-            New ListKnowledge with combined items.
-
-        Raises:
-            TypeError: If schemas don't match or invalid operand type.
-        """
-        from .unit import UnitKnowledge
-
-        # Case 1: ListKnowledge + ListKnowledge (call parent implementation)
-        if isinstance(other, ListKnowledge):
-            # Check schema compatibility
-            if self.item_schema != other.item_schema:
-                raise TypeError(
-                    f"Cannot add ListKnowledge instances with different schemas. "
-                    f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
-                )
-            # Use base class merge logic
-            return super().__add__(other)
-
-        # Case 2: ListKnowledge + UnitKnowledge → ListKnowledge (append unit)
-        elif isinstance(other, UnitKnowledge):
-            # Check schema compatibility
-            if self.item_schema != other._data_schema:
-                raise TypeError(
-                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
-                    f"List: {self.item_schema.__name__}, Unit: {other._data_schema.__name__}"
-                )
-
-            # Create new ListKnowledge with appended unit
-            new_list = self._create_new_instance()
-            new_list._data.items = self.items + [other._data]
-
-            # Merge metadata
-            new_list.metadata["created_at"] = min(
-                self.metadata["created_at"], other.metadata["created_at"]
-            )
-            new_list.metadata["updated_at"] = datetime.now()
-
-            return new_list
-
-        else:
-            raise TypeError(
-                f"Unsupported operand type for +: 'ListKnowledge' and '{type(other).__name__}'"
-            )
 
     def extract(self, text: str, *, store: bool = True) -> ItemListSchema:
         """Extracts a list of items using LangChain native batch processing.
@@ -236,7 +180,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
                 self._data = self.merge([self._data, merged_data])
             else:
                 self._data = merged_data
-            
+
             self.clear_index()
             self.metadata["updated_at"] = datetime.now()
 
@@ -244,7 +188,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         logger.info(
             f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
         )
-        
+
         # Return items list (either from stored data or temporary merged data)
         return self.items if store else merged_data.items
 
@@ -332,10 +276,6 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    def __len__(self) -> int:
-        """Returns the number of elements in the list."""
-        return len(self.items)
-
     def dump(self, folder_path: str) -> Any:
         """Exports knowledge to a specified folder.
 
@@ -411,3 +351,555 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             self._index = None
 
         logger.info(f"Loaded knowledge successfully with {len(self)} items")
+
+    # ==================== Pythonic Sequence Operations ====================
+
+    def __len__(self) -> int:
+        """Returns the number of elements in the list."""
+        return len(self.items)
+
+    def __getitem__(self, key):
+        """Support index access and slicing.
+
+        Args:
+            key: Integer index or slice object.
+
+        Returns:
+            - For integer index: Returns the Item at that position
+            - For slice: Returns a new ListKnowledge instance with sliced items
+
+        Raises:
+            IndexError: If index is out of range.
+            TypeError: If key is neither int nor slice.
+
+        Examples:
+            >>> knowledge[0]           # First item
+            >>> knowledge[-1]          # Last item
+            >>> knowledge[1:3]         # New ListKnowledge with items [1:3]
+            >>> knowledge[:5]          # First 5 items as new instance
+        """
+        if isinstance(key, int):
+            # Integer index: return Item directly
+            return self.items[key]
+        elif isinstance(key, slice):
+            # Slice: return new ListKnowledge instance
+            new_instance = self._create_new_instance()
+            new_instance._data.items = self.items[key]
+            new_instance.metadata["updated_at"] = datetime.now()
+            return new_instance
+        else:
+            raise TypeError(
+                f"List indices must be integers or slices, not {type(key).__name__}"
+            )
+
+    def __setitem__(self, index: int, item):
+        """Support index assignment.
+
+        Args:
+            index: Position to set (supports negative indexing).
+            item: The item to set at that position.
+
+        Raises:
+            TypeError: If item schema doesn't match.
+            IndexError: If index is out of range.
+
+        Examples:
+            >>> knowledge[0] = new_item
+            >>> knowledge[-1] = updated_item
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        self._validate_item_schema(item)
+        self._data.items[index] = item
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+
+    def __add__(self, other):
+        """Operator overload for '+' to combine knowledge instances.
+
+        Supports multiple combination patterns:
+        - ListKnowledge + ListKnowledge → ListKnowledge (merge lists)
+        - ListKnowledge + UnitKnowledge → ListKnowledge (append unit to list)
+
+        This enables chain operations like: unit1 + unit2 + unit3
+
+        Args:
+            other: Another ListKnowledge or UnitKnowledge with compatible schema.
+
+        Returns:
+            New ListKnowledge with combined items.
+
+        Raises:
+            TypeError: If schemas don't match or invalid operand type.
+        """
+        from .unit import UnitKnowledge
+
+        # Case 1: ListKnowledge + ListKnowledge (call parent implementation)
+        if isinstance(other, ListKnowledge):
+            # Check schema compatibility
+            if self.item_schema != other.item_schema:
+                raise TypeError(
+                    f"Cannot add ListKnowledge instances with different schemas. "
+                    f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
+                )
+            # Manually merge without calling base class (to avoid _data_schema check)
+            # Create new instance with merged items
+            new_instance = self._create_new_instance()
+            new_instance._data.items = self.items + other.items
+            new_instance.metadata["created_at"] = self.metadata.get("created_at")
+            new_instance.metadata["updated_at"] = self.metadata.get("updated_at")
+            return new_instance
+
+        # Case 2: ListKnowledge + UnitKnowledge → ListKnowledge (append unit)
+        elif isinstance(other, UnitKnowledge):
+            # Check schema compatibility
+            if self.item_schema != other._data_schema:
+                raise TypeError(
+                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
+                    f"List: {self.item_schema.__name__}, Unit: {other._data_schema.__name__}"
+                )
+
+            # Create new ListKnowledge with appended unit
+            new_list = self._create_new_instance()
+            new_list._data.items = self.items + [other._data]
+
+            # Merge metadata
+            new_list.metadata["created_at"] = min(
+                self.metadata["created_at"], other.metadata["created_at"]
+            )
+            new_list.metadata["updated_at"] = datetime.now()
+
+            return new_list
+
+        else:
+            raise TypeError(
+                f"Unsupported operand type for +: 'ListKnowledge' and '{type(other).__name__}'"
+            )
+
+    def __delitem__(self, index: int):
+        """Support del operation for removing items by index.
+
+        Args:
+            index: Position to delete (supports negative indexing).
+
+        Raises:
+            IndexError: If index is out of range.
+
+        Examples:
+            >>> del knowledge[0]      # Delete first item
+            >>> del knowledge[-1]     # Delete last item
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        del self._data.items[index]
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+
+    def __iter__(self):
+        """Support iteration over items.
+
+        Returns:
+            Iterator over items in the list.
+
+        Examples:
+            >>> for item in knowledge:
+            ...     print(item.name)
+
+            >>> items_list = list(knowledge)
+            >>> names = [item.name for item in knowledge]
+        """
+        return iter(self.items)
+
+    def __contains__(self, item) -> bool:
+        """Support 'in' operator for membership testing.
+
+        Args:
+            item: The item to check for membership.
+
+        Returns:
+            True if item exists in the list, False otherwise.
+
+        Comparison Logic:
+            1. Check if item's model_fields match any item's schema
+            2. If schemas match, compare model_dump() equality
+
+        Examples:
+            >>> if person in knowledge:
+            ...     print("Person already exists")
+        """
+        for existing_item in self.items:
+            if self._items_equal(existing_item, item):
+                return True
+        return False
+
+    def __repr__(self) -> str:
+        """Return detailed string representation.
+
+        Returns:
+            String in format: ClassName[ItemSchema](count items)
+
+        Examples:
+            >>> repr(knowledge)
+            'ListKnowledge[PersonSchema](5 items)'
+        """
+        return (
+            f"{self.__class__.__name__}[{self.item_schema.__name__}]({len(self)} items)"
+        )
+
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns:
+            Brief description of the knowledge instance.
+
+        Examples:
+            >>> str(knowledge)
+            'ListKnowledge with 5 PersonSchema items'
+        """
+        return f"{self.__class__.__name__} with {len(self)} {self.item_schema.__name__} items"
+
+    # ==================== List Modification Methods ====================
+
+    def append(self, item) -> None:
+        """Append a single item to the end of the list.
+
+        Args:
+            item: The item to append.
+
+        Raises:
+            TypeError: If item schema doesn't match item_schema.
+
+        Examples:
+            >>> knowledge.append(PersonSchema(name="Alice", age=30))
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        self._validate_item_schema(item)
+        self._data.items.append(item)
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+
+    def extend(self, items) -> None:
+        """Extend the list by appending multiple items.
+
+        Args:
+            items: Iterable of items to append. Can be:
+                - List of items
+                - Another ListKnowledge instance
+                - Any iterable yielding items
+
+        Raises:
+            TypeError: If any item's schema doesn't match item_schema.
+
+        Examples:
+            >>> knowledge.extend([person1, person2, person3])
+            >>> knowledge.extend(other_knowledge)
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        # Handle ListKnowledge instance
+        if isinstance(items, ListKnowledge):
+            if self.item_schema != items.item_schema:
+                raise TypeError(
+                    f"Cannot extend with ListKnowledge of different schema. "
+                    f"Expected: {self.item_schema.__name__}, "
+                    f"Got: {items.item_schema.__name__}"
+                )
+            items_to_add = items.items
+        else:
+            items_to_add = list(items)
+
+        # Validate all items
+        for item in items_to_add:
+            self._validate_item_schema(item)
+
+        # Extend the list
+        self._data.items.extend(items_to_add)
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+
+    def insert(self, index: int, item) -> None:
+        """Insert an item at a specific position.
+
+        Args:
+            index: Position to insert at (supports negative indexing).
+            item: The item to insert.
+
+        Raises:
+            TypeError: If item schema doesn't match item_schema.
+
+        Examples:
+            >>> knowledge.insert(0, new_person)    # Insert at beginning
+            >>> knowledge.insert(-1, new_person)   # Insert before last
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        self._validate_item_schema(item)
+        self._data.items.insert(index, item)
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+
+    def remove(self, item) -> None:
+        """Remove the first occurrence of an item from the list.
+
+        Args:
+            item: The item to remove.
+
+        Raises:
+            ValueError: If item is not found in the list.
+
+        Comparison Logic:
+            Uses _items_equal() to find matching item.
+
+        Examples:
+            >>> knowledge.remove(person)
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        for i, existing_item in enumerate(self.items):
+            if self._items_equal(existing_item, item):
+                del self._data.items[i]
+                self.clear_index()
+                self.metadata["updated_at"] = datetime.now()
+                return
+
+        # Item not found
+        raise ValueError(f"{item} is not in list")
+
+    def pop(self, index: int = -1):
+        """Remove and return an item at the given position.
+
+        Args:
+            index: Position to pop (default: -1, last item).
+
+        Returns:
+            The removed item.
+
+        Raises:
+            IndexError: If list is empty or index is out of range.
+
+        Examples:
+            >>> last_item = knowledge.pop()
+            >>> first_item = knowledge.pop(0)
+
+        Side Effects:
+            - Clears the vector index (needs rebuild)
+            - Updates metadata timestamp
+        """
+        if not self.items:
+            raise IndexError("pop from empty list")
+
+        item = self._data.items.pop(index)
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
+        return item
+
+    # ==================== Query and Utility Methods ====================
+
+    def index(self, item, start: int = 0, stop: int = None) -> int:
+        """Return the index of the first occurrence of item.
+
+        Args:
+            item: The item to find.
+            start: Start searching from this position (default: 0).
+            stop: Stop searching at this position (default: end of list).
+
+        Returns:
+            The index of the first matching item.
+
+        Raises:
+            ValueError: If item is not found in the specified range.
+
+        Comparison Logic:
+            Uses _items_equal() to match items.
+
+        Examples:
+            >>> idx = knowledge.index(person)
+            >>> idx = knowledge.index(person, 5, 10)  # Search in range [5:10]
+        """
+        items = self.items[start:stop]
+        for i, existing_item in enumerate(items):
+            if self._items_equal(existing_item, item):
+                return start + i
+
+        raise ValueError(f"{item} is not in list")
+
+    def count(self, item) -> int:
+        """Return the number of times item appears in the list.
+
+        Args:
+            item: The item to count.
+
+        Returns:
+            Number of occurrences.
+
+        Comparison Logic:
+            Uses _items_equal() to match items.
+
+        Examples:
+            >>> count = knowledge.count(person)
+        """
+        count = 0
+        for existing_item in self.items:
+            if self._items_equal(existing_item, item):
+                count += 1
+        return count
+
+    def copy(self) -> "ListKnowledge[Item]":
+        """Create a deep copy of this ListKnowledge instance.
+
+        Returns:
+            A new ListKnowledge instance with copied items and metadata.
+
+        Note:
+            The vector index is not copied; it needs to be rebuilt if needed.
+
+        Examples:
+            >>> backup = knowledge.copy()
+            >>> backup.append(new_item)  # Original unchanged
+        """
+        new_instance = self._create_new_instance()
+        # Deep copy the data
+        new_instance._data = self._data.model_copy(deep=True)
+        # Copy metadata
+        new_instance.metadata = self.metadata.copy()
+        new_instance.metadata["updated_at"] = datetime.now()
+        return new_instance
+
+    def reverse(self) -> None:
+        """Reverse the items in place.
+
+        Examples:
+            >>> knowledge.reverse()
+
+        Side Effects:
+            - Rebuilds the vector index if it exists (to maintain consistency)
+            - Updates metadata timestamp
+
+        Note:
+            Does not call clear_index() since elements aren't modified,
+            but rebuilds index to maintain metadata order consistency.
+        """
+        self._data.items.reverse()
+        self.metadata["updated_at"] = datetime.now()
+
+        # Rebuild index if it exists to maintain consistency
+        if self._index is not None:
+            self._index = None
+            self.build_index()
+
+    def sort(self, key=None, reverse: bool = False) -> None:
+        """Sort the items in place.
+
+        Args:
+            key: Function to extract comparison key from each item.
+                 Must be provided since Items may not be directly comparable.
+            reverse: If True, sort in descending order (default: False).
+
+        Raises:
+            TypeError: If key is not provided and items aren't comparable.
+
+        Examples:
+            >>> knowledge.sort(key=lambda x: x.name)
+            >>> knowledge.sort(key=lambda x: x.age, reverse=True)
+
+        Side Effects:
+            - Rebuilds the vector index if it exists (to maintain consistency)
+            - Updates metadata timestamp
+
+        Note:
+            Does not call clear_index() since elements aren't modified,
+            but rebuilds index to maintain metadata order consistency.
+        """
+        if key is None:
+            raise TypeError(
+                "sort() requires a 'key' function. "
+                "Example: knowledge.sort(key=lambda x: x.name)"
+            )
+
+        self._data.items.sort(key=key, reverse=reverse)
+        self.metadata["updated_at"] = datetime.now()
+
+        # Rebuild index if it exists to maintain consistency
+        if self._index is not None:
+            self._index = None
+            self.build_index()
+
+    # ==================== Helper Methods ====================
+
+    def _validate_item_schema(self, item) -> None:
+        """Validate that item's schema matches item_schema.
+
+        Args:
+            item: The item to validate.
+
+        Raises:
+            TypeError: If schemas don't match, with detailed field difference.
+        """
+        if not isinstance(item, BaseModel):
+            raise TypeError(
+                f"Item must be a Pydantic BaseModel instance. "
+                f"Got: {type(item).__name__}"
+            )
+
+        # Compare model_fields (schema structure)
+        item_fields = type(item).model_fields
+        expected_fields = self.item_schema.model_fields
+
+        if item_fields != expected_fields:
+            # Provide detailed error message
+            expected_field_names = set(expected_fields.keys())
+            got_field_names = set(item_fields.keys())
+
+            missing = expected_field_names - got_field_names
+            extra = got_field_names - expected_field_names
+
+            error_parts = [
+                f"Item schema mismatch. Expected {self.item_schema.__name__}, "
+                f"but got {type(item).__name__}."
+            ]
+
+            if missing:
+                error_parts.append(f"Missing fields: {sorted(missing)}")
+            if extra:
+                error_parts.append(f"Extra fields: {sorted(extra)}")
+
+            if not missing and not extra:
+                error_parts.append(
+                    f"Expected fields: {sorted(expected_field_names)}, "
+                    f"Got fields: {sorted(got_field_names)}"
+                )
+
+            raise TypeError(" ".join(error_parts))
+
+    def _items_equal(self, item1, item2) -> bool:
+        """Check if two items are equal.
+
+        Args:
+            item1, item2: Items to compare.
+
+        Returns:
+            True if items are equal, False otherwise.
+
+        Comparison Logic:
+            1. Check if both have the same model_fields (schema)
+            2. If schemas match, compare model_dump() equality
+        """
+        # Check schema compatibility
+        if type(item1).model_fields != type(item2).model_fields:
+            return False
+
+        # Compare data
+        return item1.model_dump() == item2.model_dump()

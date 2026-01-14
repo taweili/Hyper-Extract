@@ -15,6 +15,7 @@ try:
     from hyperextract.config import logger
 except ImportError:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
@@ -130,11 +131,13 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         # If store=True, merge with existing data and update internal state
         if store:
-            if self._data and any(v is not None for v in self._data.model_dump().values()):
+            if self._data and any(
+                v is not None for v in self._data.model_dump().values()
+            ):
                 self._data = self.merge([self._data, merged_data])
             else:
                 self._data = merged_data
-            
+
             self.clear_index()
             self.metadata["updated_at"] = datetime.now()
 
@@ -142,7 +145,7 @@ class UnitKnowledge(BaseKnowledge[T]):
         logger.info(
             f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
         )
-        
+
         return self._data if store else merged_data
 
     def merge(self, data_list: List[T]) -> T:
@@ -163,101 +166,6 @@ class UnitKnowledge(BaseKnowledge[T]):
             result = item.model_copy(update=result.model_dump(exclude_none=True))
 
         return result
-
-    def __add__(self, other):
-        """Operator overload for '+' to combine UnitKnowledge instances into ListKnowledge.
-
-        When two UnitKnowledge instances are added, they are combined into a ListKnowledge
-        containing both objects as separate items. This enables intuitive collection building.
-
-        Usage:
-            >>> unit1 = UnitKnowledge(PersonSchema, ...)
-            >>> unit2 = UnitKnowledge(PersonSchema, ...)
-            >>> person_list = unit1 + unit2  # → ListKnowledge[PersonSchema]
-            >>> 
-            >>> # Chain operations
-            >>> unit3 = UnitKnowledge(PersonSchema, ...)
-            >>> person_list = unit1 + unit2 + unit3  # → ListKnowledge with 3 items
-
-        Args:
-            other: Another UnitKnowledge with the same data schema, or ListKnowledge.
-
-        Returns:
-            ListKnowledge containing both objects as items.
-
-        Raises:
-            TypeError: If schemas don't match or invalid operand type.
-        """
-        from .list import ListKnowledge
-
-        # Case 1: UnitKnowledge + UnitKnowledge → ListKnowledge
-        if isinstance(other, UnitKnowledge):
-            # Check schema compatibility
-            if self._data_schema != other._data_schema:
-                raise TypeError(
-                    f"Cannot add UnitKnowledge instances with different schemas. "
-                    f"Left: {self._data_schema.__name__}, Right: {other._data_schema.__name__}"
-                )
-
-            # Create new ListKnowledge
-            list_kb = ListKnowledge(
-                item_schema=self._data_schema,
-                llm_client=self.llm_client,
-                embedder=self.embedder,
-                prompt=self.prompt,
-                chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_overlap,
-                max_workers=self.max_workers,
-                show_progress=self.show_progress,
-            )
-
-            # Set items from both units
-            list_kb._data.items = [self._data, other._data]
-
-            # Merge metadata
-            list_kb.metadata["created_at"] = min(
-                self.metadata["created_at"], other.metadata["created_at"]
-            )
-            list_kb.metadata["updated_at"] = datetime.now()
-
-            return list_kb
-
-        # Case 2: UnitKnowledge + ListKnowledge → ListKnowledge (for reverse order)
-        elif isinstance(other, ListKnowledge):
-            # Check schema compatibility
-            if self._data_schema != other.item_schema:
-                raise TypeError(
-                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
-                    f"Unit: {self._data_schema.__name__}, List: {other.item_schema.__name__}"
-                )
-
-            # Create new ListKnowledge with unit prepended
-            new_list = ListKnowledge(
-                item_schema=self._data_schema,
-                llm_client=self.llm_client,
-                embedder=self.embedder,
-                prompt=self.prompt,
-                chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_overlap,
-                max_workers=self.max_workers,
-                show_progress=self.show_progress,
-            )
-
-            # Prepend self to other's items
-            new_list._data.items = [self._data] + other.items
-
-            # Merge metadata
-            new_list.metadata["created_at"] = min(
-                self.metadata["created_at"], other.metadata["created_at"]
-            )
-            new_list.metadata["updated_at"] = datetime.now()
-
-            return new_list
-
-        else:
-            raise TypeError(
-                f"Unsupported operand type for +: 'UnitKnowledge' and '{type(other).__name__}'"
-            )
 
     # ==================== Indexing & Query ====================
 
@@ -316,10 +224,6 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
-
-    def __len__(self) -> int:
-        """Returns 1 since UnitKnowledge represents a single knowledge unit."""
-        return 1
 
     # ==================== Serialization ====================
 
@@ -419,3 +323,100 @@ class UnitKnowledge(BaseKnowledge[T]):
             self._index = None
 
         logger.info(f"Loaded knowledge successfully with {len(self)} unit(s)")
+
+    # ==================== Operators ====================
+
+    def __add__(self, other):
+        """Operator overload for '+' to combine UnitKnowledge instances into ListKnowledge.
+
+        When two UnitKnowledge instances are added, they are combined into a ListKnowledge
+        containing both objects as separate items. This enables intuitive collection building.
+
+        Usage:
+            >>> unit1 = UnitKnowledge(PersonSchema, ...)
+            >>> unit2 = UnitKnowledge(PersonSchema, ...)
+            >>> person_list = unit1 + unit2  # → ListKnowledge[PersonSchema]
+            >>>
+            >>> # Chain operations
+            >>> unit3 = UnitKnowledge(PersonSchema, ...)
+            >>> person_list = unit1 + unit2 + unit3  # → ListKnowledge with 3 items
+
+        Args:
+            other: Another UnitKnowledge with the same data schema, or ListKnowledge.
+
+        Returns:
+            ListKnowledge containing both objects as items.
+
+        Raises:
+            TypeError: If schemas don't match or invalid operand type.
+        """
+        from .list import ListKnowledge
+
+        # Case 1: UnitKnowledge + UnitKnowledge → ListKnowledge
+        if isinstance(other, UnitKnowledge):
+            # Check schema compatibility
+            if self._data_schema != other._data_schema:
+                raise TypeError(
+                    f"Cannot add UnitKnowledge instances with different schemas. "
+                    f"Left: {self._data_schema.__name__}, Right: {other._data_schema.__name__}"
+                )
+
+            # Create new ListKnowledge
+            list_kb = ListKnowledge(
+                item_schema=self._data_schema,
+                llm_client=self.llm_client,
+                embedder=self.embedder,
+                prompt=self.prompt,
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+                max_workers=self.max_workers,
+                show_progress=self.show_progress,
+            )
+
+            # Set items from both units
+            list_kb._data.items = [self._data, other._data]
+
+            # Merge metadata
+            list_kb.metadata["created_at"] = min(
+                self.metadata["created_at"], other.metadata["created_at"]
+            )
+            list_kb.metadata["updated_at"] = datetime.now()
+
+            return list_kb
+
+        # Case 2: UnitKnowledge + ListKnowledge → ListKnowledge (for reverse order)
+        elif isinstance(other, ListKnowledge):
+            # Check schema compatibility
+            if self._data_schema != other.item_schema:
+                raise TypeError(
+                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
+                    f"Unit: {self._data_schema.__name__}, List: {other.item_schema.__name__}"
+                )
+
+            # Create new ListKnowledge with unit prepended
+            new_list = ListKnowledge(
+                item_schema=self._data_schema,
+                llm_client=self.llm_client,
+                embedder=self.embedder,
+                prompt=self.prompt,
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+                max_workers=self.max_workers,
+                show_progress=self.show_progress,
+            )
+
+            # Prepend self to other's items
+            new_list._data.items = [self._data] + other.items
+
+            # Merge metadata
+            new_list.metadata["created_at"] = min(
+                self.metadata["created_at"], other.metadata["created_at"]
+            )
+            new_list.metadata["updated_at"] = datetime.now()
+
+            return new_list
+
+        else:
+            raise TypeError(
+                f"Unsupported operand type for +: 'UnitKnowledge' and '{type(other).__name__}'"
+            )
