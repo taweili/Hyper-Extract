@@ -87,16 +87,6 @@ class UnitKnowledge(BaseKnowledge[T]):
             "### Source Text:\n"
         )
 
-    # ==================== 数据管理 ====================
-
-    def clear(self):
-        """清空所有知识"""
-        self.metadata["updated_at"] = datetime.now()
-        self._data = self.data_schema()
-        self._index = None
-        self._index_dirty = True
-        logger.info("Cleared all knowledge")
-
     # ==================== 提取与聚合 ====================
 
     def extract(self, text: str, *, merge_mode: bool = False) -> T:
@@ -147,7 +137,7 @@ class UnitKnowledge(BaseKnowledge[T]):
         self._data = self.merge(extracted_data_list)
 
         # 统一修改状态
-        self._index_dirty = True
+        self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
@@ -182,7 +172,7 @@ class UnitKnowledge(BaseKnowledge[T]):
             logger.warning("No data to index")
             return
 
-        if not self._index_dirty and self._index is not None:
+        if self._index is not None:
             return
 
         documents = []
@@ -197,7 +187,6 @@ class UnitKnowledge(BaseKnowledge[T]):
                 )
 
         self._index = FAISS.from_documents(documents, self.embedder)
-        self._index_dirty = False
         logger.info(f"Built FAISS index with {len(documents)} documents")
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
@@ -213,10 +202,8 @@ class UnitKnowledge(BaseKnowledge[T]):
             logger.warning("No items to search")
             return []
 
-        if self._index is None or self._index_dirty:
-            raise Exception(
-                "Index is not built or dirty, please build the index first."
-            )
+        if self._index is None:
+            raise Exception("Index is not built, please build the index first.")
 
         docs = self._index.similarity_search(query, k=top_k)
 
@@ -325,16 +312,13 @@ class UnitKnowledge(BaseKnowledge[T]):
                 self._index = FAISS.load_local(
                     index_path, self.embedder, allow_dangerous_deserialization=True
                 )
-                self._index_dirty = False
                 logger.info(f"Loaded FAISS index from {index_path}")
             except Exception as e:
                 logger.warning(f"Failed to load FAISS index: {e}")
                 self._index = None
-                self._index_dirty = True
         else:
             logger.warning("No index file found, will rebuild on next search")
             self._index = None
-            self._index_dirty = True
 
         logger.info(f"Loaded knowledge successfully with {self.size()} fields")
 
@@ -396,7 +380,10 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         container_name = f"{item_schema.__name__}List"
         self.item_list_schema = create_model(
             container_name,
-            items=(List[item_schema], Field(default_factory=list, description="Item list"))
+            items=(
+                List[item_schema],
+                Field(default_factory=list, description="Item list"),
+            ),
         )
 
         super().__init__(
@@ -426,14 +413,6 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
     def items(self) -> List[Item]:
         """获取内部列表"""
         return getattr(self._data, "items", [])
-
-    def clear(self):
-        """清空所有列表项"""
-        self.metadata["updated_at"] = datetime.now()
-        self._data = self.item_list_schema(items=[])
-        self._index = None
-        self._index_dirty = True
-        logger.info("Cleared list knowledge")
 
     def extract(self, text: str, *, merge_mode: bool = False) -> ItemListSchema:
         """
@@ -483,7 +462,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         self._data = self.merge(extracted_data_list)
 
         # 统一修改状态
-        self._index_dirty = True
+        self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
         logger.info("Knowledge extraction completed")
@@ -519,7 +498,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             logger.warning("No items to index")
             return
 
-        if not self._index_dirty and self._index is not None:
+        if self._index is not None:
             return
 
         documents = []
@@ -535,10 +514,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         if documents:
             try:
-                from langchain_community.vectorstores import FAISS
-
                 self._index = FAISS.from_documents(documents, self.embedder)
-                self._index_dirty = False
                 logger.info(f"Built FAISS index with {len(documents)} items")
             except ImportError:
                 logger.error("FAISS not available. Install with: pip install faiss-cpu")
@@ -644,22 +620,18 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         index_path = str(folder / "faiss_index")
         if Path(index_path).exists():
             try:
-                from langchain_community.vectorstores import FAISS
-
                 self._index = FAISS.load_local(
                     index_path, self.embedder, allow_dangerous_deserialization=True
                 )
-                self._index_dirty = False
                 logger.info(f"Loaded FAISS index from {index_path}")
             except Exception as e:
                 logger.warning(f"Failed to load FAISS index: {e}")
                 self._index = None
-                self._index_dirty = True
         else:
             logger.warning("No index file found, will rebuild on next search")
             self._index = None
-            self._index_dirty = True
 
         logger.info(f"Loaded knowledge successfully with {self.size()} items")
+
 
 # Set Knowledge

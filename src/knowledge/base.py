@@ -74,7 +74,6 @@ class BaseKnowledge(ABC, Generic[T]):
 
         # 向量存储相关（使用 FAISS）
         self._index = None
-        self._index_dirty: bool = True  # 标记索引是否需要重建
 
         # 内部状态：存储提取的知识
         self._data: T = self._data_schema()
@@ -114,10 +113,15 @@ class BaseKnowledge(ABC, Generic[T]):
         """
         return self._data
 
-    @abstractmethod
     def clear(self):
-        """清空所有知识。"""
-        pass
+        """清空所有知识（数据和索引）。"""
+        self.metadata["updated_at"] = datetime.now()
+        self._data = self._data_schema()
+        self.clear_index()
+
+    def clear_index(self):
+        """清空向量索引（不影响数据）。"""
+        self._index = None
 
     # ==================== 提取与聚合 ====================
 
@@ -131,7 +135,7 @@ class BaseKnowledge(ABC, Generic[T]):
         2. 判断文本长度，决定是否分块
         3. 对每个块进行提取
         4. 调用 merge() 合并数据（merge 不修改内部状态）
-        5. extract 负责将 merge 的返回值赋值给 self._data 并更新 self._index_dirty
+        5. extract 负责将 merge 的返回值赋值给 self._data 并调用 clear_index()
         6. 返回提取到的结果
 
         :param text: 输入文本（可以是短文本或长文本）

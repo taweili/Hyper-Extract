@@ -126,7 +126,6 @@ Please merge these two entities intelligently and return the result."""
         """清空所有实体"""
         super().clear()
         self._entity_map.clear()
-        logger.info("Cleared all entities")
 
     # ==================== 提取与聚合 ====================
 
@@ -216,7 +215,7 @@ Please merge these two entities intelligently and return the result."""
 
         # 将去重后的结果写回 self.items
         self._data.items = list(self._entity_map.values())
-        self._index_dirty = True
+        self.clear_index()
 
         logger.info(
             f"Merged {len(self._entity_map)} unique entities "
@@ -265,8 +264,8 @@ Please merge these two entities intelligently and return the result."""
             logger.warning("No entities to index")
             return
 
-        if not self._index_dirty and self._index is not None:
-            return  # 索引已是最新
+        if self._index is not None:
+            return  # 索引已存在
 
         documents = []
         for entity in self._entity_map.values():
@@ -294,7 +293,6 @@ Please merge these two entities intelligently and return the result."""
             )
 
         self._index = FAISS.from_documents(documents, self.embedder)
-        self._index_dirty = False
         logger.info(f"Built FAISS index with {len(documents)} entities")
 
 
@@ -311,8 +309,8 @@ Please merge these two entities intelligently and return the result."""
             logger.warning("No items to search")
             return []
 
-        if self._index is None or self._index_dirty:
-            raise Exception("Index is not built or dirty, please build the index first.")
+        if self._index is None:
+            raise Exception("Index is not built, please build the index first.")
 
         docs = self._index.similarity_search(query, k=top_k)
 
@@ -366,7 +364,7 @@ Please merge these two entities intelligently and return the result."""
         if name in self._entity_map:
             del self._entity_map[name]
             self._data.items = list(self._entity_map.values())
-            self._index_dirty = True
+            self.clear_index()
             logger.info(f"Removed entity: {name}")
             return True
         return False
