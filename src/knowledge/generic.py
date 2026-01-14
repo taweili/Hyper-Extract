@@ -1,9 +1,10 @@
-"""
-基础知识模式实现。
+"""Fundamental knowledge pattern implementations.
 
-包含两种核心模式：
-- UnitKnowledge: 单元知识模式（适用于摘要、元数据等）
-- ListKnowledge: 列表知识模式（适用于实体、事件等列表提取）
+This module provides two core knowledge patterns:
+    - UnitKnowledge: Single-object pattern for extracting one structured object per document
+      (suitable for summaries, metadata, etc.)
+    - ListKnowledge: Collection pattern for extracting multiple items from text
+      (suitable for entities, events, references, etc.)
 """
 
 import json
@@ -25,20 +26,24 @@ except ImportError:
 
     logger = logging.getLogger(__name__)
 
-# ==================== 两种基础知识模式 ====================
+# ==================== Two Fundamental Knowledge Patterns ====================
 
-# UnitKnowledge: 单元知识模式
+# UnitKnowledge: Single-object knowledge pattern
 
 
 class UnitKnowledge(BaseKnowledge[T]):
-    """
-    单元知识模式 (Unit Knowledge Pattern) - 适用于任何 Pydantic Schema。
+    """Unit Knowledge Pattern - extracts a single structured object from text.
 
-    特点：
-    - 针对整篇文档提取 **唯一** 的一个结构化对象
-    - 合并策略：字段级更新 (Upsert/Patch)
-    - 索引策略：对对象的每个非空字段建立索引
-    - 使用 LangChain 原生批处理（batch_as_completed）
+    This pattern is designed for extracting exactly one structured object per document,
+    regardless of document length. Suitable for document-level information like summaries,
+    metadata, or aggregate statistics.
+
+    Key characteristics:
+        - Extraction target: One unique structured object per document
+        - Merge strategy: Field-level update (Upsert/Patch) - first extraction wins,
+          subsequent extractions only fill missing fields
+        - Indexing strategy: Each non-null field of the object is indexed independently
+        - Processing: Uses LangChain native batch processing for efficient multi-chunk handling
     """
 
     def __init__(
@@ -54,15 +59,17 @@ class UnitKnowledge(BaseKnowledge[T]):
         show_progress: bool = True,
         **kwargs,
     ):
-        """
-        :param data_schema: 数据 Schema 类（必须是 Pydantic BaseModel 子类）
-        :param llm_client: LLM 客户端
-        :param embedder: 向量化器
-        :param prompt: 自定义提示词
-        :param chunk_size: 长文本分块大小
-        :param chunk_overlap: 分块重叠大小
-        :param max_workers: 最大并发数
-        :param show_progress: 是否显示进度
+        """Initialize UnitKnowledge with schema and configuration.
+
+        Args:
+            data_schema: Pydantic BaseModel subclass defining the object structure.
+            llm_client: Language model client for extraction.
+            embedder: Embedding model for vector indexing.
+            prompt: Custom extraction prompt (defaults to generic prompt).
+            chunk_size: Maximum characters per chunk for long texts.
+            chunk_overlap: Overlapping characters between adjacent chunks.
+            max_workers: Maximum concurrent extraction tasks.
+            show_progress: Whether to log progress information.
         """
         super().__init__(
             data_schema,
@@ -78,7 +85,7 @@ class UnitKnowledge(BaseKnowledge[T]):
 
     @staticmethod
     def _default_prompt() -> str:
-        """默认提取提示词"""
+        """Returns the default extraction prompt for single-object extraction."""
         return (
             "You are an expert knowledge extraction assistant. "
             "Your task is to carefully analyze the following text and extract structured information "
@@ -87,27 +94,32 @@ class UnitKnowledge(BaseKnowledge[T]):
             "### Source Text:\n"
         )
 
-    # ==================== 提取与聚合 ====================
+    # ==================== Extraction & Aggregation ====================
 
     def extract(self, text: str, *, merge_mode: bool = False) -> T:
-        """
-        使用 LangChain 原生批处理提取知识
+        """Extracts knowledge using LangChain native batch processing.
 
-        :param text: 输入文本
-        :param merge_mode: 合并模式（默认 False）
-            - False: 替换模式 - 清空后仅使用新提取的数据
-            - True: 累积模式 - 将现有数据与新数据合并
-        :return: 提取到的知识数据
+        Automatically handles text chunking for long documents and aggregates results
+        using the field-level merge strategy.
+
+        Args:
+            text: Input text to extract knowledge from.
+            merge_mode: Controls data combination behavior.
+                - False (default): Replace mode - clears existing data before extraction
+                - True: Accumulative mode - merges new data with existing knowledge
+
+        Returns:
+            The extracted knowledge object.
         """
         start_time = datetime.now()
 
-        # 替换模式：先清空
+        # In replace mode, clear existing data first
         if not merge_mode:
             self.clear()
 
-        # 判断是否需要分块
+        # Determine if chunking is needed based on text length
         if len(text) <= self.chunk_size:
-            # 短文本：直接提取
+            # Short text: direct extraction without chunking
             if self.show_progress:
                 logger.info(f"Processing single text (length: {len(text)})...")
 
@@ -115,7 +127,7 @@ class UnitKnowledge(BaseKnowledge[T]):
             extracted_data_list = [extracted_data]
 
         else:
-            # 长文本：分块提取
+            # Long text: extract by chunking
             chunks = self.text_splitter.split_text(text)
             logger.info(f"Split text into {len(chunks)} chunks")
 
@@ -136,7 +148,7 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         self._data = self.merge(extracted_data_list)
 
-        # 统一修改状态
+        # Update state uniformly
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
@@ -147,14 +159,16 @@ class UnitKnowledge(BaseKnowledge[T]):
         return self.data
 
     def merge(self, data_list: List[T]) -> T:
-        """
-        纯数据合并方法 - 字段级更新策略。
+        """Pure data merge method implementing field-level update strategy.
 
-        合并策略：第一次提取的结果为准，后续只能补充缺失字段。
-        使用 model_copy(update=...) 实现第一次优先合并。
+        Merge strategy: First extraction takes precedence. Subsequent extractions only fill
+        missing fields without overwriting existing values. Implemented using model_copy(update=...).
 
-        :param data_list: 需要合并的数据列表
-        :return: 合并后的知识数据（新对象）
+        Args:
+            data_list: List of extracted data objects to merge.
+
+        Returns:
+            A new merged knowledge object.
         """
         result = data_list[0].model_copy()
 
@@ -163,12 +177,12 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         return result
 
-    # ==================== 查询与索引 ====================
+    # ==================== Indexing & Query ====================
 
     def build_index(self):
-        """从 _data 的所有字段构建索引"""
-        # 检查是否有数据
-        if self.size() == 0:
+        """Builds vector index from all non-null fields in the data object."""
+        # Check if there's data to index
+        if len(self) == 0:
             logger.warning("No data to index")
             return
 
@@ -190,15 +204,17 @@ class UnitKnowledge(BaseKnowledge[T]):
         logger.info(f"Built FAISS index with {len(documents)} documents")
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
-        """
-        搜索所有列表字段。
+        """Searches all indexed fields using semantic similarity.
 
-        :param query: 查询字符串
-        :param top_k: 返回结果数
-        :return: 相关知识列表（单个 item，不是容器）
+        Args:
+            query: Search query string.
+            top_k: Number of results to return.
+
+        Returns:
+            List of relevant knowledge items (field-value dictionaries).
         """
-        # 检查是否有数据
-        if self.size() == 0:
+        # Check if there's data to search
+        if len(self) == 0:
             logger.warning("No items to search")
             return []
 
@@ -207,7 +223,7 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         docs = self._index.similarity_search(query, k=top_k)
 
-        # 恢复原始对象
+        # Restore original objects from metadata
         results = []
         for doc in docs:
             try:
@@ -219,21 +235,21 @@ class UnitKnowledge(BaseKnowledge[T]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    def size(self) -> int:
-        """返回字段数"""
-        return len(self.data_schema.model_fields)
+    def __len__(self) -> int:
+        """Returns 1 since UnitKnowledge represents a single knowledge unit."""
+        return 1
 
-    # ==================== 序列化 ====================
+    # ==================== Serialization ====================
 
     def dump(self, folder_path: str | Path):
-        """
-        导出知识到指定文件夹。
+        """Exports knowledge to a specified folder.
 
-        保存到文件夹内：
-        1. 结构化数据 (self._data) - 保存为 state.json
-        2. 向量索引 (self._index) - FAISS 索引文件
+        Saves to the folder:
+            1. Structured data (self._data) - saved as state.json
+            2. Vector index (self._index) - saved as FAISS index files
 
-        :param folder_path: 目标文件夹路径
+        Args:
+            folder_path: Target folder path for saving.
         """
 
         folder = Path(folder_path)
@@ -245,7 +261,7 @@ class UnitKnowledge(BaseKnowledge[T]):
             folder.mkdir(parents=True, exist_ok=True)
 
         try:
-            # 1. 保存结构化数据
+            # 1. Save structured data
             data = {
                 "schema_name": self.data_schema.__name__,
                 "data_schema": self.data_schema.model_json_schema(),
@@ -262,7 +278,7 @@ class UnitKnowledge(BaseKnowledge[T]):
                 f.write(json_str)
             logger.info(f"Saved data to {data_file}")
 
-            # 2. 保存向量索引
+            # 2. Save vector index
             if self._index is not None:
                 index_path = str(folder / "faiss_index")
                 self._index.save_local(index_path)
@@ -274,20 +290,20 @@ class UnitKnowledge(BaseKnowledge[T]):
             logger.error(f"Failed to dump knowledge: {e}")
 
     def load(self, folder_path: str | Path):
-        """
-        从文件夹加载知识。
+        """Loads knowledge from a specified folder.
 
-        从文件夹加载：
-        1. 结构化数据 (self._data) - 从 state.json 加载
-        2. 向量索引 (self._index) - 从 FAISS 索引文件加载
+        Loads from the folder:
+            1. Structured data (self._data) - loaded from state.json
+            2. Vector index (self._index) - loaded from FAISS index files
 
-        :param folder_path: 文件夹路径
+        Args:
+            folder_path: Source folder path containing saved knowledge.
         """
         folder = Path(folder_path)
         if not folder.is_dir():
             raise ValueError(f"Folder does not exist: {folder_path}")
 
-        # 1. 加载结构化数据
+        # 1. Load structured data
         data_file = folder / "state.json"
         if not data_file.is_file():
             raise ValueError(f"Data file not found: {data_file}")
@@ -298,12 +314,12 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         self._data = self.data_schema.model_validate(data.get("data", {}))
 
-        # 更新元数据
+        # Update metadata with loaded values
         if "metadata" in data:
             self.metadata.update(data["metadata"])
         self.metadata["updated_at"] = datetime.now()
 
-        # 2. 加载向量索引
+        # 2. Load vector index
         index_path = str(folder / "faiss_index")
         if Path(index_path).exists():
             try:
@@ -320,36 +336,38 @@ class UnitKnowledge(BaseKnowledge[T]):
             logger.warning("No index file found, will rebuild on next search")
             self._index = None
 
-        logger.info(f"Loaded knowledge successfully with {self.size()} fields")
+        logger.info(f"Loaded knowledge successfully with {len(self)} unit(s)")
 
 
-# ==================== 列表知识模式 ===================
+# ==================== List Knowledge Pattern ===================
 
 Item = TypeVar("Item", bound=BaseModel)
 
 
 class ItemListSchema(BaseModel, Generic[Item]):
-    """列表容器的通用 Schema"""
+    """Generic schema container for list-based knowledge patterns."""
 
     items: List[Item] = Field(default_factory=list, description="Item list")
 
 
 class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
-    """
-    列表知识模式 (List Collection Pattern)。
+    """List Knowledge Pattern - extracts a collection of objects from text.
 
-    特点：
-    - 针对整篇文档提取 **一组** 对象列表（如实体、事件、引用等）
-    - 合并策略：追加 (Append) + 基础去重（可由子类扩展）
-    - 索引策略：对列表中的每个 Item 独立建立索引
+    This pattern extracts multiple independent objects from a document, suitable for
+    extracting entities, events, references, or any collection of structured items.
 
-    与 UnitKnowledge 的区别：
-    - UnitKnowledge: 提取单个结构化对象（如摘要、元数据）
-    - ListKnowledge: 提取多个独立对象的列表（如实体列表、事件列表）
+    Key characteristics:
+        - Extraction target: A collection of structured objects
+        - Merge strategy: Append with basic deduplication (extensible by subclasses)
+        - Indexing strategy: Each item in the list is indexed independently
+
+    Comparison with UnitKnowledge:
+        - UnitKnowledge: Extracts a single structured object (e.g., summary, metadata)
+        - ListKnowledge: Extracts multiple independent objects (e.g., entity list, event list)
     """
 
     if TYPE_CHECKING:
-        # 类型检查时使用泛型版本，保持完整的类型提示
+        # Use generic version during type checking to maintain complete type hints
         item_list_schema: Type[ItemListSchema[Item]]
 
     def __init__(
@@ -365,15 +383,17 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         show_progress: bool = True,
         **kwargs,
     ):
-        """
-        :param item_schema: 列表中单个元素的 Schema 类
-        :param llm_client: LLM 客户端
-        :param embedder: 向量化器
-        :param prompt: 自定义提示词
-        :param chunk_size: 长文本分块大小
-        :param chunk_overlap: 分块重叠大小
-        :param max_workers: 最大并发数
-        :param show_progress: 是否显示进度
+        """Initialize ListKnowledge with item schema and configuration.
+
+        Args:
+            item_schema: Pydantic BaseModel subclass for individual list items.
+            llm_client: Language model client for extraction.
+            embedder: Embedding model for vector indexing.
+            prompt: Custom extraction prompt (defaults to list-oriented prompt).
+            chunk_size: Maximum characters per chunk for long texts.
+            chunk_overlap: Overlapping characters between adjacent chunks.
+            max_workers: Maximum concurrent extraction tasks.
+            show_progress: Whether to log progress information.
         """
         self.item_schema = item_schema
 
@@ -400,7 +420,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
     @staticmethod
     def _default_prompt() -> str:
-        """默认列表提取提示词"""
+        """Returns the default extraction prompt for list-based extraction."""
         return (
             "You are an expert knowledge extraction assistant. "
             "Extract all relevant items from the text into a list. "
@@ -411,28 +431,30 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
     @property
     def items(self) -> List[Item]:
-        """获取内部列表"""
+        """Returns the internal list of extracted items."""
         return getattr(self._data, "items", [])
 
     def extract(self, text: str, *, merge_mode: bool = False) -> ItemListSchema:
-        """
-        使用 LangChain 原生批处理提取列表
+        """Extracts a list of items using LangChain native batch processing.
 
-        :param text: 输入文本
-        :param merge_mode: 合并模式（默认 False）
-            - False: 替换模式 - 清空后仅使用新提取的数据
-            - True: 累积模式 - 将现有数据与新数据合并
-        :return: 提取到的 items 列表
+        Args:
+            text: Input text to extract items from.
+            merge_mode: Controls data combination behavior.
+                - False (default): Replace mode - clears existing data before extraction
+                - True: Accumulative mode - merges new items with existing collection
+
+        Returns:
+            The list of extracted items.
         """
         start_time = datetime.now()
 
-        # 替换模式：先清空
+        # Replace mode: clear first
         if not merge_mode:
             self.clear()
 
-        # 判断是否需要分块
+        # Determine if chunking is needed
         if len(text) <= self.chunk_size:
-            # 短文本：一次性提取
+            # Short text: extract in one pass
             if self.show_progress:
                 logger.info(f"Processing single text (length: {len(text)})...")
 
@@ -440,7 +462,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             extracted_data_list = [extracted_data]
 
         else:
-            # 长文本：分块提取
+            # Long text: extract by chunking
             chunks = self.text_splitter.split_text(text)
             logger.info(f"Split text into {len(chunks)} chunks")
 
@@ -461,7 +483,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         self._data = self.merge(extracted_data_list)
 
-        # 统一修改状态
+        # Update state uniformly
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
@@ -472,27 +494,30 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         return self.items
 
     def merge(self, data_list: List[ItemListSchema]) -> ItemListSchema:
-        """
-        纯数据合并方法 - 列表追加策略。
+        """Pure data merge method implementing list append strategy.
 
-        合并策略：收集所有容器对象中的 items，合并到一个大列表中。
-        子类可以重写此方法实现更复杂的去重逻辑（如 EntityKnowledge）。
+        Merge strategy: Collects all items from all container objects and merges them
+        into a single list. Subclasses can override this method to implement more
+        sophisticated deduplication logic (e.g., EntityKnowledge).
 
-        :param data_list: 需要合并的容器对象列表
-        :return: 合并后的知识数据（新的 ItemListSchema 对象）
+        Args:
+            data_list: List of container objects to merge.
+
+        Returns:
+            A new merged ItemListSchema object.
         """
         all_items = []
 
-        # 收集所有 items
+        # Collect all items from each container
         for data in data_list:
             copied_data = data.model_copy(deep=True)
             all_items.extend(copied_data.items)
 
-        # 返回新的对象
+        # Return a new container object
         return self.item_list_schema(items=all_items)
 
     def build_index(self):
-        """为列表中的每个 Item 构建独立索引"""
+        """Builds independent vector index for each item in the list."""
         items = self.items
         if not items:
             logger.warning("No items to index")
@@ -503,8 +528,8 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         documents = []
         for idx, item in enumerate(items):
-            # 序列化每个 Item 为 Document
-            content = item.model_dump_json()  # 使用 JSON 字符串作为内容
+            # Serialize each Item as a Document
+            content = item.model_dump_json()  # Use JSON string as content
             documents.append(
                 Document(
                     page_content=content,
@@ -521,12 +546,14 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
                 raise
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
-        """
-        搜索列表中的 items。
+        """Searches items in the list using semantic similarity.
 
-        :param query: 查询字符串
-        :param top_k: 返回结果数
-        :return: 相关的 item 列表
+        Args:
+            query: Search query string.
+            top_k: Number of results to return.
+
+        Returns:
+            List of relevant items.
         """
         if not self.items:
             logger.warning("No items to search")
@@ -538,7 +565,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         docs = self._index.similarity_search(query, k=top_k)
         results = []
         for doc in docs:
-            # 尝试还原为对象
+            # Attempt to restore as object
             try:
                 raw = doc.metadata.get("raw", {})
                 item = self.item_schema.model_validate(raw)
@@ -550,21 +577,22 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    def size(self) -> int:
-        """返回列表中的元素数量"""
+    def __len__(self) -> int:
+        """Returns the number of elements in the list."""
         return len(self.items)
 
     def dump(self, folder_path: str) -> Any:
-        """
-        导出知识到指定文件夹（复用 UnitKnowledge 的实现）。
-        容器本质也是 BaseModel，可以直接使用相同的序列化逻辑。
+        """Exports knowledge to a specified folder.
+
+        Uses the same serialization logic as UnitKnowledge since the container
+        is also a BaseModel.
         """
         from pathlib import Path
 
         folder = Path(folder_path)
         folder.mkdir(parents=True, exist_ok=True)
 
-        # 1. 保存结构化数据
+        # 1. Save structured data
         data = {
             "schema_name": self.item_list_schema.__name__,
             "item_schema_name": self.item_schema.__name__,
@@ -582,7 +610,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             f.write(json_str)
         logger.info(f"Saved data to {data_file}")
 
-        # 2. 保存向量索引
+        # 2. Save vector index
         if self._index is not None:
             index_path = str(folder / "faiss_index")
             self._index.save_local(index_path)
@@ -593,14 +621,14 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         return json_str
 
     def load(self, folder_path: str, **kwargs):
-        """从文件夹加载知识"""
+        """Loads knowledge from a specified folder."""
         from pathlib import Path
 
         folder = Path(folder_path)
         if not folder.is_dir():
             raise ValueError(f"Folder does not exist: {folder_path}")
 
-        # 1. 加载结构化数据
+        # 1. Load structured data
         data_file = folder / "state.json"
         if not data_file.is_file():
             raise ValueError(f"Data file not found: {data_file}")
@@ -611,12 +639,12 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         self._data = self.item_list_schema.model_validate(data.get("data", {}))
 
-        # 更新元数据
+        # Update metadata with loaded values
         if "metadata" in data:
             self.metadata.update(data["metadata"])
         self.metadata["updated_at"] = datetime.now()
 
-        # 2. 加载向量索引
+        # 2. Load vector index
         index_path = str(folder / "faiss_index")
         if Path(index_path).exists():
             try:
@@ -631,7 +659,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             logger.warning("No index file found, will rebuild on next search")
             self._index = None
 
-        logger.info(f"Loaded knowledge successfully with {self.size()} items")
+        logger.info(f"Loaded knowledge successfully with {len(self)} items")
 
 
 # Set Knowledge

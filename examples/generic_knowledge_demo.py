@@ -85,7 +85,7 @@ def main():
     # 6. 构建索引
     print("\n[5] 构建向量索引...")
     knowledge.build_index()
-    print(f"✓ 索引构建完成，共 {knowledge.size()} 个字段")
+    print(f"✓ 索引构建完成，共 {len(knowledge)} 个字段")
 
     # 7. 语义搜索
     print("\n[6] 执行语义搜索...")
@@ -112,7 +112,7 @@ def main():
     new_knowledge.load(save_path)
     print("✓ 知识加载完成")
     print(f"  加载的标题: {new_knowledge.data.title}")
-    print(f"  加载的字段数: {new_knowledge.size()}")
+    print(f"  加载的字段数: {len(new_knowledge)}")
 
     # 10. 测试长文本提取（分块）
     print("\n[9] 测试长文本提取（自动分块）...")

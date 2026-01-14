@@ -132,7 +132,7 @@ def main():
     print("\n[1] 生成测试新闻文本...")
     news_text = generate_long_news_text()
     print(f"   文本长度: {len(news_text)} 字符")
-    print(f"   预计分块数: {len(news_text) // 200 + 1} 块 (chunk_size=200)")
+    print(f"   预计分块数: {len(news_text) // 300 + 1} 块 (chunk_size=300)")
 
     # 2. 初始化 LLM 和 Embedder
     print("\n[2] 初始化 LLM 和 Embedder...")
@@ -140,7 +140,7 @@ def main():
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # 3. 创建 ListKnowledge 实例 (使用小的 chunk_size 测试多 chunk)
-    print("\n[3] 创建 ListKnowledge 实例 (chunk_size=200)...")
+    print("\n[3] 创建 ListKnowledge 实例 (chunk_size=300)...")
     knowledge = ListKnowledge(
         item_schema=NewsEvent,
         llm_client=llm,
@@ -173,7 +173,7 @@ def main():
         print(f"\n   ... 还有 {len(events) - 5} 个事件未显示")
 
     # 6. 测试列表大小
-    print(f"\n[6] 知识列表大小: {knowledge.size()} 个事件")
+    print(f"\n[6] 知识列表大小: {len(knowledge)} 个事件")
 
     # 7. 构建索引
     print("\n[7] 构建向量索引...")
@@ -204,9 +204,9 @@ def main():
     """
 
     print("   添加补充新闻...")
-    before_count = knowledge.size()
+    before_count = len(knowledge)
     knowledge.extract(additional_news, merge_mode=True)
-    after_count = knowledge.size()
+    after_count = len(knowledge)
     print(f"   合并前: {before_count} 个事件")
     print(f"   合并后: {after_count} 个事件")
     print(f"   新增: {after_count - before_count} 个事件")
@@ -231,14 +231,14 @@ def main():
         embedder=embedder,
     )
     new_knowledge.load(str(save_path))
-    print(f"   加载成功! 事件数: {new_knowledge.size()}")
+    print(f"   加载成功! 事件数: {len(new_knowledge)}")
     print(f"   第一个事件: {new_knowledge.items[0].title}")
 
     # 13. 测试清空功能
     print("\n[12] 测试清空功能...")
-    print(f"   清空前: {new_knowledge.size()} 个事件")
+    print(f"   清空前: {len(new_knowledge)} 个事件")
     new_knowledge.clear()
-    print(f"   清空后: {new_knowledge.size()} 个事件")
+    print(f"   清空后: {len(new_knowledge)} 个事件")
 
     print("\n" + "=" * 80)
     print("示例运行完成!")

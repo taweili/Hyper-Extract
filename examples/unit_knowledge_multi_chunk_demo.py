@@ -181,7 +181,7 @@ def main():
     print(f"   关键词数量: {len(extracted_data.keywords)}")
 
     # 6. 测试字段数量
-    print(f"\n[6] 知识字段数: {knowledge.size()}")
+    print(f"\n[6] 知识字段数: {len(knowledge)}")
 
     # 7. 构建索引
     print("\n[7] 构建向量索引...")
@@ -228,7 +228,7 @@ def main():
         embedder=embedder,
     )
     new_knowledge.load(str(save_path))
-    print(f"   加载成功! 字段数: {new_knowledge.size()}")
+    print(f"   加载成功! 字段数: {len(new_knowledge)}")
     print(f"   标题: {new_knowledge.data.title}")
 
     print("\n" + "=" * 80)

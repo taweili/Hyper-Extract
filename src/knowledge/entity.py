@@ -1,10 +1,8 @@
-"""
-实体知识提取模块。
+"""Entity knowledge extraction module.
 
-基于 ListKnowledge 的实体提取实现。
+Provides entity extraction implementation based on ListKnowledge.
 """
 
-from pathlib import Path
 from typing import List, Dict, Type, TypeVar, Generic
 from pydantic import BaseModel, Field as PydanticField
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -23,36 +21,34 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-# 实体类型变量
+# Entity type variable
 E = TypeVar("E", bound="BaseEntitySchema")
 
 
 class BaseEntitySchema(BaseModel):
-    """
-    实体基类 - 所有实体必须包含的核心字段。
+    """Base entity class defining required core fields for all entities.
 
-    用户可继承此类添加自定义字段。
+    Users can inherit from this class to add custom fields.
     """
 
-    name: str = PydanticField(description="实体唯一名称", min_length=1)
-    description: str = PydanticField(description="实体描述")
+    name: str = PydanticField(description="Unique entity name", min_length=1)
+    description: str = PydanticField(description="Entity description")
 
     class Config:
-        """允许用户扩展字段"""
+        """Configuration allowing users to extend with additional fields."""
 
-        extra = "allow"  # 允许额外字段
-        validate_assignment = True  # 赋值时验证
+        extra = "allow"  # Allow additional fields
+        validate_assignment = True  # Validate on assignment
 
 
 class EntityKnowledge(ListKnowledge[E], Generic[E]):
-    """
-    专门用于实体提取和管理的知识类。
+    """Specialized knowledge class for entity extraction and management.
 
-    特点：
-    1. 自动去重（基于 entity.name）
-    2. LLM 智能合并（同名实体的字段合并）
-    3. 每个实体作为独立文档建索引
-    4. 支持实体级别的搜索
+    Key features:
+        1. Automatic deduplication based on entity.name
+        2. Intelligent LLM-powered merging for entities with the same name
+        3. Each entity indexed as an independent document
+        4. Support for entity-level semantic search
     """
 
     def __init__(
@@ -64,11 +60,13 @@ class EntityKnowledge(ListKnowledge[E], Generic[E]):
         prompt: str = "",
         **kwargs,
     ):
-        """
-        :param entity_schema: 用户自定义的实体类（必须继承 BaseEntity）
-        :param llm_client: LLM 客户端
-        :param embedder: 向量化器
-        :param prompt: 自定义提示词
+        """Initialize EntityKnowledge with entity schema and configuration.
+
+        Args:
+            entity_schema: User-defined entity class (must inherit from BaseEntity).
+            llm_client: Language model client for extraction and merging.
+            embedder: Embedding model for vector indexing.
+            prompt: Custom extraction prompt.
         """
         self._entity_schema = entity_schema
 
@@ -82,12 +80,12 @@ class EntityKnowledge(ListKnowledge[E], Generic[E]):
 
         self._merge_chain = self._create_merge_chain()
 
-        # 全局实体映射（主存储，类型安全）
+        # Global entity mapping (primary storage, type-safe)
         self._entity_map: Dict[str, E] = {}
 
     @staticmethod
     def _default_prompt() -> str:
-        """默认实体提取提示词"""
+        """Returns the default entity extraction prompt."""
         return (
             "You are an expert entity extraction assistant. "
             "Carefully read the following text and extract all entities "
@@ -97,7 +95,7 @@ class EntityKnowledge(ListKnowledge[E], Generic[E]):
         )
 
     def _create_merge_chain(self):
-        """创建 LLM 合并 chain，用于智能合并同名实体"""
+        """Creates an LLM chain for intelligently merging entities with the same name."""
         merge_template = """You are an expert at merging entity information. 
 Given two instances of the same entity, intelligently merge their fields into one.
 
@@ -120,86 +118,89 @@ Please merge these two entities intelligently and return the result."""
             self._entity_schema
         )
 
-    # ==================== 数据管理 ====================
+    # ==================== Data Management ====================
 
     def clear(self):
-        """清空所有实体"""
+        """Clears all entities from storage."""
         super().clear()
         self._entity_map.clear()
 
-    # ==================== 提取与聚合 ====================
+    # ==================== Extraction & Aggregation ====================
 
     def extract(self, text: str, *, merge_mode: bool = False) -> BaseModel:
+        """Extracts entity knowledge with support for replace/accumulate modes.
+
+        Mode explanation:
+            - merge_mode=False (default): Replace mode
+              Only uses newly extracted entities
+
+            - merge_mode=True: Accumulate mode
+              Keeps existing entities, extracts new entities and intelligently merges
+              (LLM-powered deduplication)
+
+        Args:
+            text: Input text to extract entities from.
+            merge_mode: Merge mode (default False).
+
+        Returns:
+            Container with extracted entities.
         """
-        提取实体知识（支持替换/累积两种模式）。
-
-        模式说明：
-        - merge_mode=False（默认）: 替换模式
-          仅使用新提取的实体
-
-        - merge_mode=True: 累积模式
-          保留现有实体，提取新实体并智能合并（LLM 去重）
-
-        :param text: 输入文本
-        :param merge_mode: 合并模式（默认 False）
-        :return: 提取后的实体列表容器
-        """
-        # 调用父类提取方法，传递 merge_mode
+        # Call parent extraction method with merge_mode
         result = super().extract(text, merge_mode=merge_mode)
         
-        # 提取完成后同步到 entity_map
+        # Synchronize extracted items to entity_map after extraction
         self._sync_items_to_map()
 
         logger.info(
-            f"Entity extraction completed ({'累积' if merge_mode else '替换'} mode)"
+            f"Entity extraction completed ({'Accumulate' if merge_mode else 'Replace'} mode)"
         )
         logger.info(f"Total entities: {len(self._entity_map)}")
 
         return result
 
     def merge(self, data_list: List[BaseModel]) -> BaseModel:
-        """
-        实体级别的智能合并（使用 LLM）。
+        """Entity-level intelligent merging using LLM.
 
-        策略：
-        1. 先调用父类 merge 获得所有提取的 items
-        2. 将结果赋值给 self._data
-        3. 同步到 entity_map 进行 LLM 去重
-        4. 返回去重后的数据
+        Strategy:
+            1. Call parent merge to get all extracted items
+            2. Assign result to self._data
+            3. Synchronize to entity_map for LLM-powered deduplication
+            4. Return deduplicated data
 
-        :param data_list: 多个容器对象
-        :return: 合并后的实体数据
+        Args:
+            data_list: Multiple container objects.
+
+        Returns:
+            Merged entity data.
         """
-        # 调用父类 merge，获得合并后的结果
+        # Call parent merge to get merged result
         merged_result = super().merge(data_list)
         
-        # 临时赋值给 self._data 以便 _sync_items_to_map 能访问 self.items
+        # Temporarily assign to self._data so _sync_items_to_map can access self.items
         self._data = merged_result
         
-        # 同步到 entity_map 进行去重
+        # Synchronize to entity_map for deduplication
         self._sync_items_to_map()
         
-        # 返回最终的 self._data（已经被 _sync_items_to_map 更新）
+        # Return final self._data (updated by _sync_items_to_map)
         return self._data
 
     def _sync_items_to_map(self):
-        """
-        将 self.items 同步到 entity_map，执行去重和 LLM 合并。
-        """
+        """Synchronizes self.items to entity_map, performing deduplication and LLM merging."""
         total_entities = 0
         duplicate_count = 0
 
-        # 遍历父类的 items，与已有的 entity_map 合并
+        # Traverse parent's items and merge with existing entity_map
         for entity in self.items:
             total_entities += 1
             entity_name = entity.name.strip()
 
-            if not entity_name:  # 跳过空名称
+            if not entity_name:  # Skip empty names
                 logger.warning(f"Skipping entity with empty name: {entity}")
                 continue
 
             if entity_name in self._entity_map:
-                # 实体已存在 - 使用 LLM 执行合并
+                # Entity exists - merge using LLM
                 duplicate_count += 1
                 existing = self._entity_map[entity_name]
                 merged = self._merge_entity_with_llm(existing, entity)
@@ -210,10 +211,10 @@ Please merge these two entities intelligently and return the result."""
                         f"LLM merge failed for entity '{entity_name}', keeping existing"
                     )
             else:
-                # 新实体 - 深拷贝后添加
+                # New entity - deep copy and add
                 self._entity_map[entity_name] = entity.model_copy(deep=True)
 
-        # 将去重后的结果写回 self.items
+        # Write deduplicated results back to self.items
         self._data.items = list(self._entity_map.values())
         self.clear_index()
 
@@ -223,19 +224,21 @@ Please merge these two entities intelligently and return the result."""
         )
 
     def _merge_entity_with_llm(self, entity_a: E, entity_b: E) -> E | None:
-        """
-        使用 LLM 智能合并两个同名实体。
+        """Uses LLM to intelligently merge two entities with the same name.
 
-        :param entity_a: 第一个实体
-        :param entity_b: 第二个实体
-        :return: 合并后的实体（失败返回 None）
+        Args:
+            entity_a: First entity.
+            entity_b: Second entity.
+
+        Returns:
+            Merged entity (returns None on failure).
         """
         try:
-            # 准备输入
+            # Prepare inputs
             entity_a_json = entity_a.model_dump_json(indent=2)
             entity_b_json = entity_b.model_dump_json(indent=2)
 
-            # 调用 LLM 合并
+            # Call LLM for merging
             merged_entity = self._merge_chain.invoke(
                 {
                     "entity_a": entity_a_json,
@@ -250,32 +253,31 @@ Please merge these two entities intelligently and return the result."""
             logger.error(f"Error merging entity '{entity_a.name}' with LLM: {e}")
             return None
 
-    # ==================== 查询与索引 ====================
+    # ==================== Indexing & Query ====================
 
     def build_index(self):
-        """
-        为每个实体构建独立的向量索引文档。
+        """Builds independent vector index document for each entity.
 
-        每个实体 → 一个 Document:
-        - page_content: "{name}: {description} + 其他字段"
-        - metadata: {"entity": entity.model_dump()}
+        Each entity → one Document:
+            - page_content: "{name}: {description} + other fields"
+            - metadata: {"entity": entity.model_dump()}
         """
         if len(self._entity_map) == 0:
             logger.warning("No entities to index")
             return
 
         if self._index is not None:
-            return  # 索引已存在
+            return  # Index already exists
 
         documents = []
         for entity in self._entity_map.values():
-            # 构建文档内容（用于向量化）
+            # Build document content for vectorization
             content_parts = [
                 f"name: {entity.name}",
                 f"description: {entity.description}",
             ]
 
-            # 添加其他字段（如果用户扩展了）
+            # Add other fields if user extended the schema
             for field_name in self._entity_schema.model_fields:
                 if field_name not in ("name", "description"):
                     value = getattr(entity, field_name, None)
@@ -284,7 +286,7 @@ Please merge these two entities intelligently and return the result."""
 
             content = "\n".join(content_parts)
 
-            # 保存完整实体数据到 metadata
+            # Save complete entity data to metadata
             documents.append(
                 Document(
                     page_content=content,
@@ -297,15 +299,17 @@ Please merge these two entities intelligently and return the result."""
 
 
     def search(self, query: str, top_k: int = 3, return_raw: bool = False) -> List[E]:
-        """
-        语义搜索实体。
+        """Performs semantic search over entities.
 
-        :param query: 查询字符串
-        :param top_k: 返回结果数
-        :param return_raw: 是否返回原始实体对象（默认返回字典）
-        :return: 实体列表
+        Args:
+            query: Search query string.
+            top_k: Number of results to return.
+            return_raw: Whether to return raw entity objects (default returns dict).
+
+        Returns:
+            List of entities.
         """
-        if self.size() == 0:
+        if len(self) == 0:
             logger.warning("No items to search")
             return []
 
@@ -314,17 +318,17 @@ Please merge these two entities intelligently and return the result."""
 
         docs = self._index.similarity_search(query, k=top_k)
 
-        # 恢复实体对象
+        # Restore entity objects
         results = []
         for doc in docs:
             try:
                 entity_data = doc.metadata["raw"]
                 if return_raw:
-                    # 返回 Pydantic 对象
+                    # Return Pydantic object
                     entity = self._entity_schema.model_validate(entity_data)
                     results.append(entity)
                 else:
-                    # 返回字典
+                    # Return dictionary
                     results.append(entity_data)
             except Exception as e:
                 logger.warning(f"Failed to restore entity: {e}")
@@ -332,35 +336,35 @@ Please merge these two entities intelligently and return the result."""
         logger.info(f"Found {len(results)} entities for query: {query[:50]}...")
         return results
 
-    def size(self) -> int:
-        """返回实体数量（直接从 entity_map 读取）"""
+    def __len__(self) -> int:
+        """Returns the number of entities (reads directly from entity_map)."""
         return len(self._entity_map)
 
-    # ==================== 便捷属性 ====================
+    # ==================== Convenience Properties ====================
 
     @property
     def entities(self) -> List[E]:
-        """快速访问实体列表"""
+        """Quick access to entity list."""
         return self.items
 
     @property
     def entity_schema(self) -> Type[E]:
-        """返回用户定义的实体 Schema"""
+        """Returns the user-defined entity schema."""
         return self._entity_schema
 
     @property
     def entity_names(self) -> List[str]:
-        """返回所有实体名称（直接从 entity_map 读取）"""
+        """Returns all entity names (reads directly from entity_map)."""
         return list(self._entity_map.keys())
 
-    # ==================== 可选增强方法 ====================
+    # ==================== Optional Enhancement Methods ====================
 
     def get_entity_by_name(self, name: str) -> E | None:
-        """按名称获取实体（O(1) 字典查找）"""
+        """Retrieves entity by name (O(1) dictionary lookup)."""
         return self._entity_map.get(name)
 
     def remove_entity(self, name: str) -> bool:
-        """删除指定实体（从 entity_map 和 items 删除）"""
+        """Removes specified entity (from both entity_map and items)."""
         if name in self._entity_map:
             del self._entity_map[name]
             self._data.items = list(self._entity_map.values())
@@ -369,13 +373,13 @@ Please merge these two entities intelligently and return the result."""
             return True
         return False
 
-    # ==================== 序列化 ====================
+    # ==================== Serialization ====================
 
     def load(self, folder_path: str, **kwargs):
-        """加载后重建 entity_map"""
+        """Loads knowledge and rebuilds entity_map."""
         super().load(folder_path, **kwargs)
 
-        # 从 items 重建 entity_map
+        # Rebuild entity_map from items
         self._entity_map = {
             entity.name: entity.model_copy(deep=True) for entity in self.items
         }
