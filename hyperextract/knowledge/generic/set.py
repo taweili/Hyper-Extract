@@ -402,69 +402,6 @@ Please merge these two items intelligently and return the merged result."""
         # Return items list
         return self.items if store else merged_data.items
 
-    def build_index(self):
-        """Builds independent vector index for each unique item."""
-        items = self.items
-        if not items:
-            logger.warning("No items to index")
-            return
-
-        if self._index is not None:
-            return
-
-        documents = []
-        for idx, item in enumerate(items):
-            # Serialize each Item as a Document
-            content = item.model_dump_json()  # Use JSON string as content
-            documents.append(
-                Document(
-                    page_content=content,
-                    metadata={"raw": item.model_dump(), "index": idx},
-                )
-            )
-
-        if documents:
-            try:
-                from langchain_community.vectorstores import FAISS
-
-                self._index = FAISS.from_documents(documents, self.embedder)
-                logger.info(f"Built FAISS index with {len(documents)} items")
-            except ImportError:
-                logger.error("FAISS not available. Install with: pip install faiss-cpu")
-                raise
-
-    def search(self, query: str, top_k: int = 3) -> List[Any]:
-        """Searches items in the set using semantic similarity.
-
-        Args:
-            query: Search query string.
-            top_k: Number of results to return.
-
-        Returns:
-            List of relevant items.
-        """
-        if not self.items:
-            logger.warning("No items to search")
-            return []
-
-        if self._index is None:
-            raise Exception("Vector store not initialized")
-
-        docs = self._index.similarity_search(query, k=top_k)
-        results = []
-        for doc in docs:
-            # Attempt to restore as object
-            try:
-                raw = doc.metadata.get("raw", {})
-                item = self.item_schema.model_validate(raw)
-                results.append(item)
-            except Exception as e:
-                logger.warning(f"Failed to restore item: {e}")
-                results.append(doc.metadata.get("raw"))
-
-        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
-        return results
-
     def merge(self, data_list: List[ItemSetSchema[Item]]) -> ItemSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
 
@@ -675,6 +612,69 @@ Please merge these two items intelligently and return the merged result."""
         except Exception as e:
             logger.error(f"LLM merge failed: {e}")
             return incoming  # Fallback to incoming item
+
+    def build_index(self):
+        """Builds independent vector index for each unique item."""
+        items = self.items
+        if not items:
+            logger.warning("No items to index")
+            return
+
+        if self._index is not None:
+            return
+
+        documents = []
+        for idx, item in enumerate(items):
+            # Serialize each Item as a Document
+            content = item.model_dump_json()  # Use JSON string as content
+            documents.append(
+                Document(
+                    page_content=content,
+                    metadata={"raw": item.model_dump(), "index": idx},
+                )
+            )
+
+        if documents:
+            try:
+                from langchain_community.vectorstores import FAISS
+
+                self._index = FAISS.from_documents(documents, self.embedder)
+                logger.info(f"Built FAISS index with {len(documents)} items")
+            except ImportError:
+                logger.error("FAISS not available. Install with: pip install faiss-cpu")
+                raise
+
+    def search(self, query: str, top_k: int = 3) -> List[Any]:
+        """Searches items in the set using semantic similarity.
+
+        Args:
+            query: Search query string.
+            top_k: Number of results to return.
+
+        Returns:
+            List of relevant items.
+        """
+        if not self.items:
+            logger.warning("No items to search")
+            return []
+
+        if self._index is None:
+            raise Exception("Vector store not initialized")
+
+        docs = self._index.similarity_search(query, k=top_k)
+        results = []
+        for doc in docs:
+            # Attempt to restore as object
+            try:
+                raw = doc.metadata.get("raw", {})
+                item = self.item_schema.model_validate(raw)
+                results.append(item)
+            except Exception as e:
+                logger.warning(f"Failed to restore item: {e}")
+                results.append(doc.metadata.get("raw"))
+
+        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
+        return results
 
     # ==================== Serialization ====================
 
