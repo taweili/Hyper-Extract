@@ -10,7 +10,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
-from ..base import BaseKnowledge
+from .base import BaseAutoType
 
 try:
     from hyperextract.config import logger
@@ -23,14 +23,14 @@ except ImportError:
 Item = TypeVar("Item", bound=BaseModel)
 
 
-class ItemListSchema(BaseModel, Generic[Item]):
+class AutoListSchema(BaseModel, Generic[Item]):
     """Generic schema container for list-based knowledge patterns."""
 
     items: List[Item] = Field(default_factory=list, description="Item list")
 
 
-class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
-    """List Knowledge Pattern - extracts a collection of objects from text.
+class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
+    """AutoList - extracts a collection of objects from text.
 
     This pattern extracts multiple independent objects from a document, suitable for
     extracting entities, events, references, or any collection of structured items.
@@ -40,14 +40,14 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         - Merge strategy: Append with basic deduplication (extensible by subclasses)
         - Indexing strategy: Each item in the list is indexed independently
 
-    Comparison with UnitKnowledge:
-        - UnitKnowledge: Extracts a single structured object (e.g., summary, metadata)
-        - ListKnowledge: Extracts multiple independent objects (e.g., entity list, event list)
+    Comparison with AutoModel:
+        - AutoModel: Extracts a single structured object (e.g., summary, metadata)
+        - AutoList: Extracts multiple independent objects (e.g., entity list, event list)
     """
 
     if TYPE_CHECKING:
         # Use generic version during type checking to maintain complete type hints
-        item_list_schema: Type[ItemListSchema[Item]]
+        item_list_schema: Type[AutoListSchema[Item]]
 
     def __init__(
         self,
@@ -62,7 +62,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         show_progress: bool = True,
         **kwargs,
     ):
-        """Initialize ListKnowledge with item schema and configuration.
+        """Initialize AutoList with item schema and configuration.
 
         Args:
             item_schema: Pydantic BaseModel subclass for individual list items.
@@ -113,13 +113,13 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         """Returns the internal list of extracted items."""
         return getattr(self._data, "items", [])
 
-    def _create_new_instance(self) -> "ListKnowledge[Item]":
+    def _create_new_instance(self) -> "AutoList[Item]":
         """Creates a new instance with the same configuration as this one.
 
-        Overrides base class method to handle ListKnowledge's item_schema parameter.
+        Overrides base class method to handle AutoList's item_schema parameter.
 
         Returns:
-            A new ListKnowledge instance with the same configuration.
+            A new AutoList instance with the same configuration.
         """
         return self.__class__(
             item_schema=self.item_schema,
@@ -132,7 +132,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             show_progress=self.show_progress,
         )
 
-    def extract(self, text: str, *, store: bool = True) -> ItemListSchema:
+    def extract(self, text: str, *, store: bool = True) -> AutoListSchema:
         """Extracts a list of items using LangChain native batch processing.
 
         Args:
@@ -192,18 +192,18 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         # Return items list (either from stored data or temporary merged data)
         return self.items if store else merged_data.items
 
-    def merge(self, data_list: List[ItemListSchema]) -> ItemListSchema:
+    def merge(self, data_list: List[AutoListSchema]) -> AutoListSchema:
         """Pure data merge method implementing list append strategy.
 
         Merge strategy: Collects all items from all container objects and merges them
         into a single list. Subclasses can override this method to implement more
-        sophisticated deduplication logic (e.g., EntityKnowledge).
+        sophisticated deduplication logic (e.g., AutoSet with custom key_extractor).
 
         Args:
             data_list: List of container objects to merge.
 
         Returns:
-            A new merged ItemListSchema object.
+            A new merged AutoListSchema object.
         """
         all_items = []
 
@@ -366,7 +366,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         Returns:
             - For integer index: Returns the Item at that position
-            - For slice: Returns a new ListKnowledge instance with sliced items
+            - For slice: Returns a new AutoList instance with sliced items
 
         Raises:
             IndexError: If index is out of range.
@@ -375,14 +375,14 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         Examples:
             >>> knowledge[0]           # First item
             >>> knowledge[-1]          # Last item
-            >>> knowledge[1:3]         # New ListKnowledge with items [1:3]
+            >>> knowledge[1:3]         # New AutoList with items [1:3]
             >>> knowledge[:5]          # First 5 items as new instance
         """
         if isinstance(key, int):
             # Integer index: return Item directly
             return self.items[key]
         elif isinstance(key, slice):
-            # Slice: return new ListKnowledge instance
+            # Slice: return new AutoList instance
             new_instance = self._create_new_instance()
             new_instance._data.items = self.items[key]
             new_instance.metadata["updated_at"] = datetime.now()
@@ -420,28 +420,28 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         """Operator overload for '+' to combine knowledge instances.
 
         Supports multiple combination patterns:
-        - ListKnowledge + ListKnowledge → ListKnowledge (merge lists)
-        - ListKnowledge + UnitKnowledge → ListKnowledge (append unit to list)
+        - AutoList + AutoList → AutoList (merge lists)
+        - AutoList + UnitKnowledge → AutoList (append unit to list)
 
         This enables chain operations like: unit1 + unit2 + unit3
 
         Args:
-            other: Another ListKnowledge or UnitKnowledge with compatible schema.
+            other: Another AutoList or UnitKnowledge with compatible schema.
 
         Returns:
-            New ListKnowledge with combined items.
+            New AutoList with combined items.
 
         Raises:
             TypeError: If schemas don't match or invalid operand type.
         """
-        from .unit import UnitKnowledge
+        from .model import AutoModel
 
-        # Case 1: ListKnowledge + ListKnowledge (call parent implementation)
-        if isinstance(other, ListKnowledge):
+        # Case 1: AutoList + AutoList (call parent implementation)
+        if isinstance(other, AutoList):
             # Check schema compatibility
             if self.item_schema != other.item_schema:
                 raise TypeError(
-                    f"Cannot add ListKnowledge instances with different schemas. "
+                    f"Cannot add AutoList instances with different schemas. "
                     f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
                 )
             # Manually merge without calling base class (to avoid _data_schema check)
@@ -452,16 +452,16 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             new_instance.metadata["updated_at"] = self.metadata.get("updated_at")
             return new_instance
 
-        # Case 2: ListKnowledge + UnitKnowledge → ListKnowledge (append unit)
-        elif isinstance(other, UnitKnowledge):
+        # Case 2: AutoList + AutoModel → AutoList (append unit)
+        elif isinstance(other, AutoModel):
             # Check schema compatibility
             if self.item_schema != other._data_schema:
                 raise TypeError(
-                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
+                    f"Cannot add AutoModel to AutoList with different schemas. "
                     f"List: {self.item_schema.__name__}, Unit: {other._data_schema.__name__}"
                 )
 
-            # Create new ListKnowledge with appended unit
+            # Create new AutoList with appended unit
             new_list = self._create_new_instance()
             new_list._data.items = self.items + [other._data]
 
@@ -475,7 +475,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         else:
             raise TypeError(
-                f"Unsupported operand type for +: 'ListKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for +: 'AutoList' and '{type(other).__name__}'"
             )
 
     def __delitem__(self, index: int):
@@ -544,7 +544,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         Examples:
             >>> repr(knowledge)
-            'ListKnowledge[PersonSchema](5 items)'
+            'AutoList[PersonSchema](5 items)'
         """
         return (
             f"{self.__class__.__name__}[{self.item_schema.__name__}]({len(self)} items)"
@@ -558,7 +558,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 
         Examples:
             >>> str(knowledge)
-            'ListKnowledge with 5 PersonSchema items'
+            'AutoList with 5 PersonSchema items'
         """
         return f"{self.__class__.__name__} with {len(self)} {self.item_schema.__name__} items"
 
@@ -591,7 +591,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
         Args:
             items: Iterable of items to append. Can be:
                 - List of items
-                - Another ListKnowledge instance
+                - Another AutoList instance
                 - Any iterable yielding items
 
         Raises:
@@ -605,11 +605,11 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
             - Clears the vector index (needs rebuild)
             - Updates metadata timestamp
         """
-        # Handle ListKnowledge instance
-        if isinstance(items, ListKnowledge):
+        # Handle AutoList instance
+        if isinstance(items, AutoList):
             if self.item_schema != items.item_schema:
                 raise TypeError(
-                    f"Cannot extend with ListKnowledge of different schema. "
+                    f"Cannot extend with AutoList of different schema. "
                     f"Expected: {self.item_schema.__name__}, "
                     f"Got: {items.item_schema.__name__}"
                 )
@@ -757,11 +757,11 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
                 count += 1
         return count
 
-    def copy(self) -> "ListKnowledge[Item]":
-        """Create a deep copy of this ListKnowledge instance.
+    def copy(self) -> "AutoList[Item]":
+        """Create a deep copy of this AutoList instance.
 
         Returns:
-            A new ListKnowledge instance with copied items and metadata.
+            A new AutoList instance with copied items and metadata.
 
         Note:
             The vector index is not copied; it needs to be rebuilt if needed.

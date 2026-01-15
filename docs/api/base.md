@@ -1,6 +1,6 @@
-# BaseKnowledge API
+# BaseAutoType API
 
-::: hyperextract.knowledge.base.BaseKnowledge
+::: hyperextract.core.base.BaseAutoType
     options:
       show_root_heading: true
       show_source: true
@@ -8,12 +8,12 @@
 
 ## Overview
 
-`BaseKnowledge` is the abstract base class that provides the foundation for all knowledge extraction patterns in Hyper-Extract. It implements the core lifecycle operations: extraction, merging, indexing, evolution, and serialization.
+`BaseAutoType` is the abstract base class that provides the foundation for all knowledge extraction patterns in Hyper-Extract. It implements the core lifecycle operations: extraction, merging, indexing, evolution, and serialization.
 
 ## Class Signature
 
 ```python
-class BaseKnowledge(ABC, Generic[T]):
+class BaseAutoType(ABC, Generic[T]):
     """Unified knowledge base class integrating extraction, storage, 
     aggregation, and evolution."""
 ```
@@ -38,7 +38,7 @@ Where `T` is a Pydantic `BaseModel` subclass defining your knowledge schema.
 ### Example
 
 ```python
-from hyperextract.knowledge.base import BaseKnowledge
+from hyperextract.core.base import BaseAutoType
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import BaseModel, Field
 
@@ -49,8 +49,8 @@ class MySchema(BaseModel):
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Note: BaseKnowledge is abstract, use concrete implementations
-# knowledge = UnitKnowledge(...)
+# Note: BaseAutoType is abstract, use concrete implementations
+# knowledge = AutoModel(...)
 ```
 
 ## Properties
@@ -189,7 +189,7 @@ def load(
     llm_client: BaseChatModel,
     embedder: Embeddings,
     **kwargs
-) -> "BaseKnowledge[T]"
+) -> "BaseAutoType[T]"
 ```
 
 Load knowledge from disk.
@@ -205,7 +205,7 @@ Load knowledge from disk.
 
 **Example**:
 ```python
-loaded = UnitKnowledge.load(
+loaded = AutoModel.load(
     "./my_knowledge",
     data_schema=MySchema,
     llm_client=llm,
@@ -268,14 +268,14 @@ Handles multi-chunk extraction with parallel processing and merging.
 
 ## Usage in Subclasses
 
-When creating custom knowledge patterns, inherit from `BaseKnowledge`:
+When creating custom knowledge patterns, inherit from `BaseAutoType`:
 
 ```python
-from hyperextract.knowledge.base import BaseKnowledge, T
+from hyperextract.core.base import BaseAutoType, T
 from typing import List
 from langchain_core.documents import Document
 
-class CustomKnowledge(BaseKnowledge[T]):
+class CustomKnowledge(BaseAutoType[T]):
     @staticmethod
     def _default_prompt() -> str:
         return "Extract information according to schema: "
@@ -291,6 +291,6 @@ class CustomKnowledge(BaseKnowledge[T]):
 
 ## See Also
 
-- [UnitKnowledge API](unit.md) - Single-object extraction
-- [ListKnowledge API](list.md) - Multi-item extraction  
-- [SetKnowledge API](set.md) - Unique collection extraction
+- [AutoModel API](unit.md) - Single-object extraction
+- [AutoList API](list.md) - Multi-item extraction  
+- [AutoSet API](set.md) - Unique collection extraction

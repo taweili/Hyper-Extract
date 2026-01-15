@@ -1,6 +1,6 @@
-# SetKnowledge API
+# AutoSet API
 
-::: hyperextract.knowledge.generic.set.SetKnowledge
+::: hyperextract.core.set.AutoSet
     options:
       show_root_heading: true
       show_source: true
@@ -8,12 +8,12 @@
 
 ## Overview
 
-`SetKnowledge` implements the unique collection pattern with automatic deduplication. It extracts items and ensures uniqueness based on a user-specified key field, with configurable merge strategies for handling duplicates.
+`AutoSet` implements the unique collection pattern with automatic deduplication. It extracts items and ensures uniqueness based on a user-specified key field, with configurable merge strategies for handling duplicates.
 
 ## Class Signature
 
 ```python
-class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
+class AutoSet(BaseAutoType[ItemSetSchema[Item]], Generic[Item]):
     """Set Knowledge Pattern - extracts a unique collection of objects."""
 ```
 
@@ -28,7 +28,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 ## Initialization
 
 ```python
-from hyperextract.knowledge.generic import SetKnowledge, MergeItemStrategy
+from hyperextract.core import AutoSet, MergeItemStrategy
 from pydantic import BaseModel, Field
 
 class Keyword(BaseModel):
@@ -36,7 +36,7 @@ class Keyword(BaseModel):
     category: Optional[str] = Field(None, description="Category")
     importance: Optional[str] = Field(None, description="Importance level")
 
-keywords = SetKnowledge(
+keywords = AutoSet(
     item_schema=Keyword,
     llm_client=llm,
     embedder=embedder,
@@ -57,7 +57,7 @@ keywords = SetKnowledge(
 ### KEEP_OLD
 Keep existing item, discard new duplicate:
 ```python
-SetKnowledge(
+AutoSet(
     ...,
     merge_strategy=MergeItemStrategy.KEEP_OLD
 )
@@ -73,7 +73,7 @@ SetKnowledge(
 ### KEEP_NEW (Default)
 Replace existing with new:
 ```python
-SetKnowledge(
+AutoSet(
     ...,
     merge_strategy=MergeItemStrategy.KEEP_NEW
 )
@@ -89,7 +89,7 @@ SetKnowledge(
 ### FIELD_MERGE
 Merge fields - new fills old's None/empty fields:
 ```python
-SetKnowledge(
+AutoSet(
     ...,
     merge_strategy=MergeItemStrategy.FIELD_MERGE
 )
@@ -105,7 +105,7 @@ SetKnowledge(
 ### LLM_MERGE
 Use LLM to intelligently merge:
 ```python
-SetKnowledge(
+AutoSet(
     ...,
     merge_strategy=MergeItemStrategy.LLM_MERGE
 )
@@ -216,7 +216,7 @@ if keywords.contains("Python"):
 
 ## Set Operations
 
-`SetKnowledge` supports mathematical set operations:
+`AutoSet` supports mathematical set operations:
 
 ### Union (`|`)
 Combine two sets:
@@ -248,8 +248,8 @@ exclusive = keywords1 ^ keywords2
 
 ### Example:
 ```python
-tech_keywords = SetKnowledge(item_schema=Keyword, ...)
-science_keywords = SetKnowledge(item_schema=Keyword, ...)
+tech_keywords = AutoSet(item_schema=Keyword, ...)
+science_keywords = AutoSet(item_schema=Keyword, ...)
 
 # Extract from different sources
 tech_keywords.extract(tech_article)
@@ -283,7 +283,7 @@ class Entity(BaseModel):
     type: str = Field(..., description="Entity type")
     description: Optional[str] = None
 
-entities = SetKnowledge(
+entities = AutoSet(
     item_schema=Entity,
     llm_client=llm,
     embedder=embedder,
@@ -299,7 +299,7 @@ class Topic(BaseModel):
     subtopics: List[str] = Field(default_factory=list)
     relevance: Optional[str] = None
 
-topics = SetKnowledge(
+topics = AutoSet(
     item_schema=Topic,
     llm_client=llm,
     embedder=embedder,
@@ -315,7 +315,7 @@ class Skill(BaseModel):
     proficiency: Optional[str] = None
     years_experience: Optional[int] = None
 
-skills = SetKnowledge(
+skills = AutoSet(
     item_schema=Skill,
     llm_client=llm,
     embedder=embedder,
@@ -331,7 +331,7 @@ skills = SetKnowledge(
 For complex merging, use `LLM_MERGE` or subclass:
 
 ```python
-class SmartSetKnowledge(SetKnowledge[Item]):
+class SmartAutoSet(AutoSet[Item]):
     def _merge_items_llm(self, old_item: Item, new_item: Item) -> Item:
         # Custom LLM prompt for merging
         custom_prompt = f'''
@@ -385,7 +385,7 @@ terms_only = [k.term for k in keywords.items]
 3. **Performance Considerations**:
    ```python
    # LLM_MERGE is slower (makes LLM calls)
-   SetKnowledge(..., merge_strategy=MergeItemStrategy.LLM_MERGE)
+   AutoSet(..., merge_strategy=MergeItemStrategy.LLM_MERGE)
    
    # For large datasets, consider FIELD_MERGE or KEEP_NEW
    ```
@@ -397,7 +397,7 @@ terms_only = [k.term for k in keywords.items]
        id: str = Field(..., description="Unique ID")  # Required!
        ...
    
-   knowledge = SetKnowledge(..., unique_key="id")
+   knowledge = AutoSet(..., unique_key="id")
    ```
 
 ## Serialization
@@ -407,7 +407,7 @@ terms_only = [k.term for k in keywords.items]
 keywords.dump("./keywords_set")
 
 # Load (preserves uniqueness)
-loaded = SetKnowledge.load(
+loaded = AutoSet.load(
     "./keywords_set",
     item_schema=Keyword,
     llm_client=llm,
@@ -419,7 +419,7 @@ loaded = SetKnowledge.load(
 
 ## Comparison
 
-| Feature | ListKnowledge | SetKnowledge |
+| Feature | AutoList | AutoSet |
 |---------|---------------|--------------|
 | Duplicates | Allowed | Prevented by unique_key |
 | Merge Strategies | Simple append | 4 configurable strategies |
@@ -429,6 +429,6 @@ loaded = SetKnowledge.load(
 
 ## See Also
 
-- [ListKnowledge API](list.md) - Multi-item list extraction
-- [BaseKnowledge API](base.md) - Base class documentation
+- [AutoList API](list.md) - Multi-item list extraction
+- [BaseAutoType API](base.md) - Base class documentation
 - [Knowledge Patterns Guide](../user-guide/knowledge-patterns.md) - Pattern selection guide

@@ -104,10 +104,10 @@ docs/
 │   └── knowledge-patterns.md  # Pattern selection guide
 ├── api/
 │   ├── index.md               # API overview
-│   ├── base.md                # BaseKnowledge API
-│   ├── unit.md                # UnitKnowledge API
-│   ├── list.md                # ListKnowledge API
-│   └── set.md                 # SetKnowledge API
+│   ├── base.md                # BaseAutoType API
+│   ├── unit.md                # AutoModel API
+│   ├── list.md                # AutoList API
+│   └── set.md                 # AutoSet API
 └── zh/
     └── index.md               # Chinese homepage (中文首页)
 ```
@@ -205,9 +205,9 @@ plugins:
 
 Usage in markdown:
 ```markdown
-# BaseKnowledge API
+# BaseAutoType API
 
-::: hyperextract.knowledge.base.BaseKnowledge
+::: hyperextract.core.base.BaseAutoType
     options:
       show_source: true
       heading_level: 2
@@ -290,7 +290,7 @@ jobs:
 1. **Use code blocks with language hints**:
    ````markdown
    ```python
-   from hyperextract import UnitKnowledge
+   from hyperextract import AutoModel
    ```
    ````
 

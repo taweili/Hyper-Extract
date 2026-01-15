@@ -1,7 +1,7 @@
 """
-ListKnowledge 多 Chunk 提取示例
+AutoList 多 Chunk 提取示例
 
-演示如何使用 ListKnowledge 处理长文本，测试多 chunk 并发提取和列表合并功能。
+演示如何使用 AutoList 处理长文本，测试多 chunk 并发提取和列表合并功能。
 """
 
 import sys
@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import ListKnowledge
+from hyperextract import AutoList
 
 
 # 定义单个新闻事件的 Schema
@@ -125,7 +125,7 @@ Jeff Bezos在发布会上表示，新一代无人机可承载5公斤货物，飞
 
 def main():
     print("=" * 80)
-    print("ListKnowledge 多 Chunk 提取示例")
+    print("AutoList 多 Chunk 提取示例")
     print("=" * 80)
 
     # 1. 生成长文本
@@ -139,9 +139,9 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # 3. 创建 ListKnowledge 实例 (使用小的 chunk_size 测试多 chunk)
-    print("\n[3] 创建 ListKnowledge 实例 (chunk_size=300)...")
-    knowledge = ListKnowledge(
+    # 3. 创建 AutoList 实例 (使用小的 chunk_size 测试多 chunk)
+    print("\n[3] 创建 AutoList 实例 (chunk_size=300)...")
+    a_event_list = AutoList(
         item_schema=NewsEvent,
         llm_client=llm,
         embedder=embedder,
@@ -154,7 +154,7 @@ def main():
     # 4. 提取知识 (默认存储模式)
     print("\n[4] 提取新闻事件列表 (默认存储模式)...")
     print("-" * 80)
-    events = knowledge.extract(news_text)
+    events = a_event_list.extract(news_text)
     print("-" * 80)
 
     # 5. 显示提取结果
@@ -173,11 +173,11 @@ def main():
         print(f"\n   ... 还有 {len(events) - 5} 个事件未显示")
 
     # 6. 测试列表大小
-    print(f"\n[6] 知识列表大小: {len(knowledge)} 个事件")
+    print(f"\n[6] 知识列表大小: {len(a_event_list)} 个事件")
 
     # 7. 构建索引
     print("\n[7] 构建向量索引...")
-    knowledge.build_index()
+    a_event_list.build_index()
 
     # 8. 测试搜索
     print("\n[8] 测试事件搜索...")
@@ -189,7 +189,7 @@ def main():
 
     for query in queries:
         print(f"\n   查询: '{query}'")
-        results = knowledge.search(query, top_k=3)
+        results = a_event_list.search(query, top_k=3)
         for i, event in enumerate(results, 1):
             print(f"      [{i}] {event.title} ({event.date})")
             print(f"          地点: {event.location}")
@@ -204,9 +204,9 @@ def main():
     """
 
     print("   添加补充新闻...")
-    before_count = len(knowledge)
-    knowledge.extract(additional_news)  # 默认 store=True，自动合并
-    after_count = len(knowledge)
+    before_count = len(a_event_list)
+    a_event_list.extract(additional_news)  # 默认 store=True，自动合并
+    after_count = len(a_event_list)
     print(f"   合并前: {before_count} 个事件")
     print(f"   合并后: {after_count} 个事件")
     print(f"   新增: {after_count - before_count} 个事件")
@@ -214,32 +214,32 @@ def main():
     # 10. 显示最新添加的事件
     if after_count > before_count:
         print("\n   最新添加的事件:")
-        for event in knowledge.items[-3:]:
+        for event in a_event_list.items[-3:]:
             print(f"      - {event.title} ({event.date})")
 
-    knowledge.build_index()
+    a_event_list.build_index()
     # 11. 保存知识
     print("\n[10] 保存知识到文件...")
-    save_path = Path(__file__).parent.parent / "tmp" / "list_knowledge_multi_chunk"
-    knowledge.dump(str(save_path))
+    save_path = Path(__file__).parent.parent / "tmp" / "auto_list_demo"
+    a_event_list.dump(str(save_path))
     print(f"   已保存到: {save_path}")
 
     # 12. 重新加载测试
     print("\n[11] 测试知识加载...")
-    new_knowledge = ListKnowledge(
+    a_loaded_event_list = AutoList(
         item_schema=NewsEvent,
         llm_client=llm,
         embedder=embedder,
     )
-    new_knowledge.load(str(save_path))
-    print(f"   加载成功! 事件数: {len(new_knowledge)}")
-    print(f"   第一个事件: {new_knowledge.items[0].title}")
+    a_loaded_event_list.load(str(save_path))
+    print(f"   加载成功! 事件数: {len(a_loaded_event_list)}")
+    print(f"   第一个事件: {a_loaded_event_list.items[0].title}")
 
     # 13. 测试清空功能
     print("\n[12] 测试清空功能...")
-    print(f"   清空前: {len(new_knowledge)} 个事件")
-    new_knowledge.clear()
-    print(f"   清空后: {len(new_knowledge)} 个事件")
+    print(f"   清空前: {len(a_loaded_event_list)} 个事件")
+    a_loaded_event_list.clear()
+    print(f"   清空后: {len(a_loaded_event_list)} 个事件")
 
     print("\n" + "=" * 80)
     print("示例运行完成!")

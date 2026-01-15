@@ -15,7 +15,7 @@ T = TypeVar("T", bound=BaseModel)
 # ===================== Knowledge Base Class =====================
 
 
-class BaseKnowledge(ABC, Generic[T]):
+class BaseAutoType(ABC, Generic[T]):
     """Unified knowledge base class integrating extraction, storage, aggregation, and evolution.
 
     This abstract base class provides a complete framework for managing structured knowledge
@@ -87,7 +87,7 @@ class BaseKnowledge(ABC, Generic[T]):
             "updated_at": datetime.now(),
         }
 
-    def _create_new_instance(self) -> "BaseKnowledge[T]":
+    def _create_new_instance(self) -> "BaseAutoType[T]":
         """Creates a new instance with the same configuration as this one.
 
         Subclasses can override this method if they have special initialization requirements.
@@ -278,7 +278,7 @@ class BaseKnowledge(ABC, Generic[T]):
 
     # ==================== Operator Overloads ====================
 
-    def __add__(self, other: "BaseKnowledge[T]") -> "BaseKnowledge[T]":
+    def __add__(self, other: "BaseAutoType[T]") -> "BaseAutoType[T]":
         """Operator overload for '+' to merge two knowledge instances.
 
         Creates a new knowledge instance by merging the data from both instances.

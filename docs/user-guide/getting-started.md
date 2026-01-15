@@ -63,7 +63,7 @@ class BookReview(BaseModel):
 
 ### Knowledge Container
 
-A **knowledge container** is an instance of a knowledge pattern class (e.g., `UnitKnowledge`, `ListKnowledge`, `SetKnowledge`) that manages extraction, storage, and retrieval of structured knowledge.
+A **Auto container** is an instance of a knowledge pattern class (e.g., `AutoModel`, `AutoList`, `AutoSet`) that manages extraction, storage, and retrieval of structured knowledge.
 
 ### Extraction Pipeline
 
@@ -109,10 +109,10 @@ embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 ### Step 3: Create Knowledge Container
 
 ```python
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 
 # Create container
-paper_knowledge = UnitKnowledge(
+paper_knowledge = AutoModel(
     data_schema=ResearchPaper,
     llm_client=llm,
     embedder=embedder,
@@ -172,7 +172,7 @@ for doc, score in results:
 paper_knowledge.dump("./paper_knowledge")
 
 # Later, load it back
-loaded_knowledge = UnitKnowledge.load(
+loaded_knowledge = AutoModel.load(
     "./paper_knowledge",
     data_schema=ResearchPaper,
     llm_client=llm,
@@ -194,7 +194,7 @@ Hyper-Extract automatically handles long documents by:
 You can control chunking behavior:
 
 ```python
-knowledge = UnitKnowledge(
+knowledge = AutoModel(
     data_schema=YourSchema,
     llm_client=llm,
     embedder=embedder,

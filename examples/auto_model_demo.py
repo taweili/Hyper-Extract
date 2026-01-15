@@ -1,7 +1,7 @@
 """
-UnitKnowledge 多 Chunk 提取示例
+AutoModel 多 Chunk 提取示例
 
-演示如何使用 UnitKnowledge 处理长文本，测试多 chunk 并发提取和合并功能。
+演示如何使用 AutoModel 处理长文本，测试多 chunk 并发提取和合并功能。
 """
 
 import sys
@@ -14,11 +14,11 @@ sys.path.insert(0, str(project_root))
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract import AutoModel
 
 
 # 定义文档知识 Schema
-class DocumentKnowledge(BaseModel):
+class DocumentSchema(BaseModel):
     """文档综合知识结构"""
 
     title: str = Field(default="", description="文档标题")
@@ -135,7 +135,7 @@ AI医疗诊断系统的可信度和安全性将进一步提升。
 
 def main():
     print("=" * 80)
-    print("UnitKnowledge 多 Chunk 提取示例")
+    print("AutoModel 多 Chunk 提取示例")
     print("=" * 80)
 
     # 1. 生成长文档
@@ -149,10 +149,10 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # 3. 创建 UnitKnowledge 实例 (使用小的 chunk_size 测试多 chunk)
-    print("\n[3] 创建 UnitKnowledge 实例 (chunk_size=200)...")
-    knowledge = UnitKnowledge(
-        data_schema=DocumentKnowledge,
+    # 3. 创建 AutoModel 实例 (使用小的 chunk_size 测试多 chunk)
+    print("\n[3] 创建 AutoModel 实例 (chunk_size=200)...")
+    a_document_model = AutoModel(
+        data_schema=DocumentSchema,
         llm_client=llm,
         embedder=embedder,
         chunk_size=200,  # 设置小的 chunk_size 来测试多 chunk 提取
@@ -164,7 +164,7 @@ def main():
     # 4. 提取知识 (默认存储模式)
     print("\n[4] 提取知识 (默认存储模式)...")
     print("-" * 80)
-    extracted_data = knowledge.extract(document)
+    extracted_data = a_document_model.extract(document)
     print("-" * 80)
 
     # 5. 显示提取结果
@@ -181,11 +181,11 @@ def main():
     print(f"   关键词数量: {len(extracted_data.keywords)}")
 
     # 6. 测试字段数量
-    print(f"\n[6] 知识字段数: {len(knowledge)}")
+    print(f"\n[6] 知识字段数: {len(a_document_model)}")
 
     # 7. 构建索引
     print("\n[7] 构建向量索引...")
-    knowledge.build_index()
+    a_document_model.build_index()
 
     # 8. 测试搜索
     print("\n[8] 测试知识搜索...")
@@ -197,7 +197,7 @@ def main():
 
     for query in queries:
         print(f"\n   查询: '{query}'")
-        results = knowledge.search(query, top_k=2)
+        results = a_document_model.search(query, top_k=2)
         for i, result in enumerate(results, 1):
             field_name = list(result.keys())[0]
             field_value = result[field_name]
@@ -211,25 +211,25 @@ def main():
     研究团队来自清华大学医学院和北京协和医院。
     """
     print("   添加补充文本...")
-    knowledge.extract(additional_text)  # 默认 store=True，自动合并
-    print(f"   更新后的作者信息: {knowledge.data.author}")
+    a_document_model.extract(additional_text)  # 默认 store=True，自动合并
+    print(f"   更新后的作者信息: {a_document_model.data.author}")
 
     # 10. 保存知识
     print("\n[10] 保存知识到文件...")
-    save_path = Path(__file__).parent.parent / "tmp" / "unit_knowledge_multi_chunk"
-    knowledge.dump(str(save_path))
+    save_path = Path(__file__).parent.parent / "tmp" / "auto_model_demo"
+    a_document_model.dump(str(save_path))
     print(f"   已保存到: {save_path}")
 
     # 11. 重新加载测试
     print("\n[11] 测试知识加载...")
-    new_knowledge = UnitKnowledge(
-        data_schema=DocumentKnowledge,
+    a_loaded_document_model = AutoModel(
+        data_schema=DocumentSchema,
         llm_client=llm,
         embedder=embedder,
     )
-    new_knowledge.load(str(save_path))
-    print(f"   加载成功! 字段数: {len(new_knowledge)}")
-    print(f"   标题: {new_knowledge.data.title}")
+    a_loaded_document_model.load(str(save_path))
+    print(f"   加载成功! 字段数: {len(a_loaded_document_model)}")
+    print(f"   标题: {a_loaded_document_model.data.title}")
 
     print("\n" + "=" * 80)
     print("示例运行完成!")

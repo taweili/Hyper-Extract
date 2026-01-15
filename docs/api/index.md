@@ -7,19 +7,19 @@ This section provides detailed API documentation for all Hyper-Extract classes a
 ```
 hyperextract/
 ├── knowledge/
-│   ├── base.py          # BaseKnowledge abstract class
+│   ├── base.py          # BaseAutoType abstract class
 │   └── generic/
-│       ├── unit.py      # UnitKnowledge
-│       ├── list.py      # ListKnowledge
-│       └── set.py       # SetKnowledge
+│       ├── unit.py      # AutoModel
+│       ├── list.py      # AutoList
+│       └── set.py       # AutoSet
 ```
 
 ## Quick Links
 
-- [BaseKnowledge](base.md) - Abstract base class for all knowledge patterns
-- [UnitKnowledge](unit.md) - Single-object extraction pattern
-- [ListKnowledge](list.md) - Multi-item list extraction pattern
-- [SetKnowledge](set.md) - Unique collection with deduplication
+- [BaseAutoType](base.md) - Abstract base class for all knowledge patterns
+- [AutoModel](unit.md) - Single-object extraction pattern
+- [AutoList](list.md) - Multi-item list extraction pattern
+- [AutoSet](set.md) - Unique collection with deduplication
 
 ## Common Patterns
 
@@ -59,14 +59,14 @@ Every knowledge class implements these methods:
 All classes are fully typed with Python generics:
 
 ```python
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 from pydantic import BaseModel
 
 class MySchema(BaseModel):
     field: str
 
 # Type-safe: knowledge.data is of type MySchema
-knowledge: UnitKnowledge[MySchema] = UnitKnowledge(
+knowledge: AutoModel[MySchema] = AutoModel(
     data_schema=MySchema,
     llm_client=llm,
     embedder=embedder
@@ -75,7 +75,7 @@ knowledge: UnitKnowledge[MySchema] = UnitKnowledge(
 
 ## Next: Detailed API Docs
 
-- [BaseKnowledge API](base.md)
-- [UnitKnowledge API](unit.md)  
-- [ListKnowledge API](list.md)
-- [SetKnowledge API](set.md)
+- [BaseAutoType API](base.md)
+- [AutoModel API](unit.md)  
+- [AutoList API](list.md)
+- [AutoSet API](set.md)

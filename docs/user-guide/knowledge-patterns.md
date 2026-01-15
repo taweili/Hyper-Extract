@@ -8,17 +8,17 @@ Hyper-Extract provides three fundamental knowledge patterns, each optimized for 
 
 | Pattern | Use Case | Deduplication | Merge Strategy |
 |---------|----------|---------------|----------------|
-| **UnitKnowledge** | Single object per document | N/A | Field-level merge |
-| **ListKnowledge** | Multiple independent items | Basic | Append |
-| **SetKnowledge** | Unique collection | Automatic | Configurable |
+| **AutoModel** | Single object per document | N/A | Field-level merge |
+| **AutoList** | Multiple independent items | Basic | Append |
+| **AutoSet** | Unique collection | Automatic | Configurable |
 
 ---
 
-## UnitKnowledge Pattern
+## AutoModel Pattern
 
 ### When to Use
 
-Use `UnitKnowledge` when you want to extract **exactly one structured object** from a document, regardless of its length.
+Use `AutoModel` when you want to extract **exactly one structured object** from a document, regardless of its length.
 
 **Perfect for**:
 - Document summaries
@@ -39,7 +39,7 @@ Use `UnitKnowledge` when you want to extract **exactly one structured object** f
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 
 # Define schema
 class DocumentMetadata(BaseModel):
@@ -54,7 +54,7 @@ class DocumentMetadata(BaseModel):
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-metadata = UnitKnowledge(
+metadata = AutoModel(
     data_schema=DocumentMetadata,
     llm_client=llm,
     embedder=embedder
@@ -84,11 +84,11 @@ results = metadata.search("machine learning applications", k=5)
 
 ---
 
-## ListKnowledge Pattern
+## AutoList Pattern
 
 ### When to Use
 
-Use `ListKnowledge` when you need to extract **multiple independent items** of the same type from a document.
+Use `AutoList` when you need to extract **multiple independent items** of the same type from a document.
 
 **Perfect for**:
 - Entity lists (people, organizations, locations)
@@ -108,7 +108,7 @@ Use `ListKnowledge` when you need to extract **multiple independent items** of t
 ```python
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from hyperextract.knowledge.generic import ListKnowledge
+from hyperextract.core import AutoList
 
 # Define item schema
 class Person(BaseModel):
@@ -118,7 +118,7 @@ class Person(BaseModel):
     context: Optional[str] = Field(None, description="Context of mention")
 
 # Initialize
-people = ListKnowledge(
+people = AutoList(
     item_schema=Person,  # Note: item_schema, not data_schema
     llm_client=llm,
     embedder=embedder
@@ -142,7 +142,7 @@ print(f"Total people extracted: {len(people.items)}")
 
 ### List Operations
 
-`ListKnowledge` supports Pythonic list operations:
+`AutoList` supports Pythonic list operations:
 
 ```python
 # Append new items
@@ -185,11 +185,11 @@ for doc, score in results:
 
 ---
 
-## SetKnowledge Pattern
+## AutoSet Pattern
 
 ### When to Use
 
-Use `SetKnowledge` when you need a **unique collection** with automatic deduplication based on a key field.
+Use `AutoSet` when you need a **unique collection** with automatic deduplication based on a key field.
 
 **Perfect for**:
 - Keywords/tags (deduplicated by term)
@@ -210,7 +210,7 @@ Use `SetKnowledge` when you need a **unique collection** with automatic deduplic
 ```python
 from pydantic import BaseModel, Field
 from typing import Optional
-from hyperextract.knowledge.generic import SetKnowledge, MergeItemStrategy
+from hyperextract.core import AutoSet, MergeItemStrategy
 
 # Define item schema with unique key
 class Keyword(BaseModel):
@@ -220,7 +220,7 @@ class Keyword(BaseModel):
     context: Optional[str] = Field(None, description="Usage context")
 
 # Initialize with unique_key
-keywords = SetKnowledge(
+keywords = AutoSet(
     item_schema=Keyword,
     llm_client=llm,
     embedder=embedder,
@@ -246,7 +246,7 @@ for kw in keywords.items:
 #### 1. KEEP_OLD
 Keeps existing item, discards new duplicate:
 ```python
-keywords = SetKnowledge(
+keywords = AutoSet(
     item_schema=Keyword,
     llm_client=llm,
     embedder=embedder,
@@ -275,7 +275,7 @@ merge_strategy=MergeItemStrategy.LLM_MERGE
 
 ### Set Operations
 
-`SetKnowledge` supports set operations:
+`AutoSet` supports set operations:
 
 ```python
 # Union: combine two sets
@@ -293,7 +293,7 @@ exclusive = keywords1 ^ keywords2
 
 ### Indexing Strategy
 
-Like ListKnowledge, each unique item is indexed:
+Like AutoList, each unique item is indexed:
 
 ```python
 keywords.build_index()
@@ -308,39 +308,39 @@ results = keywords.search("AI technologies", k=5)
 
 ```
 Is it a single object per document?
-├─ Yes → Use UnitKnowledge
+├─ Yes → Use AutoModel
 └─ No → Are duplicates acceptable?
-    ├─ Yes → Use ListKnowledge
-    └─ No → Use SetKnowledge (specify unique_key)
+    ├─ Yes → Use AutoList
+    └─ No → Use AutoSet (specify unique_key)
 ```
 
 ### Examples by Domain
 
 **News Article Processing**:
-- `UnitKnowledge`: Article metadata, summary
-- `ListKnowledge`: All mentioned events
-- `SetKnowledge`: Unique entities, locations
+- `AutoModel`: Article metadata, summary
+- `AutoList`: All mentioned events
+- `AutoSet`: Unique entities, locations
 
 **Research Paper Analysis**:
-- `UnitKnowledge`: Paper metadata, abstract
-- `ListKnowledge`: All citations
-- `SetKnowledge`: Unique keywords, methodologies
+- `AutoModel`: Paper metadata, abstract
+- `AutoList`: All citations
+- `AutoSet`: Unique keywords, methodologies
 
 **Customer Reviews**:
-- `UnitKnowledge`: Overall sentiment, rating
-- `ListKnowledge`: All complaints/praises
-- `SetKnowledge`: Unique features mentioned
+- `AutoModel`: Overall sentiment, rating
+- `AutoList`: All complaints/praises
+- `AutoSet`: Unique features mentioned
 
 ---
 
 ## Advanced: Custom Patterns
 
-You can create custom patterns by subclassing `BaseKnowledge`:
+You can create custom patterns by subclassing `BaseAutoType`:
 
 ```python
-from hyperextract.knowledge.base import BaseKnowledge
+from hyperextract.core.base import BaseAutoType
 
-class MyCustomPattern(BaseKnowledge[MySchema]):
+class MyCustomPattern(BaseAutoType[MySchema]):
     def _merge_strategy(self, old_data, new_data):
         # Implement custom merge logic
         pass

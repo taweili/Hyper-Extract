@@ -2,7 +2,7 @@
 
 > **An Intelligent, LLM-Powered Knowledge Extraction & Evolution Framework**
 >
-> Transform unstructured text into structured, evolving knowledge containers with the power of Large Language Models.
+> Transform unstructured text into structured, evolving Auto containers with the power of Large Language Models.
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Hyper-Extract** reimagines knowledge extraction as an intelligent, self-evolving process. Rather than treating data structures as passive containers, we empower them with **LLM-driven intelligence** to actively extract, merge, evolve, and index knowledge from unstructured text.
 
-Every knowledge container in Hyper-Extract follows a unified lifecycle:
+Every Auto container in Hyper-Extract follows a unified lifecycle:
 
 1. **Extract** - Intelligent extraction from text with automatic chunking and merging
 2. **Evolve** - Self-refinement through reasoning, pruning, and optimization
@@ -27,7 +27,7 @@ Every knowledge container in Hyper-Extract follows a unified lifecycle:
 - **Intelligent Merging**: First-priority merge strategy for chunk-based extraction
 
 ### 🏗️ Unified Architecture
-- **Abstract Base Class**: `BaseKnowledge[T]` provides consistent interface across all knowledge types
+- **Abstract Base Class**: `BaseAutoType[T]` provides consistent interface across all knowledge types
 - **Generic Type Support**: Full Python typing with `Generic[T]` for schema flexibility
 - **Lifecycle Management**: Standardized `extract` → `merge` → `evolve` → `search` → `dump/load` pipeline
 
@@ -39,15 +39,14 @@ Every knowledge container in Hyper-Extract follows a unified lifecycle:
 ### 📦 Knowledge Patterns
 
 #### ✅ Implemented
-- **UnitKnowledge**: Single-object extraction for document-level information (summaries, metadata)
-- **ListKnowledge**: Collection-based extraction for entities, events, and structured lists
-- **SetKnowledge**: Unique collection with automatic deduplication and intelligent merge strategies
+- **AutoModel**: Single-object extraction for document-level information (summaries, metadata)
+- **AutoList**: Collection-based extraction for entities, events, and structured lists
+- **AutoSet**: Unique collection with automatic deduplication and intelligent merge strategies
 
 #### 🚧 In Development
-- **EntityKnowledge**: Entity-centric extraction with attribute management
-- **RelationKnowledge**: Relationship extraction with entity linking
-- **GraphKnowledge**: Knowledge graph construction (nodes + edges)
-- **HypergraphKnowledge**: Hypergraph representation for complex multi-entity relations
+- **AutoGraph**: Knowledge graph construction (nodes + edges)
+- **AutoHypergraph**: Hypergraph representation for complex multi-entity relations
+- **AutoTree**: Hierarchical tree structures for nested data
 
 ---
 
@@ -82,7 +81,7 @@ pip install -e .
 from pydantic import BaseModel, Field
 from typing import List
 
-class ArticleKnowledge(BaseModel):
+class ArticleSchema(BaseModel):
     """Schema for article knowledge extraction"""
     title: str = Field(default="", description="Article title")
     author: str = Field(default="", description="Author name")
@@ -95,15 +94,15 @@ class ArticleKnowledge(BaseModel):
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 
 # Initialize LLM and embedder
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Create knowledge container
-knowledge = UnitKnowledge(
-    data_schema=ArticleKnowledge,
+# Create Auto container
+a_article = AutoModel(
+    data_schema=ArticleSchema,
     llm_client=llm,
     embedder=embedder
 )
@@ -118,18 +117,18 @@ text = """
 written by Professor Li Ming...
 """
 
-knowledge.extract(text)
-print(knowledge.data)  # Access extracted structured knowledge
+a_article.extract(text)
+print(a_article.data)  # Access extracted structured knowledge
 ```
 
 ### 4. Semantic Search
 
 ```python
 # Build index
-knowledge.build_index()
+a_article.build_index()
 
 # Search for relevant content
-results = knowledge.search("applications of deep learning", k=3)
+results = a_article.search("applications of deep learning", k=3)
 for doc, score in results:
     print(f"Score: {score}, Content: {doc.page_content}")
 ```
@@ -138,12 +137,12 @@ for doc, score in results:
 
 ```python
 # Save to disk
-knowledge.dump("./my_knowledge")
+a_article.dump("./my_knowledge")
 
 # Load
-loaded_knowledge = UnitKnowledge.load(
+a_loaded = AutoModel.load(
     "./my_knowledge",
-    data_schema=ArticleKnowledge,
+    data_schema=ArticleSchema,
     llm_client=llm,
     embedder=embedder
 )

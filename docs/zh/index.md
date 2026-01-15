@@ -27,7 +27,7 @@ Hyper-Extract 中的每个知识容器都遵循统一的生命周期：
 - **智能合并**：针对分块提取的优先级合并策略
 
 ### 🏗️ 统一架构
-- **抽象基类**：`BaseKnowledge[T]` 为所有知识类型提供一致的接口
+- **抽象基类**：`BaseAutoType[T]` 为所有知识类型提供一致的接口
 - **泛型类型支持**：使用 `Generic[T]` 实现完整的 Python 类型提示
 - **生命周期管理**：标准化的 `extract` → `merge` → `evolve` → `search` → `dump/load` 流程
 
@@ -39,15 +39,14 @@ Hyper-Extract 中的每个知识容器都遵循统一的生命周期：
 ### 📦 知识模式
 
 #### ✅ 已实现
-- **UnitKnowledge**：单对象提取，适用于文档级信息（摘要、元数据）
-- **ListKnowledge**：列表提取，适用于实体、事件和结构化列表
-- **SetKnowledge**：唯一集合，支持自动去重和智能合并策略
+- **AutoModel**：单对象提取，适用于文档级信息（摘要、元数据）
+- **AutoList**：列表提取，适用于实体、事件和结构化列表
+- **AutoSet**：唯一集合，支持自动去重和智能合并策略
 
 #### 🚧 开发中
-- **EntityKnowledge**：实体中心的提取，支持属性管理
-- **RelationKnowledge**：关系提取，支持实体链接
 - **GraphKnowledge**：知识图谱构建（节点 + 边）
 - **HypergraphKnowledge**：超图表示，用于复杂的多实体关系
+- **AutoTree**：层级树结构，用于嵌套数据
 
 ---
 
@@ -95,14 +94,14 @@ class ArticleKnowledge(BaseModel):
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 
 # 初始化 LLM 和嵌入模型
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
 # 创建知识容器
-knowledge = UnitKnowledge(
+knowledge = AutoModel(
     data_schema=ArticleKnowledge,
     llm_client=llm,
     embedder=embedder
@@ -140,7 +139,7 @@ for doc, score in results:
 knowledge.dump("./my_knowledge")
 
 # 加载
-loaded_knowledge = UnitKnowledge.load(
+loaded_knowledge = AutoModel.load(
     "./my_knowledge",
     data_schema=ArticleKnowledge,
     llm_client=llm,

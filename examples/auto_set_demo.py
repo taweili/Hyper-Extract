@@ -1,6 +1,6 @@
 """Set Knowledge Demo - Extracting unique skills from multiple job descriptions
 
-This example demonstrates how SetKnowledge automatically deduplicates
+This example demonstrates how AutoSet automatically deduplicates
 extracted items based on a unique key field.
 """
 
@@ -15,7 +15,7 @@ import os
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.knowledge.generic.set import SetKnowledge
+from hyperextract import AutoSet
 from hyperextract.utils.merger import MergeStrategy
 
 
@@ -44,10 +44,10 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(base_url=os.getenv("OPENAI_BASE_URL"))
 
-    # Create SetKnowledge with FIELD_MERGE strategy
+    # Create AutoSet with FIELD_MERGE strategy
     # This means when the same skill appears multiple times,
     # the new extraction will fill in any missing fields from the existing one
-    skills = SetKnowledge(
+    a_skill_set = AutoSet(
         item_schema=SkillSchema,
         llm_client=llm,
         embedder=embedder,
@@ -117,17 +117,17 @@ Be specific and extract all mentioned skills.""",
     print("\n📄 Processing job descriptions...")
     for i, job_desc in enumerate(job_descriptions, 1):
         print(f"\n  Processing job description {i}...")
-        skills.extract(job_desc)
-        print(f"  ✓ Total unique skills so far: {len(skills)}")
+        a_skill_set.extract(job_desc)
+        print(f"  ✓ Total unique skills so far: {len(a_skill_set)}")
 
     # Display all unique skills
     print("\n" + "=" * 80)
-    print(f"📊 EXTRACTED UNIQUE SKILLS: {len(skills)} total")
+    print(f"📊 EXTRACTED UNIQUE SKILLS: {len(a_skill_set)} total")
     print("=" * 80)
 
     # Group by category
     skills_by_category = {}
-    for skill in skills.items:
+    for skill in a_skill_set.items:
         category = skill.category or "Uncategorized"
         if category not in skills_by_category:
             skills_by_category[category] = []
@@ -150,12 +150,12 @@ Be specific and extract all mentioned skills.""",
 
     # Build index for semantic search
     print("\nBuilding vector index for semantic search...")
-    skills.build_index()
+    a_skill_set.build_index()
     print("✓ Index built successfully")
 
     # Search for related skills
     print("\n1. Semantic Search - Finding skills related to 'backend development':")
-    backend_skills = skills.search("backend development", top_k=5)
+    backend_skills = a_skill_set.search("backend development", top_k=5)
     for skill in backend_skills:
         print(f"  • {skill.name}")
         if skill.category:
@@ -165,13 +165,13 @@ Be specific and extract all mentioned skills.""",
     print("\n2. Membership Testing:")
     test_skills = ["Python", "Java", "Docker", "Rust"]
     for skill_name in test_skills:
-        exists = skills.contains(skill_name)
+        exists = a_skill_set.contains(skill_name)
         status = "✓" if exists else "✗"
         print(f"  {status} {skill_name}: {'Found' if exists else 'Not found'}")
 
     # Get specific skill details
     print("\n3. Get Specific Skill Details:")
-    python_skill = skills.get("Python")
+    python_skill = a_skill_set.get("Python")
     if python_skill:
         print(f"  Skill: {python_skill.name}")
         print(f"  Category: {python_skill.category}")
@@ -183,28 +183,28 @@ Be specific and extract all mentioned skills.""",
     print("💾 SAVING EXTRACTED KNOWLEDGE")
     print("=" * 80)
 
-    save_path = "tmp/set_knowledge_demo"
-    skills.dump(save_path)
+    save_path = "tmp/auto_set_demo"
+    a_skill_set.dump(save_path)
     print(f"✓ Saved to: {save_path}")
     print("  - state.json (structured data)")
     print("  - faiss_index/ (vector index for semantic search)")
 
     # Demonstrate loading
     print("\n📂 Loading saved knowledge...")
-    loaded_skills = SetKnowledge(
+    a_loaded_skill_set = AutoSet(
         item_schema=SkillSchema,
         llm_client=llm,
         embedder=embedder,
         key_extractor=lambda x: x.name,
     )
-    loaded_skills.load(save_path)
-    print(f"✓ Loaded {len(loaded_skills)} unique skills")
+    a_loaded_skill_set.load(save_path)
+    print(f"✓ Loaded {len(a_loaded_skill_set)} unique skills")
 
     # Summary
     print("\n" + "=" * 80)
     print("📈 SUMMARY")
     print("=" * 80)
-    print(f"  Total unique skills extracted: {len(skills)}")
+    print(f"  Total unique skills extracted: {len(a_skill_set)}")
     print(f"  Job descriptions processed: {len(job_descriptions)}")
     print("  Deduplication strategy: FIELD_MERGE")
     print("  Key extractor: lambda x: x.name")

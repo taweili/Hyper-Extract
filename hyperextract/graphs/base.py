@@ -1,4 +1,4 @@
-from ..base import BaseKnowledge
+from ..core.base import BaseAutoType
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
@@ -43,7 +43,7 @@ class GraphSchema(BaseModel):
         return {n.id for n in self.nodes}
 
 
-class SimpleGraph(BaseKnowledge[GraphSchema]):
+class SimpleGraph(BaseAutoType[GraphSchema]):
     def _get_schema_class(self):
         return GraphSchema
 

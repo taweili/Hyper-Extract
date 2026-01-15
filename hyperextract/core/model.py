@@ -9,7 +9,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
-from ..base import BaseKnowledge, T
+from .base import BaseAutoType, T
 
 try:
     from hyperextract.config import logger
@@ -19,8 +19,8 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-class UnitKnowledge(BaseKnowledge[T]):
-    """Unit Knowledge Pattern - extracts a single structured object from text.
+class AutoModel(BaseAutoType[T]):
+    """AutoModel - extracts a single structured object from text.
 
     This pattern is designed for extracting exactly one structured object per document,
     regardless of document length. Suitable for document-level information like summaries,
@@ -47,7 +47,7 @@ class UnitKnowledge(BaseKnowledge[T]):
         show_progress: bool = True,
         **kwargs,
     ):
-        """Initialize UnitKnowledge with schema and configuration.
+        """Initialize AutoModel with schema and configuration.
 
         Args:
             data_schema: Pydantic BaseModel subclass defining the object structure.
@@ -327,22 +327,22 @@ class UnitKnowledge(BaseKnowledge[T]):
     # ==================== Operators ====================
 
     def __add__(self, other):
-        """Operator overload for '+' to combine UnitKnowledge instances into ListKnowledge.
+        """Operator overload for '+' to combine AutoModel instances into ListKnowledge.
 
-        When two UnitKnowledge instances are added, they are combined into a ListKnowledge
+        When two AutoModel instances are added, they are combined into a ListKnowledge
         containing both objects as separate items. This enables intuitive collection building.
 
         Usage:
-            >>> unit1 = UnitKnowledge(PersonSchema, ...)
-            >>> unit2 = UnitKnowledge(PersonSchema, ...)
+            >>> unit1 = AutoModel(PersonSchema, ...)
+            >>> unit2 = AutoModel(PersonSchema, ...)
             >>> person_list = unit1 + unit2  # → ListKnowledge[PersonSchema]
             >>>
             >>> # Chain operations
-            >>> unit3 = UnitKnowledge(PersonSchema, ...)
+            >>> unit3 = AutoModel(PersonSchema, ...)
             >>> person_list = unit1 + unit2 + unit3  # → ListKnowledge with 3 items
 
         Args:
-            other: Another UnitKnowledge with the same data schema, or ListKnowledge.
+            other: Another AutoModel with the same data schema, or ListKnowledge.
 
         Returns:
             ListKnowledge containing both objects as items.
@@ -352,12 +352,12 @@ class UnitKnowledge(BaseKnowledge[T]):
         """
         from .list import ListKnowledge
 
-        # Case 1: UnitKnowledge + UnitKnowledge → ListKnowledge
-        if isinstance(other, UnitKnowledge):
+        # Case 1: AutoModel + AutoModel → ListKnowledge
+        if isinstance(other, AutoModel):
             # Check schema compatibility
             if self._data_schema != other._data_schema:
                 raise TypeError(
-                    f"Cannot add UnitKnowledge instances with different schemas. "
+                    f"Cannot add AutoModel instances with different schemas. "
                     f"Left: {self._data_schema.__name__}, Right: {other._data_schema.__name__}"
                 )
 
@@ -384,12 +384,12 @@ class UnitKnowledge(BaseKnowledge[T]):
 
             return list_kb
 
-        # Case 2: UnitKnowledge + ListKnowledge → ListKnowledge (for reverse order)
+        # Case 2: AutoModel + ListKnowledge → ListKnowledge (for reverse order)
         elif isinstance(other, ListKnowledge):
             # Check schema compatibility
             if self._data_schema != other.item_schema:
                 raise TypeError(
-                    f"Cannot add UnitKnowledge to ListKnowledge with different schemas. "
+                    f"Cannot add AutoModel to ListKnowledge with different schemas. "
                     f"Unit: {self._data_schema.__name__}, List: {other.item_schema.__name__}"
                 )
 
@@ -418,5 +418,5 @@ class UnitKnowledge(BaseKnowledge[T]):
 
         else:
             raise TypeError(
-                f"Unsupported operand type for +: 'UnitKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for +: 'AutoModel' and '{type(other).__name__}'"
             )

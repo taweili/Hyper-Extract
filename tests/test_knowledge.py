@@ -1,5 +1,5 @@
 """
-测试 Knowledge 类的功能。
+测试 BaseAutoType 类的功能。
 """
 import pytest
 from typing import List, Optional
@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from unittest.mock import MagicMock, AsyncMock
 import json
 
-from hyperextract.knowledge.base import Knowledge
+from hyperextract.core import BaseAutoType
 
 
 # 定义测试用的 Schema
@@ -41,9 +41,9 @@ def mock_embedder():
 
 
 @pytest.fixture
-def article_knowledge(mock_llm, mock_embedder):
-    """创建一个 Article 类型的 Knowledge 实例"""
-    return Knowledge(
+def a_article(mock_llm, mock_embedder):
+    """创建一个 Article 类型的 BaseAutoType 实例"""
+    return BaseAutoType(
         llm_client=mock_llm,
         embedder=mock_embedder,
         schema_class=Article,
@@ -52,9 +52,9 @@ def article_knowledge(mock_llm, mock_embedder):
 
 
 @pytest.fixture
-def person_knowledge(mock_llm, mock_embedder):
-    """创建一个 Person 类型的 Knowledge 实例"""
-    return Knowledge(
+def a_person(mock_llm, mock_embedder):
+    """创建一个 Person 类型的 BaseAutoType 实例"""
+    return BaseAutoType(
         llm_client=mock_llm,
         embedder=mock_embedder,
         schema_class=Person,
@@ -62,16 +62,16 @@ def person_knowledge(mock_llm, mock_embedder):
     )
 
 
-class TestKnowledgeInitialization:
-    """测试 Knowledge 类的初始化"""
+class TestBaseAutoTypeInitialization:
+    """测试 BaseAutoType 类的初始化"""
 
-    def test_knowledge_init_with_article_schema(self, article_knowledge):
+    def test_auto_type_init_with_article_schema(self, a_article):
         """测试使用 Article schema 初始化"""
-        assert article_knowledge.schema_class == Article
-        assert article_knowledge.storage == "memory"
-        assert article_knowledge.data is not None
+        assert a_article.schema_class == Article
+        assert a_article.storage == "memory"
+        assert a_article.data is not None
 
-    def test_knowledge_init_with_initial_data(self, mock_llm, mock_embedder):
+    def test_auto_type_init_with_initial_data(self, mock_llm, mock_embedder):
         """测试带初始数据的初始化"""
         initial_article = Article(
             title="Test Article",
@@ -79,7 +79,7 @@ class TestKnowledgeInitialization:
             keywords=["test"],
             summary="A test article"
         )
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -88,14 +88,14 @@ class TestKnowledgeInitialization:
         assert knowledge.data == initial_article
         assert knowledge.data.title == "Test Article"
 
-    def test_knowledge_with_different_schemas(self, mock_llm, mock_embedder):
-        """测试使用不同 Schema 的 Knowledge"""
-        article_k = Knowledge(
+    def test_auto_type_with_different_schemas(self, mock_llm, mock_embedder):
+        """测试使用不同 Schema 的 BaseAutoType"""
+        article_k = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
         )
-        person_k = Knowledge(
+        person_k = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Person,
@@ -104,11 +104,11 @@ class TestKnowledgeInitialization:
         assert person_k.schema_class == Person
 
 
-class TestKnowledgeExtract:
-    """测试 Knowledge 的 extract 方法"""
+class TestBaseAutoTypeExtract:
+    """测试 BaseAutoType 的 extract 方法"""
 
     @pytest.mark.asyncio
-    async def test_extract_article(self, article_knowledge, mock_llm):
+    async def test_extract_article(self, a_article, mock_llm):
         """测试提取文章信息"""
         # 模拟 LLM 返回的响应（with_structured_output 直接返回对象）
         expected_article = Article(
@@ -124,15 +124,15 @@ class TestKnowledgeExtract:
         mock_llm.with_structured_output.return_value = mock_structured_llm
 
         text = "Artificial Intelligence continues to advance in 2024..."
-        result = await article_knowledge.extract(text)
+        result = await a_article.extract(text)
 
         assert result.title == "AI in 2024"
         assert len(result.authors) == 2
         assert "AI" in result.keywords
-        assert article_knowledge.data == result
+        assert a_article.data == result
 
     @pytest.mark.asyncio
-    async def test_extract_with_markdown_response(self, article_knowledge, mock_llm):
+    async def test_extract_with_markdown_response(self, a_article, mock_llm):
         """测试 with_structured_output 自动处理响应格式"""
         # 使用 with_structured_output 无需处理 markdown 格式
         expected_article = Article(
@@ -146,12 +146,12 @@ class TestKnowledgeExtract:
         mock_structured_llm.ainvoke.return_value = expected_article
         mock_llm.with_structured_output.return_value = mock_structured_llm
 
-        result = await article_knowledge.extract("test text")
+        result = await a_article.extract("test text")
         assert result.title == "Test Article"
         assert result.authors[0] == "Author"
 
     @pytest.mark.asyncio
-    async def test_aextract_calls_extract(self, article_knowledge, mock_llm):
+    async def test_aextract_calls_extract(self, a_article, mock_llm):
         """测试 aextract 方法调用 extract"""
         expected_article = Article(
             title="Test",
@@ -164,12 +164,12 @@ class TestKnowledgeExtract:
         mock_structured_llm.ainvoke.return_value = expected_article
         mock_llm.with_structured_output.return_value = mock_structured_llm
 
-        result = await article_knowledge.aextract("test")
+        result = await a_article.aextract("test")
         assert result.title == "Test"
 
 
-class TestKnowledgeDump:
-    """测试 Knowledge 的 dump 方法"""
+class TestBaseAutoTypeDump:
+    """测试 BaseAutoType 的 dump 方法"""
 
     def test_dump_to_json(self, mock_llm, mock_embedder):
         """测试导出为 JSON 格式"""
@@ -179,7 +179,7 @@ class TestKnowledgeDump:
             keywords=["test"],
             summary="A test"
         )
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -200,7 +200,7 @@ class TestKnowledgeDump:
             keywords=["test"],
             summary="A test"
         )
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -212,12 +212,12 @@ class TestKnowledgeDump:
         assert data_dict["title"] == "Test"
 
 
-class TestKnowledgeLoad:
-    """测试 Knowledge 的 load 方法"""
+class TestBaseAutoTypeLoad:
+    """测试 BaseAutoType 的 load 方法"""
 
     def test_load_from_dict(self, mock_llm, mock_embedder):
         """测试从字典加载"""
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -236,7 +236,7 @@ class TestKnowledgeLoad:
 
     def test_load_from_json_string(self, mock_llm, mock_embedder):
         """测试从 JSON 字符串加载"""
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -254,7 +254,7 @@ class TestKnowledgeLoad:
 
     def test_load_invalid_data_raises_error(self, mock_llm, mock_embedder):
         """测试加载无效数据时抛出错误"""
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -266,8 +266,8 @@ class TestKnowledgeLoad:
             knowledge.load(invalid_data)
 
 
-class TestKnowledgeSearch:
-    """测试 Knowledge 的 search 方法"""
+class TestBaseAutoTypeSearch:
+    """测试 BaseAutoType 的 search 方法"""
 
     @pytest.mark.asyncio
     async def test_search_returns_dict(self, mock_llm, mock_embedder):
@@ -278,7 +278,7 @@ class TestKnowledgeSearch:
             keywords=["search"],
             summary="Testing search"
         )
-        knowledge = Knowledge(
+        knowledge = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
@@ -290,27 +290,27 @@ class TestKnowledgeSearch:
         assert result["title"] == "Search Test"
 
 
-class TestKnowledgeEvolve:
-    """测试 Knowledge 的 evolve 和 aevolve 方法"""
+class TestBaseAutoTypeEvolve:
+    """测试 BaseAutoType 的 evolve 和 aevolve 方法"""
 
     @pytest.mark.asyncio
-    async def test_aevolve_default_implementation(self, article_knowledge):
+    async def test_aevolve_default_implementation(self, a_article):
         """测试 aevolve 的默认实现（不做任何操作）"""
-        await article_knowledge.aevolve()
+        await a_article.aevolve()
         # 如果没有抛出异常，则测试通过
 
 
-class TestKnowledgeMultipleSchemas:
+class TestBaseAutoTypeMultipleSchemas:
     """测试使用多个不同 Schema 的场景"""
 
     def test_different_schemas_independent(self, mock_llm, mock_embedder):
-        """测试不同 Schema 的 Knowledge 相互独立"""
-        article_k = Knowledge(
+        """测试不同 Schema 的 BaseAutoType 相互独立"""
+        article_k = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Article,
         )
-        person_k = Knowledge(
+        person_k = BaseAutoType(
             llm_client=mock_llm,
             embedder=mock_embedder,
             schema_class=Person,

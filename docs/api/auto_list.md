@@ -1,6 +1,6 @@
-# ListKnowledge API
+# AutoList API
 
-::: hyperextract.knowledge.generic.list.ListKnowledge
+::: hyperextract.core.list.AutoList
     options:
       show_root_heading: true
       show_source: true
@@ -8,12 +8,12 @@
 
 ## Overview
 
-`ListKnowledge` implements the multi-item list extraction pattern. It extracts multiple independent objects of the same type from a document, suitable for entity lists, events, citations, and more.
+`AutoList` implements the multi-item list extraction pattern. It extracts multiple independent objects of the same type from a document, suitable for entity lists, events, citations, and more.
 
 ## Class Signature
 
 ```python
-class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
+class AutoList(BaseAutoType[ItemListSchema[Item]], Generic[Item]):
     """List Knowledge Pattern - extracts a collection of objects from text."""
 ```
 
@@ -27,7 +27,7 @@ class ListKnowledge(BaseKnowledge[ItemListSchema[Item]], Generic[Item]):
 ## Initialization
 
 ```python
-from hyperextract.knowledge.generic import ListKnowledge
+from hyperextract.core import AutoList
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -36,7 +36,7 @@ class Person(BaseModel):
     role: Optional[str] = Field(None, description="Role or title")
     organization: Optional[str] = Field(None, description="Organization")
 
-people = ListKnowledge(
+people = AutoList(
     item_schema=Person,  # Note: item_schema, not data_schema!
     llm_client=llm,
     embedder=embedder
@@ -74,7 +74,7 @@ print(len(container.items))
 
 ## List Operations
 
-`ListKnowledge` supports Pythonic list operations:
+`AutoList` supports Pythonic list operations:
 
 ### Indexing
 ```python
@@ -215,7 +215,7 @@ class Entity(BaseModel):
     type: str = Field(..., description="Entity type (person/org/location)")
     context: str = Field(default="", description="Surrounding context")
 
-entities = ListKnowledge(
+entities = AutoList(
     item_schema=Entity,
     llm_client=llm,
     embedder=embedder
@@ -230,7 +230,7 @@ class Event(BaseModel):
     participants: List[str] = Field(default_factory=list)
     location: Optional[str] = None
 
-events = ListKnowledge(
+events = AutoList(
     item_schema=Event,
     llm_client=llm,
     embedder=embedder
@@ -245,7 +245,7 @@ class Citation(BaseModel):
     year: Optional[int] = None
     venue: Optional[str] = None
 
-citations = ListKnowledge(
+citations = AutoList(
     item_schema=Citation,
     llm_client=llm,
     embedder=embedder
@@ -259,7 +259,7 @@ citations = ListKnowledge(
 Subclass to implement custom deduplication:
 
 ```python
-class SmartListKnowledge(ListKnowledge[Item]):
+class SmartAutoList(AutoList[Item]):
     def _merge_strategy(self, old_data, new_data):
         # Custom deduplication logic
         existing_names = {item.name for item in old_data.items}
@@ -312,18 +312,18 @@ sorted_people = sorted(people.items, key=attrgetter('organization', 'name'))
 4. **Chunk Size**: Smaller chunks for dense information
    ```python
    # For entity-rich text
-   ListKnowledge(..., chunk_size=1500, chunk_overlap=150)
+   AutoList(..., chunk_size=1500, chunk_overlap=150)
    ```
 
 ## Serialization
 
 ```python
 # Save
-people.dump("./people_knowledge")
+people.dump("./a_people")
 
 # Load
-loaded = ListKnowledge.load(
-    "./people_knowledge",
+loaded = AutoList.load(
+    "./a_people",
     item_schema=Person,
     llm_client=llm,
     embedder=embedder
@@ -332,9 +332,9 @@ loaded = ListKnowledge.load(
 assert len(loaded) == len(people)
 ```
 
-## Comparison with SetKnowledge
+## Comparison with AutoSet
 
-| Feature | ListKnowledge | SetKnowledge |
+| Feature | AutoList | AutoSet |
 |---------|---------------|--------------|
 | Duplicates | Allowed (basic dedup) | Prevented (by unique_key) |
 | Merge | Simple append | Configurable strategies |
@@ -346,6 +346,6 @@ assert len(loaded) == len(people)
 
 ## See Also
 
-- [SetKnowledge API](set.md) - Unique collection with deduplication
-- [BaseKnowledge API](base.md) - Base class documentation
+- [AutoSet API](set.md) - Unique collection with deduplication
+- [BaseAutoType API](base.md) - Base class documentation
 - [Knowledge Patterns Guide](../user-guide/knowledge-patterns.md) - Pattern selection

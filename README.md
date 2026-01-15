@@ -2,7 +2,7 @@
 
 > **An Intelligent, LLM-Powered Knowledge Extraction & Evolution Framework**
 >
-> Transform unstructured text into structured, evolving knowledge containers with the power of Large Language Models.
+> Transform unstructured text into structured, evolving Auto containers with the power of Large Language Models.
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Hyper-Extract** reimagines knowledge extraction as an intelligent, self-evolving process. Rather than treating data structures as passive containers, we empower them with **LLM-driven intelligence** to actively extract, merge, evolve, and index knowledge from unstructured text.
 
-Every knowledge container in Hyper-Extract follows a unified lifecycle:
+Every Auto container in Hyper-Extract follows a unified lifecycle:
 
 1. **Extract** - Intelligent extraction from text with automatic chunking and merging
 2. **Evolve** - Self-refinement through reasoning, pruning, and optimization
@@ -27,7 +27,7 @@ Every knowledge container in Hyper-Extract follows a unified lifecycle:
 - **Intelligent Merging**: First-priority merge strategy for chunk-based extraction
 
 ### 🏗️ Unified Architecture
-- **Abstract Base Class**: `BaseKnowledge[T]` provides consistent interface across all knowledge types
+- **Abstract Base Class**: `BaseAutoType[T]` provides consistent interface across all knowledge types
 - **Generic Type Support**: Full Python typing with `Generic[T]` for schema flexibility
 - **Lifecycle Management**: Standardized `extract` → `merge` → `evolve` → `search` → `dump/load` pipeline
 
@@ -37,11 +37,11 @@ Every knowledge container in Hyper-Extract follows a unified lifecycle:
 - **Field-Level Search**: Search across all schema fields with metadata preservation
 
 ### 📦 Multiple Knowledge Types (Roadmap)
-- ✅ **UnitKnowledge**: Universal schema-agnostic knowledge extraction
-- 🚧 **EntityKnowledge**: Entity-centric extraction with attribute management
-- 🚧 **RelationKnowledge**: Relationship extraction with entity linking
-- 🚧 **GraphKnowledge**: Knowledge graph construction (nodes + edges)
-- 🚧 **HypergraphKnowledge**: Hypergraph representation for complex multi-entity relations
+- ✅ **AutoModel**: Universal schema-agnostic knowledge extraction
+- ✅ **AutoList**: Collection-based extraction for lists of items
+- ✅ **AutoSet**: Unique collection with automatic deduplication
+- 🚧 **AutoGraph**: Knowledge graph construction (nodes + edges)
+- 🚧 **AutoHypergraph**: Hypergraph representation for complex multi-entity relations
 - 🚧 **ExtractionExperience**: Meta-learning from extraction patterns
 
 ---
@@ -77,7 +77,7 @@ pip install -r requirements.txt
 from pydantic import BaseModel, Field
 from typing import List
 
-class ArticleKnowledge(BaseModel):
+class ArticleSchema(BaseModel):
     """Schema for article knowledge extraction"""
     title: str = Field(default="", description="Article title")
     author: str = Field(default="", description="Author name")
@@ -86,19 +86,19 @@ class ArticleKnowledge(BaseModel):
     topics: List[str] = Field(default_factory=list, description="Topic tags")
 ```
 
-### 2. Initialize Knowledge Container
+### 2. Initialize Auto Container
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract import AutoModel
 
 # Initialize LLM and embedder
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Create knowledge container
-knowledge = UnitKnowledge(
-    data_schema=ArticleKnowledge,
+# Create Auto container
+a_article = AutoModel(
+    data_schema=ArticleSchema,
     llm_client=llm,
     embedder=embedder,
     chunk_size=2000,  # Auto-split long texts
@@ -119,23 +119,23 @@ Artificial intelligence is transforming industries...
 """
 
 # Extract with automatic chunking and merging
-result = knowledge.extract(article_text)
+result = a_article.extract(article_text)
 print(f"Extraction completed: {result}")
 
 # Access extracted data
-print(f"Title: {knowledge.data.title}")
-print(f"Author: {knowledge.data.author}")
-print(f"Key points: {knowledge.data.key_points}")
+print(f"Title: {a_article.data.title}")
+print(f"Author: {a_article.data.author}")
+print(f"Key points: {a_article.data.key_points}")
 ```
 
 ### 4. Semantic Search
 
 ```python
 # Build vector index
-knowledge.build_index()
+a_article.build_index()
 
 # Search with natural language
-results = knowledge.search("What are the main topics?", top_k=3)
+results = a_article.search("What are the main topics?", top_k=3)
 for result in results:
     print(result)
 ```
@@ -144,10 +144,10 @@ for result in results:
 
 ```python
 # Save to folder (includes data + FAISS index)
-knowledge.dump("./output/my_knowledge")
+a_article.dump("./output/my_article")
 
 # Load from folder
-knowledge.load("./output/my_knowledge")
+a_article.load("./output/my_article")
 ```
 
 ---
@@ -156,7 +156,7 @@ knowledge.load("./output/my_knowledge")
 
 ### Design Principles
 
-1. **Template Method Pattern**: `BaseKnowledge` defines the extraction skeleton, subclasses customize behavior
+1. **Template Method Pattern**: `BaseAutoType` defines the extraction skeleton, subclasses customize behavior
 2. **First-Priority Merge**: `model_copy(update=model_dump(exclude_none=True))` for conflict resolution
 3. **Lazy Indexing**: Build FAISS indices only when needed, track with `_index_dirty` flag
 4. **Type Safety**: Leverage Pydantic for runtime validation and IDE support
@@ -167,7 +167,7 @@ knowledge.load("./output/my_knowledge")
 
 Check out the `examples/` directory for complete working examples:
 
-- [`generic_knowledge_demo.py`](examples/generic_knowledge_demo.py) - Full UnitKnowledge walkthrough
+- [`auto_model_demo.py`](examples/auto_model_demo.py) - Full AutoModel walkthrough
 - More examples coming soon!
 
 ---
@@ -175,17 +175,16 @@ Check out the `examples/` directory for complete working examples:
 ## 🗺️ Roadmap
 
 ### Phase 1: Foundation (Current) ✅
-- [x] Abstract `BaseKnowledge` class
-- [x] `UnitKnowledge` implementation
+- [x] Abstract `BaseAutoType` class
+- [x] `AutoModel` implementation
 - [x] LangChain integration with structured output
 - [x] FAISS vector search
 - [x] Serialization (dump/load)
 
 ### Phase 2: Specialized Knowledge Types 🚧
-- [ ] `EntityKnowledge` - Entity extraction with coreference resolution
-- [ ] `RelationKnowledge` - Relationship extraction and linking
-- [ ] `GraphKnowledge` - Full knowledge graph construction
-- [ ] `HypergraphKnowledge` - Hypergraph for complex relations
+- [ ] `AutoGraph` - Full knowledge graph construction
+- [ ] `AutoHypergraph` - Hypergraph for complex relations
+- [ ] `AutoTree` - Hierarchical tree structures
 
 ### Phase 3: Evolution & Learning 🔮
 - [ ] `evolve()` implementation with reasoning

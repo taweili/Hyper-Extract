@@ -95,9 +95,9 @@ nav:
       - Knowledge Patterns: user-guide/knowledge-patterns.md
   - API Reference:
       - Overview: api/index.md
-      - BaseKnowledge: api/base.md
-      - UnitKnowledge: api/unit.md
-      - ListKnowledge: api/list.md
-      - SetKnowledge: api/set.md
+      - BaseAutoType: api/base.md
+      - AutoModel: api/model.md
+      - AutoList: api/auto_list.md
+      - AutoSet: api/auto_set.md
   - 中文文档:
       - 首页: zh/index.md

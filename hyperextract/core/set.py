@@ -13,7 +13,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 
-from ..base import BaseKnowledge
+from .base import BaseAutoType
 from hyperextract.utils.merger import (
     BaseMerger,
     MergeStrategy,
@@ -34,14 +34,14 @@ except ImportError:
 Item = TypeVar("Item", bound=BaseModel)
 
 
-class ItemSetSchema(BaseModel, Generic[Item]):
+class AutoSetSchema(BaseModel, Generic[Item]):
     """Generic schema container for set-based knowledge patterns."""
 
     items: List[Item] = Field(default_factory=list, description="Set of unique items")
 
 
-class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
-    """Set Knowledge Pattern - extracts a unique collection of objects.
+class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
+    """AutoSet - extracts a unique collection of objects.
 
     This pattern automatically deduplicates items based on a user-specified
     key extractor function. Provides flexible merge strategies including LLM-powered
@@ -55,9 +55,9 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         - External interface: List (via items property)
         - Set operations: union (|), intersection (&), difference (-)
 
-    Comparison with ListKnowledge:
-        - ListKnowledge: Allows duplicates, simple append merge
-        - SetKnowledge: Automatic deduplication, intelligent merge strategies
+    Comparison with AutoList:
+        - AutoList: Allows duplicates, simple append merge
+        - AutoSet: Automatic deduplication, intelligent merge strategies
 
     Example:
         >>> class KeywordSchema(BaseModel):
@@ -65,7 +65,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         ...     category: str | None = None
         ...     frequency: int | None = None
         >>>
-        >>> keywords = SetKnowledge(
+        >>> keywords = AutoSet(
         ...     item_schema=KeywordSchema,
         ...     llm_client=llm,
         ...     embedder=embedder,
@@ -93,7 +93,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         llm_batch_size: int = 10,
         **kwargs,
     ):
-        """Initialize SetKnowledge with key extractor and merge strategy.
+        """Initialize AutoSet with key extractor and merge strategy.
 
         Args:
             item_schema: Pydantic BaseModel subclass for individual items.
@@ -113,7 +113,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         # Store item_schema
         self.item_schema = item_schema
 
-        # Create ItemSetSchema container dynamically (similar to ListKnowledge's ItemListSchema)
+        # Create AutoSetSchema container dynamically (similar to AutoList's AutoListSchema)
         container_name = f"{item_schema.__name__}Set"
         self.item_set_schema = create_model(
             container_name,
@@ -123,7 +123,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             ),
         )
 
-        # Call BaseKnowledge.__init__ (not ListKnowledge)
+        # Call BaseAutoType.__init__ (not ListKnowledge)
         super().__init__(
             data_schema=self.item_set_schema,
             llm_client=llm_client,
@@ -136,7 +136,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             **kwargs,
         )
 
-        # SetKnowledge-specific attributes
+        # AutoSet-specific attributes
         self.key_extractor = key_extractor
         self.merge_item_strategy = merge_item_strategy
         self.llm_batch_size = llm_batch_size
@@ -153,13 +153,13 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
     # ==================== Override Instance Creation ====================
 
-    def _create_new_instance(self) -> "SetKnowledge[Item]":
+    def _create_new_instance(self) -> "AutoSet[Item]":
         """Creates a new instance with the same configuration.
 
-        Overrides parent method to include SetKnowledge-specific parameters.
+        Overrides parent method to include AutoSet-specific parameters.
 
         Returns:
-            New SetKnowledge instance.
+            New AutoSet instance.
         """
         return self.__class__(
             item_schema=self.item_schema,
@@ -270,11 +270,11 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
     def __repr__(self) -> str:
         """Returns a developer-friendly representation."""
-        return f"SetKnowledge[{self.item_schema.__name__}]({len(self)} unique items)"
+        return f"AutoSet[{self.item_schema.__name__}]({len(self)} unique items)"
 
     def __str__(self) -> str:
         """Returns a user-friendly string representation."""
-        return f"SetKnowledge with {len(self)} unique {self.item_schema.__name__} items"
+        return f"AutoSet with {len(self)} unique {self.item_schema.__name__} items"
 
     def __iter__(self):
         """Enables iteration over all items in the set.
@@ -354,7 +354,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         # Return items list
         return self.items if store else merged_data.items
 
-    def merge(self, data_list: List[ItemSetSchema[Item]]) -> ItemSetSchema[Item]:
+    def merge(self, data_list: List[AutoSetSchema[Item]]) -> AutoSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
 
         Pure function: Does not modify internal state.
@@ -366,7 +366,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             data_list: List of container objects to merge.
 
         Returns:
-            New merged ItemSetSchema with deduplicated items.
+            New merged AutoSetSchema with deduplicated items.
         """
         # Step 1: Collect all items from all containers
         all_items = []
@@ -391,7 +391,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         # Step 3: Return new container (does not modify self)
         return self.item_set_schema(items=merged_items)
 
-    def _update_internal_state(self, data: ItemSetSchema[Item]) -> None:
+    def _update_internal_state(self, data: AutoSetSchema[Item]) -> None:
         """Updates internal state from a data container.
 
         Private method that synchronizes _items_dict and _data with new data.
@@ -508,7 +508,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
     def dump(self, folder_path: str | Path):
         """Exports knowledge to a specified folder.
 
-        Saves both the items and the SetKnowledge-specific metadata.
+        Saves both the items and the AutoSet-specific metadata.
 
         Args:
             folder_path: Target folder path for saving.
@@ -706,7 +706,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             - Updates metadata timestamp
         """
         if not self._items_dict:
-            raise KeyError("pop from an empty SetKnowledge")
+            raise KeyError("pop from an empty AutoSet")
 
         key = next(iter(self._items_dict))
         item = self._items_dict.pop(key)
@@ -716,11 +716,11 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
         return item
 
-    def copy(self) -> "SetKnowledge[Item]":
+    def copy(self) -> "AutoSet[Item]":
         """Creates a deep copy of the set.
 
         Returns:
-            A new SetKnowledge instance with copies of all items.
+            A new AutoSet instance with copies of all items.
 
         Examples:
             >>> backup = skills.copy()
@@ -739,25 +739,25 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
     # ==================== Set Operations ====================
 
-    def __or__(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def __or__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Union operation: set1 | set2.
 
         Returns a new set containing all items from both sets.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
-            New SetKnowledge with union of items.
+            New AutoSet with union of items.
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             raise TypeError(
-                f"Unsupported operand type for |: 'SetKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for |: 'AutoSet' and '{type(other).__name__}'"
             )
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot union SetKnowledge instances with different schemas. "
+                f"Cannot union AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
@@ -779,25 +779,25 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __and__(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def __and__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Intersection operation: set1 & set2.
 
         Returns a new set containing only items present in both sets.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
-            New SetKnowledge with intersection of items.
+            New AutoSet with intersection of items.
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             raise TypeError(
-                f"Unsupported operand type for &: 'SetKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for &: 'AutoSet' and '{type(other).__name__}'"
             )
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot intersect SetKnowledge instances with different schemas. "
+                f"Cannot intersect AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
@@ -819,25 +819,25 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __sub__(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def __sub__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Difference operation: set1 - set2.
 
         Returns a new set containing items in self but not in other.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
-            New SetKnowledge with difference of items.
+            New AutoSet with difference of items.
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             raise TypeError(
-                f"Unsupported operand type for -: 'SetKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for -: 'AutoSet' and '{type(other).__name__}'"
             )
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot subtract SetKnowledge instances with different schemas. "
+                f"Cannot subtract AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
@@ -854,25 +854,25 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __xor__(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def __xor__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Symmetric difference operation: set1 ^ set2.
 
         Returns a new set containing items in either set but not in both.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
-            New SetKnowledge with symmetric difference of items.
+            New AutoSet with symmetric difference of items.
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             raise TypeError(
-                f"Unsupported operand type for ^: 'SetKnowledge' and '{type(other).__name__}'"
+                f"Unsupported operand type for ^: 'AutoSet' and '{type(other).__name__}'"
             )
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot compute symmetric difference of SetKnowledge instances with different schemas. "
+                f"Cannot compute symmetric difference of AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
@@ -896,19 +896,19 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
 
     # ==================== Named Set Operations ====================
 
-    def union(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def union(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Union operation (named method)."""
         return self | other
 
-    def intersection(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def intersection(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Intersection operation (named method)."""
         return self & other
 
-    def difference(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def difference(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Difference operation (named method)."""
         return self - other
 
-    def symmetric_difference(self, other: "SetKnowledge[Item]") -> "SetKnowledge[Item]":
+    def symmetric_difference(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
         """Symmetric difference operation (named method)."""
         return self ^ other
 
@@ -929,7 +929,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         Examples:
             >>> skills1 == skills2  # True if same keys
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             return False
 
         if self.item_schema != other.item_schema:
@@ -945,37 +945,37 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         """
         return not self.__eq__(other)
 
-    def __le__(self, other: "SetKnowledge[Item]") -> bool:
+    def __le__(self, other: "AutoSet[Item]") -> bool:
         """Subset comparison: set1 <= set2.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a subset of other (all keys in self are in other).
 
         Raises:
-            TypeError: If other is not a SetKnowledge or has different schema.
+            TypeError: If other is not a AutoSet or has different schema.
 
         Examples:
             >>> skills1 <= skills2  # True if skills1 is subset of skills2
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             return NotImplemented
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot compare SetKnowledge instances with different schemas. "
+                f"Cannot compare AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
         return set(self._items_dict.keys()).issubset(set(other._items_dict.keys()))
 
-    def __lt__(self, other: "SetKnowledge[Item]") -> bool:
+    def __lt__(self, other: "AutoSet[Item]") -> bool:
         """Proper subset comparison: set1 < set2.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a proper subset of other (subset and not equal).
@@ -983,16 +983,16 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         Examples:
             >>> skills1 < skills2  # True if skills1 is proper subset
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             return NotImplemented
 
         return self <= other and self != other
 
-    def __ge__(self, other: "SetKnowledge[Item]") -> bool:
+    def __ge__(self, other: "AutoSet[Item]") -> bool:
         """Superset comparison: set1 >= set2.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a superset of other (all keys in other are in self).
@@ -1000,22 +1000,22 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         Examples:
             >>> skills1 >= skills2  # True if skills1 is superset of skills2
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             return NotImplemented
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot compare SetKnowledge instances with different schemas. "
+                f"Cannot compare AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
         return set(self._items_dict.keys()).issuperset(set(other._items_dict.keys()))
 
-    def __gt__(self, other: "SetKnowledge[Item]") -> bool:
+    def __gt__(self, other: "AutoSet[Item]") -> bool:
         """Proper superset comparison: set1 > set2.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a proper superset of other (superset and not equal).
@@ -1023,16 +1023,16 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         Examples:
             >>> skills1 > skills2  # True if skills1 is proper superset
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             return NotImplemented
 
         return self >= other and self != other
 
-    def issubset(self, other: "SetKnowledge[Item]") -> bool:
+    def issubset(self, other: "AutoSet[Item]") -> bool:
         """Test whether every key in the set is in other.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a subset of other.
@@ -1042,11 +1042,11 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         """
         return self <= other
 
-    def issuperset(self, other: "SetKnowledge[Item]") -> bool:
+    def issuperset(self, other: "AutoSet[Item]") -> bool:
         """Test whether every key in other is in the set.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if self is a superset of other.
@@ -1056,29 +1056,29 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         """
         return self >= other
 
-    def isdisjoint(self, other: "SetKnowledge[Item]") -> bool:
+    def isdisjoint(self, other: "AutoSet[Item]") -> bool:
         """Test whether the set has no keys in common with other.
 
         Args:
-            other: Another SetKnowledge instance.
+            other: Another AutoSet instance.
 
         Returns:
             True if the two sets have no keys in common.
 
         Raises:
-            TypeError: If other is not a SetKnowledge or has different schema.
+            TypeError: If other is not a AutoSet or has different schema.
 
         Examples:
             >>> skills1.isdisjoint(skills2)  # True if no common skills
         """
-        if not isinstance(other, SetKnowledge):
+        if not isinstance(other, AutoSet):
             raise TypeError(
-                f"isdisjoint() argument must be SetKnowledge, not {type(other).__name__}"
+                f"isdisjoint() argument must be AutoSet, not {type(other).__name__}"
             )
 
         if self.item_schema != other.item_schema:
             raise TypeError(
-                f"Cannot compare SetKnowledge instances with different schemas. "
+                f"Cannot compare AutoSet instances with different schemas. "
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 

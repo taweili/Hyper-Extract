@@ -1,6 +1,6 @@
-# UnitKnowledge API
+# AutoModel API
 
-::: hyperextract.knowledge.generic.unit.UnitKnowledge
+::: hyperextract.core.model.AutoModel
     options:
       show_root_heading: true
       show_source: true
@@ -8,12 +8,12 @@
 
 ## Overview
 
-`UnitKnowledge` implements the single-object extraction pattern. It's designed to extract exactly one structured object per document, making it ideal for document-level information like summaries, metadata, or aggregate statistics.
+`AutoModel` implements the single-object extraction pattern. It's designed to extract exactly one structured object per document, making it ideal for document-level information like summaries, metadata, or aggregate statistics.
 
 ## Class Signature
 
 ```python
-class UnitKnowledge(BaseKnowledge[T]):
+class AutoModel(BaseAutoType[T]):
     """Unit Knowledge Pattern - extracts a single structured object from text."""
 ```
 
@@ -26,10 +26,10 @@ class UnitKnowledge(BaseKnowledge[T]):
 
 ## Initialization
 
-Inherits all parameters from `BaseKnowledge` with same defaults.
+Inherits all parameters from `BaseAutoType` with same defaults.
 
 ```python
-from hyperextract.knowledge.generic import UnitKnowledge
+from hyperextract.core import AutoModel
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import BaseModel, Field
 
@@ -41,7 +41,7 @@ class DocumentMetadata(BaseModel):
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-knowledge = UnitKnowledge(
+knowledge = AutoModel(
     data_schema=DocumentMetadata,
     llm_client=llm,
     embedder=embedder,
@@ -178,7 +178,7 @@ class Summary(BaseModel):
     key_points: List[str] = Field(default_factory=list, description="Key points")
     conclusion: str = Field(default="", description="Conclusion")
 
-summary_knowledge = UnitKnowledge(
+summary_knowledge = AutoModel(
     data_schema=Summary,
     llm_client=llm,
     embedder=embedder
@@ -193,7 +193,7 @@ class Article(BaseModel):
     author: str = Field(default="", description="Author")
     category: str = Field(default="", description="Category")
 
-article_knowledge = UnitKnowledge(
+article_knowledge = AutoModel(
     data_schema=Article,
     llm_client=llm,
     embedder=embedder
@@ -208,7 +208,7 @@ class Sentiment(BaseModel):
     negative_aspects: List[str] = Field(default_factory=list)
     confidence: float = Field(default=0.0, description="Confidence score")
 
-sentiment_knowledge = UnitKnowledge(
+sentiment_knowledge = AutoModel(
     data_schema=Sentiment,
     llm_client=llm,
     embedder=embedder
@@ -231,10 +231,10 @@ sentiment_knowledge = UnitKnowledge(
 3. **Chunk Sizing**: Adjust based on where information appears
    ```python
    # For metadata (usually at start)
-   UnitKnowledge(..., chunk_size=1000, chunk_overlap=100)
+   AutoModel(..., chunk_size=1000, chunk_overlap=100)
    
    # For summary (may span document)
-   UnitKnowledge(..., chunk_size=3000, chunk_overlap=300)
+   AutoModel(..., chunk_size=3000, chunk_overlap=300)
    ```
 
 4. **Custom Prompts**: Provide domain-specific guidance
@@ -246,7 +246,7 @@ sentiment_knowledge = UnitKnowledge(
    - Citation count if mentioned
    '''
    
-   knowledge = UnitKnowledge(
+   knowledge = AutoModel(
        data_schema=PaperMetadata,
        llm_client=llm,
        embedder=embedder,
@@ -261,7 +261,7 @@ sentiment_knowledge = UnitKnowledge(
 knowledge.dump("./document_metadata")
 
 # Load
-loaded = UnitKnowledge.load(
+loaded = AutoModel.load(
     "./document_metadata",
     data_schema=DocumentMetadata,
     llm_client=llm,
@@ -273,7 +273,7 @@ assert loaded.data.title == knowledge.data.title
 
 ## See Also
 
-- [BaseKnowledge API](base.md) - Base class documentation
-- [ListKnowledge API](list.md) - For extracting multiple items
-- [SetKnowledge API](set.md) - For unique collections
+- [BaseAutoType API](base.md) - Base class documentation
+- [AutoList API](list.md) - For extracting multiple items
+- [AutoSet API](set.md) - For unique collections
 - [Knowledge Patterns Guide](../user-guide/knowledge-patterns.md) - Pattern selection guide
