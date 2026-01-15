@@ -5,17 +5,23 @@ Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
 import json
-from typing import List, Any, Type, TypeVar, Generic, Dict, Optional
+from typing import List, Any, Type, TypeVar, Generic, Dict, Optional, Callable
 from datetime import datetime
 from pathlib import Path
-from enum import Enum
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
 
 from ..base import BaseKnowledge
+from hyperextract.utils.merger import (
+    BaseMerger,
+    MergeStrategy,
+    KeepNewMerger,
+    KeepOldMerger,
+    FieldMerger,
+    LLMMerger,
+)
 
 try:
     from hyperextract.config import logger
@@ -34,32 +40,16 @@ class ItemSetSchema(BaseModel, Generic[Item]):
     items: List[Item] = Field(default_factory=list, description="Set of unique items")
 
 
-class MergeItemStrategy(str, Enum):
-    """Merge strategy for handling duplicate items.
-
-    Strategies:
-        KEEP_OLD: Keep the existing item, discard the new one
-        KEEP_NEW: Keep the new item, discard the existing one (default)
-        FIELD_MERGE: Merge fields from both items (new fills old's None fields)
-        LLM_MERGE: Use LLM to intelligently merge both items
-    """
-
-    KEEP_OLD = "keep_old"
-    KEEP_NEW = "keep_new"
-    FIELD_MERGE = "field_merge"
-    LLM_MERGE = "llm_merge"
-
-
 class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
     """Set Knowledge Pattern - extracts a unique collection of objects.
 
     This pattern automatically deduplicates items based on a user-specified
-    unique key field. Provides flexible merge strategies including LLM-powered
+    key extractor function. Provides flexible merge strategies including LLM-powered
     intelligent merging for handling duplicates.
 
     Key characteristics:
         - Extraction target: A unique collection of structured objects
-        - Deduplication: Based on unique_key field (user-specified)
+        - Deduplication: Based on key_extractor function (user-specified)
         - Merge strategy: Configurable (keep_old/keep_new/field_merge/llm_merge)
         - Internal storage: Dict for O(1) lookup and deduplication
         - External interface: List (via items property)
@@ -79,7 +69,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         ...     item_schema=KeywordSchema,
         ...     llm_client=llm,
         ...     embedder=embedder,
-        ...     unique_key="term",
+        ...     key_extractor=lambda x: x.term,
         ...     merge_item_strategy="field_merge"
         ... )
         >>> keywords.extract("Python is great. Python is powerful.")
@@ -93,8 +83,8 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        unique_key: str,
-        merge_item_strategy: MergeItemStrategy = MergeItemStrategy.KEEP_NEW,
+        key_extractor: Callable[[Item], Any],
+        merge_item_strategy: MergeStrategy = MergeStrategy.KEEP_NEW,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
@@ -103,13 +93,13 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         llm_batch_size: int = 10,
         **kwargs,
     ):
-        """Initialize SetKnowledge with unique key and merge strategy.
+        """Initialize SetKnowledge with key extractor and merge strategy.
 
         Args:
             item_schema: Pydantic BaseModel subclass for individual items.
             llm_client: Language model client for extraction and merging.
             embedder: Embedding model for vector indexing.
-            unique_key: Field name to use as unique identifier (required).
+            key_extractor: Function to extract unique key from an item (required).
             merge_item_strategy: Strategy for merging duplicate items (default: KEEP_NEW).
             prompt: Custom extraction prompt.
             chunk_size: Maximum characters per chunk for long texts.
@@ -118,13 +108,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             show_progress: Whether to log progress information.
             llm_batch_size: Batch size for LLM merge operations (for LLM_MERGE strategy).
             **kwargs: Additional arguments passed to parent class.
-
-        Raises:
-            ValueError: If unique_key field does not exist in item_schema.
-            TypeError: If unique_key field type is not hashable.
         """
-        # Validate unique_key before initialization
-        self._validate_unique_key(item_schema, unique_key)
 
         # Store item_schema
         self.item_schema = item_schema
@@ -153,18 +137,18 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
         )
 
         # SetKnowledge-specific attributes
-        self.unique_key = unique_key
+        self.key_extractor = key_extractor
         self.merge_item_strategy = merge_item_strategy
         self.llm_batch_size = llm_batch_size
 
         # Internal storage: Dict for O(1) deduplication
         self._items_dict: Dict[Any, Item] = {}
 
-        # Create LLM merge chain (if using LLM_MERGE strategy)
-        self._merge_chain = (
-            self._create_merge_chain()
-            if merge_item_strategy == MergeItemStrategy.LLM_MERGE
-            else None
+        # Create Merger instance based on strategy
+        self._merger: BaseMerger[Item] = self._create_merger(
+            item_schema=item_schema,
+            llm_client=llm_client,
+            merge_item_strategy=merge_item_strategy,
         )
 
     # ==================== Override Instance Creation ====================
@@ -181,7 +165,7 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             item_schema=self.item_schema,
             llm_client=self.llm_client,
             embedder=self.embedder,
-            unique_key=self.unique_key,
+            key_extractor=self.key_extractor,
             merge_item_strategy=self.merge_item_strategy,
             prompt=self.prompt,
             chunk_size=self.chunk_size,
@@ -204,78 +188,48 @@ class SetKnowledge(BaseKnowledge[ItemSetSchema[Item]], Generic[Item]):
             "### Source Text:\n"
         )
 
-    @staticmethod
-    def _validate_unique_key(item_schema: Type[Item], unique_key: str):
-        """Validates that unique_key exists in schema and is hashable.
+    # ==================== Merger Factory ====================
+
+    def _create_merger(
+        self,
+        item_schema: Type[Item],
+        llm_client: BaseChatModel,
+        merge_item_strategy: MergeStrategy,
+    ) -> BaseMerger[Item]:
+        """Creates the appropriate Merger instance based on strategy.
 
         Args:
-            item_schema: The Pydantic schema to validate.
-            unique_key: The field name to validate.
-
-        Raises:
-            ValueError: If unique_key field does not exist.
-            TypeError: If unique_key field type is known to be unhashable.
-        """
-        # Check field existence
-        if unique_key not in item_schema.model_fields:
-            available_fields = list(item_schema.model_fields.keys())
-            raise ValueError(
-                f"unique_key '{unique_key}' not found in {item_schema.__name__}. "
-                f"Available fields: {available_fields}"
-            )
-
-        # Check field type (basic unhashable type detection)
-        field_info = item_schema.model_fields[unique_key]
-        field_type = field_info.annotation
-
-        # Extract actual type from Optional/Union if present
-        import typing
-
-        if (
-            hasattr(typing, "get_origin")
-            and typing.get_origin(field_type) is typing.Union
-        ):
-            args = typing.get_args(field_type)
-            field_type = args[0] if args else field_type
-
-        # Check for known unhashable types
-        unhashable_types = (list, dict, set, List, Dict)
-        if field_type in unhashable_types:
-            raise TypeError(
-                f"unique_key field '{unique_key}' has unhashable type {field_type}. "
-                f"unique_key must be a hashable type (str, int, tuple, etc.)"
-            )
-
-    # ==================== LLM Merge Chain ====================
-
-    def _create_merge_chain(self):
-        """Creates an LLM chain for intelligently merging duplicate items.
-
-        Subclasses can override this method to customize the merge prompt.
+            item_schema: Pydantic model for items.
+            llm_client: LLM client for LLM_MERGE strategy.
+            merge_item_strategy: The merge strategy to use.
 
         Returns:
-            LangChain chain for merging items.
+            A Merger instance implementing the specified strategy.
         """
-        merge_template = """You are an expert at merging structured data.
-Given two instances of the same item (identified by the same unique key), 
-intelligently merge their fields into one complete item.
+        key_extractor = self.key_extractor
 
-Merging rules:
-1. Keep the unique key field unchanged
-2. For other fields: prefer non-null values
-3. If both items have values for a field, choose the more complete/accurate one
-4. Combine text fields if appropriate (e.g., descriptions)
+        if merge_item_strategy == MergeStrategy.KEEP_OLD:
+            return KeepOldMerger(key_extractor, logger_instance=logger)
 
-Item A (existing):
-{item_existing}
+        elif merge_item_strategy == MergeStrategy.KEEP_NEW:
+            return KeepNewMerger(key_extractor, logger_instance=logger)
 
-Item B (incoming):
-{item_incoming}
+        elif merge_item_strategy == MergeStrategy.FIELD_MERGE:
+            return FieldMerger(key_extractor, logger_instance=logger)
 
-Please merge these two items intelligently and return the merged result."""
+        elif merge_item_strategy == MergeStrategy.LLM_MERGE:
+            return LLMMerger(
+                key_extractor=key_extractor,
+                llm_client=llm_client,
+                item_schema=item_schema,
+                logger_instance=logger,
+            )
 
-        merge_prompt = ChatPromptTemplate.from_template(merge_template)
-        return merge_prompt | self.llm_client.with_structured_output(self.item_schema)
+        else:
+            logger.warning(
+                f"Unknown merge strategy: {merge_item_strategy}, using KEEP_NEW"
+            )
+            return KeepNewMerger(key_extractor, logger_instance=logger)
 
     # ==================== Properties ====================
 
@@ -387,12 +341,10 @@ Please merge these two items intelligently and return the merged result."""
         # If store=True, merge with existing data and update internal state
         if store:
             if self._data and len(self.items) > 0:
-                self._data = self.merge([self._data, merged_data])
+                final_data = self.merge([self._data, merged_data])
             else:
-                self._data = merged_data
-
-            self.clear_index()
-            self.metadata["updated_at"] = datetime.now()
+                final_data = merged_data
+            self._update_internal_state(final_data)
 
         logger.info("Knowledge extraction completed")
         logger.info(
@@ -405,97 +357,61 @@ Please merge these two items intelligently and return the merged result."""
     def merge(self, data_list: List[ItemSetSchema[Item]]) -> ItemSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
 
-        Overrides parent's merge to implement set semantics:
-        1. Collect all items from all containers
-        2. For each item, check if unique_key already exists
-        3. If duplicate, call merge_item() to resolve
-        4. Return deduplicated result
-
-        For LLM_MERGE strategy, batches duplicate pairs for efficient processing.
+        Pure function: Does not modify internal state.
+        Delegates to Merger for efficient tournament-style merging.
+        All merge strategies (including LLM batch processing) are handled
+        by the Merger implementation.
 
         Args:
             data_list: List of container objects to merge.
 
         Returns:
-            Merged ItemSetSchema with deduplicated items.
+            New merged ItemSetSchema with deduplicated items.
         """
-        # Collect all items and track duplicates for batch LLM merge
-        merge_pairs = []  # [(existing, incoming, key), ...]
-
+        # Step 1: Collect all items from all containers
+        all_items = []
         for data in data_list:
-            for item in data.items:
-                # Get unique key value
-                key_value = self._get_key_value(item)
-                if key_value is None:
-                    continue
+            all_items.extend(data.items)
 
-                if key_value in self._items_dict:
-                    # Duplicate found
-                    if self.merge_item_strategy == MergeItemStrategy.LLM_MERGE:
-                        # Collect for batch processing
-                        merge_pairs.append(
-                            (self._items_dict[key_value], item, key_value)
-                        )
-                    else:
-                        # Merge immediately with non-LLM strategies
-                        merged = self.merge_item(self._items_dict[key_value], item)
-                        if merged is not None:
-                            self._items_dict[key_value] = merged
-                else:
-                    # New item
-                    self._items_dict[key_value] = item.model_copy(deep=True)
-
-        # Batch process LLM merges if any
-        if merge_pairs and self.merge_item_strategy == MergeItemStrategy.LLM_MERGE:
-            merged_results = self._batch_merge_with_llm(merge_pairs)
-            # Update items_dict with merged results
-            self._items_dict.update(merged_results)
-
-        # Update internal _data to match _items_dict
-        self._data.items = list(self._items_dict.values())
+        if not all_items:
+            return self.item_set_schema()
 
         logger.info(
-            f"Merged into {len(self._items_dict)} unique items "
+            f"Merging {len(all_items)} items from {len(data_list)} containers..."
+        )
+
+        # Step 2: Use Merger to deduplicate and merge items
+        merged_items = self._merger.merge(all_items)
+
+        logger.info(
+            f"Merged into {len(merged_items)} unique items "
             f"(strategy: {self.merge_item_strategy.value})"
         )
 
-        return self._data
+        # Step 3: Return new container (does not modify self)
+        return self.item_set_schema(items=merged_items)
 
-    def merge_item(self, existing: Item, incoming: Item) -> Optional[Item]:
-        """Merges two duplicate items based on the configured strategy.
+    def _update_internal_state(self, data: ItemSetSchema[Item]) -> None:
+        """Updates internal state from a data container.
 
-        This method can be overridden by subclasses to implement custom merge logic.
+        Private method that synchronizes _items_dict and _data with new data.
+        Also clears vector index and updates metadata timestamp.
 
         Args:
-            existing: The existing item in the set.
-            incoming: The incoming item to merge.
-
-        Returns:
-            Merged item, or None to skip this item.
+            data: The data container to update from.
         """
-        if self.merge_item_strategy == MergeItemStrategy.KEEP_OLD:
-            return existing
+        self._items_dict.clear()
+        for item in data.items:
+            key = self._get_key_value(item)
+            if key is not None:
+                self._items_dict[key] = item
 
-        elif self.merge_item_strategy == MergeItemStrategy.KEEP_NEW:
-            return incoming
-
-        elif self.merge_item_strategy == MergeItemStrategy.FIELD_MERGE:
-            # Field-level merge: existing's non-None values override incoming
-            return incoming.model_copy(update=existing.model_dump(exclude_none=True))
-
-        elif self.merge_item_strategy == MergeItemStrategy.LLM_MERGE:
-            # LLM merge (should be handled by batch processing in merge())
-            # Fallback to single merge if called directly
-            return self._merge_item_with_llm(existing, incoming)
-
-        else:
-            logger.warning(
-                f"Unknown merge strategy: {self.merge_item_strategy}, using KEEP_NEW"
-            )
-            return incoming
+        self._data = data
+        self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
 
     def _get_key_value(self, item: Item) -> Optional[Any]:
-        """Extracts the unique key value from an item.
+        """Extracts the unique key value from an item using key_extractor.
 
         Args:
             item: The item to extract key from.
@@ -504,114 +420,25 @@ Please merge these two items intelligently and return the merged result."""
             The unique key value, or None if invalid.
         """
         try:
-            key_value = getattr(item, self.unique_key)
+            key_value = self.key_extractor(item)
 
             # Validate key value
             if key_value is None:
-                logger.warning(
-                    f"Item has None value for unique_key '{self.unique_key}', skipping"
-                )
+                logger.warning("Item has None value for key, skipping")
                 return None
 
             # Verify hashability
             hash(key_value)
             return key_value
 
-        except TypeError:
-            logger.error(
-                f"Value {key_value} for unique_key '{self.unique_key}' is not hashable"
-            )
+        except TypeError as e:
+            logger.error(f"Key value is not hashable: {e}")
             return None
-        except AttributeError:
-            logger.error(f"Item missing unique_key field '{self.unique_key}'")
-            return None
-
-    # ==================== LLM Merge Methods ====================
-
-    def _batch_merge_with_llm(self, merge_pairs: List[tuple]) -> Dict[Any, Item]:
-        """Batch processes LLM merges for efficiency.
-
-        Args:
-            merge_pairs: List of (existing, incoming, key_value) tuples to merge.
-
-        Returns:
-            Dictionary mapping key_value to merged items.
-        """
-        results = {}
-
-        if not self._merge_chain:
-            logger.warning("LLM merge chain not initialized, falling back to KEEP_NEW")
-            for existing, incoming, key_value in merge_pairs:
-                results[key_value] = incoming
-            return results
-
-        total_pairs = len(merge_pairs)
-        logger.info(f"Batch merging {total_pairs} duplicate items with LLM...")
-
-        # Process in batches
-        for i in range(0, total_pairs, self.llm_batch_size):
-            batch = merge_pairs[i : i + self.llm_batch_size]
-
-            # Prepare batch inputs
-            inputs = [
-                {
-                    "item_existing": existing.model_dump_json(indent=2),
-                    "item_incoming": incoming.model_dump_json(indent=2),
-                }
-                for existing, incoming, _ in batch
-            ]
-
-            try:
-                # Batch invoke LLM
-                merged_results = self._merge_chain.batch(inputs)
-
-                # Collect merged results
-                for (existing, incoming, key_value), merged in zip(
-                    batch, merged_results
-                ):
-                    if merged:
-                        results[key_value] = merged
-                        logger.debug(f"Successfully merged item with key '{key_value}'")
-                    else:
-                        logger.warning(
-                            f"LLM merge returned None for key '{key_value}', keeping incoming"
-                        )
-                        results[key_value] = incoming
-
-            except Exception as e:
-                logger.error(f"Batch LLM merge failed: {e}, falling back to KEEP_NEW")
-                # Fallback: keep incoming items
-                for existing, incoming, key_value in batch:
-                    results[key_value] = incoming
-
-        return results
-
-    def _merge_item_with_llm(self, existing: Item, incoming: Item) -> Optional[Item]:
-        """Uses LLM to intelligently merge two duplicate items (single merge).
-
-        Args:
-            existing: The existing item.
-            incoming: The incoming item to merge.
-
-        Returns:
-            Merged item, or None on failure.
-        """
-        if not self._merge_chain:
-            logger.warning("LLM merge chain not initialized")
-            return incoming
-
-        try:
-            merged = self._merge_chain.invoke(
-                {
-                    "item_existing": existing.model_dump_json(indent=2),
-                    "item_incoming": incoming.model_dump_json(indent=2),
-                }
-            )
-            logger.debug("Successfully merged item with LLM")
-            return merged
         except Exception as e:
-            logger.error(f"LLM merge failed: {e}")
-            return incoming  # Fallback to incoming item
+            logger.error(f"Failed to extract key from item: {e}")
+            return None
+
+    # ==================== LLM Merge Methods (Removed - Now handled by LLMMerger) ====================
 
     def build_index(self):
         """Builds independent vector index for each unique item."""
@@ -694,7 +521,6 @@ Please merge these two items intelligently and return the merged result."""
             "schema_name": self.item_set_schema.__name__,
             "item_schema_name": self.item_schema.__name__,
             "item_schema": self.item_schema.model_json_schema(),
-            "unique_key": self.unique_key,
             "merge_item_strategy": self.merge_item_strategy.value,
             "data": self.data.model_dump(),
             "metadata": {
@@ -736,16 +562,10 @@ Please merge these two items intelligently and return the merged result."""
             data = json.load(f)
         logger.info(f"Loaded data from {data_file}")
 
-        self._data = self.item_set_schema.model_validate(data.get("data", {}))
+        loaded_data = self.item_set_schema.model_validate(data.get("data", {}))
+        self._update_internal_state(loaded_data)
 
-        # Rebuild items_dict from _data.items (not self.items property!)
-        self._items_dict = {}
-        for item in self._data.items:
-            key_value = self._get_key_value(item)
-            if key_value is not None:
-                self._items_dict[key_value] = item
-
-        # Update metadata
+        # Update metadata from saved data
         if "metadata" in data:
             self.metadata.update(data["metadata"])
         self.metadata["updated_at"] = datetime.now()
@@ -783,16 +603,17 @@ Please merge these two items intelligently and return the merged result."""
 
         if key_value in self._items_dict:
             # Merge with existing
-            merged = self.merge_item(self._items_dict[key_value], item)
+            merged = self._merger.pair_merge(self._items_dict[key_value], item)
             if merged:
                 self._items_dict[key_value] = merged
         else:
             # Add new
             self._items_dict[key_value] = item.model_copy(deep=True)
 
-        # Update _data
+        # Update internal state
         self._data.items = list(self._items_dict.values())
         self.clear_index()
+        self.metadata["updated_at"] = datetime.now()
 
     def remove(self, key: Any) -> Optional[Item]:
         """Removes an item by its unique key value.
@@ -807,6 +628,7 @@ Please merge these two items intelligently and return the merged result."""
         if removed:
             self._data.items = list(self._items_dict.values())
             self.clear_index()
+            self.metadata["updated_at"] = datetime.now()
             logger.debug(f"Removed item with key '{key}'")
         return removed
 
@@ -857,8 +679,8 @@ Please merge these two items intelligently and return the merged result."""
             - Clears the vector index (needs rebuild)
             - Updates metadata timestamp
         """
-        removed = self._items_dict.pop(key, None)
-        if removed:
+        if key in self._items_dict:
+            self._items_dict.pop(key)
             self._data.items = list(self._items_dict.values())
             self.clear_index()
             self.metadata["updated_at"] = datetime.now()
@@ -946,7 +768,7 @@ Please merge these two items intelligently and return the merged result."""
         # Add items from other (merge duplicates)
         for key, item in other._items_dict.items():
             if key in new_set._items_dict:
-                merged = new_set.merge_item(new_set._items_dict[key], item)
+                merged = new_set._merger.pair_merge(new_set._items_dict[key], item)
                 if merged:
                     new_set._items_dict[key] = merged
             else:
@@ -986,7 +808,7 @@ Please merge these two items intelligently and return the merged result."""
         for key in self._items_dict:
             if key in other._items_dict:
                 # Merge the two versions
-                merged = new_set.merge_item(
+                merged = new_set._merger.pair_merge(
                     self._items_dict[key], other._items_dict[key]
                 )
                 if merged:
@@ -1095,7 +917,7 @@ Please merge these two items intelligently and return the merged result."""
     def __eq__(self, other: Any) -> bool:
         """Equality comparison: set1 == set2.
 
-        Two sets are equal if they have the same schema, unique_key, and key set.
+        Two sets are equal if they have the same schema and key set.
         Note: Does not compare item contents, only keys.
 
         Args:
@@ -1111,9 +933,6 @@ Please merge these two items intelligently and return the merged result."""
             return False
 
         if self.item_schema != other.item_schema:
-            return False
-
-        if self.unique_key != other.unique_key:
             return False
 
         return set(self._items_dict.keys()) == set(other._items_dict.keys())

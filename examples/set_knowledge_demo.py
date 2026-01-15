@@ -15,7 +15,8 @@ import os
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.knowledge.generic.set import SetKnowledge, MergeItemStrategy
+from hyperextract.knowledge.generic.set import SetKnowledge
+from hyperextract.utils.merger import MergeStrategy
 
 
 # Define the schema for skills
@@ -50,8 +51,8 @@ def main():
         item_schema=SkillSchema,
         llm_client=llm,
         embedder=embedder,
-        unique_key="name",  # Deduplicate based on skill name
-        merge_item_strategy=MergeItemStrategy.FIELD_MERGE,
+        key_extractor=lambda x: x.name,  # Deduplicate based on skill name
+        merge_item_strategy=MergeStrategy.FIELD_MERGE,
         prompt="""Extract all technical skills, frameworks, tools, and soft skills mentioned in the text.
         
 For each skill, provide:
@@ -194,7 +195,7 @@ Be specific and extract all mentioned skills.""",
         item_schema=SkillSchema,
         llm_client=llm,
         embedder=embedder,
-        unique_key="name",
+        key_extractor=lambda x: x.name,
     )
     loaded_skills.load(save_path)
     print(f"✓ Loaded {len(loaded_skills)} unique skills")
@@ -206,7 +207,7 @@ Be specific and extract all mentioned skills.""",
     print(f"  Total unique skills extracted: {len(skills)}")
     print(f"  Job descriptions processed: {len(job_descriptions)}")
     print("  Deduplication strategy: FIELD_MERGE")
-    print("  Unique key: 'name'")
+    print("  Key extractor: lambda x: x.name")
     print("\n  ✓ Automatically deduplicated based on skill names")
     print("  ✓ Merged information from multiple occurrences")
     print("  ✓ Supports semantic search across all skills")
