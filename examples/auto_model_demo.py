@@ -161,10 +161,11 @@ def main():
         show_progress=True,
     )
 
-    # 4. 提取知识 (默认存储模式)
-    print("\n[4] 提取知识 (默认存储模式)...")
+    # 4. 提取知识 (使用 feed 模式)
+    print("\n[4] 提取知识 (使用 feed 模式)...")
     print("-" * 80)
-    extracted_data = a_document_model.extract(document)
+    a_document_model.feed(document)
+    extracted_data = a_document_model.data
     print("-" * 80)
 
     # 5. 显示提取结果
@@ -203,15 +204,15 @@ def main():
             field_value = result[field_name]
             print(f"      [{i}] {field_name}: {str(field_value)[:80]}...")
 
-    # 9. 测试增量提取（默认合并模式）
-    print("\n[9] 测试增量提取（默认合并模式）...")
+    # 9. 测试增量提取（feed 模式）
+    print("\n[9] 测试增量提取（feed 模式）...")
     additional_text = """
     补充信息：
     本研究获得了国家自然科学基金支持，项目编号：NSFC-2023-12345。
     研究团队来自清华大学医学院和北京协和医院。
     """
     print("   添加补充文本...")
-    a_document_model.extract(additional_text)  # 默认 store=True，自动合并
+    a_document_model.feed(additional_text)  # 使用 feed 自动合并
     print(f"   更新后的作者信息: {a_document_model.data.author}")
 
     # 10. 保存知识

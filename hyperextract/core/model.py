@@ -1,9 +1,7 @@
 """Unit Knowledge Pattern - extracts a single structured object from text."""
 
-import json
 from typing import List, Any, Type
 from datetime import datetime
-from pathlib import Path
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
@@ -225,134 +223,38 @@ class AutoModel(BaseAutoType[T]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    # ==================== Serialization ====================
-
-    def dump(self, folder_path: str | Path):
-        """Exports knowledge to a specified folder.
-
-        Saves to the folder:
-            1. Structured data (self._data) - saved as state.json
-            2. Vector index (self._index) - saved as FAISS index files
-
-        Args:
-            folder_path: Target folder path for saving.
-        """
-
-        folder = Path(folder_path)
-        if folder.exists() and folder.is_file():
-            raise Exception("Folder path is a file, please provide a folder path.")
-
-        if not folder.exists():
-            logger.info(f"Creating folder: {folder}")
-            folder.mkdir(parents=True, exist_ok=True)
-
-        try:
-            # 1. Save structured data
-            data = {
-                "schema_name": self.data_schema.__name__,
-                "data_schema": self.data_schema.model_json_schema(),
-                "data": self.data.model_dump(),
-                "metadata": {
-                    k: str(v) if isinstance(v, datetime) else v
-                    for k, v in self.metadata.items()
-                },
-            }
-
-            json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
-            data_file = folder / "state.json"
-            with open(data_file, "w", encoding="utf-8") as f:
-                f.write(json_str)
-            logger.info(f"Saved data to {data_file}")
-
-            # 2. Save vector index
-            if self._index is not None:
-                index_path = str(folder / "faiss_index")
-                self._index.save_local(index_path)
-                logger.info(f"Saved FAISS index to {index_path}")
-            else:
-                logger.warning("No index to save")
-
-        except Exception as e:
-            logger.error(f"Failed to dump knowledge: {e}")
-
-    def load(self, folder_path: str | Path):
-        """Loads knowledge from a specified folder.
-
-        Loads from the folder:
-            1. Structured data (self._data) - loaded from state.json
-            2. Vector index (self._index) - loaded from FAISS index files
-
-        Args:
-            folder_path: Source folder path containing saved knowledge.
-        """
-        folder = Path(folder_path)
-        if not folder.is_dir():
-            raise ValueError(f"Folder does not exist: {folder_path}")
-
-        # 1. Load structured data
-        data_file = folder / "state.json"
-        if not data_file.is_file():
-            raise ValueError(f"Data file not found: {data_file}")
-
-        with open(data_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logger.info(f"Loaded data from {data_file}")
-
-        self._data = self.data_schema.model_validate(data.get("data", {}))
-
-        # Update metadata with loaded values
-        if "metadata" in data:
-            self.metadata.update(data["metadata"])
-        self.metadata["updated_at"] = datetime.now()
-
-        # 2. Load vector index
-        index_path = str(folder / "faiss_index")
-        if Path(index_path).exists():
-            try:
-                from langchain_community.vectorstores import FAISS
-
-                self._index = FAISS.load_local(
-                    index_path, self.embedder, allow_dangerous_deserialization=True
-                )
-                logger.info(f"Loaded FAISS index from {index_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load FAISS index: {e}")
-                self._index = None
-        else:
-            logger.warning("No index file found, will rebuild on next search")
-            self._index = None
-
-        logger.info(f"Loaded knowledge successfully with {len(self)} unit(s)")
-
     # ==================== Operators ====================
 
     def __add__(self, other):
-        """Operator overload for '+' to combine AutoModel instances into ListKnowledge.
+        """Operator overload for '+' to combine AutoModel instances into AutoList.
 
-        When two AutoModel instances are added, they are combined into a ListKnowledge
-        containing both objects as separate items. This enables intuitive collection building.
+        Supports multiple combination patterns:
+        - AutoModel + AutoModel → AutoList (create list from both items)
+        - AutoModel + AutoList → AutoList (prepend model to list)
+
+        This enables intuitive chain operations like: unit1 + unit2 + unit3
 
         Usage:
             >>> unit1 = AutoModel(PersonSchema, ...)
             >>> unit2 = AutoModel(PersonSchema, ...)
-            >>> person_list = unit1 + unit2  # → ListKnowledge[PersonSchema]
+            >>> person_list = unit1 + unit2  # → AutoList[PersonSchema]
             >>>
             >>> # Chain operations
             >>> unit3 = AutoModel(PersonSchema, ...)
-            >>> person_list = unit1 + unit2 + unit3  # → ListKnowledge with 3 items
+            >>> person_list = unit1 + unit2 + unit3  # → AutoList with 3 items
 
         Args:
-            other: Another AutoModel with the same data schema, or ListKnowledge.
+            other: Another AutoModel with the same data schema, or AutoList.
 
         Returns:
-            ListKnowledge containing both objects as items.
+            AutoList containing both objects as items.
 
         Raises:
             TypeError: If schemas don't match or invalid operand type.
         """
-        from .list import ListKnowledge
+        from .list import AutoList
 
-        # Case 1: AutoModel + AutoModel → ListKnowledge
+        # Case 1: AutoModel + AutoModel → AutoList
         if isinstance(other, AutoModel):
             # Check schema compatibility
             if self._data_schema != other._data_schema:
@@ -361,8 +263,8 @@ class AutoModel(BaseAutoType[T]):
                     f"Left: {self._data_schema.__name__}, Right: {other._data_schema.__name__}"
                 )
 
-            # Create new ListKnowledge
-            list_kb = ListKnowledge(
+            # Create new AutoList
+            list_kb = AutoList(
                 item_schema=self._data_schema,
                 llm_client=self.llm_client,
                 embedder=self.embedder,
@@ -384,17 +286,17 @@ class AutoModel(BaseAutoType[T]):
 
             return list_kb
 
-        # Case 2: AutoModel + ListKnowledge → ListKnowledge (for reverse order)
-        elif isinstance(other, ListKnowledge):
+        # Case 2: AutoModel + AutoList → AutoList (prepend model)
+        elif isinstance(other, AutoList):
             # Check schema compatibility
             if self._data_schema != other.item_schema:
                 raise TypeError(
-                    f"Cannot add AutoModel to ListKnowledge with different schemas. "
+                    f"Cannot add AutoModel to AutoList with different schemas. "
                     f"Unit: {self._data_schema.__name__}, List: {other.item_schema.__name__}"
                 )
 
-            # Create new ListKnowledge with unit prepended
-            new_list = ListKnowledge(
+            # Create new AutoList with unit prepended
+            new_list = AutoList(
                 item_schema=self._data_schema,
                 llm_client=self.llm_client,
                 embedder=self.embedder,

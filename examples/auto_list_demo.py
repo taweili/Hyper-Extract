@@ -21,7 +21,6 @@ from hyperextract import AutoList
 class NewsEvent(BaseModel):
     """新闻事件结构"""
 
-    event_id: Optional[str] = Field(default=None, description="事件唯一标识")
     title: str = Field(description="事件标题")
     date: str = Field(description="事件发生日期")
     location: str = Field(description="事件发生地点")
@@ -151,15 +150,15 @@ def main():
         show_progress=True,
     )
 
-    # 4. 提取知识 (默认存储模式)
-    print("\n[4] 提取新闻事件列表 (默认存储模式)...")
+    # 4. 提取知识 (使用 feed 模式)
+    print("\n[4] 提取新闻事件列表 (使用 feed 模式)...")
     print("-" * 80)
-    events = a_event_list.extract(news_text)
+    a_event_list.feed(news_text)
     print("-" * 80)
 
     # 5. 显示提取结果
-    print(f"\n[5] 提取到 {len(events)} 个新闻事件:")
-    for i, event in enumerate(events[:5], 1):  # 只显示前5个
+    print(f"\n[5] 提取到 {len(a_event_list.items)} 个新闻事件:")
+    for i, event in enumerate(a_event_list.items[:5], 1):  # 只显示前5个
         print(f"\n   事件 {i}:")
         print(f"      标题: {event.title}")
         print(f"      日期: {event.date}")
@@ -169,8 +168,8 @@ def main():
         if event.impact:
             print(f"      影响: {event.impact[:60]}...")
 
-    if len(events) > 5:
-        print(f"\n   ... 还有 {len(events) - 5} 个事件未显示")
+    if len(a_event_list) > 5:
+        print(f"\n   ... 还有 {len(a_event_list) - 5} 个事件未显示")
 
     # 6. 测试列表大小
     print(f"\n[6] 知识列表大小: {len(a_event_list)} 个事件")
@@ -194,8 +193,8 @@ def main():
             print(f"      [{i}] {event.title} ({event.date})")
             print(f"          地点: {event.location}")
 
-    # 9. 测试增量提取（默认合并模式）
-    print("\n[9] 测试增量提取（默认合并模式）...")
+    # 9. 测试增量提取（feed 模式）
+    print("\n[9] 测试增量提取（feed 模式）...")
     additional_news = """
     ### 事件11: 华为发布6G测试网络
     2024年6月15日，华为在深圳总部宣布建成全球首个6G技术测试网络。
@@ -205,7 +204,7 @@ def main():
 
     print("   添加补充新闻...")
     before_count = len(a_event_list)
-    a_event_list.extract(additional_news)  # 默认 store=True，自动合并
+    a_event_list.feed(additional_news)  # 使用 feed 自动合并
     after_count = len(a_event_list)
     print(f"   合并前: {before_count} 个事件")
     print(f"   合并后: {after_count} 个事件")

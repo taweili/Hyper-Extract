@@ -4,10 +4,8 @@ Provides automatic deduplication based on a user-specified unique key field.
 Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
-import json
 from typing import List, Any, Type, TypeVar, Generic, Dict, Optional, Callable
 from datetime import datetime
-from pathlib import Path
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -136,13 +134,10 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             **kwargs,
         )
 
-        # AutoSet-specific attributes
+        # AutoSet-specific attributes (before _init_internal_state is called by parent)
         self.key_extractor = key_extractor
         self.merge_item_strategy = merge_item_strategy
         self.llm_batch_size = llm_batch_size
-
-        # Internal storage: Dict for O(1) deduplication
-        self._items_dict: Dict[Any, Item] = {}
 
         # Create Merger instance based on strategy
         self._merger: BaseMerger[Item] = self._create_merger(
@@ -289,70 +284,42 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         return iter(self.items)
 
-    # ==================== Core Override Methods ====================
+    # ==================== State Management Lifecycle Overrides ====================
 
-    def clear(self):
-        """Clears all items from the set."""
-        self._data = self.item_set_schema()
-        self._items_dict.clear()
-        self.clear_index()
-        self.metadata["updated_at"] = datetime.now()
-
-    def extract(self, text: str, *, store: bool = True):
-        """Extracts a set of unique items using LLM with automatic deduplication.
-
-        Args:
-            text: Input text to extract items from.
-            store: Whether to store extracted knowledge internally.
-
-        Returns:
-            The set of extracted unique items.
+    def _init_internal_state(self) -> None:
         """
-        start_time = datetime.now()
+        Overrides base hook to initialize AutoSet-specific structures.
+        Called at the end of __init__.
+        """
+        # 1. Initialize the dict (AutoSet-specific)
+        self._items_dict: Dict[Any, Item] = {}
 
-        # Determine if chunking is needed
-        if len(text) <= self.chunk_size:
-            # Short text: extract in one pass
-            if self.show_progress:
-                logger.info(f"Processing single text (length: {len(text)})...")
+        # 2. Call parent to initialize standard structures (_data, _index)
+        super()._init_internal_state()
 
-            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
-            extracted_data_list = [extracted_data]
+    def _set_internal_state(self, data: AutoSetSchema[Item]) -> None:
+        """
+        Overrides base hook to ensure _items_dict stays synchronized with _data.
+        This is the synchronization point for AutoSet's dual-structure design.
+        """
+        # 1. Sync dictionary (AutoSet-specific: the Real Source of Truth for lookups)
+        self._items_dict.clear()
+        for item in data.items:
+            key = self._get_key_value(item)
+            if key is not None:
+                self._items_dict[key] = item
 
-        else:
-            # Long text: extract by chunking
-            chunks = self.text_splitter.split_text(text)
-            logger.info(f"Split text into {len(chunks)} chunks")
+        # 2. Call parent to set _data and clear index
+        super()._set_internal_state(data)
 
-            if self.show_progress:
-                logger.info(f"Processing {len(chunks)} chunk(s)...")
+    def _clear_internal_state(self) -> None:
+        """
+        Overrides base hook to explicitly clear the dictionary before clearing _data.
+        """
+        self._items_dict.clear()
+        super()._clear_internal_state()
 
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = self.llm_chain_extract.batch(
-                inputs, config={"max_concurrency": self.max_workers}
-            )
-
-        if self.show_progress:
-            logger.info(f"Extracted {len(extracted_data_list)} chunks")
-
-        logger.info("Merging extracted knowledge...")
-        merged_data = self.merge(extracted_data_list)
-
-        # If store=True, merge with existing data and update internal state
-        if store:
-            if self._data and len(self.items) > 0:
-                final_data = self.merge([self._data, merged_data])
-            else:
-                final_data = merged_data
-            self._update_internal_state(final_data)
-
-        logger.info("Knowledge extraction completed")
-        logger.info(
-            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
-        )
-
-        # Return items list
-        return self.items if store else merged_data.items
+    # ==================== Core Override Methods ====================
 
     def merge(self, data_list: List[AutoSetSchema[Item]]) -> AutoSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
@@ -390,25 +357,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         # Step 3: Return new container (does not modify self)
         return self.item_set_schema(items=merged_items)
-
-    def _update_internal_state(self, data: AutoSetSchema[Item]) -> None:
-        """Updates internal state from a data container.
-
-        Private method that synchronizes _items_dict and _data with new data.
-        Also clears vector index and updates metadata timestamp.
-
-        Args:
-            data: The data container to update from.
-        """
-        self._items_dict.clear()
-        for item in data.items:
-            key = self._get_key_value(item)
-            if key is not None:
-                self._items_dict[key] = item
-
-        self._data = data
-        self.clear_index()
-        self.metadata["updated_at"] = datetime.now()
 
     def _get_key_value(self, item: Item) -> Optional[Any]:
         """Extracts the unique key value from an item using key_extractor.
@@ -503,91 +451,18 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    # ==================== Serialization ====================
+    # ==================== Serialization Helpers ====================
 
-    def dump(self, folder_path: str | Path):
-        """Exports knowledge to a specified folder.
+    def _get_extra_dump_data(self) -> Dict[str, Any]:
+        """Add AutoSet specific data to the dump.
 
-        Saves both the items and the AutoSet-specific metadata.
-
-        Args:
-            folder_path: Target folder path for saving.
+        Returns:
+            Dictionary with extra AutoSet-specific fields.
         """
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
-
-        # Save structured data
-        data = {
-            "schema_name": self.item_set_schema.__name__,
+        return {
             "item_schema_name": self.item_schema.__name__,
-            "item_schema": self.item_schema.model_json_schema(),
             "merge_item_strategy": self.merge_item_strategy.value,
-            "data": self.data.model_dump(),
-            "metadata": {
-                k: str(v) if isinstance(v, datetime) else v
-                for k, v in self.metadata.items()
-            },
         }
-
-        json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
-        data_file = folder / "state.json"
-        with open(data_file, "w", encoding="utf-8") as f:
-            f.write(json_str)
-        logger.info(f"Saved data to {data_file}")
-
-        # Save vector index
-        if self._index is not None:
-            index_path = str(folder / "faiss_index")
-            self._index.save_local(index_path)
-            logger.info(f"Saved FAISS index to {index_path}")
-        else:
-            logger.warning("No index to save")
-
-    def load(self, folder_path: str | Path):
-        """Loads knowledge from a specified folder.
-
-        Args:
-            folder_path: Source folder path containing saved knowledge.
-        """
-        folder = Path(folder_path)
-        if not folder.is_dir():
-            raise ValueError(f"Folder does not exist: {folder_path}")
-
-        # Load structured data
-        data_file = folder / "state.json"
-        if not data_file.is_file():
-            raise ValueError(f"Data file not found: {data_file}")
-
-        with open(data_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logger.info(f"Loaded data from {data_file}")
-
-        loaded_data = self.item_set_schema.model_validate(data.get("data", {}))
-        self._update_internal_state(loaded_data)
-
-        # Update metadata from saved data
-        if "metadata" in data:
-            self.metadata.update(data["metadata"])
-        self.metadata["updated_at"] = datetime.now()
-
-        # Load vector index
-        index_path = str(folder / "faiss_index")
-        if Path(index_path).exists():
-            try:
-                from langchain_community.vectorstores import FAISS
-
-                self._index = FAISS.load_local(
-                    index_path, self.embedder, allow_dangerous_deserialization=True
-                )
-                logger.info(f"Loaded FAISS index from {index_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load FAISS index: {e}")
-                self._index = None
-        else:
-            logger.warning("No index file found, will rebuild on next search")
-            self._index = None
-
-        logger.info(f"Loaded knowledge successfully with {len(self)} unique items")
 
     # ==================== Set-Specific Methods ====================
 
@@ -610,9 +485,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             # Add new
             self._items_dict[key_value] = item.model_copy(deep=True)
 
-        # Update internal state
-        self._data.items = list(self._items_dict.values())
-        self.clear_index()
+        # Update state via hook
+        new_data = self.item_set_schema(items=list(self._items_dict.values()))
+        self._set_internal_state(new_data)
         self.metadata["updated_at"] = datetime.now()
 
     def remove(self, key: Any) -> Optional[Item]:
@@ -626,8 +501,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         removed = self._items_dict.pop(key, None)
         if removed:
-            self._data.items = list(self._items_dict.values())
-            self.clear_index()
+            new_data = self.item_set_schema(items=list(self._items_dict.values()))
+            self._set_internal_state(new_data)
             self.metadata["updated_at"] = datetime.now()
             logger.debug(f"Removed item with key '{key}'")
         return removed
@@ -681,8 +556,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         if key in self._items_dict:
             self._items_dict.pop(key)
-            self._data.items = list(self._items_dict.values())
-            self.clear_index()
+            new_data = self.item_set_schema(items=list(self._items_dict.values()))
+            self._set_internal_state(new_data)
             self.metadata["updated_at"] = datetime.now()
 
     def pop(self) -> Item:
@@ -710,8 +585,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         key = next(iter(self._items_dict))
         item = self._items_dict.pop(key)
-        self._data.items = list(self._items_dict.values())
-        self.clear_index()
+        new_data = self.item_set_schema(items=list(self._items_dict.values()))
+        self._set_internal_state(new_data)
         self.metadata["updated_at"] = datetime.now()
 
         return item
@@ -728,10 +603,13 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             >>> # Original skills unchanged
         """
         new_set = self._create_new_instance()
+        # Populate the dictionary directly, then sync via hook
         new_set._items_dict = {
             key: item.model_copy(deep=True) for key, item in self._items_dict.items()
         }
-        new_set._data.items = list(new_set._items_dict.values())
+        # Use hook to sync _data
+        new_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
+        new_set._set_internal_state(new_data)
         new_set.metadata = self.metadata.copy()
         new_set.metadata["created_at"] = datetime.now()
 
@@ -774,7 +652,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             else:
                 new_set._items_dict[key] = item.model_copy(deep=True)
 
-        new_set._data.items = list(new_set._items_dict.values())
+        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
+        new_set._set_internal_state(merged_data)
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -814,7 +693,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
                 if merged:
                     new_set._items_dict[key] = merged
 
-        new_set._data.items = list(new_set._items_dict.values())
+        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
+        new_set._set_internal_state(merged_data)
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -849,7 +729,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             if key not in other._items_dict:
                 new_set._items_dict[key] = item.model_copy(deep=True)
 
-        new_set._data.items = list(new_set._items_dict.values())
+        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
+        new_set._set_internal_state(merged_data)
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -889,7 +770,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             if key not in self._items_dict:
                 new_set._items_dict[key] = item.model_copy(deep=True)
 
-        new_set._data.items = list(new_set._items_dict.values())
+        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
+        new_set._set_internal_state(merged_data)
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set

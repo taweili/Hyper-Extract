@@ -1,19 +1,19 @@
 # Hyper-Extract 🧠✨
 
-> **An Intelligent, LLM-Powered Knowledge Extraction & Evolution Framework**
+> **An Intelligent, LLM-Powered Knowledge Extraction Framework**
 >
-> Transform unstructured text into structured, evolving Auto containers with the power of Large Language Models.
+> Transform unstructured text into structured Auto containers with the power of Large Language Models.
 
 ---
 
 ## 🎯 Vision
 
-**Hyper-Extract** reimagines knowledge extraction as an intelligent, self-evolving process. Rather than treating data structures as passive containers, we empower them with **LLM-driven intelligence** to actively extract, merge, evolve, and index knowledge from unstructured text.
+**Hyper-Extract** provides a powerful framework for intelligent knowledge extraction. Rather than treating data structures as passive containers, we empower them with **LLM-driven intelligence** to actively extract, merge, and index knowledge from unstructured text.
 
 Every Auto container in Hyper-Extract follows a unified lifecycle:
 
 1. **Extract** - Intelligent extraction from text with automatic chunking and merging
-2. **Evolve** - Self-refinement through reasoning, pruning, and optimization
+2. **Merge** - Automatic aggregation with configurable merge strategies
 3. **Index** - Semantic vector search capabilities
 4. **Serialize** - Persist and reload knowledge with full fidelity
 
@@ -29,7 +29,7 @@ Every Auto container in Hyper-Extract follows a unified lifecycle:
 ### 🏗️ Unified Architecture
 - **Abstract Base Class**: `BaseAutoType[T]` provides consistent interface across all knowledge types
 - **Generic Type Support**: Full Python typing with `Generic[T]` for schema flexibility
-- **Lifecycle Management**: Standardized `extract` → `merge` → `evolve` → `search` → `dump/load` pipeline
+- **Lifecycle Management**: Standardized `extract` → `merge` → `search` → `dump/load` pipeline
 
 ### 🔍 Semantic Search
 - **FAISS Integration**: Fast vector similarity search for knowledge retrieval

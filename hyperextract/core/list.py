@@ -1,9 +1,18 @@
 """List Knowledge Pattern - extracts a collection of objects from text."""
 
-import json
-from typing import List, Any, Type, TypeVar, Generic, TYPE_CHECKING
+from typing import (
+    List,
+    Any,
+    Type,
+    TypeVar,
+    Generic,
+    TYPE_CHECKING,
+    Iterator,
+    Callable,
+    Iterable,
+    Union,
+)
 from datetime import datetime
-from pathlib import Path
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -132,66 +141,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             show_progress=self.show_progress,
         )
 
-    def extract(self, text: str, *, store: bool = True) -> AutoListSchema:
-        """Extracts a list of items using LangChain native batch processing.
-
-        Args:
-            text: Input text to extract items from.
-            store: Controls whether to store extracted knowledge internally.
-                - True (default): Store mode - merge with existing knowledge and update internal state
-                - False: Temporary mode - return extracted data without modifying internal state
-
-        Returns:
-            The list of extracted items.
-        """
-        start_time = datetime.now()
-
-        # Determine if chunking is needed
-        if len(text) <= self.chunk_size:
-            # Short text: extract in one pass
-            if self.show_progress:
-                logger.info(f"Processing single text (length: {len(text)})...")
-
-            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
-            extracted_data_list = [extracted_data]
-
-        else:
-            # Long text: extract by chunking
-            chunks = self.text_splitter.split_text(text)
-            logger.info(f"Split text into {len(chunks)} chunks")
-
-            if self.show_progress:
-                logger.info(f"Processing {len(chunks)} chunk(s)...")
-
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = self.llm_chain_extract.batch(
-                inputs, config={"max_concurrency": self.max_workers}
-            )
-
-        if self.show_progress:
-            logger.info(f"Extracted {len(extracted_data_list)} chunks")
-
-        logger.info("Merging extracted knowledge...")
-        merged_data = self.merge(extracted_data_list)
-
-        # If store=True, merge with existing data and update internal state
-        if store:
-            if self._data and len(self.items) > 0:
-                self._data = self.merge([self._data, merged_data])
-            else:
-                self._data = merged_data
-
-            self.clear_index()
-            self.metadata["updated_at"] = datetime.now()
-
-        logger.info("Knowledge extraction completed")
-        logger.info(
-            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
-        )
-
-        # Return items list (either from stored data or temporary merged data)
-        return self.items if store else merged_data.items
-
     def merge(self, data_list: List[AutoListSchema]) -> AutoListSchema:
         """Pure data merge method implementing list append strategy.
 
@@ -215,7 +164,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         # Return a new container object
         return self.item_list_schema(items=all_items)
 
-    def build_index(self):
+    def build_index(self) -> None:
         """Builds independent vector index for each item in the list."""
         items = self.items
         if not items:
@@ -244,7 +193,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 logger.error("FAISS not available. Install with: pip install faiss-cpu")
                 raise
 
-    def search(self, query: str, top_k: int = 3) -> List[Any]:
+    def search(self, query: str, top_k: int = 3) -> List[Item]:
         """Searches items in the list using semantic similarity.
 
         Args:
@@ -262,7 +211,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             raise Exception("Vector store not initialized")
 
         docs = self._index.similarity_search(query, k=top_k)
-        results = []
+        results: List[Item] = []
         for doc in docs:
             # Attempt to restore as object
             try:
@@ -276,89 +225,13 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
 
-    def dump(self, folder_path: str) -> Any:
-        """Exports knowledge to a specified folder.
-
-        Uses the same serialization logic as UnitKnowledge since the container
-        is also a BaseModel.
-        """
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
-
-        # 1. Save structured data
-        data = {
-            "schema_name": self.item_list_schema.__name__,
-            "item_schema_name": self.item_schema.__name__,
-            "item_schema": self.item_schema.model_json_schema(),
-            "data": self.data.model_dump(),
-            "metadata": {
-                k: str(v) if isinstance(v, datetime) else v
-                for k, v in self.metadata.items()
-            },
-        }
-
-        json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
-        data_file = folder / "state.json"
-        with open(data_file, "w", encoding="utf-8") as f:
-            f.write(json_str)
-        logger.info(f"Saved data to {data_file}")
-
-        # 2. Save vector index
-        if self._index is not None:
-            index_path = str(folder / "faiss_index")
-            self._index.save_local(index_path)
-            logger.info(f"Saved FAISS index to {index_path}")
-        else:
-            logger.warning("No index to save")
-
-        return json_str
-
-    def load(self, folder_path: str):
-        """Loads knowledge from a specified folder."""
-        folder = Path(folder_path)
-        if not folder.is_dir():
-            raise ValueError(f"Folder does not exist: {folder_path}")
-
-        # 1. Load structured data
-        data_file = folder / "state.json"
-        if not data_file.is_file():
-            raise ValueError(f"Data file not found: {data_file}")
-
-        with open(data_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logger.info(f"Loaded data from {data_file}")
-
-        self._data = self.item_list_schema.model_validate(data.get("data", {}))
-
-        # Update metadata with loaded values
-        if "metadata" in data:
-            self.metadata.update(data["metadata"])
-        self.metadata["updated_at"] = datetime.now()
-
-        # 2. Load vector index
-        index_path = str(folder / "faiss_index")
-        if Path(index_path).exists():
-            try:
-                self._index = FAISS.load_local(
-                    index_path, self.embedder, allow_dangerous_deserialization=True
-                )
-                logger.info(f"Loaded FAISS index from {index_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load FAISS index: {e}")
-                self._index = None
-        else:
-            logger.warning("No index file found, will rebuild on next search")
-            self._index = None
-
-        logger.info(f"Loaded knowledge successfully with {len(self)} items")
-
     # ==================== Pythonic Sequence Operations ====================
 
     def __len__(self) -> int:
         """Returns the number of elements in the list."""
         return len(self.items)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, slice]) -> Union[Item, "AutoList[Item]"]:
         """Support index access and slicing.
 
         Args:
@@ -392,7 +265,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 f"List indices must be integers or slices, not {type(key).__name__}"
             )
 
-    def __setitem__(self, index: int, item):
+    def __setitem__(self, index: int, item: Item) -> None:
         """Support index assignment.
 
         Args:
@@ -416,17 +289,17 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def __add__(self, other):
+    def __add__(self, other: "BaseAutoType[Item]") -> "AutoList[Item]":
         """Operator overload for '+' to combine knowledge instances.
 
         Supports multiple combination patterns:
         - AutoList + AutoList → AutoList (merge lists)
-        - AutoList + UnitKnowledge → AutoList (append unit to list)
+        - AutoList + AutoModel → AutoList (append model to list)
 
-        This enables chain operations like: unit1 + unit2 + unit3
+        This enables chain operations like: model1 + model2 + model3
 
         Args:
-            other: Another AutoList or UnitKnowledge with compatible schema.
+            other: Another AutoList or AutoModel with compatible schema.
 
         Returns:
             New AutoList with combined items.
@@ -436,7 +309,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         from .model import AutoModel
 
-        # Case 1: AutoList + AutoList (call parent implementation)
+        # Case 1: AutoList + AutoList
         if isinstance(other, AutoList):
             # Check schema compatibility
             if self.item_schema != other.item_schema:
@@ -444,7 +317,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                     f"Cannot add AutoList instances with different schemas. "
                     f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
                 )
-            # Manually merge without calling base class (to avoid _data_schema check)
             # Create new instance with merged items
             new_instance = self._create_new_instance()
             new_instance._data.items = self.items + other.items
@@ -452,7 +324,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             new_instance.metadata["updated_at"] = self.metadata.get("updated_at")
             return new_instance
 
-        # Case 2: AutoList + AutoModel → AutoList (append unit)
+        # Case 2: AutoList + AutoModel → AutoList (append model)
         elif isinstance(other, AutoModel):
             # Check schema compatibility
             if self.item_schema != other._data_schema:
@@ -461,7 +333,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                     f"List: {self.item_schema.__name__}, Unit: {other._data_schema.__name__}"
                 )
 
-            # Create new AutoList with appended unit
+            # Create new AutoList with appended model
             new_list = self._create_new_instance()
             new_list._data.items = self.items + [other._data]
 
@@ -478,7 +350,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 f"Unsupported operand type for +: 'AutoList' and '{type(other).__name__}'"
             )
 
-    def __delitem__(self, index: int):
+    def __delitem__(self, index: int) -> None:
         """Support del operation for removing items by index.
 
         Args:
@@ -499,7 +371,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Item]:
         """Support iteration over items.
 
         Returns:
@@ -514,7 +386,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         return iter(self.items)
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, item: Item) -> bool:
         """Support 'in' operator for membership testing.
 
         Args:
@@ -564,7 +436,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== List Modification Methods ====================
 
-    def append(self, item) -> None:
+    def append(self, item: Item) -> None:
         """Append a single item to the end of the list.
 
         Args:
@@ -585,7 +457,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def extend(self, items) -> None:
+    def extend(self, items: Union[Iterable[Item], "AutoList[Item]"]) -> None:
         """Extend the list by appending multiple items.
 
         Args:
@@ -626,7 +498,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def insert(self, index: int, item) -> None:
+    def insert(self, index: int, item: Item) -> None:
         """Insert an item at a specific position.
 
         Args:
@@ -649,7 +521,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def remove(self, item) -> None:
+    def remove(self, item: Item) -> None:
         """Remove the first occurrence of an item from the list.
 
         Args:
@@ -678,7 +550,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         # Item not found
         raise ValueError(f"{item} is not in list")
 
-    def pop(self, index: int = -1):
+    def pop(self, index: int = -1) -> Item:
         """Remove and return an item at the given position.
 
         Args:
@@ -708,7 +580,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== Query and Utility Methods ====================
 
-    def index(self, item, start: int = 0, stop: int = None) -> int:
+    def index(self, item: Item, start: int = 0, stop: int | None = None) -> int:
         """Return the index of the first occurrence of item.
 
         Args:
@@ -736,7 +608,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         raise ValueError(f"{item} is not in list")
 
-    def count(self, item) -> int:
+    def count(self, item: Item) -> int:
         """Return the number of times item appears in the list.
 
         Args:
@@ -800,7 +672,9 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             self._index = None
             self.build_index()
 
-    def sort(self, key=None, reverse: bool = False) -> None:
+    def sort(
+        self, key: Union[Callable[[Item], Any], None] = None, reverse: bool = False
+    ) -> None:
         """Sort the items in place.
 
         Args:
@@ -839,7 +713,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== Helper Methods ====================
 
-    def _validate_item_schema(self, item) -> None:
+    def _validate_item_schema(self, item: Any) -> None:
         """Validate that item's schema matches item_schema.
 
         Args:
@@ -884,7 +758,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
             raise TypeError(" ".join(error_parts))
 
-    def _items_equal(self, item1, item2) -> bool:
+    def _items_equal(self, item1: BaseModel, item2: BaseModel) -> bool:
         """Check if two items are equal.
 
         Args:
