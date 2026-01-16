@@ -69,8 +69,7 @@ class AutoModel(BaseAutoType[T]):
             **kwargs,
         )
 
-    @staticmethod
-    def _default_prompt() -> str:
+    def _default_prompt(self) -> str:
         """Returns the default extraction prompt for single-object extraction."""
         return (
             "You are an expert knowledge extraction assistant. "
@@ -79,72 +78,6 @@ class AutoModel(BaseAutoType[T]):
             "Extract all relevant details without adding information not present in the text.\n\n"
             "### Source Text:\n"
         )
-
-    # ==================== Extraction & Aggregation ====================
-
-    def extract(self, text: str, *, store: bool = True) -> T:
-        """Extracts knowledge using LangChain native batch processing.
-
-        Automatically handles text chunking for long documents and aggregates results
-        using the field-level merge strategy.
-
-        Args:
-            text: Input text to extract knowledge from.
-            store: Controls whether to store extracted knowledge internally.
-                - True (default): Store mode - merge with existing knowledge and update internal state
-                - False: Temporary mode - return extracted data without modifying internal state
-
-        Returns:
-            The extracted knowledge object.
-        """
-        start_time = datetime.now()
-
-        # Determine if chunking is needed based on text length
-        if len(text) <= self.chunk_size:
-            # Short text: direct extraction without chunking
-            if self.show_progress:
-                logger.info(f"Processing single text (length: {len(text)})...")
-
-            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
-            extracted_data_list = [extracted_data]
-
-        else:
-            # Long text: extract by chunking
-            chunks = self.text_splitter.split_text(text)
-            logger.info(f"Split text into {len(chunks)} chunks")
-
-            if self.show_progress:
-                logger.info(f"Processing {len(chunks)} chunk(s)...")
-
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = self.llm_chain_extract.batch(
-                inputs, config={"max_concurrency": self.max_workers}
-            )
-
-        if self.show_progress:
-            logger.info(f"Extracted {len(extracted_data_list)} chunks")
-
-        logger.info("Merging extracted knowledge...")
-        merged_data = self.merge(extracted_data_list)
-
-        # If store=True, merge with existing data and update internal state
-        if store:
-            if self._data and any(
-                v is not None for v in self._data.model_dump().values()
-            ):
-                self._data = self.merge([self._data, merged_data])
-            else:
-                self._data = merged_data
-
-            self.clear_index()
-            self.metadata["updated_at"] = datetime.now()
-
-        logger.info("Knowledge extraction completed")
-        logger.info(
-            f"Duration: {(datetime.now() - start_time).total_seconds():.2f} seconds"
-        )
-
-        return self._data if store else merged_data
 
     def merge(self, data_list: List[T]) -> T:
         """Pure data merge method implementing field-level update strategy.
@@ -190,6 +123,18 @@ class AutoModel(BaseAutoType[T]):
 
         self._index = FAISS.from_documents(documents, self.embedder)
         logger.info(f"Built FAISS index with {len(documents)} documents")
+
+    def __len__(self) -> int:
+        """Returns 1 if there is data (non-empty fields), 0 otherwise.
+
+        AutoModel always represents a single unit of knowledge, so it's either
+        empty (0) or contains one item (1).
+        """
+        if not self._data:
+            return 0
+        # Check if any field is non-null
+        has_data = any(v is not None for v in self._data.model_dump().values())
+        return 1 if has_data else 0
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
         """Searches all indexed fields using semantic similarity.

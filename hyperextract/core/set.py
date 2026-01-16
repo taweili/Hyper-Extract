@@ -170,10 +170,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             llm_batch_size=self.llm_batch_size,
         )
 
-    # ==================== Validation ====================
-
-    @staticmethod
-    def _default_prompt() -> str:
+    def _default_prompt(self) -> str:
         """Returns the default extraction prompt for set-based extraction."""
         return (
             "You are an expert knowledge extraction assistant. "

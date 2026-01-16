@@ -109,16 +109,13 @@ class BaseAutoType(ABC, Generic[T]):
             show_progress=self.show_progress,
         )
 
-    @staticmethod
-    def _default_prompt() -> str:
-        """Returns the default extraction prompt template."""
-        return (
-            "You are an expert knowledge extraction assistant. "
-            "Your task is to carefully analyze the following text and extract structured information "
-            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
-            "Extract all relevant details without adding information not present in the text.\n\n"
-            "### Source Text:\n"
-        )
+    @abstractmethod
+    def _default_prompt(self) -> str:
+        """Returns the default extraction prompt template.
+        
+        Subclasses must implement this to provide a prompt tailored to their extraction pattern.
+        """
+        pass
 
     # ==================== Data Management ====================
 

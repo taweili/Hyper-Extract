@@ -106,8 +106,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             **kwargs,
         )
 
-    @staticmethod
-    def _default_prompt() -> str:
+    def _default_prompt(self) -> str:
         """Returns the default extraction prompt for list-based extraction."""
         return (
             "You are an expert knowledge extraction assistant. "
