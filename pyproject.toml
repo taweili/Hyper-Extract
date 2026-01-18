@@ -3,7 +3,7 @@ name = "hyperextract"
 version = "0.1.0"
 description = "An intelligent, LLM-powered knowledge extraction and evolution framework with semantic search capabilities"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["llm", "knowledge-extraction", "langchain", "faiss", "semantic-search", "pydantic", "nlp", "rag"]
 authors = [
     { name = "Yifan Feng", email = "evanfeng97@gmail.com" }
@@ -22,13 +22,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "dotenv>=0.9.9",
     "faiss-cpu>=1.13.2",
-    "langchain>=1.2.1",
+    "langchain>=1.2.6",
     "langchain-community>=0.4.1",
-    "langchain-openai>=1.1.6",
+    "langchain-openai>=1.1.7",
     "loguru>=0.7.3",
-    "pydantic>=2.12.5",
+    "ontomem>=0.1.2",
     "python-dotenv>=1.2.1",
 ]
 

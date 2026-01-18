@@ -79,17 +79,18 @@ class AutoModel(BaseAutoType[T]):
             "### Source Text:\n"
         )
 
-    def merge(self, data_list: List[T]) -> T:
+    def merge_batch(self, data_list: List[T]) -> T:
         """Pure data merge method implementing field-level update strategy.
 
         Merge strategy: First extraction takes precedence. Subsequent extractions only fill
         missing fields without overwriting existing values. Implemented using model_copy(update=...).
+        This is used to aggregate results from batch extraction across multiple chunks.
 
         Args:
-            data_list: List of extracted data objects to merge.
+            data_list: List of extracted data objects from batch processing to merge.
 
         Returns:
-            A new merged knowledge object.
+            A new merged knowledge object with all fields populated.
         """
         result = data_list[0].model_copy()
 

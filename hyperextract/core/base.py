@@ -90,13 +90,13 @@ class BaseAutoType(ABC, Generic[T]):
         # Initialize internal state (calls hook for subclass setup)
         self._init_internal_state()
 
-    def _create_new_instance(self) -> "BaseAutoType[T]":
-        """Creates a new instance with the same configuration as this one.
+    def _create_empty_instance(self) -> "BaseAutoType[T]":
+        """Creates a new empty instance with the same configuration as this one.
 
         Subclasses can override this method if they have special initialization requirements.
 
         Returns:
-            A new knowledge instance with the same configuration.
+            A new empty knowledge instance with the same configuration.
         """
         return self.__class__(
             data_schema=self._data_schema,
@@ -141,23 +141,23 @@ class BaseAutoType(ABC, Generic[T]):
 
     def _init_internal_state(self) -> None:
         """
-        Protected hook to initialize internal state.
+        Protected hook to initialize internal state (INIT).
         Called at the END of __init__ to ensure all basic attributes are set first.
 
-        Subclasses can override to initialize their own structures (e.g., _items_dict for AutoSet).
+        Subclasses can override to initialize their own structures (e.g., _set_memory for AutoSet).
         """
         self._data = self._data_schema()
         self._index = None
 
     def _set_internal_state(self, data: T) -> None:
         """
-        Protected hook to update internal state.
-        Called whenever data is modified (extract, feed, load).
+        Protected hook to overwrite internal state (SET).
+        Called by extract() or load() where the data provided IS the new state.
 
         Responsibilities:
-        1. Update self._data
+        1. Replace self._data (full reset)
         2. Invalidate vector index (data changed)
-        3. Subclasses override to sync auxiliary structures
+        3. Subclasses: Reset auxiliary structures and fill with data
 
         Args:
             data: The new data object to set.
@@ -165,10 +165,32 @@ class BaseAutoType(ABC, Generic[T]):
         self._data = data
         self.clear_index()
 
+    def _update_internal_state(self, incoming_data: T) -> None:
+        """
+        Protected hook to merge new data into state (UPDATE).
+        Called by feed() where the data provided is INCREMENTAL.
+
+        Default behavior: Full merge (inefficient for large sets, good for lists).
+        Subclasses override for optimized incremental updates (e.g., set.add instead of merge_batch).
+
+        Responsibilities:
+        1. Merge incoming_data with self._data
+        2. Update self._data
+        3. Invalidate vector index
+        4. Subclasses: Optimized incremental update
+
+        Args:
+            incoming_data: The incremental data to merge into the current state.
+        """
+        # Default: Merge incoming with current (works but may be inefficient)
+        merged_data = self.merge_batch([self._data, incoming_data])
+        self._data = merged_data
+        self.clear_index()
+
     def _clear_internal_state(self) -> None:
         """
-        Protected hook to fully clear internal state.
-        Called in clear() method.
+        Protected hook to fully clear internal state (CLEAR).
+        Called by clear() method.
 
         Default: Reset to empty schema instance via _set_internal_state hook.
         """
@@ -208,7 +230,7 @@ class BaseAutoType(ABC, Generic[T]):
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
-        merged_data = self.merge(extracted_data_list)
+        merged_data = self.merge_batch(extracted_data_list)
         return merged_data
 
     def extract(self, text: str) -> "BaseAutoType[T]":
@@ -225,7 +247,7 @@ class BaseAutoType(ABC, Generic[T]):
         """
         extracted_data = self._extract_data(text)
 
-        new_instance = self._create_new_instance()
+        new_instance = self._create_empty_instance()
         new_instance._set_internal_state(extracted_data)
 
         new_instance.metadata["created_at"] = datetime.now()
@@ -247,19 +269,22 @@ class BaseAutoType(ABC, Generic[T]):
             Self (the current instance).
         """
         extracted_data = self._extract_data(text)
-        merged_data = self.merge([self._data, extracted_data])
-
-        self._set_internal_state(merged_data)
+        
+        # Use UPDATE hook instead of manual merge+set
+        self._update_internal_state(extracted_data)
+        
         self.metadata["updated_at"] = datetime.now()
 
         return self
 
     @abstractmethod
-    def merge(self, data_list: List[T]) -> T:
+    def merge_batch(self, data_list: List[T]) -> T:
         """Merges multiple knowledge data objects into a single unified object.
 
         This is a pure data transformation method that does not modify internal state.
         Subclasses implement specific merge strategies (deduplication, conflict resolution, etc.).
+        The batch merge is typically used during multi-chunk extraction where results from
+        different chunks need to be aggregated into a single knowledge object.
 
         Responsibilities:
             - Implement concrete merge algorithms (deduplication, conflict resolution, etc.)
@@ -267,7 +292,7 @@ class BaseAutoType(ABC, Generic[T]):
             - Never modify instance attributes
 
         Args:
-            data_list: List of knowledge data objects to merge.
+            data_list: List of knowledge data objects to merge from batch processing.
 
         Returns:
             A new merged knowledge object.
@@ -317,8 +342,6 @@ class BaseAutoType(ABC, Generic[T]):
         Args:
             folder_path: Target folder path for saving.
         """
-        from langchain_community.vectorstores import FAISS
-
         folder = Path(folder_path)
         if folder.exists() and folder.is_file():
             raise Exception("Folder path is a file, please provide a folder path.")
@@ -348,8 +371,8 @@ class BaseAutoType(ABC, Generic[T]):
                 index_path = str(folder / "faiss_index")
                 self._index.save_local(index_path)
 
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
     def load(self, folder_path: str | Path) -> None:
         """Loads knowledge from a specified folder.
@@ -394,7 +417,7 @@ class BaseAutoType(ABC, Generic[T]):
                 self._index = FAISS.load_local(
                     index_path, self.embedder, allow_dangerous_deserialization=True
                 )
-            except Exception as e:
+            except Exception:
                 self._index = None
 
     # ==================== Serialization Helpers ====================
@@ -468,10 +491,10 @@ class BaseAutoType(ABC, Generic[T]):
             )
 
         # Merge the data from both instances
-        merged_data = self.merge([self._data, other._data])
+        merged_data = self.merge_batch([self._data, other._data])
 
         # Create a new instance with the same configuration
-        new_instance = self._create_new_instance()
+        new_instance = self._create_empty_instance()
 
         # Set the merged data using hook and update metadata
         new_instance._set_internal_state(merged_data)

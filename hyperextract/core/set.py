@@ -4,22 +4,15 @@ Provides automatic deduplication based on a user-specified unique key field.
 Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
-from typing import List, Any, Type, TypeVar, Generic, Dict, Optional, Callable
+from typing import List, Any, Type, TypeVar, Generic, Optional, Callable
 from datetime import datetime
+from ontomem import OMem
+from ontomem.merger import MergeStrategy, create_merger
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from langchain_core.documents import Document
 
 from .base import BaseAutoType
-from hyperextract.utils.merger import (
-    BaseMerger,
-    MergeStrategy,
-    KeepNewMerger,
-    KeepOldMerger,
-    FieldMerger,
-    LLMMerger,
-)
 
 try:
     from hyperextract.config import logger
@@ -82,7 +75,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         embedder: Embeddings,
         *,
         key_extractor: Callable[[Item], Any],
-        merge_item_strategy: MergeStrategy = MergeStrategy.KEEP_NEW,
+        merge_item_strategy: MergeStrategy = MergeStrategy.LLM.PREFER_INCOMING,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
@@ -139,17 +132,28 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         self.merge_item_strategy = merge_item_strategy
         self.llm_batch_size = llm_batch_size
 
-        # Create Merger instance based on strategy
-        self._merger: BaseMerger[Item] = self._create_merger(
-            item_schema=item_schema,
+        # Create Merger instance using ontomem's create_merger
+        self._merger = create_merger(
+            strategy=merge_item_strategy,
+            key_extractor=key_extractor,
             llm_client=llm_client,
-            merge_item_strategy=merge_item_strategy,
+            item_schema=item_schema,
+        )
+
+        # Initialize OMem instance for storage and deduplication
+        self._set_memory: OMem[Item] = OMem(
+            memory_schema=item_schema,
+            key_extractor=key_extractor,
+            llm_client=llm_client,
+            embedder=embedder,
+            merge_strategy=self._merger,
+            verbose=show_progress,
         )
 
     # ==================== Override Instance Creation ====================
 
-    def _create_new_instance(self) -> "AutoSet[Item]":
-        """Creates a new instance with the same configuration.
+    def _create_empty_instance(self) -> "AutoSet[Item]":
+        """Creates a new empty instance with the same configuration.
 
         Overrides parent method to include AutoSet-specific parameters.
 
@@ -180,61 +184,16 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             "### Source Text:\n"
         )
 
-    # ==================== Merger Factory ====================
-
-    def _create_merger(
-        self,
-        item_schema: Type[Item],
-        llm_client: BaseChatModel,
-        merge_item_strategy: MergeStrategy,
-    ) -> BaseMerger[Item]:
-        """Creates the appropriate Merger instance based on strategy.
-
-        Args:
-            item_schema: Pydantic model for items.
-            llm_client: LLM client for LLM_MERGE strategy.
-            merge_item_strategy: The merge strategy to use.
-
-        Returns:
-            A Merger instance implementing the specified strategy.
-        """
-        key_extractor = self.key_extractor
-
-        if merge_item_strategy == MergeStrategy.KEEP_OLD:
-            return KeepOldMerger(key_extractor, logger_instance=logger)
-
-        elif merge_item_strategy == MergeStrategy.KEEP_NEW:
-            return KeepNewMerger(key_extractor, logger_instance=logger)
-
-        elif merge_item_strategy == MergeStrategy.FIELD_MERGE:
-            return FieldMerger(key_extractor, logger_instance=logger)
-
-        elif merge_item_strategy == MergeStrategy.LLM_MERGE:
-            return LLMMerger(
-                key_extractor=key_extractor,
-                llm_client=llm_client,
-                item_schema=item_schema,
-                logger_instance=logger,
-            )
-
-        else:
-            logger.warning(
-                f"Unknown merge strategy: {merge_item_strategy}, using KEEP_NEW"
-            )
-            return KeepNewMerger(key_extractor, logger_instance=logger)
-
     # ==================== Properties ====================
 
     @property
     def items(self) -> List[Item]:
         """Returns the internal items as a list (for external interface compatibility).
 
-        Converts the internal dictionary values to a list.
-
         Returns:
             List of unique items.
         """
-        return list(self._items_dict.values())
+        return self._set_memory.items
 
     @property
     def keys(self) -> List[Any]:
@@ -243,11 +202,11 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             List of unique key values.
         """
-        return list(self._items_dict.keys())
+        return self._set_memory.keys
 
     def __len__(self) -> int:
         """Returns the number of unique items in the set."""
-        return len(self._items_dict)
+        return len(self._set_memory.items)
 
     def __contains__(self, key: Any) -> bool:
         """Checks if a unique key exists in the set.
@@ -258,7 +217,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             True if key exists, False otherwise.
         """
-        return key in self._items_dict
+        return self._set_memory.get(key) is not None
 
     def __repr__(self) -> str:
         """Returns a developer-friendly representation."""
@@ -285,52 +244,63 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     def _init_internal_state(self) -> None:
         """
-        Overrides base hook to initialize AutoSet-specific structures.
-        Called at the end of __init__.
+        INIT: Initialize OMem as empty (called at end of __init__).
         """
-        # 1. Initialize the dict (AutoSet-specific)
-        self._items_dict: Dict[Any, Item] = {}
-
-        # 2. Call parent to initialize standard structures (_data, _index)
+        if hasattr(self, '_set_memory'):
+            self._set_memory.clear()
         super()._init_internal_state()
 
     def _set_internal_state(self, data: AutoSetSchema[Item]) -> None:
         """
-        Overrides base hook to ensure _items_dict stays synchronized with _data.
-        This is the synchronization point for AutoSet's dual-structure design.
+        SET: Full Reset. Wipe OMem and refill from data (e.g., load from disk).
+        Called by extract() or load() where data IS the new state.
         """
-        # 1. Sync dictionary (AutoSet-specific: the Real Source of Truth for lookups)
-        self._items_dict.clear()
-        for item in data.items:
-            key = self._get_key_value(item)
-            if key is not None:
-                self._items_dict[key] = item
-
-        # 2. Call parent to set _data and clear index
+        if hasattr(self, '_set_memory'):
+            self._set_memory.clear()
+            if data.items:
+                self._set_memory.add(data.items)
+        
         super()._set_internal_state(data)
+
+    def _update_internal_state(self, incoming_data: AutoSetSchema[Item]) -> None:
+        """
+        UPDATE: Incremental merge. Add to OMem efficiently (called by feed()).
+        
+        Unlike the default behavior which uses merge_batch for full re-merge,
+        AutoSet optimizes this by directly adding items to OMem, which
+        handles deduplication and merging internally.
+        """
+        if hasattr(self, '_set_memory') and incoming_data.items:
+            # OMem handles diff/merge efficiently with configured merge strategy
+            self._set_memory.add(incoming_data.items)
+            
+            # Sync state: Create snapshot from OMem
+            # We bypass super()._update_internal_state() to avoid redundant merge_batch
+            self._data = self.item_set_schema(items=self._set_memory.items)
+            self.clear_index()
 
     def _clear_internal_state(self) -> None:
         """
-        Overrides base hook to explicitly clear the dictionary before clearing _data.
+        CLEAR: Wipe OMem (called by clear()).
         """
-        self._items_dict.clear()
+        if hasattr(self, '_set_memory'):
+            self._set_memory.clear()
         super()._clear_internal_state()
 
     # ==================== Core Override Methods ====================
 
-    def merge(self, data_list: List[AutoSetSchema[Item]]) -> AutoSetSchema[Item]:
+    def merge_batch(self, data_list: List[AutoSetSchema[Item]]) -> AutoSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
 
         Pure function: Does not modify internal state.
-        Delegates to Merger for efficient tournament-style merging.
-        All merge strategies (including LLM batch processing) are handled
-        by the Merger implementation.
+        Delegates to OMem's merge strategy for efficient deduplication and merging.
+        All merge strategies are handled by the Merger implementation in OMem.
 
         Args:
-            data_list: List of container objects to merge.
+            data_list: List of container objects from batch processing to merge.
 
         Returns:
-            New merged AutoSetSchema with deduplicated items.
+            New merged AutoSetSchema with deduplicated items and resolved conflicts.
         """
         # Step 1: Collect all items from all containers
         all_items = []
@@ -344,113 +314,38 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             f"Merging {len(all_items)} items from {len(data_list)} containers..."
         )
 
-        # Step 2: Use Merger to deduplicate and merge items
-        merged_items = self._merger.merge(all_items)
+        # Step 2: Create temporary OMem instance for merging
+        temp_merger = create_merger(
+            strategy=self.merge_item_strategy,
+            key_extractor=self.key_extractor,
+            llm_client=self.llm_client,
+            item_schema=self.item_schema,
+        )
+        
+        temp_omem: OMem[Item] = OMem(
+            memory_schema=self.item_schema,
+            key_extractor=self.key_extractor,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            merge_strategy=temp_merger,
+            verbose=self.show_progress,
+        )
+        
+        # Step 3: Add all items to temp OMem (automatic dedup and merge)
+        temp_omem.add(all_items)
+        merged_items = temp_omem.items
 
         logger.info(
             f"Merged into {len(merged_items)} unique items "
             f"(strategy: {self.merge_item_strategy.value})"
         )
 
-        # Step 3: Return new container (does not modify self)
+        # Step 4: Return new container (does not modify self)
         return self.item_set_schema(items=merged_items)
-
-    def _get_key_value(self, item: Item) -> Optional[Any]:
-        """Extracts the unique key value from an item using key_extractor.
-
-        Args:
-            item: The item to extract key from.
-
-        Returns:
-            The unique key value, or None if invalid.
-        """
-        try:
-            key_value = self.key_extractor(item)
-
-            # Validate key value
-            if key_value is None:
-                logger.warning("Item has None value for key, skipping")
-                return None
-
-            # Verify hashability
-            hash(key_value)
-            return key_value
-
-        except TypeError as e:
-            logger.error(f"Key value is not hashable: {e}")
-            return None
-        except Exception as e:
-            logger.error(f"Failed to extract key from item: {e}")
-            return None
-
-    # ==================== LLM Merge Methods (Removed - Now handled by LLMMerger) ====================
-
-    def build_index(self):
-        """Builds independent vector index for each unique item."""
-        items = self.items
-        if not items:
-            logger.warning("No items to index")
-            return
-
-        if self._index is not None:
-            return
-
-        documents = []
-        for idx, item in enumerate(items):
-            # Serialize each Item as a Document
-            content = item.model_dump_json()  # Use JSON string as content
-            documents.append(
-                Document(
-                    page_content=content,
-                    metadata={"raw": item.model_dump(), "index": idx},
-                )
-            )
-
-        if documents:
-            try:
-                from langchain_community.vectorstores import FAISS
-
-                self._index = FAISS.from_documents(documents, self.embedder)
-                logger.info(f"Built FAISS index with {len(documents)} items")
-            except ImportError:
-                logger.error("FAISS not available. Install with: pip install faiss-cpu")
-                raise
-
-    def search(self, query: str, top_k: int = 3) -> List[Any]:
-        """Searches items in the set using semantic similarity.
-
-        Args:
-            query: Search query string.
-            top_k: Number of results to return.
-
-        Returns:
-            List of relevant items.
-        """
-        if not self.items:
-            logger.warning("No items to search")
-            return []
-
-        if self._index is None:
-            raise Exception("Vector store not initialized")
-
-        docs = self._index.similarity_search(query, k=top_k)
-        results = []
-        for doc in docs:
-            # Attempt to restore as object
-            try:
-                raw = doc.metadata.get("raw", {})
-                item = self.item_schema.model_validate(raw)
-                results.append(item)
-            except Exception as e:
-                logger.warning(f"Failed to restore item: {e}")
-                results.append(doc.metadata.get("raw"))
-
-        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
-        return results
 
     # ==================== Serialization Helpers ====================
 
-    def _get_extra_dump_data(self) -> Dict[str, Any]:
+    def _get_extra_dump_data(self) -> dict:
         """Add AutoSet specific data to the dump.
 
         Returns:
@@ -469,22 +364,12 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Args:
             item: The item to add.
         """
-        key_value = self._get_key_value(item)
-        if key_value is None:
-            return
-
-        if key_value in self._items_dict:
-            # Merge with existing
-            merged = self._merger.pair_merge(self._items_dict[key_value], item)
-            if merged:
-                self._items_dict[key_value] = merged
-        else:
-            # Add new
-            self._items_dict[key_value] = item.model_copy(deep=True)
-
-        # Update state via hook
-        new_data = self.item_set_schema(items=list(self._items_dict.values()))
-        self._set_internal_state(new_data)
+        # OMem handles deduplication and merging automatically
+        self._set_memory.add([item])
+        
+        # Sync with _data
+        self._data = self.item_set_schema(items=self._set_memory.items)
+        self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
     def remove(self, key: Any) -> Optional[Item]:
@@ -496,13 +381,19 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             The removed item, or None if not found.
         """
-        removed = self._items_dict.pop(key, None)
+        # Get item before removing
+        item = self._set_memory.get(key)
+        if item is None:
+            return None
+        
+        # Remove from OMem
+        removed = self._set_memory.remove(key)
         if removed:
-            new_data = self.item_set_schema(items=list(self._items_dict.values()))
-            self._set_internal_state(new_data)
+            self._data = self.item_set_schema(items=self._set_memory.items)
+            self.clear_index()
             self.metadata["updated_at"] = datetime.now()
             logger.debug(f"Removed item with key '{key}'")
-        return removed
+        return item
 
     def contains(self, key: Any) -> bool:
         """Checks if an item with the given key exists in the set.
@@ -513,7 +404,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             True if key exists, False otherwise.
         """
-        return key in self._items_dict
+        return self._set_memory.get(key) is not None
 
     def get(self, key: Any, default: Optional[Item] = None) -> Optional[Item]:
         """Gets an item by its unique key value.
@@ -525,7 +416,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             The item if found, otherwise default.
         """
-        return self._items_dict.get(key, default)
+        result = self._set_memory.get(key)
+        return result if result is not None else default
 
     def update(self, items: List[Item]) -> None:
         """Batch adds multiple items.
@@ -551,11 +443,14 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             - Clears the vector index (needs rebuild)
             - Updates metadata timestamp
         """
-        if key in self._items_dict:
-            self._items_dict.pop(key)
-            new_data = self.item_set_schema(items=list(self._items_dict.values()))
-            self._set_internal_state(new_data)
-            self.metadata["updated_at"] = datetime.now()
+        try:
+            if self._set_memory.get(key) is not None:
+                self._set_memory.remove(key)
+                self._data = self.item_set_schema(items=self._set_memory.items)
+                self.clear_index()
+                self.metadata["updated_at"] = datetime.now()
+        except (KeyError, Exception):
+            pass
 
     def pop(self) -> Item:
         """Removes and returns an arbitrary item from the set.
@@ -577,13 +472,15 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             - Clears the vector index (needs rebuild)
             - Updates metadata timestamp
         """
-        if not self._items_dict:
+        if not self._set_memory.items:
             raise KeyError("pop from an empty AutoSet")
 
-        key = next(iter(self._items_dict))
-        item = self._items_dict.pop(key)
-        new_data = self.item_set_schema(items=list(self._items_dict.values()))
-        self._set_internal_state(new_data)
+        item = self._set_memory.items[0]
+        key = self.key_extractor(item)
+        self._set_memory.remove(key)
+        
+        self._data = self.item_set_schema(items=self._set_memory.items)
+        self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
         return item
@@ -599,14 +496,16 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             >>> backup.add(new_skill)
             >>> # Original skills unchanged
         """
-        new_set = self._create_new_instance()
-        # Populate the dictionary directly, then sync via hook
-        new_set._items_dict = {
-            key: item.model_copy(deep=True) for key, item in self._items_dict.items()
-        }
-        # Use hook to sync _data
-        new_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
-        new_set._set_internal_state(new_data)
+        new_set = self._create_empty_instance()
+        
+        # Add copies of all items
+        items_copy = [item.model_copy(deep=True) for item in self._set_memory.items]
+        new_set._set_memory.add(items_copy)
+        
+        # Sync state
+        new_data = new_set.item_set_schema(items=new_set._set_memory.items)
+        new_set._data = new_data
+        new_set.clear_index()
         new_set.metadata = self.metadata.copy()
         new_set.metadata["created_at"] = datetime.now()
 
@@ -637,20 +536,15 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             )
 
         # Create new instance
-        new_set = self._create_new_instance()
-        new_set._items_dict = self._items_dict.copy()
+        new_set = self._create_empty_instance()
+        
+        # Add all items from both sets (OMem handles merge automatically)
+        all_items = self._set_memory.items + other._set_memory.items
+        new_set._set_memory.add(all_items)
 
-        # Add items from other (merge duplicates)
-        for key, item in other._items_dict.items():
-            if key in new_set._items_dict:
-                merged = new_set._merger.pair_merge(new_set._items_dict[key], item)
-                if merged:
-                    new_set._items_dict[key] = merged
-            else:
-                new_set._items_dict[key] = item.model_copy(deep=True)
-
-        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
-        new_set._set_internal_state(merged_data)
+        merged_data = new_set.item_set_schema(items=new_set._set_memory.items)
+        new_set._data = merged_data
+        new_set.clear_index()
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -678,20 +572,21 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             )
 
         # Create new instance
-        new_set = self._create_new_instance()
+        new_set = self._create_empty_instance()
 
-        # Only keep items present in both sets
-        for key in self._items_dict:
-            if key in other._items_dict:
-                # Merge the two versions
-                merged = new_set._merger.pair_merge(
-                    self._items_dict[key], other._items_dict[key]
-                )
-                if merged:
-                    new_set._items_dict[key] = merged
+        # Only keep items present in both sets (by key)
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        intersection_items = [
+            item for item in self._set_memory.items 
+            if self.key_extractor(item) in other_keys
+        ]
+        
+        if intersection_items:
+            new_set._set_memory.add(intersection_items)
 
-        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
-        new_set._set_internal_state(merged_data)
+        merged_data = new_set.item_set_schema(items=new_set._set_memory.items)
+        new_set._data = merged_data
+        new_set.clear_index()
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -719,15 +614,21 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             )
 
         # Create new instance
-        new_set = self._create_new_instance()
+        new_set = self._create_empty_instance()
 
-        # Only keep items not in other
-        for key, item in self._items_dict.items():
-            if key not in other._items_dict:
-                new_set._items_dict[key] = item.model_copy(deep=True)
+        # Only keep items not in other (by key)
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        difference_items = [
+            item for item in self._set_memory.items 
+            if self.key_extractor(item) not in other_keys
+        ]
+        
+        if difference_items:
+            new_set._set_memory.add(difference_items)
 
-        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
-        new_set._set_internal_state(merged_data)
+        merged_data = new_set.item_set_schema(items=new_set._set_memory.items)
+        new_set._data = merged_data
+        new_set.clear_index()
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -755,20 +656,30 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             )
 
         # Create new instance
-        new_set = self._create_new_instance()
+        new_set = self._create_empty_instance()
 
-        # Add items only in self
-        for key, item in self._items_dict.items():
-            if key not in other._items_dict:
-                new_set._items_dict[key] = item.model_copy(deep=True)
-
+        # Get keys
+        self_keys = {self.key_extractor(item) for item in self._set_memory.items}
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        
+        # Items only in self
+        symmetric_items = [
+            item for item in self._set_memory.items 
+            if self.key_extractor(item) not in other_keys
+        ]
+        
         # Add items only in other
-        for key, item in other._items_dict.items():
-            if key not in self._items_dict:
-                new_set._items_dict[key] = item.model_copy(deep=True)
+        symmetric_items.extend([
+            item for item in other._set_memory.items 
+            if self.key_extractor(item) not in self_keys
+        ])
+        
+        if symmetric_items:
+            new_set._set_memory.add(symmetric_items)
 
-        merged_data = new_set.item_set_schema(items=list(new_set._items_dict.values()))
-        new_set._set_internal_state(merged_data)
+        merged_data = new_set.item_set_schema(items=new_set._set_memory.items)
+        new_set._data = merged_data
+        new_set.clear_index()
         new_set.metadata["updated_at"] = datetime.now()
 
         return new_set
@@ -814,7 +725,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         if self.item_schema != other.item_schema:
             return False
 
-        return set(self._items_dict.keys()) == set(other._items_dict.keys())
+        self_keys = {self.key_extractor(item) for item in self._set_memory.items}
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        return self_keys == other_keys
 
     def __ne__(self, other: Any) -> bool:
         """Inequality comparison: set1 != set2.
@@ -848,7 +761,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
-        return set(self._items_dict.keys()).issubset(set(other._items_dict.keys()))
+        self_keys = {self.key_extractor(item) for item in self._set_memory.items}
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        return self_keys.issubset(other_keys)
 
     def __lt__(self, other: "AutoSet[Item]") -> bool:
         """Proper subset comparison: set1 < set2.
@@ -888,7 +803,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
-        return set(self._items_dict.keys()).issuperset(set(other._items_dict.keys()))
+        self_keys = {self.key_extractor(item) for item in self._set_memory.items}
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        return self_keys.issuperset(other_keys)
 
     def __gt__(self, other: "AutoSet[Item]") -> bool:
         """Proper superset comparison: set1 > set2.
@@ -961,4 +878,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
                 f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
             )
 
-        return set(self._items_dict.keys()).isdisjoint(set(other._items_dict.keys()))
+        self_keys = {self.key_extractor(item) for item in self._set_memory.items}
+        other_keys = {self.key_extractor(item) for item in other._set_memory.items}
+        return self_keys.isdisjoint(other_keys)

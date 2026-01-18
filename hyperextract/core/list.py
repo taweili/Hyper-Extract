@@ -121,8 +121,8 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """Returns the internal list of extracted items."""
         return getattr(self._data, "items", [])
 
-    def _create_new_instance(self) -> "AutoList[Item]":
-        """Creates a new instance with the same configuration as this one.
+    def _create_empty_instance(self) -> "AutoList[Item]":
+        """Creates a new empty instance with the same configuration.
 
         Overrides base class method to handle AutoList's item_schema parameter.
 
@@ -140,18 +140,19 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             show_progress=self.show_progress,
         )
 
-    def merge(self, data_list: List[AutoListSchema]) -> AutoListSchema:
+    def merge_batch(self, data_list: List[AutoListSchema]) -> AutoListSchema:
         """Pure data merge method implementing list append strategy.
 
         Merge strategy: Collects all items from all container objects and merges them
-        into a single list. Subclasses can override this method to implement more
+        into a single list. Used for aggregating extraction results from batch processing
+        across multiple chunks. Subclasses can override this method to implement more
         sophisticated deduplication logic (e.g., AutoSet with custom key_extractor).
 
         Args:
-            data_list: List of container objects to merge.
+            data_list: List of container objects from batch processing to merge.
 
         Returns:
-            A new merged AutoListSchema object.
+            A new merged AutoListSchema object with combined items from all containers.
         """
         all_items = []
 
@@ -255,7 +256,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             return self.items[key]
         elif isinstance(key, slice):
             # Slice: return new AutoList instance
-            new_instance = self._create_new_instance()
+            new_instance = self._create_empty_instance()
             new_instance._data.items = self.items[key]
             new_instance.metadata["updated_at"] = datetime.now()
             return new_instance
@@ -317,7 +318,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                     f"Left: {self.item_schema.__name__}, Right: {other.item_schema.__name__}"
                 )
             # Create new instance with merged items
-            new_instance = self._create_new_instance()
+            new_instance = self._create_empty_instance()
             new_instance._data.items = self.items + other.items
             new_instance.metadata["created_at"] = self.metadata.get("created_at")
             new_instance.metadata["updated_at"] = self.metadata.get("updated_at")
@@ -333,7 +334,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 )
 
             # Create new AutoList with appended model
-            new_list = self._create_new_instance()
+            new_list = self._create_empty_instance()
             new_list._data.items = self.items + [other._data]
 
             # Merge metadata
@@ -641,7 +642,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             >>> backup = knowledge.copy()
             >>> backup.append(new_item)  # Original unchanged
         """
-        new_instance = self._create_new_instance()
+        new_instance = self._create_empty_instance()
         # Deep copy the data
         new_instance._data = self._data.model_copy(deep=True)
         # Copy metadata
