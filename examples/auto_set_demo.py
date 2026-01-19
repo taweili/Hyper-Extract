@@ -227,7 +227,7 @@ def main():
     print("[*] 保存怪物图鉴")
     print("=" * 80)
 
-    save_path = "tmp/monster_codex"
+    save_path = "temp/monster_codex"
     monster_codex.dump(save_path)
     print(f"√ 已保存到：{save_path}")
     print("  - state.json（结构化数据）")

@@ -217,7 +217,7 @@ def main():
 
     # 10. 保存知识
     print("\n[10] 保存知识到文件...")
-    save_path = Path(__file__).parent.parent / "tmp" / "auto_model_demo"
+    save_path = Path(__file__).parent.parent / "temp" / "auto_model_demo"
     a_document_model.dump(str(save_path))
     print(f"   已保存到: {save_path}")
 

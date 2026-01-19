@@ -81,7 +81,7 @@ class BaseAutoType(ABC, Generic[T]):
         self._index = None
 
         # Internal state storing the extracted knowledge
-        self._data: T = self._data_schema()
+        # NOTE: self._data will be initialized by _init_internal_state hook (subclass responsibility)
         self.metadata: Dict[str, Any] = {
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -129,72 +129,80 @@ class BaseAutoType(ABC, Generic[T]):
         return self._data_schema
 
     @property
+    @abstractmethod
     def data(self) -> T:
         """Returns all stored knowledge (read-only access).
 
+        This is an abstract property that subclasses must implement.
+        Subclasses may apply transformations to convert internal _data structure
+        to the external Schema T if they differ (e.g., AutoSet converts OMem → List).
+
         Returns:
-            The internal knowledge data as a Pydantic model instance.
+            The internal knowledge data as a Pydantic model instance (or converted form).
         """
-        return self._data
+        pass
 
     # ==================== State Management Lifecycle Hooks ====================
 
+    @abstractmethod
     def _init_internal_state(self) -> None:
         """
         Protected hook to initialize internal state (INIT).
         Called at the END of __init__ to ensure all basic attributes are set first.
 
-        Subclasses can override to initialize their own structures (e.g., _set_memory for AutoSet).
-        """
-        self._data = self._data_schema()
-        self._index = None
+        Responsibilities:
+        1. Initialize self._data with appropriate structure (may differ from Schema T)
+        2. Initialize self._index = None
 
+        Subclasses must implement this to set up internal structures that may be optimized
+        beyond the standard Pydantic schema (e.g., dict-based for AutoSet, graph structures).
+        """
+        pass
+
+    @abstractmethod
     def _set_internal_state(self, data: T) -> None:
         """
         Protected hook to overwrite internal state (SET).
         Called by extract() or load() where the data provided IS the new state.
 
         Responsibilities:
-        1. Replace self._data (full reset)
-        2. Invalidate vector index (data changed)
-        3. Subclasses: Reset auxiliary structures and fill with data
+        1. Replace self._data with new data (full reset)
+        2. Convert standard Schema T to optimized internal structure if needed
+        3. Invalidate vector index (self.clear_index())
 
         Args:
             data: The new data object to set.
         """
-        self._data = data
-        self.clear_index()
+        pass
 
+    @abstractmethod
     def _update_internal_state(self, incoming_data: T) -> None:
         """
         Protected hook to merge new data into state (UPDATE).
         Called by feed() where the data provided is INCREMENTAL.
 
-        Default behavior: Full merge (inefficient for large sets, good for lists).
-        Subclasses override for optimized incremental updates (e.g., set.add instead of merge_batch).
-
         Responsibilities:
-        1. Merge incoming_data with self._data
-        2. Update self._data
-        3. Invalidate vector index
-        4. Subclasses: Optimized incremental update
+        1. Merge incoming_data into current internal state (optimized for incremental updates)
+        2. Invalidate vector index (self.clear_index())
+
+        Subclasses should implement optimized incremental updates (e.g., set.add instead of
+        full merge_batch, graph.add_edge instead of graph rebuild).
 
         Args:
             incoming_data: The incremental data to merge into the current state.
         """
-        # Default: Merge incoming with current (works but may be inefficient)
-        merged_data = self.merge_batch([self._data, incoming_data])
-        self._data = merged_data
-        self.clear_index()
+        pass
 
+    @abstractmethod
     def _clear_internal_state(self) -> None:
         """
         Protected hook to fully clear internal state (CLEAR).
         Called by clear() method.
 
-        Default: Reset to empty schema instance via _set_internal_state hook.
+        Responsibilities:
+        1. Reset internal state to empty (matching _init_internal_state)
         """
-        self._set_internal_state(self._data_schema())
+        pass
 
     # ==================== Data Management ====================
 
@@ -354,7 +362,7 @@ class BaseAutoType(ABC, Generic[T]):
             data = {
                 "schema_name": self._data_schema.__name__,
                 "data_schema": self._data_schema.model_json_schema(),
-                "data": self._data.model_dump(),
+                "data": self.data.model_dump(),
                 "metadata": self._prepare_metadata_for_dump(),
             }
 

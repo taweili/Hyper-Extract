@@ -140,6 +140,52 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             show_progress=self.show_progress,
         )
 
+    @property
+    def data(self) -> AutoListSchema:
+        """Returns all stored knowledge (read-only access).
+
+        Returns:
+            The internal knowledge data as AutoListSchema.
+        """
+        return self._data
+
+    # ==================== State Management Lifecycle Hooks ====================
+
+    def _init_internal_state(self) -> None:
+        """
+        INIT: Initialize with empty schema.
+        """
+        self._data = self.item_list_schema()
+        self._index = None
+
+    def _set_internal_state(self, data: AutoListSchema) -> None:
+        """
+        SET: Full reset. Replace with new data (e.g., load from disk).
+        Called by extract() or load() where data IS the new state.
+        """
+        self._data = data
+        self.clear_index()
+
+    def _update_internal_state(self, incoming_data: AutoListSchema) -> None:
+        """
+        UPDATE: Incremental merge. Append incoming items to current list (called by feed()).
+
+        For AutoList, incremental update means appending new items to existing list.
+        """
+        if incoming_data.items:
+            merged_data = self.merge_batch([self._data, incoming_data])
+            self._data = merged_data
+            self.clear_index()
+
+    def _clear_internal_state(self) -> None:
+        """
+        CLEAR: Reset to empty schema instance.
+        """
+        self._data = self.item_list_schema()
+        self.clear_index()
+
+    # ==================== Core Methods ====================
+
     def merge_batch(self, data_list: List[AutoListSchema]) -> AutoListSchema:
         """Pure data merge method implementing list append strategy.
 
