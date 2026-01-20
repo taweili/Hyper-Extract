@@ -4,7 +4,18 @@ Provides automatic deduplication based on a user-specified unique key field.
 Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
-from typing import List, Any, Type, TypeVar, Generic, Optional, Callable, Union
+from pathlib import Path
+from typing import (
+    List,
+    Any,
+    Type,
+    TypeVar,
+    Generic,
+    Optional,
+    Callable,
+    Union,
+    TYPE_CHECKING,
+)
 from datetime import datetime
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
@@ -15,13 +26,7 @@ from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
 from .base import BaseAutoType
-
-try:
-    from hyperextract.config import logger
-except ImportError:
-    import logging
-
-    logger = logging.getLogger(__name__)
+from hyperextract.config import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)
@@ -70,6 +75,10 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         1
     """
 
+    if TYPE_CHECKING:
+        # Use generic version during type checking to maintain complete type hints
+        item_set_schema: Type[AutoSetSchema[Item]]
+
     def __init__(
         self,
         item_schema: Type[Item],
@@ -77,7 +86,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         embedder: Embeddings,
         *,
         key_extractor: Callable[[Item], Any],
-        strategy_or_merger: Union[MergeStrategy, BaseMerger] = MergeStrategy.LLM.PREFER_INCOMING,
+        strategy_or_merger: Union[
+            MergeStrategy, BaseMerger
+        ] = MergeStrategy.LLM.PREFER_INCOMING,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
@@ -130,7 +141,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             if kwargs:
                 logger.warning(
                     "Initialized with a Merger instance. Additional kwargs are ignored: %s",
-                    list(kwargs.keys())
+                    list(kwargs.keys()),
                 )
             self._merger = strategy_or_merger
         else:
@@ -298,7 +309,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Core Override Methods ====================
 
-    def merge_batch(self, data_list: List[AutoSetSchema[Item]]) -> AutoSetSchema[Item]:
+    def merge_batch_data(
+        self, data_list: List[AutoSetSchema[Item]]
+    ) -> AutoSetSchema[Item]:
         """Merges multiple data containers with automatic deduplication.
 
         Pure function: Does not modify internal state.
@@ -326,13 +339,20 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         # Get strategy value for logging
         if isinstance(self.strategy_or_merger, BaseMerger):
-            strategy_str = self.strategy_or_merger.strategy if hasattr(self.strategy_or_merger, 'strategy') else "custom_merger"
+            strategy_str = (
+                self.strategy_or_merger.strategy
+                if hasattr(self.strategy_or_merger, "strategy")
+                else "custom_merger"
+            )
         else:
-            strategy_str = self.strategy_or_merger.value if hasattr(self.strategy_or_merger, 'value') else str(self.strategy_or_merger)
+            strategy_str = (
+                self.strategy_or_merger.value
+                if hasattr(self.strategy_or_merger, "value")
+                else str(self.strategy_or_merger)
+            )
 
         logger.info(
-            f"Merged into {len(merged_items)} unique items "
-            f"(strategy: {strategy_str})"
+            f"Merged into {len(merged_items)} unique items (strategy: {strategy_str})"
         )
 
         return self.item_set_schema(items=merged_items)
@@ -347,13 +367,21 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         # Get strategy value: handle different types of strategy_or_merger
         if isinstance(self.strategy_or_merger, BaseMerger):
-            strategy_value = self.strategy_or_merger.strategy if hasattr(self.strategy_or_merger, 'strategy') else "custom_merger"
+            strategy_value = (
+                self.strategy_or_merger.strategy
+                if hasattr(self.strategy_or_merger, "strategy")
+                else "custom_merger"
+            )
         elif isinstance(self.strategy_or_merger, str):
             strategy_value = self.strategy_or_merger
         else:
             # MergeStrategy enum
-            strategy_value = self.strategy_or_merger.value if hasattr(self.strategy_or_merger, 'value') else str(self.strategy_or_merger)
-        
+            strategy_value = (
+                self.strategy_or_merger.value
+                if hasattr(self.strategy_or_merger, "value")
+                else str(self.strategy_or_merger)
+            )
+
         return {
             "item_schema_name": self.item_schema.__name__,
             "strategy_or_merger": strategy_value,
@@ -421,6 +449,30 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
+
+    # ==================== Index Storage ====================
+
+    def _dump_index_storage(self, folder: Path) -> None:
+        """Saves FAISS vector index to disk."""
+        if self._index is None:
+            return
+        index_path = str(folder / "index")
+        self._index.save_local(index_path)
+
+    def _load_index_storage(self, folder: Path) -> None:
+        """Loads FAISS vector index from disk."""
+        from langchain_community.vectorstores import FAISS
+
+        index_path = folder / "index"
+        if index_path.exists():
+            try:
+                self._index = FAISS.load_local(
+                    str(index_path), self.embedder, allow_dangerous_deserialization=True
+                )
+            except Exception:
+                self._index = None
+        else:
+            self._index = None
 
     # ==================== Set-Specific Methods ====================
 

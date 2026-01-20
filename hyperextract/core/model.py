@@ -1,5 +1,6 @@
 """Unit Knowledge Pattern - extracts a single structured object from text."""
 
+from pathlib import Path
 from typing import List, Any, Type
 from datetime import datetime
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -115,13 +116,13 @@ class AutoModel(BaseAutoType[T]):
 
         For AutoModel, incremental update means filling missing fields, first extraction wins.
         """
-        merged_data = self.merge_batch([self._data, incoming_data])
+        merged_data = self.merge_batch_data([self._data, incoming_data])
         self._data = merged_data
         self.clear_index()
 
     # ==================== Core Methods ====================
 
-    def merge_batch(self, data_list: List[T]) -> T:
+    def merge_batch_data(self, data_list: List[T]) -> T:
         """Pure data merge method implementing field-level update strategy.
 
         Merge strategy: First extraction takes precedence. Subsequent extractions only fill
@@ -210,6 +211,30 @@ class AutoModel(BaseAutoType[T]):
 
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
+
+    # ==================== Index Storage ====================
+
+    def _dump_index_storage(self, folder: Path) -> None:
+        """Saves FAISS vector index to disk."""
+        if self._index is None:
+            return
+        index_path = str(folder / "index")
+        self._index.save_local(index_path)
+
+    def _load_index_storage(self, folder: Path) -> None:
+        """Loads FAISS vector index from disk."""
+        from langchain_community.vectorstores import FAISS
+
+        index_path = folder / "index"
+        if index_path.exists():
+            try:
+                self._index = FAISS.load_local(
+                    str(index_path), self.embedder, allow_dangerous_deserialization=True
+                )
+            except Exception:
+                self._index = None
+        else:
+            self._index = None
 
     # ==================== Operators ====================
 

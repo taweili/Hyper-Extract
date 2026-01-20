@@ -1,5 +1,6 @@
 """List Knowledge Pattern - extracts a collection of objects from text."""
 
+from pathlib import Path
 from typing import (
     List,
     Any,
@@ -69,7 +70,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
-        **kwargs,
+        fields_for_index: List[str] | None = None,
     ):
         """Initialize AutoList with item schema and configuration.
 
@@ -82,8 +83,11 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress information.
+            fields_for_index: Optional list of field names to include in vector index.
+                             If None, all fields are indexed.
         """
         self.item_schema = item_schema
+        self.fields_for_index = fields_for_index
 
         container_name = f"{item_schema.__name__}List"
         self.item_list_schema = create_model(
@@ -103,7 +107,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             show_progress=show_progress,
-            **kwargs,
         )
 
     def _default_prompt(self) -> str:
@@ -138,6 +141,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             show_progress=self.show_progress,
+            fields_for_index=self.fields_for_index,
         )
 
     @property
@@ -158,10 +162,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         self._data = self.item_list_schema()
 
-    def _init_index_state(self) -> None:
-        """Initialize vector index to empty state."""
-        self._index = None
-
     def _set_data_state(self, data: AutoListSchema) -> None:
         """
         SET: Full reset. Replace with new data (e.g., load from disk).
@@ -177,13 +177,17 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         For AutoList, incremental update means appending new items to existing list.
         """
         if incoming_data.items:
-            merged_data = self.merge_batch([self._data, incoming_data])
+            merged_data = self.merge_batch_data([self._data, incoming_data])
             self._data = merged_data
             self.clear_index()
 
+    def _init_index_state(self) -> None:
+        """Initialize vector index to empty state."""
+        self._index = None
+
     # ==================== Core Methods ====================
 
-    def merge_batch(self, data_list: List[AutoListSchema]) -> AutoListSchema:
+    def merge_batch_data(self, data_list: List[AutoListSchema]) -> AutoListSchema:
         """Pure data merge method implementing list append strategy.
 
         Merge strategy: Collects all items from all container objects and merges them
@@ -199,16 +203,17 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         all_items = []
 
-        # Collect all items from each container
         for data in data_list:
-            copied_data = data.model_copy(deep=True)
-            all_items.extend(copied_data.items)
+            all_items.extend(data.items)
 
-        # Return a new container object
         return self.item_list_schema(items=all_items)
 
     def build_index(self) -> None:
-        """Builds independent vector index for each item in the list."""
+        """Builds independent vector index for each item in the list.
+        
+        If fields_for_index is specified, only those fields are indexed.
+        Otherwise, all fields are indexed.
+        """
         items = self.items
         if not items:
             logger.warning("No items to index")
@@ -219,8 +224,16 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         documents = []
         for idx, item in enumerate(items):
-            # Serialize each Item as a Document
-            content = item.model_dump_json()  # Use JSON string as content
+            # Extract content based on fields_for_index
+            if self.fields_for_index:
+                # Only index specified fields
+                item_dict = item.model_dump()
+                indexed_fields = {k: v for k, v in item_dict.items() if k in self.fields_for_index}
+                content = str(indexed_fields)
+            else:
+                # Index all fields
+                content = item.model_dump_json()
+            
             documents.append(
                 Document(
                     page_content=content,
@@ -231,7 +244,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         if documents:
             try:
                 self._index = FAISS.from_documents(documents, self.embedder)
-                logger.info(f"Built FAISS index with {len(documents)} items")
+                logger.info(f"Built FAISS index with {len(documents)} items (fields: {self.fields_for_index or 'all'})")
             except ImportError:
                 logger.error("FAISS not available. Install with: pip install faiss-cpu")
                 raise
@@ -267,6 +280,30 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         logger.info(f"Found {len(results)} results for query: {query[:50]}...")
         return results
+
+    # ==================== Index Storage ====================
+
+    def _dump_index_storage(self, folder: Path) -> None:
+        """Saves FAISS vector index to disk."""
+        if self._index is None:
+            return
+        index_path = str(folder / "index")
+        self._index.save_local(index_path)
+
+    def _load_index_storage(self, folder: Path) -> None:
+        """Loads FAISS vector index from disk."""
+        from langchain_community.vectorstores import FAISS
+
+        index_path = folder / "index"
+        if index_path.exists():
+            try:
+                self._index = FAISS.load_local(
+                    str(index_path), self.embedder, allow_dangerous_deserialization=True
+                )
+            except Exception:
+                self._index = None
+        else:
+            self._index = None
 
     # ==================== Pythonic Sequence Operations ====================
 
@@ -710,11 +747,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self._data.items.reverse()
         self.metadata["updated_at"] = datetime.now()
 
-        # Rebuild index if it exists to maintain consistency
-        if self._index is not None:
-            self._index = None
-            self.build_index()
-
     def sort(
         self, key: Union[Callable[[Item], Any], None] = None, reverse: bool = False
     ) -> None:
@@ -748,11 +780,6 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         self._data.items.sort(key=key, reverse=reverse)
         self.metadata["updated_at"] = datetime.now()
-
-        # Rebuild index if it exists to maintain consistency
-        if self._index is not None:
-            self._index = None
-            self.build_index()
 
     # ==================== Helper Methods ====================
 

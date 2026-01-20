@@ -65,13 +65,6 @@ class BaseAutoType(ABC, Generic[T]):
         self.max_workers = max_workers
         self.show_progress = show_progress
 
-        # Initialize prompt template and LLM chain for structured extraction
-        self.prompt_template = ChatPromptTemplate.from_template(
-            f"{self.prompt}{{chunk_text}}"
-        )
-        self.llm_with_schema = self.llm_client.with_structured_output(self._data_schema)
-        self.llm_chain_extract = self.prompt_template | self.llm_with_schema
-
         # Initialize text splitter for chunking long documents
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
@@ -240,17 +233,25 @@ class BaseAutoType(ABC, Generic[T]):
         Returns:
             The extracted knowledge data.
         """
+
+        prompt_template = ChatPromptTemplate.from_template(
+            f"{self.prompt}{{chunk_text}}"
+        )
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            self._data_schema
+        )
+
         if len(text) <= self.chunk_size:
-            extracted_data = self.llm_chain_extract.invoke({"chunk_text": text})
+            extracted_data = llm_chain.invoke({"chunk_text": text})
             extracted_data_list = [extracted_data]
         else:
             chunks = self.text_splitter.split_text(text)
             inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = self.llm_chain_extract.batch(
+            extracted_data_list = llm_chain.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
-        merged_data = self.merge_batch(extracted_data_list)
+        merged_data = self.merge_batch_data(extracted_data_list)
         return merged_data
 
     def extract(self, text: str) -> "BaseAutoType[T]":
@@ -275,12 +276,12 @@ class BaseAutoType(ABC, Generic[T]):
 
         return new_instance
 
-    def feed(self, text: str) -> "BaseAutoType[T]":
+    def feed_text(self, text: str) -> "BaseAutoType[T]":
         """
         Ingests text into the CURRENT knowledge base instance.
 
         This modifies the internal state by merging new data with existing data.
-        Supports method chaining (e.g., kb.feed(text1).feed(text2)).
+        Supports method chaining (e.g., kb.feed_text(text1).feed_text(text2)).
 
         Args:
             text: Input text.
@@ -298,7 +299,7 @@ class BaseAutoType(ABC, Generic[T]):
         return self
 
     @abstractmethod
-    def merge_batch(self, data_list: List[T]) -> T:
+    def merge_batch_data(self, data_list: List[T]) -> T:
         """Merges multiple knowledge data objects into a single unified object.
 
         This is a pure data transformation method that does not modify internal state.
@@ -355,151 +356,160 @@ class BaseAutoType(ABC, Generic[T]):
     def dump(self, folder_path: str | Path) -> None:
         """Exports knowledge to a specified folder.
 
-        Saves to the folder:
-            1. Structured data (self._data) - saved as state.json
-            2. Vector index (self._index) - saved via _dump_index_storage hook
+        Storage Structure:
+            folder/
+            ├── config.json   # Metadata, Schema Info, Parameters
+            ├── data.json     # Pure Knowledge Data
+            └── index/        # Vector Index Files
 
         Args:
             folder_path: Target folder path for saving.
         """
         folder = Path(folder_path)
-        if folder.exists() and folder.is_file():
-            raise Exception("Folder path is a file, please provide a folder path.")
+        if folder.is_file():
+            raise FileExistsError(f"Path is a file, expected directory: {folder}")
+        folder.mkdir(parents=True, exist_ok=True)
 
-        if not folder.exists():
-            folder.mkdir(parents=True, exist_ok=True)
+        # 1. Save Configuration (Schema, Metadata, Parameters)
+        self._save_config(folder)
 
-        try:
-            # 1. Save structured data
-            data = {
-                "schema_name": self._data_schema.__name__,
-                "data_schema": self._data_schema.model_json_schema(),
-                "data": self.data.model_dump(),
-                "metadata": self._prepare_metadata_for_dump(),
-            }
+        # 2. Save Data (Pure Data)
+        self._save_data(folder)
 
-            # Allow subclasses to add extra fields
-            data.update(self._get_extra_dump_data())
-
-            json_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
-            data_file = folder / "state.json"
-            with open(data_file, "w", encoding="utf-8") as f:
-                f.write(json_str)
-
-            # 2. Save vector index (via hook for flexibility)
-            if self._index is not None:
-                self._dump_index_storage(folder)
-
-        except Exception:
-            raise
+        # 3. Save Index (Optional)
+        if self._index is not None:
+            self._dump_index_storage(folder)
 
     def load(self, folder_path: str | Path) -> None:
         """Loads knowledge from a specified folder.
-
-        Loads from the folder:
-            1. Structured data (self._data) - loaded from state.json
-            2. Vector index (self._index) - loaded via _load_index_storage hook
 
         Args:
             folder_path: Source folder path containing saved knowledge.
         """
         folder = Path(folder_path)
         if not folder.is_dir():
-            raise ValueError(f"Folder does not exist: {folder_path}")
+            raise FileNotFoundError(f"Folder not found: {folder_path}")
 
-        # 1. Load structured data
-        data_file = folder / "state.json"
-        if not data_file.is_file():
-            raise ValueError(f"Data file not found: {data_file}")
+        # 1. Load Configuration (Validate compatibility)
+        self._load_config(folder)
 
-        with open(data_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # 2. Load Data (Restore state)
+        self._load_data(folder)
 
-        # Load data using hook for proper state sync
-        loaded_data = self._data_schema.model_validate(data.get("data", {}))
-        self._set_data_state(loaded_data)
-
-        # Update metadata with loaded values
-        if "metadata" in data:
-            self.metadata.update(data["metadata"])
-        self.metadata["updated_at"] = datetime.now()
-
-        # Allow subclasses to load extra data
-        self._load_extra_data(data)
-
-        # 2. Load vector index (via hook for flexibility)
+        # 3. Load Index (Restore vector search)
         self._load_index_storage(folder)
 
-    # ==================== Serialization: Index Storage Hooks ====================
+    # ==================== Serialization: Components ====================
 
+    def _save_config(self, folder: Path) -> None:
+        """Saves metadata, schema info, and instance parameters."""
+        config = {
+            "version": "1.0",
+            "type": self.__class__.__name__,
+            "schema": self._data_schema.__name__,
+            "params": {
+                "prompt": self.prompt,
+                "chunk_size": self.chunk_size,
+                "chunk_overlap": self.chunk_overlap,
+                "max_workers": self.max_workers,
+            },
+            "metadata": {
+                k: str(v) if isinstance(v, datetime) else v
+                for k, v in self.metadata.items()
+            },
+            "extra": self._get_extra_config_data(),
+        }
+
+        with open(folder / "config.json", "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    def _save_data(self, folder: Path) -> None:
+        """Saves the pure knowledge data."""
+        export_data = self.data.model_dump()
+
+        with open(folder / "data.json", "w", encoding="utf-8") as f:
+            json.dump(export_data, f, indent=2, ensure_ascii=False, default=str)
+
+    def _load_config(self, folder: Path) -> None:
+        """Loads and validates configuration."""
+        config_path = folder / "config.json"
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+
+        # Strict schema validation - raise error if mismatch
+        if config.get("schema") != self._data_schema.__name__:
+            raise ValueError(
+                f"Schema mismatch: Expected '{self._data_schema.__name__}', "
+                f"but found '{config.get('schema')}' in config.json"
+            )
+
+        # Restore metadata
+        if "metadata" in config:
+            self.metadata.update(config["metadata"])
+
+        # Restore extra config
+        if "extra" in config:
+            self._load_extra_config_data(config["extra"])
+
+    def _load_data(self, folder: Path) -> None:
+        """Loads data and restores internal state."""
+        data_path = folder / "data.json"
+        if not data_path.exists():
+            raise FileNotFoundError(f"Data file not found: {data_path}")
+
+        with open(data_path, "r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+
+        # Validate and Set State
+        validated_data = self._data_schema.model_validate(raw_data)
+        self._set_data_state(validated_data)
+
+    @abstractmethod
     def _dump_index_storage(self, folder: Path) -> None:
         """HOOK: Save vector index to disk.
 
-        Default Implementation: FAISS save_local
-
-        Subclasses can override to support:
-        - Alternative vector store implementations (Chroma, Pinecone, etc.)
-        - Custom serialization logic
-        - Multiple indices
+        Subclasses must implement to support their specific vector store
+        (FAISS, Chroma, Pinecone, etc.).
 
         Args:
             folder: Target folder for saving index files.
         """
-        index_path = str(folder / "faiss_index")
-        self._index.save_local(index_path)
+        pass
 
+    @abstractmethod
     def _load_index_storage(self, folder: Path) -> None:
         """HOOK: Load vector index from disk.
 
-        Default Implementation: FAISS load_local
-
-        Subclasses can override to support:
-        - Alternative vector store implementations (Chroma, Pinecone, etc.)
-        - Custom deserialization logic
-        - Multiple indices
+        Subclasses must implement to support their specific vector store
+        (FAISS, Chroma, Pinecone, etc.).
 
         Args:
             folder: Source folder containing index files.
         """
-        from langchain_community.vectorstores import FAISS
+        pass
 
-        index_path = str(folder / "faiss_index")
-        if Path(index_path).exists():
-            try:
-                self._index = FAISS.load_local(
-                    index_path, self.embedder, allow_dangerous_deserialization=True
-                )
-            except Exception:
-                self._index = None
-        else:
-            self._index = None
+    # ==================== Serialization: Hooks ====================
 
-    # ==================== Serialization: Helper Methods ====================
+    def _get_extra_config_data(self) -> Dict[str, Any]:
+        """Hook to save subclass-specific configuration (not data).
 
-    def _prepare_metadata_for_dump(self) -> Dict[str, Any]:
-        """Helper to serialize metadata values (e.g., datetimes)."""
-        return {
-            k: str(v) if isinstance(v, datetime) else v
-            for k, v in self.metadata.items()
-        }
-
-    def _get_extra_dump_data(self) -> Dict[str, Any]:
-        """Hook for subclasses to add extra fields to state.json.
-
-        Override this method to save subclass-specific data (e.g., merge strategy).
+        Override this method to save subclass-specific config like merge strategy.
 
         Returns:
-            Dictionary of extra data to include in state.json.
+            Dictionary of extra config data.
         """
         return {}
 
-    def _load_extra_data(self, json_data: Dict[str, Any]) -> None:
-        """Hook for subclasses to extract extra fields from state.json.
+    def _load_extra_config_data(self, extra_config: Dict[str, Any]) -> None:
+        """Hook to load subclass-specific configuration.
 
-        Override this method to restore subclass-specific data.
+        Override this method to restore subclass-specific config.
 
         Args:
-            json_data: The loaded JSON data dictionary.
+            extra_config: Extra configuration data from config.json.
         """
         pass
 
@@ -545,7 +555,7 @@ class BaseAutoType(ABC, Generic[T]):
             )
 
         # Merge the data from both instances
-        merged_data = self.merge_batch([self._data, other._data])
+        merged_data = self.merge_batch_data([self._data, other._data])
 
         # Create a new instance with the same configuration
         new_instance = self._create_empty_instance()
