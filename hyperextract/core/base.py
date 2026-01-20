@@ -30,6 +30,8 @@ class BaseAutoType(ABC, Generic[T]):
         - Provide serialization and deserialization capabilities
     """
 
+    # ==================== Initialization & Configuration ====================
+
     def __init__(
         self,
         data_schema: Type[T],
@@ -77,11 +79,7 @@ class BaseAutoType(ABC, Generic[T]):
             separators=["\n\n", "\n", "。", "！", "？", ". ", "! ", "? ", " ", ""],
         )
 
-        # Vector index using FAISS for semantic search
-        self._index = None
-
         # Internal state storing the extracted knowledge
-        # NOTE: self._data will be initialized by _init_internal_state hook (subclass responsibility)
         self.metadata: Dict[str, Any] = {
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -112,12 +110,12 @@ class BaseAutoType(ABC, Generic[T]):
     @abstractmethod
     def _default_prompt(self) -> str:
         """Returns the default extraction prompt template.
-        
+
         Subclasses must implement this to provide a prompt tailored to their extraction pattern.
         """
         pass
 
-    # ==================== Data Management ====================
+    # ==================== Data Access Interface ====================
 
     @property
     def data_schema(self) -> Type[T]:
@@ -142,30 +140,53 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== State Management Lifecycle Hooks ====================
+    # ==================== Data Management Operations ====================
+
+    def clear(self):
+        """Clears all knowledge including data and vector index."""
+        self._init_internal_state()
+        self.metadata["updated_at"] = datetime.now()
+
+    def clear_index(self):
+        """Clears the vector index without affecting the stored data."""
+        self._init_index_state()
+
+    # ==================== Lifecycle Hooks: State Management ====================
+
+    def _init_internal_state(self) -> None:
+        """Master control: Initialize or reset all internal state (INIT/RESET).
+
+        This concrete method orchestrates the reset process by calling two hooks:
+        1. _init_data_state() - Subclass responsibility: reset data structures
+        2. _init_index_state() - Default: reset index, can be overridden by subclass
+
+        Called in two scenarios:
+        - During __init__ to set up the initial state
+        - When clear() is called to reset to empty state
+        """
+        self._init_data_state()
+        self._init_index_state()
 
     @abstractmethod
-    def _init_internal_state(self) -> None:
-        """
-        Protected hook to initialize internal state (INIT).
-        Called at the END of __init__ to ensure all basic attributes are set first.
+    def _init_data_state(self) -> None:
+        """HOOK: Initialize or reset data structures to empty state.
 
-        Responsibilities:
-        1. Initialize self._data with appropriate structure (may differ from Schema T)
-        2. Initialize self._index = None
+        Subclass Responsibility:
+        - Initialize self._data with appropriate structure (may differ from Schema T)
+        - Reset any auxiliary data structures (e.g., lookup dicts, caches)
 
         Subclasses must implement this to set up internal structures that may be optimized
-        beyond the standard Pydantic schema (e.g., dict-based for AutoSet, graph structures).
+        beyond the standard Pydantic schema (e.g., OMem for AutoSet, dict-based for others).
         """
         pass
 
     @abstractmethod
-    def _set_internal_state(self, data: T) -> None:
-        """
-        Protected hook to overwrite internal state (SET).
+    def _set_data_state(self, data: T) -> None:
+        """HOOK: Overwrite data state with new data (SET).
+
         Called by extract() or load() where the data provided IS the new state.
 
-        Responsibilities:
+        Subclass Responsibilities:
         1. Replace self._data with new data (full reset)
         2. Convert standard Schema T to optimized internal structure if needed
         3. Invalidate vector index (self.clear_index())
@@ -176,13 +197,13 @@ class BaseAutoType(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def _update_internal_state(self, incoming_data: T) -> None:
-        """
-        Protected hook to merge new data into state (UPDATE).
+    def _update_data_state(self, incoming_data: T) -> None:
+        """HOOK: Merge new data into state (UPDATE).
+
         Called by feed() where the data provided is INCREMENTAL.
 
-        Responsibilities:
-        1. Merge incoming_data into current internal state (optimized for incremental updates)
+        Subclass Responsibilities:
+        1. Merge incoming_data into current data state (optimized for incremental updates)
         2. Invalidate vector index (self.clear_index())
 
         Subclasses should implement optimized incremental updates (e.g., set.add instead of
@@ -194,26 +215,17 @@ class BaseAutoType(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def _clear_internal_state(self) -> None:
-        """
-        Protected hook to fully clear internal state (CLEAR).
-        Called by clear() method.
+    def _init_index_state(self) -> None:
+        """HOOK: Initialize or reset vector index to empty state.
 
-        Responsibilities:
-        1. Reset internal state to empty (matching _init_internal_state)
+        Subclass Responsibility:
+        - Initialize or reset vector index structures
+        - Can be FAISS, Chroma, Pinecone, or custom implementation
+        - Typically sets self._index = None or initializes specific index instance
+
+        This separation allows index implementation to be decoupled from base class.
         """
         pass
-
-    # ==================== Data Management ====================
-
-    def clear(self):
-        """Clears all knowledge including data and vector index."""
-        self._clear_internal_state()
-        self.metadata["updated_at"] = datetime.now()
-
-    def clear_index(self):
-        """Clears the vector index without affecting the stored data."""
-        self._index = None
 
     # ==================== Extraction & Merge ====================
 
@@ -256,7 +268,7 @@ class BaseAutoType(ABC, Generic[T]):
         extracted_data = self._extract_data(text)
 
         new_instance = self._create_empty_instance()
-        new_instance._set_internal_state(extracted_data)
+        new_instance._set_data_state(extracted_data)
 
         new_instance.metadata["created_at"] = datetime.now()
         new_instance.metadata["updated_at"] = datetime.now()
@@ -277,10 +289,10 @@ class BaseAutoType(ABC, Generic[T]):
             Self (the current instance).
         """
         extracted_data = self._extract_data(text)
-        
+
         # Use UPDATE hook instead of manual merge+set
-        self._update_internal_state(extracted_data)
-        
+        self._update_data_state(extracted_data)
+
         self.metadata["updated_at"] = datetime.now()
 
         return self
@@ -307,7 +319,7 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== Indexing & Query ====================
+    # ==================== Indexing & Search ====================
 
     @abstractmethod
     def build_index(self):
@@ -338,14 +350,14 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== Serialization ====================
+    # ==================== Serialization: Core Interface ====================
 
     def dump(self, folder_path: str | Path) -> None:
         """Exports knowledge to a specified folder.
 
         Saves to the folder:
             1. Structured data (self._data) - saved as state.json
-            2. Vector index (self._index) - saved as FAISS index files
+            2. Vector index (self._index) - saved via _dump_index_storage hook
 
         Args:
             folder_path: Target folder path for saving.
@@ -374,10 +386,9 @@ class BaseAutoType(ABC, Generic[T]):
             with open(data_file, "w", encoding="utf-8") as f:
                 f.write(json_str)
 
-            # 2. Save vector index
+            # 2. Save vector index (via hook for flexibility)
             if self._index is not None:
-                index_path = str(folder / "faiss_index")
-                self._index.save_local(index_path)
+                self._dump_index_storage(folder)
 
         except Exception:
             raise
@@ -387,13 +398,11 @@ class BaseAutoType(ABC, Generic[T]):
 
         Loads from the folder:
             1. Structured data (self._data) - loaded from state.json
-            2. Vector index (self._index) - loaded from FAISS index files
+            2. Vector index (self._index) - loaded via _load_index_storage hook
 
         Args:
             folder_path: Source folder path containing saved knowledge.
         """
-        from langchain_community.vectorstores import FAISS
-
         folder = Path(folder_path)
         if not folder.is_dir():
             raise ValueError(f"Folder does not exist: {folder_path}")
@@ -408,7 +417,7 @@ class BaseAutoType(ABC, Generic[T]):
 
         # Load data using hook for proper state sync
         loaded_data = self._data_schema.model_validate(data.get("data", {}))
-        self._set_internal_state(loaded_data)
+        self._set_data_state(loaded_data)
 
         # Update metadata with loaded values
         if "metadata" in data:
@@ -418,7 +427,42 @@ class BaseAutoType(ABC, Generic[T]):
         # Allow subclasses to load extra data
         self._load_extra_data(data)
 
-        # 2. Load vector index
+        # 2. Load vector index (via hook for flexibility)
+        self._load_index_storage(folder)
+
+    # ==================== Serialization: Index Storage Hooks ====================
+
+    def _dump_index_storage(self, folder: Path) -> None:
+        """HOOK: Save vector index to disk.
+
+        Default Implementation: FAISS save_local
+
+        Subclasses can override to support:
+        - Alternative vector store implementations (Chroma, Pinecone, etc.)
+        - Custom serialization logic
+        - Multiple indices
+
+        Args:
+            folder: Target folder for saving index files.
+        """
+        index_path = str(folder / "faiss_index")
+        self._index.save_local(index_path)
+
+    def _load_index_storage(self, folder: Path) -> None:
+        """HOOK: Load vector index from disk.
+
+        Default Implementation: FAISS load_local
+
+        Subclasses can override to support:
+        - Alternative vector store implementations (Chroma, Pinecone, etc.)
+        - Custom deserialization logic
+        - Multiple indices
+
+        Args:
+            folder: Source folder containing index files.
+        """
+        from langchain_community.vectorstores import FAISS
+
         index_path = str(folder / "faiss_index")
         if Path(index_path).exists():
             try:
@@ -427,8 +471,10 @@ class BaseAutoType(ABC, Generic[T]):
                 )
             except Exception:
                 self._index = None
+        else:
+            self._index = None
 
-    # ==================== Serialization Helpers ====================
+    # ==================== Serialization: Helper Methods ====================
 
     def _prepare_metadata_for_dump(self) -> Dict[str, Any]:
         """Helper to serialize metadata values (e.g., datetimes)."""
@@ -505,7 +551,7 @@ class BaseAutoType(ABC, Generic[T]):
         new_instance = self._create_empty_instance()
 
         # Set the merged data using hook and update metadata
-        new_instance._set_internal_state(merged_data)
+        new_instance._set_data_state(merged_data)
         new_instance.metadata["created_at"] = min(
             self.metadata["created_at"], other.metadata["created_at"]
         )

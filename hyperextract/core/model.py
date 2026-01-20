@@ -90,14 +90,18 @@ class AutoModel(BaseAutoType[T]):
 
     # ==================== State Management Lifecycle Hooks ====================
 
-    def _init_internal_state(self) -> None:
+    def _init_data_state(self) -> None:
         """
-        INIT: Initialize with empty schema instance.
+        INIT/RESET: Initialize or reset with empty schema instance.
+        Called during __init__ and when clear() is called.
         """
         self._data = self._data_schema()
+
+    def _init_index_state(self) -> None:
+        """Initialize vector index to empty state."""
         self._index = None
 
-    def _set_internal_state(self, data: T) -> None:
+    def _set_data_state(self, data: T) -> None:
         """
         SET: Full reset. Replace with new data (e.g., load from disk).
         Called by extract() or load() where data IS the new state.
@@ -105,7 +109,7 @@ class AutoModel(BaseAutoType[T]):
         self._data = data
         self.clear_index()
 
-    def _update_internal_state(self, incoming_data: T) -> None:
+    def _update_data_state(self, incoming_data: T) -> None:
         """
         UPDATE: Incremental merge. Merge fields with field-level update strategy (called by feed()).
 
@@ -113,13 +117,6 @@ class AutoModel(BaseAutoType[T]):
         """
         merged_data = self.merge_batch([self._data, incoming_data])
         self._data = merged_data
-        self.clear_index()
-
-    def _clear_internal_state(self) -> None:
-        """
-        CLEAR: Reset to empty schema instance.
-        """
-        self._data = self._data_schema()
         self.clear_index()
 
     # ==================== Core Methods ====================

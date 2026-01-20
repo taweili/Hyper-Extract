@@ -66,7 +66,7 @@ def main():
         llm_client=llm,
         embedder=embedder,
         key_extractor=lambda x: x.name,  # 基于怪物名称去重
-        merge_item_strategy=MergeStrategy.LLM_MERGE,
+        strategy_or_merger="llm_prefer_incoming",
         prompt="""从冒险者的日志记录中提取所有怪物的相关信息。
 
 对于每只怪物，请提供：

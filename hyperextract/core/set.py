@@ -4,13 +4,15 @@ Provides automatic deduplication based on a user-specified unique key field.
 Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
-from typing import List, Any, Type, TypeVar, Generic, Optional, Callable
+from typing import List, Any, Type, TypeVar, Generic, Optional, Callable, Union
 from datetime import datetime
 from ontomem import OMem
-from ontomem.merger import MergeStrategy, create_merger
+from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
+from langchain_core.documents import Document
+from langchain_community.vectorstores import FAISS
 
 from .base import BaseAutoType
 
@@ -75,13 +77,14 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         embedder: Embeddings,
         *,
         key_extractor: Callable[[Item], Any],
-        merge_item_strategy: MergeStrategy = MergeStrategy.LLM.PREFER_INCOMING,
+        strategy_or_merger: Union[MergeStrategy, BaseMerger] = MergeStrategy.LLM.PREFER_INCOMING,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
         llm_batch_size: int = 10,
+        **kwargs: Any,
     ):
         """Initialize AutoSet with key extractor and merge strategy.
 
@@ -90,13 +93,17 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             llm_client: Language model client for extraction and merging.
             embedder: Embedding model for vector indexing.
             key_extractor: Function to extract unique key from an item (required).
-            merge_item_strategy: Strategy for merging duplicate items (default: KEEP_NEW).
+            strategy_or_merger: Merge strategy or pre-configured merger instance. Can be:
+                                1. A MergeStrategy enum value (e.g., MergeStrategy.LLM.BALANCED)
+                                2. A pre-configured BaseMerger instance (for full control)
             prompt: Custom extraction prompt.
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress information.
             llm_batch_size: Batch size for LLM merge operations (for LLM_MERGE strategy).
+            **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
+                      a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
 
         # Store item_schema
@@ -112,6 +119,40 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             ),
         )
 
+        # AutoSet-specific attributes (MUST be initialized BEFORE super().__init__ calls _init_internal_state)
+        self.key_extractor = key_extractor
+        self.strategy_or_merger = strategy_or_merger
+        self.llm_batch_size = llm_batch_size
+
+        # Setup Merge Strategy
+        if isinstance(strategy_or_merger, BaseMerger):
+            # Pre-configured merger instance: use directly
+            if kwargs:
+                logger.warning(
+                    "Initialized with a Merger instance. Additional kwargs are ignored: %s",
+                    list(kwargs.keys())
+                )
+            self._merger = strategy_or_merger
+        else:
+            # MergeStrategy enum: create merger with strategy and pass kwargs
+            self._merger = create_merger(
+                strategy=strategy_or_merger,
+                key_extractor=key_extractor,
+                llm_client=llm_client,
+                item_schema=item_schema,
+                **kwargs,  # Pass additional arguments to create_merger
+            )
+
+        # Initialize OMem instance BEFORE calling super().__init__ so _init_internal_state can use it
+        self._data: OMem[Item] = OMem(
+            memory_schema=item_schema,
+            key_extractor=key_extractor,
+            llm_client=llm_client,
+            embedder=embedder,
+            strategy_or_merger=self._merger,
+            verbose=show_progress,
+        )
+
         super().__init__(
             data_schema=self.item_set_schema,
             llm_client=llm_client,
@@ -121,29 +162,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             show_progress=show_progress,
-        )
-
-        # AutoSet-specific attributes (before _init_internal_state is called by parent)
-        self.key_extractor = key_extractor
-        self.merge_item_strategy = merge_item_strategy
-        self.llm_batch_size = llm_batch_size
-
-        # Create Merger instance using ontomem's create_merger
-        self._merger = create_merger(
-            strategy=merge_item_strategy,
-            key_extractor=key_extractor,
-            llm_client=llm_client,
-            item_schema=item_schema,
-        )
-
-        # Initialize OMem instance for storage and deduplication
-        self._data: OMem[Item] = OMem(
-            memory_schema=item_schema,
-            key_extractor=key_extractor,
-            llm_client=llm_client,
-            embedder=embedder,
-            strategy_or_merger=self._merger,
-            verbose=show_progress,
         )
 
     # ==================== Override Instance Creation ====================
@@ -161,7 +179,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             llm_client=self.llm_client,
             embedder=self.embedder,
             key_extractor=self.key_extractor,
-            merge_item_strategy=self.merge_item_strategy,
+            strategy_or_merger=self.strategy_or_merger,
             prompt=self.prompt,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
@@ -209,7 +227,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     def __len__(self) -> int:
         """Returns the number of unique items in the set."""
-        return len(self._data)
+        return len(self._data.items)
 
     def __contains__(self, key: Any) -> bool:
         """Checks if a unique key exists in the set.
@@ -245,14 +263,18 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== State Management Lifecycle Overrides ====================
 
-    def _init_internal_state(self) -> None:
+    def _init_data_state(self) -> None:
         """
-        INIT: Initialize OMem as empty.
+        INIT/RESET: Initialize or reset OMem as empty.
+        Called during __init__ and when clear() is called.
         """
         self._data.clear()
-        self.clear_index()
 
-    def _set_internal_state(self, data: AutoSetSchema[Item]) -> None:
+    def _init_index_state(self) -> None:
+        """Initialize vector index to empty state."""
+        self._index = None
+
+    def _set_data_state(self, data: AutoSetSchema[Item]) -> None:
         """
         SET: Full Reset. Wipe OMem and refill from data (e.g., load from disk).
         Called by extract() or load() where data IS the new state.
@@ -262,7 +284,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             self._data.add(data.items)
         self.clear_index()
 
-    def _update_internal_state(self, incoming_data: AutoSetSchema[Item]) -> None:
+    def _update_data_state(self, incoming_data: AutoSetSchema[Item]) -> None:
         """
         UPDATE: Incremental merge. Add to OMem efficiently (called by feed()).
 
@@ -273,13 +295,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         if incoming_data.items:
             self._data.add(incoming_data.items)
             self.clear_index()
-
-    def _clear_internal_state(self) -> None:
-        """
-        CLEAR: Wipe OMem (called by clear()).
-        """
-        self._data.clear()
-        self.clear_index()
 
     # ==================== Core Override Methods ====================
 
@@ -309,9 +324,15 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         merged_items = self._merger.merge(all_items)
 
+        # Get strategy value for logging
+        if isinstance(self.strategy_or_merger, BaseMerger):
+            strategy_str = self.strategy_or_merger.strategy if hasattr(self.strategy_or_merger, 'strategy') else "custom_merger"
+        else:
+            strategy_str = self.strategy_or_merger.value if hasattr(self.strategy_or_merger, 'value') else str(self.strategy_or_merger)
+
         logger.info(
             f"Merged into {len(merged_items)} unique items "
-            f"(strategy: {self.merge_item_strategy.value})"
+            f"(strategy: {strategy_str})"
         )
 
         return self.item_set_schema(items=merged_items)
@@ -324,10 +345,82 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             Dictionary with extra AutoSet-specific fields.
         """
+        # Get strategy value: handle different types of strategy_or_merger
+        if isinstance(self.strategy_or_merger, BaseMerger):
+            strategy_value = self.strategy_or_merger.strategy if hasattr(self.strategy_or_merger, 'strategy') else "custom_merger"
+        elif isinstance(self.strategy_or_merger, str):
+            strategy_value = self.strategy_or_merger
+        else:
+            # MergeStrategy enum
+            strategy_value = self.strategy_or_merger.value if hasattr(self.strategy_or_merger, 'value') else str(self.strategy_or_merger)
+        
         return {
             "item_schema_name": self.item_schema.__name__,
-            "merge_item_strategy": self.merge_item_strategy.value,
+            "strategy_or_merger": strategy_value,
         }
+
+    # ==================== Indexing & Query ====================
+
+    def build_index(self) -> None:
+        """Builds independent vector index for each item in the set."""
+        items = self.items
+        if not items:
+            logger.warning("No items to index")
+            return
+
+        if self._index is not None:
+            return
+
+        documents = []
+        for idx, item in enumerate(items):
+            # Serialize each Item as a Document
+            content = item.model_dump_json()  # Use JSON string as content
+            documents.append(
+                Document(
+                    page_content=content,
+                    metadata={"raw": item.model_dump(), "index": idx},
+                )
+            )
+
+        if documents:
+            try:
+                self._index = FAISS.from_documents(documents, self.embedder)
+                logger.info(f"Built FAISS index with {len(documents)} items")
+            except ImportError:
+                logger.error("FAISS not available. Install with: pip install faiss-cpu")
+                raise
+
+    def search(self, query: str, top_k: int = 3) -> List[Item]:
+        """Searches items in the set using semantic similarity.
+
+        Args:
+            query: Search query string.
+            top_k: Number of results to return.
+
+        Returns:
+            List of relevant items.
+        """
+        if not self.items:
+            logger.warning("No items to search")
+            return []
+
+        if self._index is None:
+            raise Exception("Vector store not initialized")
+
+        docs = self._index.similarity_search(query, k=top_k)
+        results: List[Item] = []
+        for doc in docs:
+            # Attempt to restore as object
+            try:
+                raw = doc.metadata.get("raw", {})
+                item = self.item_schema.model_validate(raw)
+                results.append(item)
+            except Exception as e:
+                logger.warning(f"Failed to restore item: {e}")
+                results.append(doc.metadata.get("raw"))
+
+        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
+        return results
 
     # ==================== Set-Specific Methods ====================
 
