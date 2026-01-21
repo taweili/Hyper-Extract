@@ -11,7 +11,7 @@ from langchain_community.vectorstores import FAISS
 from .base import BaseAutoType, T
 
 try:
-    from hyperextract.config import logger
+    from hyperextract.utils.logging import logger
 except ImportError:
     import logging
 
@@ -168,18 +168,6 @@ class AutoModel(BaseAutoType[T]):
         self._index = FAISS.from_documents(documents, self.embedder)
         logger.info(f"Built FAISS index with {len(documents)} documents")
 
-    def __len__(self) -> int:
-        """Returns 1 if there is data (non-empty fields), 0 otherwise.
-
-        AutoModel always represents a single unit of knowledge, so it's either
-        empty (0) or contains one item (1).
-        """
-        if not self._data:
-            return 0
-        # Check if any field is non-null
-        has_data = any(v is not None for v in self._data.model_dump().values())
-        return 1 if has_data else 0
-
     def search(self, query: str, top_k: int = 3) -> List[Any]:
         """Searches all indexed fields using semantic similarity.
 
@@ -214,17 +202,20 @@ class AutoModel(BaseAutoType[T]):
 
     # ==================== Index Storage ====================
 
-    def _dump_index_storage(self, folder: Path) -> None:
+    def dump_index(self, folder_path: str | Path) -> None:
         """Saves FAISS vector index to disk."""
         if self._index is None:
             return
+        folder = Path(folder_path)
+        folder.mkdir(parents=True, exist_ok=True)
         index_path = str(folder / "index")
         self._index.save_local(index_path)
 
-    def _load_index_storage(self, folder: Path) -> None:
+    def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
         from langchain_community.vectorstores import FAISS
 
+        folder = Path(folder_path)
         index_path = folder / "index"
         if index_path.exists():
             try:

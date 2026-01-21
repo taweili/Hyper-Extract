@@ -11,7 +11,7 @@ from typing import List, TypeVar
 from .base import BaseMerger
 
 try:
-    from hyperextract.config import logger
+    from hyperextract.utils.logging import logger
 except ImportError:
     logger = logging.getLogger(__name__)
 

@@ -72,14 +72,14 @@ class BaseAutoType(ABC, Generic[T]):
             separators=["\n\n", "\n", "。", "！", "？", ". ", "! ", "? ", " ", ""],
         )
 
+        # Initialize internal state (calls hook for subclass setup)
+        self._init_internal_state()
+
         # Internal state storing the extracted knowledge
         self.metadata: Dict[str, Any] = {
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
         }
-
-        # Initialize internal state (calls hook for subclass setup)
-        self._init_internal_state()
 
     def _create_empty_instance(self) -> "BaseAutoType[T]":
         """Creates a new empty instance with the same configuration as this one.
@@ -351,116 +351,34 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== Serialization: Core Interface ====================
+    # ==================== Serialization: Public Interface ====================
 
-    def dump(self, folder_path: str | Path) -> None:
-        """Exports knowledge to a specified folder.
-
-        Storage Structure:
-            folder/
-            ├── config.json   # Metadata, Schema Info, Parameters
-            ├── data.json     # Pure Knowledge Data
-            └── index/        # Vector Index Files
-
+    def dump_data(self, file_path: str | Path) -> None:
+        """Saves the pure knowledge data to disk as JSON.
+        
         Args:
-            folder_path: Target folder path for saving.
+            file_path: Target file path for saving data (e.g., "data.json").
         """
-        folder = Path(folder_path)
-        if folder.is_file():
-            raise FileExistsError(f"Path is a file, expected directory: {folder}")
-        folder.mkdir(parents=True, exist_ok=True)
-
-        # 1. Save Configuration (Schema, Metadata, Parameters)
-        self._save_config(folder)
-
-        # 2. Save Data (Pure Data)
-        self._save_data(folder)
-
-        # 3. Save Index (Optional)
-        if self._index is not None:
-            self._dump_index_storage(folder)
-
-    def load(self, folder_path: str | Path) -> None:
-        """Loads knowledge from a specified folder.
-
-        Args:
-            folder_path: Source folder path containing saved knowledge.
-        """
-        folder = Path(folder_path)
-        if not folder.is_dir():
-            raise FileNotFoundError(f"Folder not found: {folder_path}")
-
-        # 1. Load Configuration (Validate compatibility)
-        self._load_config(folder)
-
-        # 2. Load Data (Restore state)
-        self._load_data(folder)
-
-        # 3. Load Index (Restore vector search)
-        self._load_index_storage(folder)
-
-    # ==================== Serialization: Components ====================
-
-    def _save_config(self, folder: Path) -> None:
-        """Saves metadata, schema info, and instance parameters."""
-        config = {
-            "version": "1.0",
-            "type": self.__class__.__name__,
-            "schema": self._data_schema.__name__,
-            "params": {
-                "prompt": self.prompt,
-                "chunk_size": self.chunk_size,
-                "chunk_overlap": self.chunk_overlap,
-                "max_workers": self.max_workers,
-            },
-            "metadata": {
-                k: str(v) if isinstance(v, datetime) else v
-                for k, v in self.metadata.items()
-            },
-            "extra": self._get_extra_config_data(),
-        }
-
-        with open(folder / "config.json", "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
-
-    def _save_data(self, folder: Path) -> None:
-        """Saves the pure knowledge data."""
+        path = Path(file_path)
+        # Ensure parent directory exists
+        path.parent.mkdir(parents=True, exist_ok=True)
+        
         export_data = self.data.model_dump()
 
-        with open(folder / "data.json", "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False, default=str)
 
-    def _load_config(self, folder: Path) -> None:
-        """Loads and validates configuration."""
-        config_path = folder / "config.json"
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config file not found: {config_path}")
+    def load_data(self, file_path: str | Path) -> None:
+        """Loads data from disk and restores internal state.
+        
+        Args:
+            file_path: Source file path containing data (e.g., "data.json").
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Data file not found: {path}")
 
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-
-        # Strict schema validation - raise error if mismatch
-        if config.get("schema") != self._data_schema.__name__:
-            raise ValueError(
-                f"Schema mismatch: Expected '{self._data_schema.__name__}', "
-                f"but found '{config.get('schema')}' in config.json"
-            )
-
-        # Restore metadata
-        if "metadata" in config:
-            self.metadata.update(config["metadata"])
-
-        # Restore extra config
-        if "extra" in config:
-            self._load_extra_config_data(config["extra"])
-
-    def _load_data(self, folder: Path) -> None:
-        """Loads data and restores internal state."""
-        data_path = folder / "data.json"
-        if not data_path.exists():
-            raise FileNotFoundError(f"Data file not found: {data_path}")
-
-        with open(data_path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             raw_data = json.load(f)
 
         # Validate and Set State
@@ -468,48 +386,26 @@ class BaseAutoType(ABC, Generic[T]):
         self._set_data_state(validated_data)
 
     @abstractmethod
-    def _dump_index_storage(self, folder: Path) -> None:
-        """HOOK: Save vector index to disk.
+    def dump_index(self, folder_path: str | Path) -> None:
+        """Save vector index to disk.
 
         Subclasses must implement to support their specific vector store
         (FAISS, Chroma, Pinecone, etc.).
 
         Args:
-            folder: Target folder for saving index files.
+            folder_path: Target folder path for saving index files.
         """
         pass
 
     @abstractmethod
-    def _load_index_storage(self, folder: Path) -> None:
-        """HOOK: Load vector index from disk.
+    def load_index(self, folder_path: str | Path) -> None:
+        """Load vector index from disk.
 
         Subclasses must implement to support their specific vector store
         (FAISS, Chroma, Pinecone, etc.).
 
         Args:
-            folder: Source folder containing index files.
-        """
-        pass
-
-    # ==================== Serialization: Hooks ====================
-
-    def _get_extra_config_data(self) -> Dict[str, Any]:
-        """Hook to save subclass-specific configuration (not data).
-
-        Override this method to save subclass-specific config like merge strategy.
-
-        Returns:
-            Dictionary of extra config data.
-        """
-        return {}
-
-    def _load_extra_config_data(self, extra_config: Dict[str, Any]) -> None:
-        """Hook to load subclass-specific configuration.
-
-        Override this method to restore subclass-specific config.
-
-        Args:
-            extra_config: Extra configuration data from config.json.
+            folder_path: Source folder path containing index files.
         """
         pass
 

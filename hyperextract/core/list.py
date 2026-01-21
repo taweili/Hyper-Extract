@@ -2,32 +2,26 @@
 
 from pathlib import Path
 from typing import (
-    List,
     Any,
+    List,
     Type,
+    Union,
     TypeVar,
     Generic,
-    TYPE_CHECKING,
     Iterator,
     Callable,
     Iterable,
-    Union,
+    TYPE_CHECKING,
 )
 from datetime import datetime
 from pydantic import BaseModel, Field, create_model
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.vectorstores import FAISS
 
 from .base import BaseAutoType
-
-try:
-    from hyperextract.config import logger
-except ImportError:
-    import logging
-
-    logger = logging.getLogger(__name__)
+from hyperextract.utils.logging import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)
@@ -97,6 +91,14 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 Field(default_factory=list, description="Item list"),
             ),
         )
+
+        # check fields_for_index validity
+        if self.fields_for_index:
+            for field_name in self.fields_for_index:
+                if field_name not in item_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in item schema '{item_schema.__name__}'"
+                    )
 
         super().__init__(
             data_schema=self.item_list_schema,
@@ -210,7 +212,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     def build_index(self) -> None:
         """Builds independent vector index for each item in the list.
-        
+
         If fields_for_index is specified, only those fields are indexed.
         Otherwise, all fields are indexed.
         """
@@ -228,12 +230,14 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             if self.fields_for_index:
                 # Only index specified fields
                 item_dict = item.model_dump()
-                indexed_fields = {k: v for k, v in item_dict.items() if k in self.fields_for_index}
+                indexed_fields = {
+                    k: v for k, v in item_dict.items() if k in self.fields_for_index
+                }
                 content = str(indexed_fields)
             else:
                 # Index all fields
                 content = item.model_dump_json()
-            
+
             documents.append(
                 Document(
                     page_content=content,
@@ -244,7 +248,9 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         if documents:
             try:
                 self._index = FAISS.from_documents(documents, self.embedder)
-                logger.info(f"Built FAISS index with {len(documents)} items (fields: {self.fields_for_index or 'all'})")
+                logger.info(
+                    f"Built FAISS index with {len(documents)} items (fields: {self.fields_for_index or 'all'})"
+                )
             except ImportError:
                 logger.error("FAISS not available. Install with: pip install faiss-cpu")
                 raise
@@ -283,17 +289,18 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== Index Storage ====================
 
-    def _dump_index_storage(self, folder: Path) -> None:
+    def dump_index(self, folder_path: str | Path) -> None:
         """Saves FAISS vector index to disk."""
         if self._index is None:
             return
+        folder = Path(folder_path)
+        folder.mkdir(parents=True, exist_ok=True)
         index_path = str(folder / "index")
         self._index.save_local(index_path)
 
-    def _load_index_storage(self, folder: Path) -> None:
+    def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
-        from langchain_community.vectorstores import FAISS
-
+        folder = Path(folder_path)
         index_path = folder / "index"
         if index_path.exists():
             try:

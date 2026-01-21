@@ -12,7 +12,7 @@ from typing import List, Any, Callable, TypeVar, Generic, Dict, Tuple, Optional
 from collections import defaultdict
 
 try:
-    from hyperextract.config import logger
+    from hyperextract.utils.logging import logger
 except ImportError:
     logger = logging.getLogger(__name__)
 

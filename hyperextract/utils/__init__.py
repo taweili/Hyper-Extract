@@ -8,6 +8,7 @@ from .merger import (
     FieldMerger,
     LLMMerger,
 )
+from .logging import logger, setup_logger
 
 __all__ = [
     "BaseMerger",
@@ -16,4 +17,6 @@ __all__ = [
     "KeepOldMerger",
     "FieldMerger",
     "LLMMerger",
+    "logger",
+    "setup_logger",
 ]
