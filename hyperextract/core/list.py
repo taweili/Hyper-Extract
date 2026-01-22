@@ -1,6 +1,5 @@
 """List Knowledge Pattern - extracts a collection of objects from text."""
 
-from pathlib import Path
 from typing import (
     Any,
     List,
@@ -12,6 +11,7 @@ from typing import (
     Iterable,
     TYPE_CHECKING,
 )
+from pathlib import Path
 from datetime import datetime
 from pydantic import BaseModel, Field, create_model
 from langchain_core.documents import Document
@@ -20,7 +20,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.vectorstores import FAISS
 
 from .base import BaseAutoType
-from hyperextract.utils.logging import logger
+from ..utils.logging import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)

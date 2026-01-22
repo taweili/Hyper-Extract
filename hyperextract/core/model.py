@@ -1,22 +1,16 @@
 """Unit Knowledge Pattern - extracts a single structured object from text."""
 
 from pathlib import Path
-from typing import List, Any, Type
 from datetime import datetime
+from typing import List, Any, Type
+from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
-from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 
 from .base import BaseAutoType, T
-
-try:
-    from hyperextract.utils.logging import logger
-except ImportError:
-    import logging
-
-    logger = logging.getLogger(__name__)
+from ..utils.logging import logger
 
 
 class AutoModel(BaseAutoType[T]):
@@ -70,7 +64,7 @@ class AutoModel(BaseAutoType[T]):
         """
         # Store strategy before calling super().__init__
         self._strategy_or_merger = strategy_or_merger
-        
+
         super().__init__(
             data_schema,
             llm_client,
@@ -214,7 +208,7 @@ class AutoModel(BaseAutoType[T]):
         """
         if not data_list:
             return self._data_schema()
-        
+
         if len(data_list) == 1:
             return data_list[0]
 

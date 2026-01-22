@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import TypeVar, Generic, Any, Dict, Type, List
-from datetime import datetime
 import json
+from pathlib import Path
+from datetime import datetime
 from pydantic import BaseModel
-from langchain_core.language_models.chat_models import BaseChatModel
+from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, Any, Dict, Type, List
 from langchain_core.embeddings import Embeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -419,19 +419,21 @@ class BaseAutoType(ABC, Generic[T]):
             try:
                 self.load_index(index_path)
             except Exception as e:
-                print(f"Warning: Failed to load vector index: {e}. You may need to rebuild_index().")
+                print(
+                    f"Warning: Failed to load vector index: {e}. You may need to rebuild_index()."
+                )
 
     # ==================== Serialization: Components ====================
 
     def dump_data(self, file_path: str | Path) -> None:
         """Saves the pure knowledge data to disk as JSON.
-        
+
         Args:
             file_path: Target file path for saving data (e.g., "data.json").
         """
         path = Path(file_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Use Pydantic's model_dump to serialize the schema
         export_data = self.data.model_dump()
 
@@ -440,7 +442,7 @@ class BaseAutoType(ABC, Generic[T]):
 
     def load_data(self, file_path: str | Path) -> None:
         """Loads data from disk and restores internal state.
-        
+
         Args:
             file_path: Source file path containing data (e.g., "data.json").
         """

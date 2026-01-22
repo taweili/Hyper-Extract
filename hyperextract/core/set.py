@@ -4,7 +4,6 @@ Provides automatic deduplication based on a user-specified unique key field.
 Supports multiple merge strategies including LLM-powered intelligent merging.
 """
 
-from pathlib import Path
 from typing import (
     Any,
     List,
@@ -15,15 +14,16 @@ from typing import (
     Callable,
     TYPE_CHECKING,
 )
+from pathlib import Path
 from datetime import datetime
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from pydantic import BaseModel, Field, create_model
-from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
+from langchain_core.language_models.chat_models import BaseChatModel
 
 from .base import BaseAutoType
-from hyperextract.utils.logging import logger
+from ..utils.logging import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)
