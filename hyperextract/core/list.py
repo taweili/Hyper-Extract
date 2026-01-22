@@ -5,7 +5,6 @@ from typing import (
     Any,
     List,
     Type,
-    Union,
     TypeVar,
     Generic,
     Iterator,
@@ -155,6 +154,14 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         return self._data
 
+    def empty(self) -> bool:
+        """Checks if the list is empty.
+
+        Returns:
+            True if no items are stored, False otherwise.
+        """
+        return len(self._data.items) == 0
+
     # ==================== State Management Lifecycle Hooks ====================
 
     def _init_data_state(self) -> None:
@@ -178,9 +185,11 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         For AutoList, incremental update means appending new items to existing list.
         """
-        if incoming_data.items:
-            merged_data = self.merge_batch_data([self._data, incoming_data])
-            self._data = merged_data
+        if self.empty():
+            self._set_data_state(incoming_data)
+        elif incoming_data.items:
+            # Optimization: directly extend list instead of creating new objects
+            self._data.items.extend(incoming_data.items)
             self.clear_index()
 
     def _init_index_state(self) -> None:
@@ -216,10 +225,10 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         If fields_for_index is specified, only those fields are indexed.
         Otherwise, all fields are indexed.
         """
-        items = self.items
-        if not items:
-            logger.warning("No items to index")
+        if self.empty():
             return
+
+        items = self.items
 
         if self._index is not None:
             return
@@ -293,24 +302,16 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """Saves FAISS vector index to disk."""
         if self._index is None:
             return
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
-        index_path = str(folder / "index")
-        self._index.save_local(index_path)
+        self._index.save_local(folder_path)
 
     def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
         folder = Path(folder_path)
-        index_path = folder / "index"
-        if index_path.exists():
-            try:
-                self._index = FAISS.load_local(
-                    str(index_path), self.embedder, allow_dangerous_deserialization=True
-                )
-            except Exception:
-                self._index = None
-        else:
-            self._index = None
+        if not folder.is_dir():
+            raise ValueError(f"Folder does not exist: {folder_path}")
+        self._index = FAISS.load_local(
+            str(folder), self.embedder, allow_dangerous_deserialization=True
+        )
 
     # ==================== Pythonic Sequence Operations ====================
 
@@ -318,7 +319,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """Returns the number of elements in the list."""
         return len(self.items)
 
-    def __getitem__(self, key: Union[int, slice]) -> Union[Item, "AutoList[Item]"]:
+    def __getitem__(self, key: int | slice) -> Item | "AutoList[Item]":
         """Support index access and slicing.
 
         Args:
@@ -544,7 +545,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def extend(self, items: Union[Iterable[Item], "AutoList[Item]"]) -> None:
+    def extend(self, items: Iterable[Item] | "AutoList[Item]") -> None:
         """Extend the list by appending multiple items.
 
         Args:
@@ -755,7 +756,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.metadata["updated_at"] = datetime.now()
 
     def sort(
-        self, key: Union[Callable[[Item], Any], None] = None, reverse: bool = False
+        self, key: Callable[[Item], Any] | None = None, reverse: bool = False
     ) -> None:
         """Sort the items in place.
 

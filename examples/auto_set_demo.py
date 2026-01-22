@@ -4,30 +4,35 @@
 使用RPG怪物图鉴场景展示LLM_MERGE策略如何智能合并来自多个来源的冲突信息。
 """
 
-import sys
-from pathlib import Path
+# import os
 
-# 添加项目根目录到 Python 路径
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-import os
-import io
+# import io
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
+from ontomem.merger import MergeStrategy
+
+
+# 添加项目根目录到 Python 路径
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from hyperextract import AutoSet
-from hyperextract.utils.merger import MergeStrategy
+
+import dotenv
+
+dotenv.load_dotenv()
 
 
 # 定义怪物信息的数据模型
 class MonsterEntry(BaseModel):
     """RPG游戏中的怪物信息"""
 
-    name: str = Field(
-        description="怪物的名称（例如：'地精小卒'、'洞穴巨魔'）"
-    )
+    name: str = Field(description="怪物的名称（例如：'地精小卒'、'洞穴巨魔'）")
     species: str | None = Field(
         None,
         description="怪物的种族分类（例如：'类人型'、'巨人'、'野兽'）",
@@ -36,28 +41,20 @@ class MonsterEntry(BaseModel):
         None,
         description="危险等级（1-10），用于评估战斗难度",
     )
-    habitats: str | None = Field(
-        None, 
-        description="怪物常见的栖息地或活动场所"
-    )
+    habitats: str | None = Field(None, description="怪物常见的栖息地或活动场所")
     characteristics: str | None = Field(
-        None,
-        description="怪物的外观特征和行为习性描述"
+        None, description="怪物的外观特征和行为习性描述"
     )
     weaknesses: str | None = Field(
-        None,
-        description="怪物对特定伤害类型或攻击方式的弱点"
+        None, description="怪物对特定伤害类型或攻击方式的弱点"
     )
-    loot_drops: str | None = Field(
-        None,
-        description="击败怪物可能掉落的物品和资源"
-    )
+    loot_drops: str | None = Field(None, description="击败怪物可能掉落的物品和资源")
 
 
 def main():
     # 初始化LLM和嵌入模型
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    embedder = OpenAIEmbeddings(base_url=os.getenv("OPENAI_BASE_URL"))
+    embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # 创建AutoSet，使用LLM_MERGE策略
     # 当同一个怪物在多个日志中出现时，LLM会智能合并冲突的信息
@@ -66,7 +63,7 @@ def main():
         llm_client=llm,
         embedder=embedder,
         key_extractor=lambda x: x.name,  # 基于怪物名称去重
-        strategy_or_merger="llm_prefer_incoming",
+        strategy_or_merger=MergeStrategy.LLM.PREFER_INCOMING,
         prompt="""从冒险者的日志记录中提取所有怪物的相关信息。
 
 对于每只怪物，请提供：
@@ -96,7 +93,6 @@ def main():
         
         还有森林狼群，非常聪明的野兽，它们似乎有高度的群体智能。危险等级4-5。
         """,
-        
         """
         【第二个冒险日记 - 深矿探险】
         日期：秋月18日
@@ -111,7 +107,6 @@ def main():
         巨魔在深处也出现了，但这次的巨魔看起来比森林里的那只更大更凶悍。
         它对寒冰魔法有抵抗力，但仍然惧怕火焰。危险等级估计8级。
         """,
-        
         """
         【第三个冒险日记 - 废墟遗迹】
         日期：秋月22日
@@ -125,7 +120,7 @@ def main():
         
         巨魔在这里也有据点，防守非常严密。这些可能是智商更高的个体。
         它们使用简单的工具和陷阱来狩猎冒险者。危险等级8-9。
-        """
+        """,
     ]
 
     print("=" * 80)
@@ -136,7 +131,7 @@ def main():
     print("\n[*] 正在处理冒险者日志...")
     for i, log in enumerate(adventurer_logs, 1):
         print(f"\n  处理日志 {i}...")
-        monster_codex.feed(log)  # 喂养数据
+        monster_codex.feed_text(log)  # 喂养数据
         print(f"  √ 目前已识别的怪物数量：{len(monster_codex)}")
 
     # 显示所有提取的怪物

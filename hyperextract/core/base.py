@@ -133,6 +133,15 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
+    @abstractmethod
+    def empty(self) -> bool:
+        """Checks if the knowledge base is currently empty.
+
+        Returns:
+            True if no data is stored, False otherwise.
+        """
+        pass
+
     # ==================== Data Management Operations ====================
 
     def clear(self):
@@ -351,7 +360,68 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== Serialization: Public Interface ====================
+    # ==================== Serialization: Orchestrator ====================
+
+    def dump(self, folder_path: str | Path) -> None:
+        """Saves the entire knowledge base (data, metadata, index) to a directory.
+
+        This is the main entry point for serialization. It creates a directory structure:
+            /folder_path
+              |-- data.json       (The structured knowledge data)
+              |-- metadata.json   (Metadata, localized config, timestamps)
+              |-- /index          (Vector store files, e.g., FAISS)
+
+        Args:
+            folder_path: Target directory path.
+        """
+        root = Path(folder_path)
+        root.mkdir(parents=True, exist_ok=True)
+
+        # 1. Save Core Data
+        self.dump_data(root / "data.json")
+
+        # 2. Save Metadata
+        self.dump_metadata(root / "metadata.json")
+
+        # 3. Save Index (Sub-folder)
+        # We perform a try-catch or check here because building an index is optional
+        index_path = root / "index"
+        if not index_path.exists():
+            index_path.mkdir()
+        try:
+            self.dump_index(index_path)
+        except Exception as e:
+            # If saving index fails (or isn't implemented/initialized), we treat it as non-fatal
+            # user can always rebuild_index()
+            print(f"Warning: Failed to save vector index: {e}")
+
+    def load(self, folder_path: str | Path) -> None:
+        """Loads the entire knowledge base from a directory.
+
+        Args:
+            folder_path: Source directory path.
+        """
+        root = Path(folder_path)
+        if not root.exists():
+            raise FileNotFoundError(f"Knowledge base directory not found: {root}")
+
+        # 1. Load Core Data (Critical)
+        self.load_data(root / "data.json")
+
+        # 2. Load Metadata (Optional but recommended)
+        meta_path = root / "metadata.json"
+        if meta_path.exists():
+            self.load_metadata(meta_path)
+
+        # 3. Load Index (Optional)
+        index_path = root / "index"
+        if index_path.exists() and any(index_path.iterdir()):
+            try:
+                self.load_index(index_path)
+            except Exception as e:
+                print(f"Warning: Failed to load vector index: {e}. You may need to rebuild_index().")
+
+    # ==================== Serialization: Components ====================
 
     def dump_data(self, file_path: str | Path) -> None:
         """Saves the pure knowledge data to disk as JSON.
@@ -360,9 +430,9 @@ class BaseAutoType(ABC, Generic[T]):
             file_path: Target file path for saving data (e.g., "data.json").
         """
         path = Path(file_path)
-        # Ensure parent directory exists
         path.parent.mkdir(parents=True, exist_ok=True)
         
+        # Use Pydantic's model_dump to serialize the schema
         export_data = self.data.model_dump()
 
         with open(path, "w", encoding="utf-8") as f:
@@ -384,6 +454,27 @@ class BaseAutoType(ABC, Generic[T]):
         # Validate and Set State
         validated_data = self._data_schema.model_validate(raw_data)
         self._set_data_state(validated_data)
+
+    def dump_metadata(self, file_path: str | Path) -> None:
+        """Saves metadata (timestamps, configs) to disk.
+
+        Args:
+            file_path: Target file path.
+        """
+        path = Path(file_path)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.metadata, f, indent=2, ensure_ascii=False, default=str)
+
+    def load_metadata(self, file_path: str | Path) -> None:
+        """Loads metadata from disk.
+
+        Args:
+            file_path: Source file path.
+        """
+        path = Path(file_path)
+        with open(path, "r", encoding="utf-8") as f:
+            params = json.load(f)
+            self.metadata.update(params)
 
     @abstractmethod
     def dump_index(self, folder_path: str | Path) -> None:

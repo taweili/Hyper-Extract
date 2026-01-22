@@ -7,6 +7,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 
 from .base import BaseAutoType, T
 
@@ -27,10 +28,14 @@ class AutoModel(BaseAutoType[T]):
 
     Key characteristics:
         - Extraction target: One unique structured object per document
-        - Merge strategy: Field-level update (Upsert/Patch) - first extraction wins,
-          subsequent extractions only fill missing fields
+        - Merge strategy: Configurable via MergeStrategy enum (supports LLM-powered intelligent merging)
+            * MERGE_FIELD: Non-null fields overwrite, lists append (simple field merge)
+            * LLM.BALANCED: LLM intelligently synthesizes both versions (default)
+            * LLM.PREFER_EXISTING: LLM synthesis but prioritizes original data
+            * LLM.PREFER_INCOMING: LLM synthesis but prioritizes new data
         - Indexing strategy: Each non-null field of the object is indexed independently
         - Processing: Uses LangChain native batch processing for efficient multi-chunk handling
+        - Advanced merging: All chunk extractions are treated as the same object, triggering merge logic
     """
 
     def __init__(
@@ -39,6 +44,7 @@ class AutoModel(BaseAutoType[T]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
+        strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
@@ -52,12 +58,19 @@ class AutoModel(BaseAutoType[T]):
             data_schema: Pydantic BaseModel subclass defining the object structure.
             llm_client: Language model client for extraction.
             embedder: Embedding model for vector indexing.
+            strategy_or_merger: Merge strategy for multi-chunk results. Can be:
+                - MergeStrategy enum value (e.g., MergeStrategy.MERGE_FIELD, MergeStrategy.LLM.BALANCED)
+                - Custom BaseMerger instance
+                Default: MergeStrategy.LLM.BALANCED (LLM intelligently synthesizes both versions)
             prompt: Custom extraction prompt (defaults to generic prompt).
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress information.
         """
+        # Store strategy before calling super().__init__
+        self._strategy_or_merger = strategy_or_merger
+        
         super().__init__(
             data_schema,
             llm_client,
@@ -68,6 +81,42 @@ class AutoModel(BaseAutoType[T]):
             max_workers=max_workers,
             show_progress=show_progress,
             **kwargs,
+        )
+
+        # Initialize merger after super().__init__
+        # Use a constant key extractor so all extractions are treated as the same object
+        self._constant_key = "singleton"
+        self._key_extractor = lambda x: self._constant_key
+
+        if isinstance(strategy_or_merger, BaseMerger):
+            self._merger = strategy_or_merger
+        else:
+            self._merger = create_merger(
+                strategy=strategy_or_merger,
+                key_extractor=self._key_extractor,
+                llm_client=llm_client,
+                item_schema=data_schema,
+                **kwargs,
+            )
+
+    def _create_empty_instance(self) -> "AutoModel[T]":
+        """Creates a new empty instance with the same configuration.
+
+        Overrides parent method to include AutoModel-specific parameters.
+
+        Returns:
+            New AutoModel instance.
+        """
+        return self.__class__(
+            data_schema=self._data_schema,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            strategy_or_merger=self._strategy_or_merger,
+            prompt=self.prompt,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            max_workers=self.max_workers,
+            show_progress=self.show_progress,
         )
 
     def _default_prompt(self) -> str:
@@ -88,6 +137,25 @@ class AutoModel(BaseAutoType[T]):
             The internal knowledge data as a Pydantic model instance.
         """
         return self._data
+
+    def empty(self) -> bool:
+        """Checks if the model is empty (all fields are None).
+
+        Returns:
+            True if no data is stored, False otherwise.
+        """
+        for field_name in self._data_schema.model_fields:
+            value = getattr(self._data, field_name)
+            # Check if the value is not considered empty
+            if (
+                value is not None
+                and value != ""
+                and value != []
+                and value != {}
+                and value != ()
+            ):
+                return False
+        return True
 
     # ==================== State Management Lifecycle Hooks ====================
 
@@ -116,42 +184,57 @@ class AutoModel(BaseAutoType[T]):
 
         For AutoModel, incremental update means filling missing fields, first extraction wins.
         """
-        merged_data = self.merge_batch_data([self._data, incoming_data])
-        self._data = merged_data
+        if self.empty():
+            self._data = incoming_data
+        else:
+            merged_data = self.merge_batch_data([self._data, incoming_data])
+            self._data = merged_data
         self.clear_index()
 
     # ==================== Core Methods ====================
 
     def merge_batch_data(self, data_list: List[T]) -> T:
-        """Pure data merge method implementing field-level update strategy.
+        """Merge multiple extracted objects using configured strategy.
 
-        Merge strategy: First extraction takes precedence. Subsequent extractions only fill
-        missing fields without overwriting existing values. Implemented using model_copy(update=...).
-        This is used to aggregate results from batch extraction across multiple chunks.
+        Leverages ontomem's merge strategies to intelligently combine results from
+        multiple chunks. All extractions are treated as the same object (singleton)
+        to trigger the merge logic.
+
+        Supported merge strategies:
+        - MERGE_FIELD: Non-null fields overwrite, lists append (simple field merge)
+        - LLM.BALANCED: LLM synthesizes both versions, balancing insights
+        - LLM.PREFER_EXISTING: LLM synthesis prioritizing original data
+        - LLM.PREFER_INCOMING: LLM synthesis prioritizing new data
 
         Args:
             data_list: List of extracted data objects from batch processing to merge.
 
         Returns:
-            A new merged knowledge object with all fields populated.
+            A new merged knowledge object with intelligently combined fields.
         """
-        result = data_list[0].model_copy()
+        if not data_list:
+            return self._data_schema()
+        
+        if len(data_list) == 1:
+            return data_list[0]
 
-        for item in data_list[1:]:
-            result = item.model_copy(update=result.model_dump(exclude_none=True))
+        # Use merger to combine all items
+        # Since all items have the same key ('singleton'), they will be grouped and merged
+        merged_results = self._merger.merge(data_list)
 
-        return result
+        # Return the first (and should be only) merged result
+        if merged_results:
+            return merged_results[0]
+        else:
+            # Fallback to first item if merger returns empty
+            return data_list[0]
 
     # ==================== Indexing & Query ====================
 
     def build_index(self):
         """Builds vector index from all non-null fields in the data object."""
         # Check if there's data to index
-        if len(self) == 0:
-            logger.warning("No data to index")
-            return
-
-        if self._index is not None:
+        if self.empty():
             return
 
         documents = []
@@ -179,8 +262,8 @@ class AutoModel(BaseAutoType[T]):
             List of relevant knowledge items (field-value dictionaries).
         """
         # Check if there's data to search
-        if len(self) == 0:
-            logger.warning("No items to search")
+        if not self.data.model_dump(exclude_none=True):
+            logger.warning("No data to search")
             return []
 
         if self._index is None:
@@ -206,26 +289,16 @@ class AutoModel(BaseAutoType[T]):
         """Saves FAISS vector index to disk."""
         if self._index is None:
             return
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
-        index_path = str(folder / "index")
-        self._index.save_local(index_path)
+        self._index.save_local(folder_path)
 
     def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
-        from langchain_community.vectorstores import FAISS
-
         folder = Path(folder_path)
-        index_path = folder / "index"
-        if index_path.exists():
-            try:
-                self._index = FAISS.load_local(
-                    str(index_path), self.embedder, allow_dangerous_deserialization=True
-                )
-            except Exception:
-                self._index = None
-        else:
-            self._index = None
+        if not folder.is_dir():
+            raise ValueError(f"Folder does not exist: {folder_path}")
+        self._index = FAISS.load_local(
+            str(folder), self.embedder, allow_dangerous_deserialization=True
+        )
 
     # ==================== Operators ====================
 

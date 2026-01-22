@@ -8,12 +8,12 @@ keywords = ["llm", "knowledge-extraction", "langchain", "faiss", "semantic-searc
 authors = [
     { name = "Yifan Feng", email = "evanfeng97@gmail.com" }
 ]
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache-2.0",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -27,7 +27,8 @@ dependencies = [
     "langchain-community>=0.4.1",
     "langchain-openai>=1.1.7",
     "loguru>=0.7.3",
-    "ontomem>=0.1.6",
+    "ontomem>=0.1.8",
+    "numpy>=2.4.1",
     "python-dotenv>=1.2.1",
 ]
 

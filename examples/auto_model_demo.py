@@ -16,6 +16,10 @@ from typing import List, Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from hyperextract import AutoModel
 
+import dotenv
+
+dotenv.load_dotenv()
+
 
 # 定义文档知识 Schema
 class DocumentSchema(BaseModel):
@@ -142,29 +146,29 @@ def main():
     print("\n[1] 生成测试文档...")
     document = generate_long_document()
     print(f"   文档长度: {len(document)} 字符")
-    print(f"   预计分块数: {len(document) // 200 + 1} 块 (chunk_size=200)")
+    print(f"   预计分块数: {len(document) // 500 + 1} 块 (chunk_size=500)")
 
     # 2. 初始化 LLM 和 Embedder
     print("\n[2] 初始化 LLM 和 Embedder...")
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm_client = ChatOpenAI(model="gpt-4o-mini")
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # 3. 创建 AutoModel 实例 (使用小的 chunk_size 测试多 chunk)
-    print("\n[3] 创建 AutoModel 实例 (chunk_size=200)...")
+    print("\n[3] 创建 AutoModel 实例 (chunk_size=500)...")
     a_document_model = AutoModel(
         data_schema=DocumentSchema,
-        llm_client=llm,
+        llm_client=llm_client,
         embedder=embedder,
-        chunk_size=200,  # 设置小的 chunk_size 来测试多 chunk 提取
+        chunk_size=500,  # 设置小的 chunk_size 来测试多 chunk 提取
         chunk_overlap=50,
         max_workers=5,
         show_progress=True,
     )
 
-    # 4. 提取知识 (使用 feed 模式)
-    print("\n[4] 提取知识 (使用 feed 模式)...")
+    # 4. 提取知识 (使用 feed_text 模式)
+    print("\n[4] 提取知识 (使用 feed_text 模式)...")
     print("-" * 80)
-    a_document_model.feed(document)
+    a_document_model.feed_text(document)
     extracted_data = a_document_model.data
     print("-" * 80)
 
@@ -181,15 +185,12 @@ def main():
     print(f"   结论: {extracted_data.conclusion[:100]}...")
     print(f"   关键词数量: {len(extracted_data.keywords)}")
 
-    # 6. 测试字段数量
-    print(f"\n[6] 知识字段数: {len(a_document_model)}")
-
-    # 7. 构建索引
-    print("\n[7] 构建向量索引...")
+    # 6. 构建索引
+    print("\n[6] 构建向量索引...")
     a_document_model.build_index()
 
-    # 8. 测试搜索
-    print("\n[8] 测试知识搜索...")
+    # 7. 测试搜索
+    print("\n[7] 测试知识搜索...")
     queries = [
         "研究的主要发现是什么",
         "使用了哪些研究方法",
@@ -204,32 +205,32 @@ def main():
             field_value = result[field_name]
             print(f"      [{i}] {field_name}: {str(field_value)[:80]}...")
 
-    # 9. 测试增量提取（feed 模式）
-    print("\n[9] 测试增量提取（feed 模式）...")
+    # 8. 测试增量提取（feed_text 模式）
+    print("\n[8] 测试增量提取（feed_text 模式）...")
     additional_text = """
     补充信息：
     本研究获得了国家自然科学基金支持，项目编号：NSFC-2023-12345。
     研究团队来自清华大学医学院和北京协和医院。
     """
     print("   添加补充文本...")
-    a_document_model.feed(additional_text)  # 使用 feed 自动合并
+    a_document_model.feed_text(additional_text)  # 使用 feed_text 自动合并
     print(f"   更新后的作者信息: {a_document_model.data.author}")
 
-    # 10. 保存知识
-    print("\n[10] 保存知识到文件...")
+    # 9. 保存知识
+    print("\n[9] 保存知识到文件...")
     save_path = Path(__file__).parent.parent / "temp" / "auto_model_demo"
     a_document_model.dump(str(save_path))
     print(f"   已保存到: {save_path}")
 
-    # 11. 重新加载测试
-    print("\n[11] 测试知识加载...")
+    # 10. 重新加载测试
+    print("\n[10] 测试知识加载...")
     a_loaded_document_model = AutoModel(
         data_schema=DocumentSchema,
-        llm_client=llm,
+        llm_client=llm_client,
         embedder=embedder,
     )
     a_loaded_document_model.load(str(save_path))
-    print(f"   加载成功! 字段数: {len(a_loaded_document_model)}")
+    print("   加载成功!")
     print(f"   标题: {a_loaded_document_model.data.title}")
 
     print("\n" + "=" * 80)

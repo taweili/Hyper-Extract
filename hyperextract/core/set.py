@@ -9,7 +9,6 @@ from typing import (
     Any,
     List,
     Type,
-    Union,
     TypeVar,
     Generic,
     Optional,
@@ -22,8 +21,6 @@ from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from pydantic import BaseModel, Field, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS
 
 from .base import BaseAutoType
 from hyperextract.utils.logging import logger
@@ -93,9 +90,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         embedder: Embeddings,
         key_extractor: Callable[[Item], Any],
         *,
-        strategy_or_merger: Union[
-            MergeStrategy, BaseMerger
-        ] = MergeStrategy.LLM.BALANCED,
+        strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
@@ -219,10 +214,15 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Returns:
             The internal knowledge data as a Pydantic model instance.
         """
-        if len(self.data.items) != len(self.items):
-            # Sync data from OMem
-            self._data = self.data_schema(items=self.items)
-        return self._data
+        return self.data_schema(items=self.items)
+
+    def empty(self) -> bool:
+        """Checks if the set is empty.
+
+        Returns:
+            True if no items are stored, False otherwise.
+        """
+        return self._data_memory.empty()
 
     @property
     def items(self) -> List[Item]:
@@ -249,7 +249,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         INIT/RESET: Initialize or reset OMem as empty.
         Called during __init__ and when clear() is called.
         """
-        self._data = self.item_set_schema()
         self._data_memory.clear()
 
     def _init_index_state(self) -> None:
@@ -274,7 +273,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         AutoSet optimizes this by directly adding items to OMem, which
         handles deduplication and merging internally.
         """
-        if incoming_data.items:
+        if self.empty():
+            self._set_data_state(incoming_data)
+        elif incoming_data.items:
             self._data_memory.add(incoming_data.items)
             self.clear_index()
 
@@ -313,9 +314,13 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Indexing & Query ====================
 
-    def build_index(self) -> None:
-        """Builds independent vector index for each item in the set."""
-        self._data_memory.build_index()
+    def build_index(self, force: bool = False) -> None:
+        """Build/rebuild independent vector index for each item in the set.
+
+        Args:
+            force: If True, forces rebuilding the index even if it already exists.
+        """
+        self._data_memory.build_index(force=force)
 
     def search(self, query: str, top_k: int = 3) -> List[Item]:
         """Searches items in the set using semantic similarity.
@@ -336,15 +341,11 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     def dump_index(self, folder_path: str | Path) -> None:
         """Saves FAISS vector index to disk."""
-        if self._index is None:
-            return
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
-        self._data_memory.dump(folder)
+        self._data_memory.dump_index(Path(folder_path))
 
     def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
-        self._data_memory.load(Path(folder_path))
+        self._data_memory.load_index(Path(folder_path))
 
     def __len__(self) -> int:
         """Returns the number of unique items in the set."""
@@ -447,8 +448,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Args:
             items: List of items to add.
         """
-        for item in items:
-            self.add(item)
+        self.add(items)
 
     def discard(self, key: Any) -> None:
         """Removes an item by its unique key value, silently ignoring if not found.
