@@ -315,32 +315,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     def build_index(self) -> None:
         """Builds independent vector index for each item in the set."""
-        items = self.items
-        if not items:
-            logger.warning("No items to index")
-            return
-
-        if self._index is not None:
-            return
-
-        documents = []
-        for idx, item in enumerate(items):
-            # Serialize each Item as a Document
-            content = item.model_dump_json()  # Use JSON string as content
-            documents.append(
-                Document(
-                    page_content=content,
-                    metadata={"raw": item.model_dump(), "index": idx},
-                )
-            )
-
-        if documents:
-            try:
-                self._index = FAISS.from_documents(documents, self.embedder)
-                logger.info(f"Built FAISS index with {len(documents)} items")
-            except ImportError:
-                logger.error("FAISS not available. Install with: pip install faiss-cpu")
-                raise
+        self._data_memory.build_index()
 
     def search(self, query: str, top_k: int = 3) -> List[Item]:
         """Searches items in the set using semantic similarity.
@@ -355,24 +330,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         if not self.items:
             logger.warning("No items to search")
             return []
-
-        if self._index is None:
-            raise Exception("Vector store not initialized")
-
-        docs = self._index.similarity_search(query, k=top_k)
-        results: List[Item] = []
-        for doc in docs:
-            # Attempt to restore as object
-            try:
-                raw = doc.metadata.get("raw", {})
-                item = self.item_schema.model_validate(raw)
-                results.append(item)
-            except Exception as e:
-                logger.warning(f"Failed to restore item: {e}")
-                results.append(doc.metadata.get("raw"))
-
-        logger.info(f"Found {len(results)} results for query: {query[:50]}...")
-        return results
+        return self._data_memory.search(query, top_k=top_k)
 
     # ==================== Index Storage ====================
 
@@ -382,24 +340,11 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             return
         folder = Path(folder_path)
         folder.mkdir(parents=True, exist_ok=True)
-        index_path = str(folder / "index")
-        self._index.save_local(index_path)
+        self._data_memory.dump(folder)
 
     def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
-        from langchain_community.vectorstores import FAISS
-
-        folder = Path(folder_path)
-        index_path = folder / "index"
-        if index_path.exists():
-            try:
-                self._index = FAISS.load_local(
-                    str(index_path), self.embedder, allow_dangerous_deserialization=True
-                )
-            except Exception:
-                self._index = None
-        else:
-            self._index = None
+        self._data_memory.load(Path(folder_path))
 
     def __len__(self) -> int:
         """Returns the number of unique items in the set."""
