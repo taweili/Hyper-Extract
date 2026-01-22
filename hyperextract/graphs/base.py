@@ -4,15 +4,12 @@ Provides automatic deduplication for both nodes and edges using OMem.
 Supports single-stage and two-stage extraction strategies with consistency validation.
 """
 
-from typing import Any, List, Type, Tuple, Callable, TypeVar, Generic, TYPE_CHECKING
+from typing import Any, List, Type, Tuple, Callable, TypeVar, Generic, TYPE_CHECKING, Union
 from pathlib import Path
-from datetime import datetime
 from pydantic import BaseModel, Field, create_model
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 
@@ -20,18 +17,40 @@ from ..core.base import BaseAutoType
 from ..utils.logging import logger
 
 
-NodeItem = TypeVar("NodeItem", bound=BaseModel)
-EdgeItem = TypeVar("EdgeItem", bound=BaseModel)
+Node = TypeVar("Node", bound=BaseModel)
+Edge = TypeVar("Edge", bound=BaseModel)
 
 
-class AutoGraphSchema(BaseModel, Generic[NodeItem, EdgeItem]):
+class AutoGraphSchema(BaseModel, Generic[Node, Edge]):
     """Generic schema container for graph-based knowledge patterns."""
 
-    nodes: List[NodeItem] = Field(default_factory=list, description="Graph nodes/entities")
-    edges: List[EdgeItem] = Field(default_factory=list, description="Graph edges/relationships")
+    nodes: List[Node] = Field(
+        default_factory=list, description="Graph nodes/entities"
+    )
+    edges: List[Edge] = Field(
+        default_factory=list, description="Graph edges/relationships"
+    )
 
 
-class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeItem, EdgeItem]):
+class NodeListSchema(BaseModel, Generic[Node]):
+    """Intermediate schema for batch node extraction."""
+    items: List[Node] = Field(
+        default_factory=list,
+        description="List of identified entities or nodes found in the text."
+    )
+
+
+class EdgeListSchema(BaseModel, Generic[Edge]):
+    """Intermediate schema for batch edge extraction."""
+    items: List[Edge] = Field(
+        default_factory=list,
+        description="List of identified relationships or edges found in the text."
+    )
+
+
+class AutoGraph(
+    BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]
+):
     """AutoGraph - extracts knowledge graphs with nodes and edges from text.
 
     This pattern extracts structured knowledge graphs consisting of entities (nodes) and
@@ -72,20 +91,21 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
     """
 
     if TYPE_CHECKING:
-        graph_schema: Type[AutoGraphSchema[NodeItem, EdgeItem]]
+        graph_schema: Type[AutoGraphSchema[Node, Edge]]
 
     def __init__(
         self,
-        node_schema: Type[NodeItem],
-        edge_schema: Type[EdgeItem],
-        node_key_extractor: Callable[[NodeItem], str],
-        edge_key_extractor: Callable[[EdgeItem], str],
-        edge_to_nodes_extractor: Callable[[EdgeItem], Tuple[str, str]],
+        node_schema: Type[Node],
+        edge_schema: Type[Edge],
+        node_key_extractor: Callable[[Node], str],
+        edge_key_extractor: Callable[[Edge], str],
+        edge_to_nodes_extractor: Callable[[Edge], Tuple[str, str]],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
         extraction_mode: str = "one_stage",
-        node_strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
+        node_strategy_or_merger: MergeStrategy
+        | BaseMerger = MergeStrategy.LLM.BALANCED,
         edge_strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.MERGE_FIELD,
         repair_strategy: str = "drop",  # "drop" or "create_ghost"
         prompt: str = "",
@@ -93,6 +113,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
+        **kwargs: Any,
     ):
         """Initialize AutoGraph with node/edge schemas and configuration.
 
@@ -113,6 +134,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress.
+            **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
+                      a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
         # Store schemas and extractors
         self.node_schema = node_schema
@@ -123,12 +146,20 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         self.extraction_mode = extraction_mode
         self.repair_strategy = repair_strategy
 
-        # Create dynamic GraphSchema container
+        # Create dynamic GraphSchema containers
         graph_schema_name = f"{node_schema.__name__}{edge_schema.__name__}Graph"
         self.graph_schema = create_model(
             graph_schema_name,
             nodes=(List[node_schema], Field(default_factory=list)),
             edges=(List[edge_schema], Field(default_factory=list)),
+        )
+
+        # Create schema for list extraction (two-stage mode) with 'items' field
+        self.node_list_schema = create_model(
+            "NodeList", items=(List[node_schema], Field(default_factory=list, description="Extracted nodes"))
+        )
+        self.edge_list_schema = create_model(
+            "EdgeList", items=(List[edge_schema], Field(default_factory=list, description="Extracted edges"))
         )
 
         # Initialize Node Merger
@@ -140,6 +171,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
                 key_extractor=node_key_extractor,
                 llm_client=llm_client,
                 item_schema=node_schema,
+                **kwargs,  # Pass additional arguments to create_merger
             )
 
         # Initialize Edge Merger
@@ -151,6 +183,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
                 key_extractor=edge_key_extractor,
                 llm_client=llm_client,
                 item_schema=edge_schema,
+                **kwargs,  # Pass additional arguments to create_merger
             )
 
         # Initialize OMem instances (Before super().__init__)
@@ -184,7 +217,6 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
             show_progress=show_progress,
         )
 
-
     def _default_prompt(self) -> str:
         """Returns the default extraction prompt based on extraction mode."""
         if self.extraction_mode == "one_stage":
@@ -203,37 +235,53 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
             )
 
     @property
-    def data(self) -> AutoGraphSchema[NodeItem, EdgeItem]:
+    def data(self) -> AutoGraphSchema[Node, Edge]:
         """Returns the current graph state (nodes and edges).
 
         Returns:
             AutoGraphSchema containing all nodes and edges.
         """
         return self.graph_schema(
-            nodes=self._node_memory.items,
-            edges=self._edge_memory.items
+            nodes=self._node_memory.items, edges=self._edge_memory.items
         )
 
-    def empty(self) -> bool:
-        """Checks if the graph is empty (no nodes and no edges).
+    @property
+    def nodes(self) -> List[Node]:
+        """Returns the current node collection.
 
         Returns:
-            True if both node and edge collections are empty, False otherwise.
+            List of nodes.
         """
-        return len(self._node_memory.items) == 0 and len(self._edge_memory.items) == 0
+        return self._node_memory.items
+
+    @property
+    def edges(self) -> List[Edge]:
+        """Returns the current edge collection.
+
+        Returns:
+            List of edges.
+        """
+        return self._edge_memory.items
+
+    def empty(self) -> bool:
+        """Checks if the graph is empty (no nodes).
+
+        Returns:
+            True if node collections are empty, False otherwise.
+        """
+        return self._node_memory.empty()
 
     # ==================== State Management Lifecycle Hooks ====================
 
     def _init_data_state(self) -> None:
         """Initialize or reset graph data structures."""
-        if hasattr(self, '_node_memory'):
-            self._node_memory.clear()
-        if hasattr(self, '_edge_memory'):
-            self._edge_memory.clear()
+        self._node_memory.clear()
+        self._edge_memory.clear()
 
     def _init_index_state(self) -> None:
         """Initialize vector index to empty state."""
-        self._index = None
+        self._node_memory.clear_index()
+        self._edge_memory.clear_index()
 
     def _set_data_state(self, data: AutoGraphSchema) -> None:
         """Replace graph data with new data (full reset).
@@ -243,12 +291,12 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         """
         self._node_memory.clear()
         self._edge_memory.clear()
-        
+
         if data.nodes:
             self._node_memory.add(data.nodes)
         if data.edges:
             self._edge_memory.add(data.edges)
-        
+
         self.clear_index()
 
     def _update_data_state(self, incoming_data: AutoGraphSchema) -> None:
@@ -278,16 +326,16 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
             Extracted and validated graph.
         """
         if self.extraction_mode == "one_stage":
-            raw_graph = self._extract_one_stage(text)
+            raw_graph = self._extract_data_by_one_stage(text)
         elif self.extraction_mode == "two_stage":
-            raw_graph = self._extract_two_stage(text)
+            raw_graph = self._extract_data_by_two_stage(text)
         else:
             raise ValueError(f"Invalid extraction_mode: {self.extraction_mode}")
 
         # Validate and repair graph consistency
         return self._validate_and_repair(raw_graph)
 
-    def _extract_one_stage(self, text: str) -> AutoGraphSchema:
+    def _extract_data_by_one_stage(self, text: str) -> AutoGraphSchema:
         """Extract nodes and edges simultaneously using single LLM call.
 
         Args:
@@ -317,121 +365,99 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         # Merge multiple graphs
         return self.merge_batch_data(graph_list)
 
-    def _extract_two_stage(self, text: str) -> AutoGraphSchema:
-        """Extract nodes first, then edges with node context.
+    def _extract_data_by_two_stage(self, text: str) -> AutoGraphSchema:
+        """Extract nodes first, then edges with node context (batch processing).
+
+        Process:
+        1. Split text into chunks.
+        2. Batch extract nodes for all chunks.
+        3. Batch extract edges for all chunks (using chunk-specific nodes as context).
+        4. Construct partial graphs (tuples of nodes/edges).
+        5. Merge all partial graphs into one global graph.
 
         Args:
             text: Input text.
 
         Returns:
-            Extracted graph with validated consistency.
+            Extracted and validated graph.
         """
-        # Stage 1: Extract nodes
-        nodes = self._extract_nodes(text)
-
-        # Stage 2: Extract edges with node context
-        edges = self._extract_edges(text, nodes)
-
-        return self.graph_schema(nodes=nodes, edges=edges)
-
-    def _extract_nodes(self, text: str) -> List[NodeItem]:
-        """Extract only nodes from text.
-
-        Args:
-            text: Input text.
-
-        Returns:
-            List of extracted nodes.
-        """
-        # Create a temporary schema containing only nodes
-        node_list_schema = create_model(
-            "NodeList",
-            nodes=(List[self.node_schema], Field(default_factory=list))
-        )
-
-        prompt_template = ChatPromptTemplate.from_template(
-            "Extract all entities/nodes from the following text:\n\n{chunk_text}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(node_list_schema)
-
+        # 1. Prepare chunks
         if len(text) <= self.chunk_size:
-            result = llm_chain.invoke({"chunk_text": text})
-            node_lists = [result.nodes]
+            chunks = [text]
         else:
             chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            results = llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
-            node_lists = [r.nodes for r in results]
 
-        # Merge nodes from all chunks
-        all_nodes = []
-        for node_list in node_lists:
-            all_nodes.extend(node_list)
+        # 2. Batch Extract Nodes (returns List[NodeListSchema])
+        chunk_node_lists = self._extract_nodes_batch(chunks)
 
-        # Deduplicate using temporary OMem (Reuse self.node_merger)
-        temp_mem = OMem(
-            memory_schema=self.node_schema,
-            key_extractor=self.node_key_extractor,
-            llm_client=self.llm_client,
-            embedder=self.embedder,
-            strategy_or_merger=self.node_merger,
-            verbose=False,
-        )
-        temp_mem.add(all_nodes)
-        return temp_mem.items
+        # 3. Batch Extract Edges (Context-aware, returns List[EdgeListSchema])
+        chunk_edge_lists = self._extract_edges_batch(chunks, chunk_node_lists)
 
-    def _extract_edges(self, text: str, nodes: List[NodeItem]) -> List[EdgeItem]:
-        """Extract edges given node context.
+        # 4. Construct Partial Graphs (Tuple format for merge optimization)
+        partial_graphs = []
+        for node_list_obj, edge_list_obj in zip(chunk_node_lists, chunk_edge_lists):
+            nodes = node_list_obj.items if node_list_obj else []
+            edges = edge_list_obj.items if edge_list_obj else []
+            partial_graphs.append((nodes, edges))
+
+        # 5. Global Merge (passes tuples to merge_batch_data)
+        return self.merge_batch_data(partial_graphs)
+
+    def _extract_nodes_batch(self, chunks: List[str]) -> List[Any]:
+        """Batch extract nodes from multiple text chunks.
 
         Args:
-            text: Input text.
-            nodes: List of known nodes to constrain edge extraction.
+            chunks: List of text chunks.
 
         Returns:
-            List of extracted edges.
+            List of NodeListSchema objects with extracted nodes.
         """
-        # Format node context
-        node_keys = [self.node_key_extractor(n) for n in nodes]
-        node_context = "Known entities: " + ", ".join(node_keys)
-
-        # Create edge list schema
-        edge_list_schema = create_model(
-            "EdgeList",
-            edges=(List[self.edge_schema], Field(default_factory=list))
+        prompt_template = ChatPromptTemplate.from_template(
+            "Extract all relevant entities/nodes from the following text:\n\n{chunk_text}"
         )
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            self.node_list_schema
+        )
+
+        inputs = [{"chunk_text": chunk} for chunk in chunks]
+        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
+
+    def _extract_edges_batch(self, chunks: List[str], node_lists: List[Any]) -> List[Any]:
+        """Batch extract edges using corresponding node lists as context.
+
+        Args:
+            chunks: List of text chunks.
+            node_lists: List of NodeListSchema objects (one per chunk).
+
+        Returns:
+            List of EdgeListSchema objects with extracted edges.
+        """
+        inputs = []
+        for chunk, node_list_obj in zip(chunks, node_lists):
+            nodes = node_list_obj.items if node_list_obj else []
+            if not nodes:
+                node_context = "No specific entities identified in this chunk."
+            else:
+                node_keys = [self.node_key_extractor(n) for n in nodes]
+                node_context = "Known entities: " + ", ".join(node_keys)
+
+            inputs.append({
+                "chunk_text": chunk,
+                "node_context": node_context
+            })
 
         prompt_template = ChatPromptTemplate.from_template(
-            f"Extract relationships/edges from the text.\n{node_context}\n"
-            "CONSTRAINT: Only extract edges between the entities listed above.\n\n"
-            "Text:\n{{chunk_text}}"
+            "Extract relationships/edges from the text based on the provided entities.\n"
+            "CONSTRAINT: Only extract edges connecting the provided entities. "
+            "Do not invent new entities.\n\n"
+            "{node_context}\n\n"
+            "Text:\n{chunk_text}"
         )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(edge_list_schema)
-
-        if len(text) <= self.chunk_size:
-            result = llm_chain.invoke({"chunk_text": text})
-            edge_lists = [result.edges]
-        else:
-            chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            results = llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
-            edge_lists = [r.edges for r in results]
-
-        # Merge edges
-        all_edges = []
-        for edge_list in edge_lists:
-            all_edges.extend(edge_list)
-
-        # Deduplicate (Reuse self.edge_merger)
-        temp_mem = OMem(
-            memory_schema=self.edge_schema,
-            key_extractor=self.edge_key_extractor,
-            llm_client=self.llm_client,
-            embedder=self.embedder,
-            strategy_or_merger=self.edge_merger,
-            verbose=False,
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            self.edge_list_schema
         )
-        temp_mem.add(all_edges)
-        return temp_mem.items
+
+        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _validate_and_repair(self, graph: AutoGraphSchema) -> AutoGraphSchema:
         """Validate graph consistency and repair dangling edges.
@@ -459,12 +485,16 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
                 refined_edges.append(edge)
             elif self.repair_strategy == "create_ghost":
                 # Create ghost nodes for missing endpoints
-                if not src_exists and src_key not in [self.node_key_extractor(g) for g in ghost_nodes]:
+                if not src_exists and src_key not in [
+                    self.node_key_extractor(g) for g in ghost_nodes
+                ]:
                     ghost_node = self._create_ghost_node(src_key)
                     ghost_nodes.append(ghost_node)
                     valid_node_keys.add(src_key)
 
-                if not dst_exists and dst_key not in [self.node_key_extractor(g) for g in ghost_nodes]:
+                if not dst_exists and dst_key not in [
+                    self.node_key_extractor(g) for g in ghost_nodes
+                ]:
                     ghost_node = self._create_ghost_node(dst_key)
                     ghost_nodes.append(ghost_node)
                     valid_node_keys.add(dst_key)
@@ -481,7 +511,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
 
         return self.graph_schema(nodes=all_nodes, edges=refined_edges)
 
-    def _create_ghost_node(self, node_key: str) -> NodeItem:
+    def _create_ghost_node(self, node_key: str) -> Node:
         """Create a minimal ghost node with only the key field populated.
 
         Args:
@@ -495,60 +525,53 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         for field_name, field_info in self.node_schema.model_fields.items():
             if field_info.is_required():
                 # Try to populate with key if field name matches common patterns
-                if field_name in ['id', 'name', 'key', 'entity', 'node_id']:
+                if field_name in ["id", "name", "key", "entity", "node_id"]:
                     node_dict[field_name] = node_key
                 else:
                     # Use default or empty value
                     node_dict[field_name] = ""
-        
+
         return self.node_schema(**node_dict)
 
     # ==================== Merge Logic ====================
 
-    def merge_batch_data(self, data_list: List[AutoGraphSchema]) -> AutoGraphSchema:
-        """Merge multiple graphs into one.
+    def merge_batch_data(
+        self, 
+        data_list_or_tuple: List[Union[AutoGraphSchema, Tuple[List[Node], List[Edge]]]]
+    ) -> AutoGraphSchema:
+        """Merge multiple graphs or node/edge tuples into one.
+
+        Supports two input formats:
+        - AutoGraphSchema objects (standard format)
+        - Tuples of (List[Node], List[Edge]) (optimization for batch processing)
 
         Args:
-            data_list: List of graphs to merge.
+            data_list_or_tuple: List of AutoGraphSchema or (nodes, edges) tuples.
 
         Returns:
             Merged graph.
         """
-        if not data_list:
-            return self.graph_schema()
+        if isinstance(data_list_or_tuple[0], AutoGraphSchema):
+            all_nodes, all_edges = [], []
 
-        if len(data_list) == 1:
-            return data_list[0]
+            for graph in data_list_or_tuple:
+                all_nodes.extend(graph.nodes)
+                all_edges.extend(graph.edges)
 
-        # Collect all nodes and edges
-        all_nodes = []
-        all_edges = []
-        for graph in data_list:
-            all_nodes.extend(graph.nodes)
-            all_edges.extend(graph.edges)
+        else:
+            assert len(data_list_or_tuple) == 2, "Invalid input format for batch merging"
+            nodes_list, edges_list = data_list_or_tuple[0], data_list_or_tuple[1]
+            assert isinstance(nodes_list[0], NodeListSchema), "Expected NodeListSchema in first element"
+            assert isinstance(edges_list[0], EdgeListSchema), "Expected EdgeListSchema in second element"
 
-        # Deduplicate using temporary OMem instances (Reuse mergers)
-        temp_node_mem = OMem(
-            memory_schema=self.node_schema,
-            key_extractor=self.node_key_extractor,
-            llm_client=self.llm_client,
-            embedder=self.embedder,
-            strategy_or_merger=self.node_merger,
-            verbose=False,
-        )
-        temp_node_mem.add(all_nodes)
+            all_nodes, all_edges = [], []
+            for nodes, edges in zip(nodes_list, edges_list):
+                all_nodes.extend(nodes.items)
+                all_edges.extend(edges.items)
 
-        temp_edge_mem = OMem(
-            memory_schema=self.edge_schema,
-            key_extractor=self.edge_key_extractor,
-            llm_client=self.llm_client,
-            embedder=self.embedder,
-            strategy_or_merger=self.edge_merger,
-            verbose=False,
-        )
-        temp_edge_mem.add(all_edges)
-
-        return self.graph_schema(nodes=temp_node_mem.items, edges=temp_edge_mem.items)
+        merged_nodes = self.node_merger.merge(all_nodes) if all_nodes else []
+        merged_edges = self.edge_merger.merge(all_edges) if all_edges else []
+        return self.graph_schema(nodes=merged_nodes, edges=merged_edges)
 
     # ==================== Indexing & Search ====================
 
@@ -565,11 +588,13 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         # Typically we index nodes; edges are optional
         if index_nodes:
             self._node_memory.build_index()
-        
+
         if index_edges:
             self._edge_memory.build_index()
 
-    def search(self, query: str, top_k: int = 3, search_type: str = "nodes") -> List[Any]:
+    def search(
+        self, query: str, top_k: int = 3, search_type: str = "nodes"
+    ) -> List[Any]:
         """Search the graph using semantic similarity.
 
         Args:
@@ -593,7 +618,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
         """Save indices to disk."""
         folder = Path(folder_path)
         folder.mkdir(parents=True, exist_ok=True)
-        
+
         # Save node index
         node_index_path = folder / "node_index"
         node_index_path.mkdir(exist_ok=True)
@@ -613,7 +638,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeItem, EdgeItem]], Generic[NodeI
     def load_index(self, folder_path: str | Path) -> None:
         """Load indices from disk."""
         folder = Path(folder_path)
-        
+
         # Load node index
         node_index_path = folder / "node_index"
         if node_index_path.exists():
