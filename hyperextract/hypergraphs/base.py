@@ -118,6 +118,8 @@ class AutoHypergraph(
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
+        node_fields_for_index: List[str] | None = None,
+        edge_fields_for_index: List[str] | None = None,
         **kwargs: Any,
     ):
         """Initialize AutoHypergraph with node/edge schemas and configuration.
@@ -147,6 +149,12 @@ class AutoHypergraph(
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress.
+            node_fields_for_index: Optional list of field names in node_schema to include in vector index.
+                                   If None, all text fields are indexed by default.
+                                   Example: ['name', 'properties'] (only index these node fields)
+            edge_fields_for_index: Optional list of field names in edge_schema to include in vector index.
+                                   If None, all text fields are indexed by default.
+                                   Example: ['summary', 'type'] (only index these edge fields)
             **kwargs: Additional arguments for merger creation.
         """
         # Store schemas and extractors
@@ -158,6 +166,28 @@ class AutoHypergraph(
         self.extraction_mode = extraction_mode
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.max_workers = max_workers
+        self.show_progress = show_progress
+        self.node_fields_for_index = node_fields_for_index
+        self.edge_fields_for_index = edge_fields_for_index
+
+        # Validate node fields for index
+        if self.node_fields_for_index:
+            for field_name in self.node_fields_for_index:
+                if field_name not in node_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in node schema '{node_schema.__name__}'. "
+                        f"Available fields: {list(node_schema.model_fields.keys())}"
+                    )
+
+        # Validate edge fields for index
+        if self.edge_fields_for_index:
+            for field_name in self.edge_fields_for_index:
+                if field_name not in edge_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in edge schema '{edge_schema.__name__}'. "
+                        f"Available fields: {list(edge_schema.model_fields.keys())}"
+                    )
         self.max_workers = max_workers
         self.show_progress = show_progress
 
@@ -215,6 +245,7 @@ class AutoHypergraph(
             embedder=embedder,
             strategy_or_merger=self.node_merger,
             verbose=show_progress,
+            fields_for_index=node_fields_for_index,  # Pass node field selection to OMem
         )
 
         self._edge_memory = OMem(
@@ -224,6 +255,7 @@ class AutoHypergraph(
             embedder=embedder,
             strategy_or_merger=self.edge_merger,
             verbose=show_progress,
+            fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
 
         # Initialize Base Class
@@ -312,6 +344,8 @@ class AutoHypergraph(
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             show_progress=self.show_progress,
+            node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
+            edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
         )
 
     # ==================== State Management Lifecycle Hooks ====================

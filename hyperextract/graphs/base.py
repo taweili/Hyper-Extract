@@ -122,6 +122,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
+        node_fields_for_index: List[str] | None = None,
+        edge_fields_for_index: List[str] | None = None,
         **kwargs: Any,
     ):
         """Initialize AutoGraph with node/edge schemas and configuration.
@@ -144,6 +146,12 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress.
+            node_fields_for_index: Optional list of field names in node_schema to include in vector index.
+                                   If None, all text fields are indexed by default.
+                                   Example: ['name', 'description'] (only index these node fields)
+            edge_fields_for_index: Optional list of field names in edge_schema to include in vector index.
+                                   If None, all text fields are indexed by default.
+                                   Example: ['relation_type', 'description'] (only index these edge fields)
             **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
                       a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
@@ -154,6 +162,26 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         self.edge_key_extractor = edge_key_extractor
         self.nodes_in_edge_extractor = nodes_in_edge_extractor
         self.extraction_mode = extraction_mode
+        self.node_fields_for_index = node_fields_for_index
+        self.edge_fields_for_index = edge_fields_for_index
+
+        # Validate node fields for index
+        if self.node_fields_for_index:
+            for field_name in self.node_fields_for_index:
+                if field_name not in node_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in node schema '{node_schema.__name__}'. "
+                        f"Available fields: {list(node_schema.model_fields.keys())}"
+                    )
+
+        # Validate edge fields for index
+        if self.edge_fields_for_index:
+            for field_name in self.edge_fields_for_index:
+                if field_name not in edge_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in edge schema '{edge_schema.__name__}'. "
+                        f"Available fields: {list(edge_schema.model_fields.keys())}"
+                    )
 
         # Initialize prompts (use custom if provided, otherwise use defaults)
         self.node_prompt = prompt_for_node_extraction or self._default_node_prompt()
@@ -215,6 +243,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             embedder=embedder,
             strategy_or_merger=self.node_merger,
             verbose=show_progress,
+            fields_for_index=node_fields_for_index,  # Pass node field selection to OMem
         )
 
         self._edge_memory = OMem(
@@ -224,6 +253,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             embedder=embedder,
             strategy_or_merger=self.edge_merger,
             verbose=show_progress,
+            fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
 
         # Call parent init
@@ -268,6 +298,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             show_progress=self.show_progress,
+            node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
+            edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
         )
 
     @property

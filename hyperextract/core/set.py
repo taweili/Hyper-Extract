@@ -96,6 +96,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         chunk_overlap: int = 200,
         max_workers: int = 10,
         show_progress: bool = True,
+        fields_for_index: List[str] | None = None,
         **kwargs: Any,
     ):
         """Initialize AutoSet with key extractor and merge strategy.
@@ -113,12 +114,26 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
             show_progress: Whether to log progress information.
+            fields_for_index: Optional list of field names in item_schema to include in vector index.
+                             If None, all text fields are indexed by default.
+                             Useful for optimizing search on complex schemas. 
+                             Example: ['name', 'summary'] (only index these fields)
             **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
                       a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
 
-        # Store item_schema
+        # Store item_schema and index config
         self.item_schema = item_schema
+        self.fields_for_index = fields_for_index
+
+        # Validate fields_for_index if provided
+        if self.fields_for_index:
+            for field_name in self.fields_for_index:
+                if field_name not in item_schema.model_fields:
+                    raise ValueError(
+                        f"Field '{field_name}' not found in item schema '{item_schema.__name__}'. "
+                        f"Available fields: {list(item_schema.model_fields.keys())}"
+                    )
 
         # Create AutoSetSchema container dynamically (similar to AutoList's AutoListSchema)
         container_name = f"{item_schema.__name__}Set"
@@ -161,6 +176,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             embedder=embedder,
             strategy_or_merger=self._merger,
             verbose=show_progress,
+            fields_for_index=fields_for_index,  # Pass field selection to OMem
         )
 
         super().__init__(
@@ -182,7 +198,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         Overrides parent method to include AutoSet-specific parameters.
 
         Returns:
-            New AutoSet instance.
+            New AutoSet instance with identical configuration.
         """
         return self.__class__(
             item_schema=self.item_schema,
@@ -195,6 +211,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             show_progress=self.show_progress,
+            fields_for_index=self.fields_for_index,  # Persist index field configuration
         )
 
     def _default_prompt(self) -> str:
