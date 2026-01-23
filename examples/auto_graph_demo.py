@@ -21,7 +21,7 @@ sys.path.append(str(project_root))
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.graphs.base import AutoGraph
+from hyperextract.graphs import AutoGraph
 from ontomem import MergeStrategy
 
 import dotenv
@@ -29,24 +29,37 @@ import dotenv
 dotenv.load_dotenv()
 # ==================== 1. 定义游戏知识结构 (Schema) ====================
 
-class Player(BaseModel):
-    """玩家/角色节点"""
-    game_id: str = Field(description="游戏角色ID")
-    role_class: str = Field(description="职业/职责，如：坦克(Tank)、治疗(Healer)、法师(DPS)", default="未知")
-    guild: str = Field(description="所属公会", default="无公会")
+
+class GameEntity(BaseModel):
+    """游戏实体节点（包含玩家、BOSS、NPC、公会等）"""
+
+    name: str = Field(description="实体名称或ID，例如玩家ID、BOSS名、'星辰阁'")
+    category: str = Field(
+        description="实体类型，例如：'玩家', 'BOSS', '公会', '群体'", default="玩家"
+    )
+    info: str = Field(
+        description="职业、描述或状态，如'战神'、'最终BOSS'、'解散'", default="未知"
+    )
 
     def __repr__(self):
-        return f"🎮 ID:[{self.game_id}] 职业:<{self.role_class}> 公会:{self.guild}"
+        return f"🎮 [{self.category}] {self.name} <{self.info}>"
+
 
 class GameInteraction(BaseModel):
     """游戏互动边"""
-    source: str = Field(description="发起互动的玩家")
-    target: str = Field(description="互动的对象（玩家或BOSS）")
-    action_type: str = Field(description="互动类型：'治疗', '攻击', '抢装备', '辱骂', '踢出队伍', '拉入队伍'")
+
+    source: str = Field(description="发起互动的实体名称")
+    target: str = Field(description="互动的对象名称（可以是玩家、BOSS或公会）")
+    action_type: str = Field(
+        description="互动类型：'治疗', '攻击', '抢装备', '辱骂', '踢出队伍', '拉入队伍'"
+    )
     details: str = Field(description="具体的互动描述或原因")
 
     def __repr__(self):
-        return f"⚡ {self.source} --[{self.action_type}]--> {self.target} ({self.details})"
+        return (
+            f"⚡ {self.source} --[{self.action_type}]--> {self.target} ({self.details})"
+        )
+
 
 # ==================== 2. 模拟论坛爆料贴 (Data Source - 加长版) ====================
 
@@ -251,6 +264,7 @@ GAME_FORUM_POST = """
 
 # ==================== 3. 运行提取 ====================
 
+
 def run_demo():
     print("=" * 60)
     print("🕹️  正在加载游戏日志分析模块...")
@@ -263,49 +277,43 @@ def run_demo():
 
     # 创建 AutoGraph
     print("📊 构建 AutoGraph 实例...\n")
-    graph = AutoGraph[Player, GameInteraction](
-        node_schema=Player,
+    graph = AutoGraph[GameEntity, GameInteraction](
+        node_schema=GameEntity,
         edge_schema=GameInteraction,
-        
         # 1. ID 提取规则
-        node_key_extractor=lambda x: x.game_id,
+        node_key_extractor=lambda x: x.name,
         # 2. 互动唯一性规则
         edge_key_extractor=lambda x: f"{x.source}_{x.action_type}_{x.target}",
         # 3. 验证规则
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
-        
         llm_client=llm,
         embedder=embedder,
-        
         # 两阶段提取，适合处理这种连贯的剧情
         extraction_mode="two_stage",
-        
         # 智能合并：能识别 "主T" = "雷霆之怒" = "会长"
         node_strategy_or_merger=MergeStrategy.LLM.BALANCED,
-        
         # 针对游戏的特化提示词
         prompt_for_node_extraction=(
-            "提取文本中的游戏玩家和BOSS。注意识别ID、职业（如坦克/治疗/DPS）和公会归属。"
-            "将别名（如'会长'、'主T'、'奶妈'）统一合并到其主要游戏ID上。"
-            "提取玩家的真实身份（括号内的信息）。"
+            "提取文本中的所有游戏实体作为节点。关键：必须提取BOSS（如深渊魔龙）、公会（如星辰阁）以及关键玩家。"
+            "如果文中提到'全团'或'所有人'，也将其作为一个群体实体提取。"
+            "注意识别ID和别名，将别名（如'团长'）标准化为具体ID。"
         ),
         prompt_for_edge_extraction=(
-            "提取玩家之间和玩家与BOSS之间的互动行为。包括战斗行为（治疗/攻击/防守）、"
-            "社交行为（辱骂/踢人/拉人）以及物品分配（抢装备/黑装备）。"
-            "确保只记录文中明确发生的事件。重点关注有争议的互动。"
+            "提取实体之间的互动行为。"
+            "重要规则：互动中的 source 和 target 必须是你刚才提取过的实体名称。"
+            "例如，如果之前提取了节点'深渊魔龙'，那么攻击BOSS的互动 target 必须填'深渊魔龙'。"
         ),
-        
-        show_progress=True
+        show_progress=True,
     )
 
     print(f"\n📖 正在阅读游戏论坛爆料帖...")
     print("=" * 60)
     print(GAME_FORUM_POST[:200] + "...")
     print("=" * 60)
-    
+
     # 执行提取
     print("\n⚙️  执行两阶段提取...\n")
-    graph.extract(GAME_FORUM_POST)
+    graph.feed_text(GAME_FORUM_POST)
 
     # ==================== 4. 战报分析 ====================
 
@@ -326,15 +334,15 @@ def run_demo():
     print("-" * 60)
     for i, e in enumerate(graph.edges, 1):
         print(f"{i}. {e}")
-    
+
     # ==================== 5. 语义搜索 (查内鬼) ====================
 
     print("\n" + "=" * 60)
     print("🔍 游戏管理员(GM)调查查询模块")
     print("=" * 60)
-    
-    graph.build_index()  # 建立索引
-    
+
+    graph.build_index(index_nodes=True, index_edges=True)  # 建立索引
+
     # 场景1: 找谁拿了装备？
     q1 = "谁拿走了传说武器？"
     print(f"\n❓ Query: {q1}")
@@ -388,16 +396,17 @@ def run_demo():
         print(f"  (搜索出错: {e})")
 
     # ==================== 6. 保存知识图谱 ====================
-    
+
     print("\n" + "=" * 60)
     print("💾 保存知识图谱到本地...")
     print("=" * 60)
-    save_path = project_root / "temp" / "game_guild_graph"
+    save_path = project_root / "temp" / "auto_graph_demo"
     try:
         graph.dump(save_path)
         print(f"✅ 图谱已保存到: {save_path}")
     except Exception as e:
         print(f"⚠️  保存失败: {e}")
+
 
 if __name__ == "__main__":
     run_demo()

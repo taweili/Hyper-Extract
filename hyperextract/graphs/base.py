@@ -114,7 +114,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         extraction_mode: str = "one_stage",
         node_strategy_or_merger: MergeStrategy
         | BaseMerger = MergeStrategy.LLM.BALANCED,
-        edge_strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.MERGE_FIELD,
+        edge_strategy_or_merger: MergeStrategy
+        | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
         prompt_for_node_extraction: str = "",
         prompt_for_edge_extraction: str = "",
@@ -136,7 +137,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             embedder: Embedding model for vector indexing.
             extraction_mode: "one_stage" (extract nodes+edges together) or "two_stage" (nodes first, then edges).
             node_strategy_or_merger: Merge strategy for duplicate nodes (default: LLM.BALANCED).
-            edge_strategy_or_merger: Merge strategy for duplicate edges (default: MERGE_FIELD).
+            edge_strategy_or_merger: Merge strategy for duplicate edges (default: LLM.BALANCED).
             prompt: Custom extraction prompt for one-stage mode.
             prompt_for_node_extraction: Custom extraction prompt for two-stage node extraction.
             prompt_for_edge_extraction: Custom extraction prompt for two-stage edge extraction.
@@ -241,6 +242,34 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
     def _default_prompt(self) -> str:
         """Returns the default prompt for one-stage graph extraction."""
         return self._default_graph_prompt
+
+    def _create_empty_instance(self) -> "AutoGraph[Node, Edge]":
+        """Creates a new empty AutoGraph instance with the same configuration as this one.
+
+        Overrides parent method to handle AutoGraph-specific parameters.
+
+        Returns:
+            A new empty AutoGraph instance with identical configuration.
+        """
+        return self.__class__(
+            node_schema=self.node_schema,
+            edge_schema=self.edge_schema,
+            node_key_extractor=self.node_key_extractor,
+            edge_key_extractor=self.edge_key_extractor,
+            nodes_in_edge_extractor=self.nodes_in_edge_extractor,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            extraction_mode=self.extraction_mode,
+            node_strategy_or_merger=self.node_merger,
+            edge_strategy_or_merger=self.edge_merger,
+            prompt=self.prompt,
+            prompt_for_node_extraction=self.node_prompt,
+            prompt_for_edge_extraction=self.edge_prompt,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            max_workers=self.max_workers,
+            show_progress=self.show_progress,
+        )
 
     @property
     def _default_graph_prompt(self) -> str:
@@ -451,9 +480,10 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         chunk_edge_lists = self._extract_edges_batch(chunks, chunk_node_lists)
 
         # 4. Construct Partial Graphs (Tuple format for merge optimization)
-        partial_graphs = []
-        for node_list, edge_list in zip(chunk_node_lists, chunk_edge_lists):
-            partial_graphs.append((node_list.items, edge_list.items))
+        partial_graphs = (
+            [node_list.items for node_list in chunk_node_lists],
+            [edge_list.items for edge_list in chunk_edge_lists],
+        )
 
         # 5. Global Merge (passes tuples to merge_batch_data)
         return self.merge_batch_data(partial_graphs)
@@ -531,8 +561,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             src_key, dst_key = self.nodes_in_edge_extractor(edge)
 
             # Check if both endpoints exist
-            src_exists = src_key in valid_node_keys or src_key in self._node_memory
-            dst_exists = dst_key in valid_node_keys or dst_key in self._node_memory
+            src_exists = src_key in valid_node_keys or src_key in self._node_memory.keys
+            dst_exists = dst_key in valid_node_keys or dst_key in self._node_memory.keys
 
             if src_exists and dst_exists:
                 refined_edges.append(edge)
@@ -580,10 +610,10 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
                 "Invalid input format for batch merging"
             )
             nodes_lists, edges_lists = data_list_or_tuple[0], data_list_or_tuple[1]
-            assert isinstance(nodes_lists[0], Node), (
+            assert self.node_schema.model_validate(nodes_lists[0][0]), (
                 "Invalid node list format for batch merging"
             )
-            assert isinstance(edges_lists[0], Edge), (
+            assert self.edge_schema.model_validate(edges_lists[0][0]), (
                 "Invalid edge list format for batch merging"
             )
 
@@ -654,15 +684,25 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             )
 
         if search_nodes and search_edges:
+            if not self._node_memory.has_index():
+                raise ValueError("Node index not built. Call build_index() first.")
+            if not self._edge_memory.has_index():
+                raise ValueError("Edge index not built. Call build_index() first.")
             nodes = self.search_nodes(query, top_k)
             edges = self.search_edges(query, top_k)
             return (nodes, edges)
 
         if search_nodes:
-            return self.search_nodes(query, top_k)
+            if not self._node_memory.has_index():
+                raise ValueError("Node index not built. Call build_index() first.")
+            nodes = self.search_nodes(query, top_k)
+            return nodes
 
         if search_edges:
-            return self.search_edges(query, top_k)
+            if not self._edge_memory.has_index():
+                raise ValueError("Edge index not built. Call build_index() first.")
+            edges = self.search_edges(query, top_k)
+            return edges
 
     def search_nodes(self, query: str, top_k: int = 3) -> List[Node]:
         """Semantic search for nodes/entities only.

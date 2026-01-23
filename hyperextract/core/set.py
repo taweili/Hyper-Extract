@@ -335,6 +335,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         if not self.items:
             logger.warning("No items to search")
             return []
+        if not self._data_memory.has_index():
+            raise ValueError("Index not built. Call build_index() first.")
         return self._data_memory.search(query, top_k=top_k)
 
     # ==================== Index Storage ====================

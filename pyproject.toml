@@ -27,7 +27,7 @@ dependencies = [
     "langchain-community>=0.4.1",
     "langchain-openai>=1.1.7",
     "loguru>=0.7.3",
-    "ontomem>=0.1.8",
+    "ontomem>=0.1.9",
     "numpy>=2.4.1",
     "python-dotenv>=1.2.1",
 ]

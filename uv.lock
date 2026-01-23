@@ -587,7 +587,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=1.1.7" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "numpy", specifier = ">=2.4.1" },
-    { name = "ontomem", specifier = ">=0.1.8" },
+    { name = "ontomem", specifier = ">=0.1.9" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
 ]
 
@@ -1353,7 +1353,7 @@ wheels = [
 
 [[package]]
 name = "ontomem"
-version = "0.1.8"
+version = "0.1.9"
 source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/" }
 dependencies = [
     { name = "faiss-cpu" },
@@ -1365,9 +1365,9 @@ dependencies = [
     { name = "pytest" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/ef/56/f62f9cdcce9a9132f9bd0a56ba1684f78269926dcf1bcee19894e8c3d9be/ontomem-0.1.8.tar.gz", hash = "sha256:562885f7c10991604bbacbe957a77af824e73a1ed7ee610e06c48d52f0ce0d49", size = 2521167, upload-time = "2026-01-22T07:40:47.474Z" }
+sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/5b/03/6545152c7b899104452d2d4f1aa083eb7bb9fc69cce8095bb0cc1fb18cf0/ontomem-0.1.9.tar.gz", hash = "sha256:426020f97521241b497b584d30a2aa8649690d91e821853bedd026461a198285", size = 2521743, upload-time = "2026-01-23T06:02:56.283Z" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/cf/27/d2b1cabb64891a59de4917a903e3b02164de08b91853c1926c15e933e2ba/ontomem-0.1.8-py3-none-any.whl", hash = "sha256:71ae701d70870ec2dc4b52ed8dd77404f3df1f8ddab37ae3a53addcf55cf8d9a", size = 36913, upload-time = "2026-01-22T07:40:45.845Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/24/f3/52adb021f4ee8c82bbee998b1451d7355a4aa5ed2e853bcf7953bcf00b49/ontomem-0.1.9-py3-none-any.whl", hash = "sha256:d5dbbda0c9336b104b9c6a84486926ff5a0c917efd1206ba8746befd7a9a143a", size = 36992, upload-time = "2026-01-23T06:02:54.321Z" },
 ]
 
 [[package]]
