@@ -284,7 +284,7 @@ def run_demo():
         node_key_extractor=lambda x: x.name,
         # 2. 互动唯一性规则
         edge_key_extractor=lambda x: f"{x.source}_{x.action_type}_{x.target}",
-        # 3. 验证规则
+        # 3. 互动双方映射规则
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
         llm_client=llm,
         embedder=embedder,

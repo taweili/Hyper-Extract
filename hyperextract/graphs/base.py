@@ -13,7 +13,6 @@ from typing import (
     TypeVar,
     Generic,
     TYPE_CHECKING,
-    Union,
 )
 from pathlib import Path
 from pydantic import BaseModel, Field, create_model
@@ -584,16 +583,17 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
     def merge_batch_data(
         self,
-        data_list_or_tuple: List[Union[AutoGraphSchema, Tuple[List[Node], List[Edge]]]],
+        data_list_or_tuple: List[AutoGraphSchema] | Tuple[List[List[Node]], List[List[Edge]]],
     ) -> AutoGraphSchema:
         """Merge multiple graphs or node/edge tuples into one.
 
         Supports two input formats:
-        - AutoGraphSchema objects (standard format)
-        - Tuples of (List[Node], List[Edge]) (optimization for batch processing)
+        - List of AutoGraphSchema objects (standard format)
+        - Tuple of (List[List[Node]], List[List[Edge]]) (optimization for batch processing)
 
         Args:
-            data_list_or_tuple: List of AutoGraphSchema or (nodes, edges) tuples.
+            data_list_or_tuple: Either a list of AutoGraphSchema objects or a tuple of 
+                (nodes_lists, edges_lists) where each list contains items from multiple chunks.
 
         Returns:
             Merged graph.
@@ -657,7 +657,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         top_k: int = 3,
         search_nodes: bool = True,
         search_edges: bool = False,
-    ) -> Union[List[Node], List[Edge], Tuple[List[Node], List[Edge]]]:
+    ) -> List[Node] | List[Edge] | Tuple[List[Node], List[Edge]]:
         """Unified graph search interface.
 
         Supports searching nodes only, edges only, or both simultaneously.
