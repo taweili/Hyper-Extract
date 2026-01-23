@@ -58,7 +58,9 @@ class EdgeListSchema(BaseModel, Generic[Edge]):
     )
 
 
-class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Node, Edge]):
+class AutoHypergraph(
+    BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Node, Edge]
+):
     """AutoHypergraph - extracts complex relationships involving multiple entities.
 
     Suitable for:
@@ -168,7 +170,7 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
         self.graph_schema = create_model(
             graph_schema_name,
             nodes=(List[node_schema], Field(default_factory=list)),
-            hyperedges=(List[edge_schema], Field(default_factory=list)),
+            edges=(List[edge_schema], Field(default_factory=list)),
         )
 
         # Helper Schemas for Batch Extraction
@@ -229,7 +231,7 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
             data_schema=self.graph_schema,
             llm_client=llm_client,
             embedder=embedder,
-            prompt=prompt or self._default_edge_prompt(),
+            prompt=prompt or self._default_prompt(),
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
@@ -238,8 +240,34 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
 
     # ==================== Prompts ====================
 
+    def _default_prompt(self) -> str:
+        """Returns the default prompt for one-stage hypergraph extraction.
+        
+        This is the primary prompt used when extraction_mode is 'one_stage'.
+        """
+        return self._default_hypergraph_prompt
+
+    @property
+    def _default_hypergraph_prompt(self) -> str:
+        """Default prompt for one-stage hypergraph extraction (nodes + edges together).
+        
+        Emphasizes comprehensive extraction of both entities and multi-entity relationships.
+        For two-stage extraction, individual node and edge prompts are used instead.
+        """
+        return (
+            "You are an expert hypergraph knowledge extraction assistant. "
+            "Extract all entities (nodes) and their complex relationships (hyperedges) from the following text.\n\n"
+            "CRITICAL RULES:\n"
+            "1. Extract comprehensive Nodes (entities).\n"
+            "2. Extract Hyperedges that connect multiple (2 or more) nodes simultaneously.\n"
+            "3. STRUCTURAL CONSISTENCY: Every participant in a hyperedge MUST be present in the extracted Nodes list.\n"
+            "4. Do not create hyperedges involving entities that are not in the Nodes list.\n"
+            "5. A Hyperedge represents a Grouping, Event, or Complex Relation involving the listed participants.\n\n"
+            "### Source Text:\n"
+        )
+
     def _default_node_prompt(self) -> str:
-        """Default prompt for node extraction."""
+        """Default prompt for node extraction in two-stage mode."""
         return (
             "Extract all distinct entities from the text. "
             "Entities will serve as participants in complex events later.\n\n"
@@ -247,7 +275,7 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
         )
 
     def _default_edge_prompt(self) -> str:
-        """Default prompt for hyperedge extraction (multi-entity relationships)."""
+        """Default prompt for hyperedge extraction in two-stage mode."""
         return (
             "You are an expert hypergraph extraction assistant. "
             "Extract complex relationships (hyperedges) that involve MULTIPLE entities simultaneously.\n\n"
@@ -256,6 +284,34 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
             "2. Identify ALL participants for each relationship.\n"
             "3. ONLY use entities from the provided 'Known Entities' list.\n"
             "4. If an entity is not in the list, exclude it from the hyperedge.\n\n"
+        )
+
+    def _create_empty_instance(self) -> "AutoHypergraph[Node, Edge]":
+        """Creates a new empty AutoHypergraph instance with the same configuration.
+        
+        Overrides parent method to handle AutoHypergraph-specific parameters.
+
+        Returns:
+            A new empty AutoHypergraph instance with identical configuration.
+        """
+        return self.__class__(
+            node_schema=self.node_schema,
+            edge_schema=self.edge_schema,
+            node_key_extractor=self.node_key_extractor,
+            edge_key_extractor=self.edge_key_extractor,
+            nodes_in_edge_extractor=self.nodes_in_edge_extractor,
+            llm_client=self.llm_client,
+            embedder=self.embedder,
+            extraction_mode=self.extraction_mode,
+            node_strategy_or_merger=self.node_merger,
+            edge_strategy_or_merger=self.edge_merger,
+            prompt=self.prompt,
+            prompt_for_node_extraction=self.node_prompt,
+            prompt_for_edge_extraction=self.edge_prompt,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            max_workers=self.max_workers,
+            show_progress=self.show_progress,
         )
 
     # ==================== State Management Lifecycle Hooks ====================
@@ -321,7 +377,9 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
         if self.extraction_mode == "two_stage":
             raw_graph = self._extract_data_by_two_stage(text)
         elif self.extraction_mode == "one_stage":
-            raise NotImplementedError("Single-stage extraction not yet supported for AutoHypergraph.")
+            raise NotImplementedError(
+                "Single-stage extraction not yet supported for AutoHypergraph."
+            )
         else:
             raise ValueError(f"Invalid extraction_mode: {self.extraction_mode}")
 
@@ -397,7 +455,9 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
 
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
-    def _prune_dangling_edges(self, graph: AutoHypergraphSchema) -> AutoHypergraphSchema:
+    def _prune_dangling_edges(
+        self, graph: AutoHypergraphSchema
+    ) -> AutoHypergraphSchema:
         """Prune hyperedges where ANY participating node does not exist (Strict Consistency).
 
         Args:
@@ -408,7 +468,7 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
         """
         valid_nodes = graph.nodes
         valid_node_keys = {self.node_key_extractor(n) for n in valid_nodes}
-        
+
         # Also check long-term memory
         if self._node_memory:
             valid_node_keys.update(self._node_memory.keys)
@@ -447,7 +507,8 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
 
     def merge_batch_data(
         self,
-        data_list_or_tuple: List[AutoHypergraphSchema] | Tuple[List[List[Node]], List[List[Edge]]],
+        data_list_or_tuple: List[AutoHypergraphSchema]
+        | Tuple[List[List[Node]], List[List[Edge]]],
     ) -> AutoHypergraphSchema:
         """Merge multiple hypergraphs or node/edge tuples into one.
 
@@ -477,6 +538,12 @@ class AutoHypergraph(BaseAutoType[AutoHypergraphSchema[Node, Edge]], Generic[Nod
                 "Invalid input format for batch merging"
             )
             nodes_lists, edges_lists = data_list_or_tuple[0], data_list_or_tuple[1]
+            assert isinstance(nodes_lists[0][0], self.node_schema), (
+                "Invalid node list format for batch merging"
+            )
+            assert isinstance(edges_lists[0][0], self.edge_schema), (
+                "Invalid edge list format for batch merging"
+            )
 
             all_nodes, all_edges = [], []
             for node_list, edge_list in zip(nodes_lists, edges_lists):
