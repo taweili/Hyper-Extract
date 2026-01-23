@@ -126,15 +126,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         self.item_schema = item_schema
         self.fields_for_index = fields_for_index
 
-        # Validate fields_for_index if provided
-        if self.fields_for_index:
-            for field_name in self.fields_for_index:
-                if field_name not in item_schema.model_fields:
-                    raise ValueError(
-                        f"Field '{field_name}' not found in item schema '{item_schema.__name__}'. "
-                        f"Available fields: {list(item_schema.model_fields.keys())}"
-                    )
-
         # Create AutoSetSchema container dynamically (similar to AutoList's AutoListSchema)
         container_name = f"{item_schema.__name__}Set"
         self.item_set_schema = create_model(

@@ -165,24 +165,6 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         self.node_fields_for_index = node_fields_for_index
         self.edge_fields_for_index = edge_fields_for_index
 
-        # Validate node fields for index
-        if self.node_fields_for_index:
-            for field_name in self.node_fields_for_index:
-                if field_name not in node_schema.model_fields:
-                    raise ValueError(
-                        f"Field '{field_name}' not found in node schema '{node_schema.__name__}'. "
-                        f"Available fields: {list(node_schema.model_fields.keys())}"
-                    )
-
-        # Validate edge fields for index
-        if self.edge_fields_for_index:
-            for field_name in self.edge_fields_for_index:
-                if field_name not in edge_schema.model_fields:
-                    raise ValueError(
-                        f"Field '{field_name}' not found in edge schema '{edge_schema.__name__}'. "
-                        f"Available fields: {list(edge_schema.model_fields.keys())}"
-                    )
-
         # Initialize prompts (use custom if provided, otherwise use defaults)
         self.node_prompt = prompt_for_node_extraction or self._default_node_prompt()
         self.edge_prompt = prompt_for_edge_extraction or self._default_edge_prompt()
