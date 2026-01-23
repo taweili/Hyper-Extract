@@ -598,7 +598,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         Returns:
             Merged graph.
         """
-        if isinstance(data_list_or_tuple[0], AutoGraphSchema):
+        if isinstance(data_list_or_tuple[0], self.graph_schema):
             all_nodes, all_edges = [], []
 
             for graph in data_list_or_tuple:
@@ -610,10 +610,10 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
                 "Invalid input format for batch merging"
             )
             nodes_lists, edges_lists = data_list_or_tuple[0], data_list_or_tuple[1]
-            assert self.node_schema.model_validate(nodes_lists[0][0]), (
+            assert isinstance(nodes_lists[0][0], self.node_schema), (
                 "Invalid node list format for batch merging"
             )
-            assert self.edge_schema.model_validate(edges_lists[0][0]), (
+            assert isinstance(edges_lists[0][0], self.edge_schema), (
                 "Invalid edge list format for batch merging"
             )
 

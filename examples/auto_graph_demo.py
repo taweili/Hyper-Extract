@@ -347,7 +347,7 @@ def run_demo():
     q1 = "谁拿走了传说武器？"
     print(f"\n❓ Query: {q1}")
     try:
-        interactions = graph.search_edges(q1, top_k=2)
+        interactions = graph.search_edges(q1, top_k=3)
         if interactions:
             for i in interactions:
                 print(f"  🚨 {i}")
@@ -360,7 +360,7 @@ def run_demo():
     q2 = "谁是治疗职业的？"
     print(f"\n❓ Query: {q2}")
     try:
-        healers = graph.search_nodes(q2, top_k=2)
+        healers = graph.search_nodes(q2, top_k=3)
         if healers:
             for h in healers:
                 print(f"  🚑 {h}")
@@ -386,7 +386,7 @@ def run_demo():
     q4 = "谁是主坦克？"
     print(f"\n❓ Query: {q4}")
     try:
-        tanks = graph.search_nodes(q4, top_k=1)
+        tanks = graph.search_nodes(q4, top_k=3)
         if tanks:
             for t in tanks:
                 print(f"  🛡️  {t}")
