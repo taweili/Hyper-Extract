@@ -222,7 +222,7 @@ def main():
     print("[*] 保存怪物图鉴")
     print("=" * 80)
 
-    save_path = "temp/monster_codex"
+    save_path = project_root / "temp" / "auto_set_demo"
     monster_codex.dump(save_path)
     print(f"√ 已保存到：{save_path}")
     print("  - state.json（结构化数据）")

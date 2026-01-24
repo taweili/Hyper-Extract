@@ -31,6 +31,41 @@ Node = TypeVar("Node", bound=BaseModel)
 Edge = TypeVar("Edge", bound=BaseModel)  # Represents a Hyperedge
 
 
+# ============================================================================
+# Default Extraction Prompts
+# ============================================================================
+
+DEFAULT_HYPERGRAPH_PROMPT = """You are an expert hypergraph knowledge extraction assistant. 
+Extract all entities (nodes) and their complex relationships (hyperedges) from the following text.
+
+CRITICAL RULES:
+1. Extract comprehensive Nodes (entities).
+2. Extract Hyperedges that connect multiple (2 or more) nodes simultaneously.
+3. STRUCTURAL CONSISTENCY: Every participant in a hyperedge MUST be present in the extracted Nodes list.
+4. Do not create hyperedges involving entities that are not in the Nodes list.
+5. A Hyperedge represents a Grouping, Event, or Complex Relation involving the listed participants.
+
+### Source Text:
+"""
+
+DEFAULT_NODE_PROMPT = """Extract all distinct entities from the text. 
+Entities will serve as participants in complex events later.
+
+### Source Text:
+"""
+
+DEFAULT_EDGE_PROMPT = """You are an expert hypergraph extraction assistant. 
+Extract complex relationships (hyperedges) that involve MULTIPLE entities simultaneously.
+
+CRITICAL RULES:
+1. A hyperedge can connect 2, 3, or more entities (e.g., a meeting with multiple people).
+2. Identify ALL participants for each relationship.
+3. ONLY use entities from the provided 'Known Entities' list.
+4. If an entity is not in the list, exclude it from the hyperedge.
+
+"""
+
+
 class AutoHypergraphSchema(BaseModel, Generic[Node, Edge]):
     """Generic schema container for hypergraph data."""
 
@@ -175,8 +210,8 @@ class AutoHypergraph(
         self.verbose = verbose
 
         # Initialize prompts
-        self.node_prompt = prompt_for_node_extraction or self._default_node_prompt()
-        self.edge_prompt = prompt_for_edge_extraction or self._default_edge_prompt()
+        self.node_prompt = prompt_for_node_extraction or DEFAULT_NODE_PROMPT
+        self.edge_prompt = prompt_for_edge_extraction or DEFAULT_EDGE_PROMPT
 
         # Create dynamic HypergraphSchema
         graph_schema_name = f"{node_schema.__name__}{edge_schema.__name__}Hypergraph"
@@ -246,7 +281,7 @@ class AutoHypergraph(
             data_schema=self.graph_schema,
             llm_client=llm_client,
             embedder=embedder,
-            prompt=prompt or self._default_prompt(),
+            prompt=prompt or DEFAULT_HYPERGRAPH_PROMPT,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
@@ -257,52 +292,14 @@ class AutoHypergraph(
 
     def _default_prompt(self) -> str:
         """Returns the default prompt for one-stage hypergraph extraction.
-        
+
         This is the primary prompt used when extraction_mode is 'one_stage'.
         """
-        return self._default_hypergraph_prompt()
-
-    def _default_hypergraph_prompt(self) -> str:
-        """Default prompt for one-stage hypergraph extraction (nodes + edges together).
-        
-        Emphasizes comprehensive extraction of both entities and multi-entity relationships.
-        For two-stage extraction, individual node and edge prompts are used instead.
-        """
-        return (
-            "You are an expert hypergraph knowledge extraction assistant. "
-            "Extract all entities (nodes) and their complex relationships (hyperedges) from the following text.\n\n"
-            "CRITICAL RULES:\n"
-            "1. Extract comprehensive Nodes (entities).\n"
-            "2. Extract Hyperedges that connect multiple (2 or more) nodes simultaneously.\n"
-            "3. STRUCTURAL CONSISTENCY: Every participant in a hyperedge MUST be present in the extracted Nodes list.\n"
-            "4. Do not create hyperedges involving entities that are not in the Nodes list.\n"
-            "5. A Hyperedge represents a Grouping, Event, or Complex Relation involving the listed participants.\n\n"
-            "### Source Text:\n"
-        )
-
-    def _default_node_prompt(self) -> str:
-        """Default prompt for node extraction in two-stage mode."""
-        return (
-            "Extract all distinct entities from the text. "
-            "Entities will serve as participants in complex events later.\n\n"
-            "### Source Text:\n"
-        )
-
-    def _default_edge_prompt(self) -> str:
-        """Default prompt for hyperedge extraction in two-stage mode."""
-        return (
-            "You are an expert hypergraph extraction assistant. "
-            "Extract complex relationships (hyperedges) that involve MULTIPLE entities simultaneously.\n\n"
-            "CRITICAL RULES:\n"
-            "1. A hyperedge can connect 2, 3, or more entities (e.g., a meeting with multiple people).\n"
-            "2. Identify ALL participants for each relationship.\n"
-            "3. ONLY use entities from the provided 'Known Entities' list.\n"
-            "4. If an entity is not in the list, exclude it from the hyperedge.\n\n"
-        )
+        return DEFAULT_HYPERGRAPH_PROMPT
 
     def _create_empty_instance(self) -> "AutoHypergraph[Node, Edge]":
         """Creates a new empty AutoHypergraph instance with the same configuration.
-        
+
         Overrides parent method to handle AutoHypergraph-specific parameters.
 
         Returns:

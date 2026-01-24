@@ -38,7 +38,8 @@ class StoryEntity(BaseModel):
         description="实体类别: Character(人物), Location(地点), Item(物品), Faction(派系)",
     )
     description: str = Field(
-        default="", description="实体的详细描述，如 '黑蛇'(Character) 的角色是 Which Snake"
+        default="",
+        description="实体的详细描述，如 '黑蛇'(Character) 的角色是 Which Snake",
     )
 
 
@@ -124,7 +125,7 @@ def main():
     """主函数：完整的 AutoHypergraph 提取与分析流程"""
 
     # 初始化 LLM 和嵌入模型
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm_client = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
     # 1. 节点指纹：用名字即可
@@ -151,7 +152,7 @@ def main():
         node_key_extractor=node_key_fn,
         edge_key_extractor=edge_key_fn,
         nodes_in_edge_extractor=participants_fn,
-        llm_client=llm,
+        llm_client=llm_client,
         embedder=embedder,
         extraction_mode="two_stage",  # 推荐：先识别实体，再梳理故事线
         verbose=True,
