@@ -30,6 +30,8 @@ dependencies = [
     "ontomem>=0.1.9",
     "numpy>=2.4.1",
     "python-dotenv>=1.2.1",
+    "semhash>=0.3.2",
+    "sentence-transformers>=5.1",
 ]
 
 [dependency-groups]
