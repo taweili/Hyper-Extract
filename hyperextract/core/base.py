@@ -42,7 +42,7 @@ class BaseAutoType(ABC, Generic[T]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
     ):
         """Initialize the knowledge object with schema and processing configuration.
 
@@ -54,7 +54,7 @@ class BaseAutoType(ABC, Generic[T]):
             chunk_size: Maximum chunk size for splitting long texts.
             chunk_overlap: Number of overlapping characters between chunks.
             max_workers: Maximum number of concurrent extraction tasks.
-            show_progress: Whether to display progress information during processing.
+            verbose: Whether to display detailed execution logs and progress information.
         """
         self._data_schema = data_schema
         self.llm_client = llm_client
@@ -63,7 +63,7 @@ class BaseAutoType(ABC, Generic[T]):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_workers = max_workers
-        self.show_progress = show_progress
+        self.verbose = verbose
 
         # Initialize text splitter for chunking long documents
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -97,7 +97,7 @@ class BaseAutoType(ABC, Generic[T]):
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
         )
 
     @abstractmethod

@@ -113,7 +113,7 @@ def main():
         chunk_size=500,  # 设置小的 chunk_size 来测试多 chunk 提取
         chunk_overlap=50,
         max_workers=5,
-        show_progress=True,
+        verbose=True,
     )
 
     # 4. 提取知识 (使用 feed_text 模式)

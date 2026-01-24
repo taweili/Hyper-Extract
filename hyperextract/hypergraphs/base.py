@@ -117,7 +117,7 @@ class AutoHypergraph(
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
         node_fields_for_index: List[str] | None = None,
         edge_fields_for_index: List[str] | None = None,
         **kwargs: Any,
@@ -148,7 +148,7 @@ class AutoHypergraph(
             chunk_size: Maximum characters per chunk.
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
-            show_progress: Whether to log progress.
+            verbose: Whether to display detailed execution logs and progress information.
             node_fields_for_index: Optional list of field names in node_schema to include in vector index.
                                    If None, all text fields are indexed by default.
                                    Example: ['name', 'properties'] (only index these node fields)
@@ -167,12 +167,12 @@ class AutoHypergraph(
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_workers = max_workers
-        self.show_progress = show_progress
+        self.verbose = verbose
         self.node_fields_for_index = node_fields_for_index
         self.edge_fields_for_index = edge_fields_for_index
 
         self.max_workers = max_workers
-        self.show_progress = show_progress
+        self.verbose = verbose
 
         # Initialize prompts
         self.node_prompt = prompt_for_node_extraction or self._default_node_prompt()
@@ -227,7 +227,7 @@ class AutoHypergraph(
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=self.node_merger,
-            verbose=show_progress,
+            verbose=verbose,
             fields_for_index=node_fields_for_index,  # Pass node field selection to OMem
         )
 
@@ -237,7 +237,7 @@ class AutoHypergraph(
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=self.edge_merger,
-            verbose=show_progress,
+            verbose=verbose,
             fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
 
@@ -250,7 +250,7 @@ class AutoHypergraph(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
         )
 
     # ==================== Prompts ====================
@@ -260,9 +260,8 @@ class AutoHypergraph(
         
         This is the primary prompt used when extraction_mode is 'one_stage'.
         """
-        return self._default_hypergraph_prompt
+        return self._default_hypergraph_prompt()
 
-    @property
     def _default_hypergraph_prompt(self) -> str:
         """Default prompt for one-stage hypergraph extraction (nodes + edges together).
         
@@ -326,7 +325,7 @@ class AutoHypergraph(
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
             node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
             edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
         )
@@ -418,7 +417,7 @@ class AutoHypergraph(
         else:
             chunks = self.text_splitter.split_text(text)
 
-        if self.show_progress:
+        if self.verbose:
             logger.info(f"Extracting from {len(chunks)} chunks...")
 
         # 2. Batch Extract Nodes

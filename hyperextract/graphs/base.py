@@ -121,7 +121,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
         node_fields_for_index: List[str] | None = None,
         edge_fields_for_index: List[str] | None = None,
         **kwargs: Any,
@@ -145,7 +145,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             chunk_size: Maximum characters per chunk.
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
-            show_progress: Whether to log progress.
+            verbose: Whether to log progress.
             node_fields_for_index: Optional list of field names in node_schema to include in vector index.
                                    If None, all text fields are indexed by default.
                                    Example: ['name', 'description'] (only index these node fields)
@@ -224,7 +224,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=self.node_merger,
-            verbose=show_progress,
+            verbose=verbose,
             fields_for_index=node_fields_for_index,  # Pass node field selection to OMem
         )
 
@@ -234,7 +234,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=self.edge_merger,
-            verbose=show_progress,
+            verbose=verbose,
             fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
 
@@ -247,7 +247,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
         )
 
     def _default_prompt(self) -> str:
@@ -279,7 +279,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
             node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
             edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
         )

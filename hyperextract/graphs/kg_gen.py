@@ -7,11 +7,8 @@ Prompts are adapted from kg_gen/steps to ensure consistency with the original
 knowledge graph extraction logic.
 """
 
-import unicodedata
-from typing import List, Tuple, Dict
-from pydantic import BaseModel, Field
-
 from semhash import SemHash
+from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -113,7 +110,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
     ):
         """Initialize KGGenGraph.
 
@@ -123,7 +120,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             chunk_size: Characters per chunk
             chunk_overlap: Overlapping characters between chunks
             max_workers: Max concurrent extraction workers
-            show_progress: Whether to show progress logging
+            verbose: Display detailed execution logs and progress information
         """
 
         # 1. Define Key Extractors (critical for deduplication)
@@ -161,7 +158,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
         )
 
     def _deduplicate_graph(

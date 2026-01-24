@@ -43,7 +43,7 @@ class AutoModel(BaseAutoType[T]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
         **kwargs,
     ):
         """Initialize AutoModel with schema and configuration.
@@ -60,7 +60,7 @@ class AutoModel(BaseAutoType[T]):
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
-            show_progress: Whether to log progress information.
+            verbose: Whether to log progress information.
         """
         # Store strategy before calling super().__init__
         self._strategy_or_merger = strategy_or_merger
@@ -73,7 +73,7 @@ class AutoModel(BaseAutoType[T]):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
             **kwargs,
         )
 
@@ -110,7 +110,7 @@ class AutoModel(BaseAutoType[T]):
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
         )
 
     def _default_prompt(self) -> str:
@@ -343,7 +343,7 @@ class AutoModel(BaseAutoType[T]):
                 chunk_size=self.chunk_size,
                 chunk_overlap=self.chunk_overlap,
                 max_workers=self.max_workers,
-                show_progress=self.show_progress,
+                verbose=self.verbose,
             )
 
             # Set items from both units
@@ -375,7 +375,7 @@ class AutoModel(BaseAutoType[T]):
                 chunk_size=self.chunk_size,
                 chunk_overlap=self.chunk_overlap,
                 max_workers=self.max_workers,
-                show_progress=self.show_progress,
+                verbose=self.verbose,
             )
 
             # Prepend self to other's items

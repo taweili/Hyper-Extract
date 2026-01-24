@@ -73,7 +73,7 @@ def main():
     kg = KG_Gen(
         llm_client=llm,
         embedder=embedder,
-        show_progress=True,
+        verbose=True,
     )
 
     # 2. 提取
@@ -170,6 +170,34 @@ def main():
     
     for entity, count in entity_degree.most_common(5):
         print(f"  • {entity}: 参与 {count} 个关系")
+
+    # ============================================================================
+    # Save Results
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("Saving Results...")
+    print("=" * 70)
+
+    try:
+        import os
+        output_dir = "temp/kg_gen_demo"
+        kg.dump(output_dir)
+        print(f"✓ Results saved to {output_dir}/")
+        
+        # List saved files
+        saved_files = []
+        if os.path.exists(output_dir):
+            for root, dirs, files in os.walk(output_dir):
+                for file in files:
+                    rel_path = os.path.relpath(os.path.join(root, file), output_dir)
+                    saved_files.append(rel_path)
+        
+        if saved_files:
+            print("\n  Saved files:")
+            for f in saved_files:
+                print(f"    - {f}")
+    except Exception as e:
+        print(f"⚠ Warning: Could not save results: {str(e)}")
 
     print("\n" + "=" * 70)
     print("✨ 演示完成！")

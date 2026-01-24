@@ -154,7 +154,7 @@ def main():
         llm_client=llm,
         embedder=embedder,
         extraction_mode="two_stage",  # 推荐：先识别实体，再梳理故事线
-        show_progress=True,
+        verbose=True,
         # 使用中文 Prompt 引导 LLM
         prompt_for_node_extraction=(
             "你的任务是从故事文本中提取所有重要的实体节点。\n"

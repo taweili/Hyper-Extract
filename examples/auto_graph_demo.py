@@ -303,7 +303,7 @@ def run_demo():
             "重要规则：互动中的 source 和 target 必须是你刚才提取过的实体名称。"
             "例如，如果之前提取了节点'深渊魔龙'，那么攻击BOSS的互动 target 必须填'深渊魔龙'。"
         ),
-        show_progress=True,
+        verbose=True,
     )
 
     print(f"\n📖 正在阅读游戏论坛爆料帖...")

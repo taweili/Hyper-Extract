@@ -95,7 +95,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
         fields_for_index: List[str] | None = None,
         **kwargs: Any,
     ):
@@ -113,7 +113,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
-            show_progress: Whether to log progress information.
+            verbose: Whether to display detailed execution logs and progress information.
             fields_for_index: Optional list of field names in item_schema to include in vector index.
                              If None, all text fields are indexed by default.
                              Useful for optimizing search on complex schemas. 
@@ -166,7 +166,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=self._merger,
-            verbose=show_progress,
+            verbose=verbose,
             fields_for_index=fields_for_index,  # Pass field selection to OMem
         )
 
@@ -178,7 +178,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
         )
 
     # ==================== Override Instance Creation ====================
@@ -201,7 +201,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
             fields_for_index=self.fields_for_index,  # Persist index field configuration
         )
 

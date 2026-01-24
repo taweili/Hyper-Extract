@@ -62,7 +62,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        show_progress: bool = True,
+        verbose: bool = True,
         fields_for_index: List[str] | None = None,
     ):
         """Initialize AutoList with item schema and configuration.
@@ -75,7 +75,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
-            show_progress: Whether to log progress information.
+            verbose: Whether to log progress information.
             fields_for_index: Optional list of field names to include in vector index.
                              If None, all fields are indexed.
         """
@@ -107,7 +107,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
-            show_progress=show_progress,
+            verbose=verbose,
         )
 
     def _default_prompt(self) -> str:
@@ -141,7 +141,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
-            show_progress=self.show_progress,
+            verbose=self.verbose,
             fields_for_index=self.fields_for_index,
         )
 

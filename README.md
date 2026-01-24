@@ -103,7 +103,7 @@ a_article = AutoModel(
     embedder=embedder,
     chunk_size=2000,  # Auto-split long texts
     max_workers=5,    # Concurrent processing
-    show_progress=True
+    verbose=True
 )
 ```
 
