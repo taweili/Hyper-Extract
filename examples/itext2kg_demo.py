@@ -1,8 +1,8 @@
 """
-KGGenGraph 演示：知识图谱生成
+iText2KG 演示：高质量知识图谱提取
 
-这个演示展示了如何使用 KGGenGraph 从非结构化文本中提取简单的三元组知识图谱。
-KGGenGraph 是对 AutoGraph 的专用包装，优化了提示词和数据结构以支持三元组提取。
+这个演示展示了如何使用 iText2KG 从非结构化文本中提取结构化三元组。
+iText2KG 采用两阶段提取策略，并强制执行严格的语义 Schema。
 """
 
 import os
@@ -14,12 +14,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.graphs import KG_Gen
+from hyperextract.graphs import iText2KG
 
 load_dotenv()
 
 # ==============================================================================
-# 示例文本 - 来自真实场景的数据
+# 示例文本 - 来自真实场景的数据（长版本）
 # ==============================================================================
 
 EXAMPLE_TEXT = """
@@ -187,38 +187,6 @@ EXAMPLE_TEXT = """
 
 希望游戏官方能够严肃处理暗影刺客的违规行为。
 也希望星辰阁的所有成员能够吸取教训，在各自的新公会里找到快乐。
-
----
-
-【回复楼层】
-
-1楼：网络大侠
-妈呀，这比小说还精彩。我已经截图保存，等着看后续。
-
-2楼：游戏评论家
-我注意到"冰霜法咒"在这件事里也有可疑之处。为什么他突然停止输出？
-楼主，能不能深入调查一下他和暗影刺客的关系？
-
-3楼：前星辰阁成员（风云剑侠）
-我想出来说两句话。昨晚我在现场。
-真相是：小甜甜确实有偏心。但是暗影刺客黑装备这件事更过分。
-会长的反应虽然情绪化，但也能理解。
-我已经离开了星辰阁，现在申请加入"日月神教"这个新兴公会。
-
-4楼：月光治愈者（副奶妈）
-我想为自己辩解一下。我在昨晚的治疗中没有任何划水行为。
-是小甜甜的治疗分配有问题，不是我。
-顺便说一下，我现在还在星辰阁，因为我对公会有感情。
-但是我也不太确定会不会继续留下来。
-
-5楼：装备交易商
-这就是为什么装备交易需要系统中间作为担保的原因。
-建议官方加强对装备分配的监管。
-
-6楼：游戏社区版主
-这个帖子已经标记为"关键事件记录"。
-我们会持续关注这件事的后续发展。
-请各位不要进行人身攻击和骚扰。相关玩家可以选择转服。
 """
 
 # ==============================================================================
@@ -227,7 +195,7 @@ EXAMPLE_TEXT = """
 
 def main():
     print("=" * 70)
-    print("🎮 KGGenGraph 演示：从游戏事件提取知识图谱")
+    print("🎮 iText2KG 演示：结构化实体与关系提取")
     print("=" * 70)
     print()
 
@@ -236,8 +204,8 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
-    print("🚀 创建 KGGenGraph 实例...")
-    kg = KG_Gen(
+    print("🚀 创建 iText2KG 实例...")
+    kg = iText2KG(
         llm_client=llm,
         embedder=embedder,
         verbose=True,
@@ -245,68 +213,38 @@ def main():
 
     # 2. 提取
     print(f"\n📄 处理文本（长度：{len(EXAMPLE_TEXT)} 字符）...")
+    print("状态: 正在进行两阶段提取 (1. 实体识别 -> 2. 关系建立)...")
     print()
     kg.feed_text(EXAMPLE_TEXT)
 
-    print(f"\n🧩 提取初始结果: {len(kg.nodes)} 个节点, {len(kg.edges)} 条边")
-
-    # 显示去重前的节点
-    print("\n" + "-" * 70)
-    print(f"📝 去重前的实体列表 ({len(kg.nodes)} 个):")
-    print("-" * 70)
-    nodes_before = sorted([node.name for node in kg.nodes])
-    for i, name in enumerate(nodes_before, 1):
-        print(f"  {i:2d}. {name}")
-
-    # 3. 去重演示
-    print("\n" + "=" * 70)
-    print("🔄 执行语义去重 (Self-Deduplication)...")
-    print("=" * 70)
-    print("说明: 去重会通过语义相似度合并近似的实体名称")
-    print("阈值越高 (0.0-1.0)，匹配条件越严格，合并越少")
-    print()
-    # 使用较为宽松的阈值 (0.9) 来演示合并效果
-    # 注意：首次运行时会自动下载 sentence-transformers 模型
-    kg.self_deduplicate(threshold=0.9)
-
-    # 显示去重后的节点
-    print("\n" + "-" * 70)
-    print(f"✨ 去重后的实体列表 ({len(kg.nodes)} 个):")
-    print("-" * 70)
-    nodes_after = sorted([node.name for node in kg.nodes])
-    for i, name in enumerate(nodes_after, 1):
-        print(f"  {i:2d}. {name}")
-    
-    if len(nodes_before) != len(nodes_after):
-        print(f"\n📊 去重效果: {len(nodes_before)} → {len(nodes_after)} ({len(nodes_before) - len(nodes_after)} 个实体被合并)")
-
     # 4. 显示结果
     print("\n" + "=" * 70)
-    print("✅ 最终结果（去重后）！")
+    print("✅ 提取完成！")
     print("=" * 70)
 
     # 统计信息
     print(f"\n📊 统计信息:")
     print(f"   节点数量: {len(kg.nodes)}")
     print(f"   关系数量: {len(kg.edges)}")
-    unique_predicates = len(set(e.predicate for e in kg.edges))
-    avg_edges = len(kg.edges) / max(len(kg.nodes), 1)
-    print(f"   唯一谓词数: {unique_predicates}")
-    print(f"   平均每个节点的关系数: {avg_edges:.2f}")
+    
+    # 统计标签分布
+    from collections import Counter
+    labels = Counter(n.label for n in kg.nodes)
+    print(f"   实体类型分布: {dict(labels)}")
 
     # 显示所有节点
     print("\n" + "-" * 70)
-    print(f"🏷️  提取的实体 ({len(kg.nodes)} 个):")
+    print(f"🏷️  提取的实体及其类型 ({len(kg.nodes)} 个):")
     print("-" * 70)
     for i, node in enumerate(kg.nodes, 1):
-        print(f"  {i:2d}. {node.name}")
+        print(f"  {i:2d}. {node.name:<20} [类型: {node.label}]")
 
-    # 显示所有三元组
+    # 显示所有三元组 - 注意 iText2KG 的 EdgeSchema 使用 startNode, endNode 和 name
     print("\n" + "-" * 70)
     print(f"🔗 提取的关系 ({len(kg.edges)} 个):")
     print("-" * 70)
     for i, edge in enumerate(kg.edges, 1):
-        print(f"  {i:2d}. {edge.subject} --[{edge.predicate}]--> {edge.object}")
+        print(f"  {i:2d}. {edge.startNode.name} --[{edge.name}]--> {edge.endNode.name}")
 
     # 按谓词分组显示
     print("\n" + "-" * 70)
@@ -316,7 +254,7 @@ def main():
     from collections import defaultdict
     relations_by_type = defaultdict(list)
     for edge in kg.edges:
-        relations_by_type[edge.predicate].append((edge.subject, edge.object))
+        relations_by_type[edge.name].append((edge.startNode.name, edge.endNode.name))
     
     for pred in sorted(relations_by_type.keys()):
         pairs = relations_by_type[pred]
@@ -326,32 +264,31 @@ def main():
 
     # 实体连接度分析
     print("\n" + "-" * 70)
-    print("⭐ 高关联度实体 (Top 5):")
+    print("⭐ 高关联度实体 (Top 10):")
     print("-" * 70)
     
-    from collections import Counter
     entity_degree = Counter()
     for edge in kg.edges:
-        entity_degree[edge.subject] += 1
-        entity_degree[edge.object] += 1
+        entity_degree[edge.startNode.name] += 1
+        entity_degree[edge.endNode.name] += 1
     
-    for entity, count in entity_degree.most_common(5):
+    for entity, count in entity_degree.most_common(10):
         print(f"  • {entity}: 参与 {count} 个关系")
 
     # ============================================================================
-    # Save Results
+    # 保存结果
     # ============================================================================
     print("\n" + "=" * 70)
-    print("Saving Results...")
+    print("💾 保存结果...")
     print("=" * 70)
 
     try:
-        import os
-        output_dir = "temp/kg_gen_demo"
+        output_dir = "temp/itext2kg_demo"
         kg.dump(output_dir)
-        print(f"✓ Results saved to {output_dir}/")
+        print(f"✓ 结果已保存到 {output_dir}/")
         
-        # List saved files
+        # 列出保存的文件
+        import os
         saved_files = []
         if os.path.exists(output_dir):
             for root, dirs, files in os.walk(output_dir):
@@ -360,11 +297,11 @@ def main():
                     saved_files.append(rel_path)
         
         if saved_files:
-            print("\n  Saved files:")
-            for f in saved_files:
+            print("\n  保存的文件:")
+            for f in sorted(saved_files):
                 print(f"    - {f}")
     except Exception as e:
-        print(f"⚠ Warning: Could not save results: {str(e)}")
+        print(f"⚠ 警告: 无法保存结果: {str(e)}")
 
     print("\n" + "=" * 70)
     print("✨ 演示完成！")
