@@ -7,7 +7,7 @@ standardized triple-based knowledge graphs.
 Prompts and schemas are adapted from the original iText2KG_Star implementation.
 """
 
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 from semhash import SemHash
@@ -16,7 +16,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from .base import AutoGraph, AutoGraphSchema, NodeListSchema, EdgeListSchema
+from .base import AutoGraph, AutoGraphSchema
 from ..utils.logging import logger
 
 # ==============================================================================
@@ -144,7 +144,7 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
         Args:
             llm_client: Language model for extraction
             embedder: Embedding model for vector indexing
-            observation_date: Date when the extraction was performed, like '1997-10-10' or '1997-10-10 23:59:59'. 
+            observation_date: Date when the extraction was performed, like '1997-10-10' or '1997-10-10 23:59:59'.
                 If None, uses current date and time.
             chunk_size: Characters per chunk
             chunk_overlap: Overlapping characters between chunks
