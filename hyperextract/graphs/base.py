@@ -30,6 +30,41 @@ Node = TypeVar("Node", bound=BaseModel)
 Edge = TypeVar("Edge", bound=BaseModel)
 
 
+# ==============================================================================
+# Default Prompts - Defined outside the class for clarity and reusability
+# ==============================================================================
+
+DEFAULT_GRAPH_PROMPT = (
+    "You are an expert knowledge graph extraction assistant. "
+    "Extract all entities (nodes) and their relationships (edges) from the following text. "
+    "Focus on being comprehensive and capturing the complete knowledge structure.\n\n"
+    "CRITICAL CONSTRAINT: Every edge must connect two nodes that are present in the extracted nodes list. "
+    "Do not create edges between entities that are not explicitly identified as nodes.\n\n"
+    "### Source Text:\n"
+)
+
+DEFAULT_NODE_PROMPT = (
+    "You are an expert information extraction assistant specialized in entity/node recognition. "
+    "Extract ALL relevant entities, concepts, or nodes from the following text with high precision.\n\n"
+    "Focus on:\n"
+    "- Being EXHAUSTIVE: capture all entity types mentioned\n"
+    "- Being PRECISE: extract exact entity names and descriptions\n"
+    "- Clarity: provide clear, concise descriptions for each entity\n\n"
+    "Do not attempt to extract relationships at this stage, only identify entities.\n\n"
+    "### Source Text:\n"
+)
+
+DEFAULT_EDGE_PROMPT = (
+    "You are an expert relationship extraction assistant. "
+    "Extract relationships (edges) between the provided entities.\n\n"
+    "CRITICAL RULES:\n"
+    "1. ONLY extract edges connecting entities from the known entity list below\n"
+    "2. DO NOT invent or hallucinate new entities that are not listed\n"
+    "3. If an entity in the text is not in the known list, DO NOT create edges involving it\n"
+    "4. Focus on explicit relationships mentioned in the text\n\n"
+)
+
+
 class AutoGraphSchema(BaseModel, Generic[Node, Edge]):
     """Generic schema container for graph-based knowledge patterns."""
 
@@ -166,8 +201,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         self.edge_fields_for_index = edge_fields_for_index
 
         # Initialize prompts (use custom if provided, otherwise use defaults)
-        self.node_prompt = prompt_for_node_extraction or self._default_node_prompt()
-        self.edge_prompt = prompt_for_edge_extraction or self._default_edge_prompt()
+        self.node_prompt = prompt_for_node_extraction or DEFAULT_NODE_PROMPT
+        self.edge_prompt = prompt_for_edge_extraction or DEFAULT_EDGE_PROMPT
 
         # Create dynamic GraphSchema containers
         graph_schema_name = f"{node_schema.__name__}{edge_schema.__name__}Graph"
@@ -252,7 +287,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
     def _default_prompt(self) -> str:
         """Returns the default prompt for one-stage graph extraction."""
-        return self._default_graph_prompt
+        return DEFAULT_GRAPH_PROMPT
 
     def _create_empty_instance(self) -> "AutoGraph[Node, Edge]":
         """Creates a new empty AutoGraph instance with the same configuration as this one.
@@ -282,55 +317,6 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             verbose=self.verbose,
             node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
             edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
-        )
-
-    @property
-    def _default_graph_prompt(self) -> str:
-        """Default prompt for one-stage graph extraction (nodes + edges together).
-
-        Emphasizes comprehensive extraction and constraint enforcement.
-        """
-        return (
-            "You are an expert knowledge graph extraction assistant. "
-            "Extract all entities (nodes) and their relationships (edges) from the following text. "
-            "Focus on being comprehensive and capturing the complete knowledge structure.\n\n"
-            "CRITICAL CONSTRAINT: Every edge must connect two nodes that are present in the extracted nodes list. "
-            "Do not create edges between entities that are not explicitly identified as nodes.\n\n"
-            "### Source Text:\n"
-        )
-
-    @property
-    def _default_node_prompt(self) -> str:
-        """Default prompt for two-stage node extraction (Step 1).
-
-        Emphasizes exhaustiveness and precision in entity identification.
-        """
-        return (
-            "You are an expert information extraction assistant specialized in entity/node recognition. "
-            "Extract ALL relevant entities, concepts, or nodes from the following text with high precision.\n\n"
-            "Focus on:\n"
-            "- Being EXHAUSTIVE: capture all entity types mentioned\n"
-            "- Being PRECISE: extract exact entity names and descriptions\n"
-            "- Clarity: provide clear, concise descriptions for each entity\n\n"
-            "Do not attempt to extract relationships at this stage, only identify entities.\n\n"
-            "### Source Text:\n"
-        )
-
-    @property
-    def _default_edge_prompt(self) -> str:
-        """Default prompt for two-stage edge extraction (Step 2).
-
-        Emphasizes strict validation: only extract edges where BOTH endpoints exist in provided entities.
-        Includes warnings about hallucination prevention.
-        """
-        return (
-            "You are an expert relationship extraction assistant. "
-            "Extract relationships (edges) between the provided entities.\n\n"
-            "CRITICAL RULES:\n"
-            "1. ONLY extract edges connecting entities from the known entity list below\n"
-            "2. DO NOT invent or hallucinate new entities that are not listed\n"
-            "3. If an entity in the text is not in the known list, DO NOT create edges involving it\n"
-            "4. Focus on explicit relationships mentioned in the text\n\n"
         )
 
     @property
@@ -544,7 +530,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             inputs.append({"chunk_text": chunk, "node_context": node_context})
 
         prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}{{node_context}}\n\n### Text Chunk:\n{{chunk_text}}"
+            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
         )
         llm_chain = prompt_template | self.llm_client.with_structured_output(
             self.edge_list_schema
@@ -597,7 +583,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
     def merge_batch_data(
         self,
-        data_list_or_tuple: List[AutoGraphSchema] | Tuple[List[List[Node]], List[List[Edge]]],
+        data_list_or_tuple: List[AutoGraphSchema]
+        | Tuple[List[List[Node]], List[List[Edge]]],
     ) -> AutoGraphSchema:
         """Merge multiple graphs or node/edge tuples into one.
 
@@ -606,7 +593,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         - Tuple of (List[List[Node]], List[List[Edge]]) (optimization for batch processing)
 
         Args:
-            data_list_or_tuple: Either a list of AutoGraphSchema objects or a tuple of 
+            data_list_or_tuple: Either a list of AutoGraphSchema objects or a tuple of
                 (nodes_lists, edges_lists) where each list contains items from multiple chunks.
 
         Returns:

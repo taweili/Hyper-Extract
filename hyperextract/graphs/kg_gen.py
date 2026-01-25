@@ -27,7 +27,6 @@ class NodeSchema(BaseModel):
     """Knowledge Graph Node: Minimal entity with only a name field"""
 
     name: str = Field(
-        ...,
         description="The unique name or identifier of the entity. Must be thorough and accurate to the source text.",
     )
 
@@ -36,15 +35,12 @@ class EdgeSchema(BaseModel):
     """Knowledge Graph Edge: Standard triple structure (Subject-Predicate-Object)"""
 
     subject: str = Field(
-        ...,
         description="Subject entity name. Must be an exact match from the extracted entities list.",
     )
     predicate: str = Field(
-        ...,
         description="The relationship/predicate between subject and object. Should be concise and descriptive.",
     )
     object: str = Field(
-        ...,
         description="Object entity name. Must be an exact match from the extracted entities list.",
     )
 
@@ -168,12 +164,12 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         model: str | SentenceTransformer = "sentence-transformers/all-MiniLM-L6-v2",
     ):
         """Internal helper to apply SemHash deduplication on a graph data object.
-        
+
         Args:
             graph_data: The graph data object (nodes/edges) to process in-place.
             threshold: SemHash similarity threshold (0.0 to 1.0).
             model: Embedding model for SemHash.
-            
+
         Returns:
             The modified graph_data object.
         """

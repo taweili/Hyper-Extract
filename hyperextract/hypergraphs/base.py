@@ -460,7 +460,7 @@ class AutoHypergraph(
             inputs.append({"chunk_text": chunk, "node_context": node_context})
 
         prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}{{node_context}}\n\n### Text Chunk:\n{{chunk_text}}"
+            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
         )
         llm_chain = prompt_template | self.llm_client.with_structured_output(
             self.edge_list_schema

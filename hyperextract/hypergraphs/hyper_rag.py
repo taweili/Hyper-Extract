@@ -18,13 +18,11 @@ from ontomem.merger import CustomRuleMerger
 class NodeSchema(BaseModel):
     """Represents an entity extracted from the source text."""
 
-    name: str = Field(..., description="Name of the entity, capitalized if in English")
+    name: str = Field(..., description="Name of the entity")
     type: str = Field(
-        ...,
         description="Entity type (person, organization, geo, event, role, concept, etc.)",
     )
     description: str = Field(
-        ...,
         description="Comprehensive description of the entity's attributes and activities",
     )
 
@@ -38,17 +36,15 @@ class EdgeSchema(BaseModel):
     """Represents a relationship or event connecting multiple entities (low-order or high-order)."""
 
     participants: List[str] = Field(
-        ..., description="Names of entities involved in this relationship"
+        description="Names of entities involved in this relationship"
     )
     description: str = Field(
-        ..., description="Detailed explanation of the relationship or event"
+        description="Detailed explanation of the relationship or event"
     )
     keywords: List[str] = Field(
-        ...,
         description="List of keywords summarizing the relationship themes (e.g., ['conflict', 'trade', 'alliance'])",
     )
     strength: int = Field(
-        ...,
         ge=1,
         le=10,
         description="Numerical score indicating relationship strength (1-10)",
@@ -87,7 +83,7 @@ It treats all involved entities as **participants** in a shared context
 # Merge Templates for LLM.CUSTOM_RULE Strategy
 # ============================================================================
 
-NODE_MERGE_TEMPLATE = """You are an intelligent data merging assistant.
+NODE_MERGE_RULE = """You are an intelligent data merging assistant.
 You will receive a list of objects representing the same Entity.
 
 Your task is to merge them into a SINGLE object exactly matching the schema.
@@ -97,7 +93,7 @@ Merge strategy:
 2. **description**: Synthesize a single, comprehensive description containing all unique details from the input descriptions. Write it in the third person. Resolve any contradictions coherently.
 """
 
-EDGE_MERGE_TEMPLATE = """You are an intelligent data merging assistant.
+EDGE_MERGE_RULE = """You are an intelligent data merging assistant.
 You will receive a list of objects representing the same Hyperedge (Relationship/Event).
 
 Your task is to merge them into a SINGLE object exactly matching the schema.
@@ -163,7 +159,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             key_extractor=node_key_fn,
             llm_client=llm_client,
             item_schema=NodeSchema,
-            rule=NODE_MERGE_TEMPLATE,
+            rule=NODE_MERGE_RULE,
         )
 
         # Edge merger: merges relationship descriptions using EDGE_MERGE_TEMPLATE
@@ -171,7 +167,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             key_extractor=edge_key_fn,
             llm_client=llm_client,
             item_schema=EdgeSchema,
-            rule=EDGE_MERGE_TEMPLATE,
+            rule=EDGE_MERGE_RULE,
         )
 
         # 4. Call parent class initialization
