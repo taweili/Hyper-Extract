@@ -7,14 +7,14 @@ standardized triple-based knowledge graphs.
 Prompts and schemas are adapted from the original Atom implementation.
 """
 
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field
 from semhash import SemHash
 from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
-from ontomem.merger import MergeStrategy
+from ontomem.merger import MergeStrategy, CustomRuleMerger
 
 from .base import AutoGraph, AutoGraphSchema
 from ..utils.logging import logger
@@ -128,7 +128,7 @@ class EdgeSchema(BaseModel):
             "A list of exact string copies of the atomic facts or sentences from the source text that provide evidence for this relationship. "
             "Select the specific facts from the input context that justify this edge. "
             "Do NOT paraphrase or modify the text. Copy it exactly as it appears in the source."
-        )
+        ),
     )
 
 
@@ -138,6 +138,8 @@ class EdgeSchema(BaseModel):
 
 
 Atom_FACTOID_EXTRACTION_PROMPT = """
+Observation Date: {observation_date}
+
 You are an expert factoid extraction engine. Your primary function is to read a news paragraph and its associated observation date, and then decompose the text into a comprehensive list of atomic, self-contained, and temporally-grounded facts.
 
 ## Task
@@ -196,7 +198,7 @@ Given an input paragraph and an `observation_date`, generate a list of all disti
 """
 
 Atom_EDGE_EXTRACTION_PROMPT = """
-Observation Date: {obs_timestamp}
+Observation Date: {observation_date}
 
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
 Your goal is to extract all meaningful relationships (edges) between entities, while rigorously capturing their temporal bounds and grounding evidence.
@@ -220,8 +222,8 @@ Extract a list of relationships where each relationship consists of:
 #### 2. Temporal Extraction (Critical)
 - **Format**: All dates must be in `YYYY-MM-DD` or `YYYY` format.
 - **Lists**: `t_start` and `t_end` must always be lists of strings. If no date is found, use an empty list `[]`.
-- **Relative Time Resolution**: Calculate absolute dates based on the **Observation Date** ({obs_timestamp}).
-    - "last year" -> {obs_timestamp} year - 1 (Jan 1st)
+- **Relative Time Resolution**: Calculate absolute dates based on the **Observation Date** ({observation_date}).
+    - "last year" -> {observation_date} year - 1 (Jan 1st)
     - "a few months ago" -> Estimate conservatively based on context.
     - "currently" -> implies the relationship is active (no `t_end`).
 - **End Actions**: If the text says someone "left" or "stopped", capture this in `t_end` while keeping the relation positive (e.g., Relation: "works_at", t_end: ["2023-01-01"]).
@@ -260,6 +262,25 @@ Extract a list of relationships where each relationship consists of:
 - Ensure `atomic_facts` contains exact copies of the source text strings.
 """
 
+
+# ============================================================================
+# Merge Templates for LLM.CUSTOM_RULE Strategy
+# ============================================================================
+
+
+EDGE_MERGE_RULE = """You are an intelligent data merging assistant.
+You will receive a list of edges representing the exact same relationship (Same Subject -> Same Predicate -> Same Object).
+
+Your task is to merge them into a SINGLE edge object exactly matching the schema.
+
+Merge strategy:
+1. **startNode/endNode**: Keep the node definitions consistent.
+2. **name**: Keep the canonical predicate name (since they are already grouped by this key).
+3. **t_start**: Collect ALL distinct start dates/times from all inputs into a single list. Remove exact duplicates.
+4. **t_end**: Collect ALL distinct end dates/times from all inputs into a single list. Remove exact duplicates. 
+5. **t_obs**: Collect ALL distinct observation dates from all inputs into a single list.
+6. **atomic_facts**: Merge all evidence strings into a single list. Remove exact duplicate strings.
+"""
 
 # ==============================================================================
 # 3. Atom Implementation - Inherits from AutoGraph
@@ -300,6 +321,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         observation_date: str | None = None,
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
+        facts_per_chunk: int = 10,
         max_workers: int = 10,
         verbose: bool = False,
     ):
@@ -312,10 +334,12 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
                 If None, uses current date and time.
             chunk_size: Characters per chunk
             chunk_overlap: Overlapping characters between chunks
+            facts_per_chunk: Max number of atomic facts to group into a single extraction batch (default: 20)
             max_workers: Max concurrent extraction workers
             verbose: Display detailed execution logs and progress information
         """
 
+        self.facts_per_chunk = facts_per_chunk
         self.observation_date = observation_date
 
         # 1. Define Key Extractors (critical for deduplication)
@@ -327,6 +351,14 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 2. Edge consistency check: tell AutoGraph which nodes this edge connects
         nodes_in_edge_fn = lambda x: (x.startNode.name, x.endNode.name)
+
+        # Edge merger: merges relationship descriptions using EDGE_MERGE_RULE
+        edge_merger = CustomRuleMerger(
+            key_extractor=edge_key_fn,
+            llm_client=llm_client,
+            item_schema=EdgeSchema,
+            rule=EDGE_MERGE_RULE,
+        )
 
         # 3. Call parent class initialization
         logger.info("🚀 Initializing Atom")
@@ -344,7 +376,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             prompt_for_edge_extraction=Atom_EDGE_EXTRACTION_PROMPT,
             # Configure deduplication strategy
             node_strategy_or_merger=MergeStrategy.KEEP_EXISTING,
-            edge_strategy_or_merger=MergeStrategy.KEEP_EXISTING,
+            edge_strategy_or_merger=edge_merger,
             # Optimize indexing: only index name field
             node_fields_for_index=["name", "label"],
             edge_fields_for_index=["startNode", "name", "endNode"],
@@ -376,10 +408,10 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             Extracted and validated graph.
         """
         obs_date_str = self.observation_date or datetime.now().strftime("%Y-%m-%d")
-        
+
         # ==================== Step 1: Extract Atomic Facts ====================
         logger.info("🔍 [Phase 1] Extracting Atomic Facts...")
-        
+
         # 1. Prepare raw chunks
         if len(text) <= self.chunk_size:
             raw_chunks = [text]
@@ -399,7 +431,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             {"chunk_text": chunk, "observation_date": obs_date_str}
             for chunk in raw_chunks
         ]
-        chunk_fact_lists = fact_chain.batch(
+        chunk_fact_lists: List[AtomicFactSchema] = fact_chain.batch(
             fact_inputs, config={"max_concurrency": self.max_workers}
         )
 
@@ -413,23 +445,53 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         if not all_facts:
             logger.warning("⚠️ No facts extracted. Returning empty graph.")
-            return self._create_empty_instance().data
+            return AutoGraphSchema()
 
         # ==================== Step 2: Extract Edges from Facts ====================
         logger.info("🔍 [Phase 2] Extracting Edges from Atomic Facts...")
 
-        # 5. Create new context from facts (join with newlines)
-        fact_context_text = "\n".join(all_facts)
+        # 5. Group Facts into Chunks (Controlled by count AND size)
+        # This ensures each fact remains intact and fact IDs reset per chunk
+        fact_chunks = []
+        current_batch = []
+        current_char_count = 0
+        
+        # Estimate overhead: "[Fact 99]: " + newline is approx 12 chars
+        PREFIX_OVERHEAD = 12
 
-        # 6. Split Fact Context into chunks
-        if len(fact_context_text) <= self.chunk_size:
-            fact_chunks = [fact_context_text]
-        else:
-            fact_chunks = self.text_splitter.split_text(fact_context_text)
+        for fact in all_facts:
+            fact_len = len(fact) + PREFIX_OVERHEAD
+            
+            # Check constraints:
+            # 1. Size limit (fuzzy check to keep under chunk_size)
+            # 2. Count limit (facts_per_chunk)
+            size_limit_reached = (current_char_count + fact_len) > self.chunk_size
+            count_limit_reached = len(current_batch) >= self.facts_per_chunk
+            
+            if (size_limit_reached or count_limit_reached) and current_batch:
+                # Flush current batch
+                formatted_chunk = "\n".join(
+                    [f"[Fact {i+1}]: {f}" for i, f in enumerate(current_batch)]
+                )
+                fact_chunks.append(formatted_chunk)
+                
+                # Reset
+                current_batch = []
+                current_char_count = 0
+            
+            current_batch.append(fact)
+            current_char_count += fact_len
+            
+        # Flush remaining items
+        if current_batch:
+            formatted_chunk = "\n".join(
+                [f"[Fact {i+1}]: {f}" for i, f in enumerate(current_batch)]
+            )
+            fact_chunks.append(formatted_chunk)
 
-        # 7. Batch Extract Edges directly from Fact Chunks
+        # 6. Batch Extract Edges directly from Fact Chunks
         # Format the edge prompt with observation date
-        edge_prompt_with_date = self.edge_prompt.format(obs_timestamp=obs_date_str)
+        edge_prompt_with_date = self.edge_prompt.format(observation_date=obs_date_str)
         edge_prompt_template = ChatPromptTemplate.from_template(
             f"{edge_prompt_with_date}\n\n### Source Text:\n{{chunk_text}}"
         )

@@ -154,7 +154,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
         nodes_in_edge_fn = lambda x: x.participants
 
         # 3. Create custom Mergers with LLM.CUSTOM_RULE strategy
-        # Node merger: merges entity descriptions using NODE_MERGE_TEMPLATE
+        # Node merger: merges entity descriptions using NODE_MERGE_RULE
         node_merger = CustomRuleMerger(
             key_extractor=node_key_fn,
             llm_client=llm_client,
@@ -162,7 +162,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             rule=NODE_MERGE_RULE,
         )
 
-        # Edge merger: merges relationship descriptions using EDGE_MERGE_TEMPLATE
+        # Edge merger: merges relationship descriptions using EDGE_MERGE_RULE
         edge_merger = CustomRuleMerger(
             key_extractor=edge_key_fn,
             llm_client=llm_client,
