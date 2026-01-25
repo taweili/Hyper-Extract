@@ -106,7 +106,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         """Initialize KGGenGraph.
 

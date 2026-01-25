@@ -62,7 +62,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         chunk_size: int = 2000,
         chunk_overlap: int = 200,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
         fields_for_index: List[str] | None = None,
     ):
         """Initialize AutoList with item schema and configuration.
