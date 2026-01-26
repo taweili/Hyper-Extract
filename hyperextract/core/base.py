@@ -366,42 +366,32 @@ class BaseAutoType(ABC, Generic[T]):
     def chat(self, query: str, top_k: int = 3) -> AIMessage:
         """Performs a chat-like interaction with the knowledge base.
 
-        This method retrieves relevant knowledge items based on the query and generates
-        a response by feeding them as context to the LLM.
-
-        Workflow:
-            1. Search for top_k relevant items using semantic similarity
-            2. Format the retrieved items as context
-            3. Prompt the LLM with a QA template combining query + context
-            4. Return the generated response as AIMessage
+        This generic method retrieves relevant items and generates a response.
+        Subclasses with complex data structures (like graphs) should override this
+        to provide better context formatting.
 
         Args:
             query: User query string.
-            top_k: Number of relevant items to retrieve for context (default: 3).
+            top_k: Number of relevant items to retrieve (default: 3).
 
         Returns:
             An AIMessage object containing the LLM-generated response.
-            Access the text content via response.content.
-
-        Example:
-            >>> response = kb.chat("What is X?", top_k=5)
-            >>> print(response.content)  # Print the generated answer
         """
         # Step 1: Retrieve relevant items from knowledge base
-        related_items = self.search(query, top_k)
+        search_results = self.search(query, top_k)
 
         # Step 2: Format context from retrieved items
-        if not related_items:
+        formatted_context = []
+
+        if not search_results:
             context = "No relevant information found in the knowledge base."
         else:
-            # Convert each item to a readable format (handles various data types)
-            formatted_items = []
-            for item in related_items:
-                if isinstance(item, BaseModel):
-                    formatted_items.append(item.model_dump_json(indent=2))
-                else:
-                    formatted_items.append(str(item))
-            context = "\n---\n".join(formatted_items)
+            for item in search_results:
+                assert isinstance(item, BaseModel), (
+                    "Search results must be Pydantic models for formatting."
+                )
+                formatted_context.append(item.model_dump_json(indent=2))
+            context = "\n---\n".join(formatted_context)
 
         # Step 3: Create QA prompt template and invoke LLM
         qa_prompt = ChatPromptTemplate.from_template(
@@ -417,7 +407,6 @@ class BaseAutoType(ABC, Generic[T]):
 
         # Step 4: Return the AIMessage response
         return response
-
 
     # ==================== Serialization: Orchestrator ====================
 

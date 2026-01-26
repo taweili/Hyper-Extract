@@ -16,6 +16,7 @@ from typing import (
 )
 from pathlib import Path
 from pydantic import BaseModel, Field, create_model
+from langchain_core.messages import AIMessage
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
@@ -627,14 +628,16 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         merged_edges = self.edge_merger.merge(all_edges) if all_edges else []
         return self.graph_schema(nodes=merged_nodes, edges=merged_edges)
 
-    # ==================== Indexing & Search ====================
+    # ==================== Indexing & Search & Chat ====================
 
-    def build_index(self, index_nodes: bool = True, index_edges: bool = False):
+    def build_index(self, index_nodes: bool = True, index_edges: bool = True):
         """Build vector index for graph search.
+
+        By default, builds indices for both nodes and edges to support comprehensive search.
 
         Args:
             index_nodes: Whether to index nodes (default: True).
-            index_edges: Whether to index edges (default: False).
+            index_edges: Whether to index edges (default: True).
         """
         if index_nodes:
             self.build_node_index()
@@ -657,24 +660,24 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         query: str,
         top_k: int = 3,
         search_nodes: bool = True,
-        search_edges: bool = False,
+        search_edges: bool = True,
     ) -> List[Node] | List[Edge] | Tuple[List[Node], List[Edge]]:
         """Unified graph search interface.
 
-        Supports searching nodes only, edges only, or both simultaneously.
+        By default, searches both nodes and edges simultaneously to provide comprehensive results.
         When searching both, returns a tuple of (nodes_results, edges_results).
-        When searching one type, returns a flat list.
+        When searching one type only, returns a flat list.
 
         Args:
             query: Search query string.
             top_k: Number of results to return per type (default: 3).
             search_nodes: Whether to search nodes (default: True).
-            search_edges: Whether to search edges (default: False).
+            search_edges: Whether to search edges (default: True).
 
         Returns:
+            - Tuple[List[Node], List[Edge]] if both search_nodes and search_edges are True (default).
             - List[Node] if only search_nodes is True.
             - List[Edge] if only search_edges is True.
-            - Tuple[List[Node], List[Edge]] if both search_nodes and search_edges are True.
 
         Raises:
             ValueError: If neither search_nodes nor search_edges is True.
@@ -728,6 +731,79 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             List of matching edges using semantic similarity.
         """
         return self._edge_memory.search(query=query, top_k=top_k)
+
+    def chat(
+        self,
+        query: str,
+        top_k: int = 3,
+        chat_with_nodes: bool = True,
+        chat_with_edges: bool = True,
+    ) -> AIMessage:
+        """Performs a chat-like interaction using graph knowledge.
+
+        Retrieves relevant nodes and/or edges independently based on the query and flags,
+        formats them into a structured context with clear headers, and generates an answer.
+
+        Args:
+            query: User query string.
+            top_k: Number of relevant items to retrieve per type (default: 3).
+            chat_with_nodes: Whether to include relevant entities in context (default: True).
+            chat_with_edges: Whether to include relevant edges in context (default: True).
+
+        Returns:
+            An AIMessage object containing the LLM-generated response.
+            Access the text content via response.content.
+
+        Example:
+            >>> response = kb.chat("What is X?", top_k=5)
+            >>> print(response.content)  # Print the generated answer
+        """
+        # Step 1: Validation
+        if not chat_with_nodes and not chat_with_edges:
+            raise ValueError(
+                "At least one of chat_with_nodes or chat_with_edges must be True."
+            )
+
+        context_parts = []
+
+        # Step 2: Retrieve and format nodes context
+        if chat_with_nodes:
+            nodes = self.search_nodes(query, top_k)
+            if nodes:
+                context_parts.append("=== Relevant Nodes ===")
+                for node in nodes:
+                    assert isinstance(node, BaseModel), (
+                        "Node must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(node.model_dump_json(indent=2))
+
+        # Step 3: Retrieve and format edges context
+        if chat_with_edges:
+            edges = self.search_edges(query, top_k)
+            if edges:
+                context_parts.append("=== Relevant Edges ===")
+                for edge in edges:
+                    assert isinstance(edge, BaseModel), (
+                        "Edge must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(edge.model_dump_json(indent=2))
+
+        # Step 4: Combine context or use fallback
+        if not context_parts:
+            context = "No relevant information found in the knowledge base."
+        else:
+            context = "\n\n".join(context_parts)
+
+        # Step 5: Invoke LLM with structured context
+        qa_prompt = ChatPromptTemplate.from_template(
+            "Based on the following Graph Knowledge, answer the user's question.\n\n"
+            "{context}\n\n"
+            "Question: {question}\n\n"
+            "Answer:"
+        )
+
+        qa_chain = qa_prompt | self.llm_client
+        return qa_chain.invoke({"context": context, "question": query})
 
     # ==================== Serialization ====================
 

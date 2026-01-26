@@ -18,6 +18,7 @@ from typing import (
 from pathlib import Path
 from pydantic import BaseModel, Field, create_model
 from langchain_core.embeddings import Embeddings
+from langchain_core.messages import AIMessage
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from ontomem import OMem
@@ -569,12 +570,14 @@ class AutoHypergraph(
 
     # ==================== Indexing & Search ====================
 
-    def build_index(self, index_nodes: bool = True, index_edges: bool = False):
+    def build_index(self, index_nodes: bool = True, index_edges: bool = True):
         """Build vector index for hypergraph search.
+
+        By default, builds indices for both nodes and hyperedges to support comprehensive search.
 
         Args:
             index_nodes: Whether to index nodes (default: True).
-            index_edges: Whether to index hyperedges (default: False).
+            index_edges: Whether to index hyperedges (default: True).
         """
         if index_nodes:
             self.build_node_index()
@@ -597,20 +600,27 @@ class AutoHypergraph(
         query: str,
         top_k: int = 3,
         search_nodes: bool = True,
-        search_edges: bool = False,
+        search_edges: bool = True,
     ) -> List[Node] | List[Edge] | Tuple[List[Node], List[Edge]]:
         """Unified hypergraph search interface.
 
+        By default, searches both nodes and hyperedges simultaneously to provide comprehensive results.
+        When searching both, returns a tuple of (nodes_results, edges_results).
+        When searching one type only, returns a flat list.
+
         Args:
             query: Search query string.
-            top_k: Number of results to return per type.
-            search_nodes: Whether to search nodes.
-            search_edges: Whether to search hyperedges.
+            top_k: Number of results to return per type (default: 3).
+            search_nodes: Whether to search nodes (default: True).
+            search_edges: Whether to search hyperedges (default: True).
 
         Returns:
+            - Tuple[List[Node], List[Edge]] if both search_nodes and search_edges are True (default).
             - List[Node] if only search_nodes is True.
             - List[Edge] if only search_edges is True.
-            - Tuple[List[Node], List[Edge]] if both are True.
+
+        Raises:
+            ValueError: If neither search_nodes nor search_edges is True.
         """
         if not search_nodes and not search_edges:
             raise ValueError(
@@ -643,6 +653,79 @@ class AutoHypergraph(
     def search_edges(self, query: str, top_k: int = 3) -> List[Edge]:
         """Semantic search for hyperedges/relationships only."""
         return self._edge_memory.search(query=query, top_k=top_k)
+
+    def chat(
+        self,
+        query: str,
+        top_k: int = 3,
+        chat_with_nodes: bool = True,
+        chat_with_edges: bool = True,
+    ) -> AIMessage:
+        """Performs a chat-like interaction using hypergraph knowledge.
+
+        Retrieves relevant nodes and/or hyperedges independently based on the query and flags,
+        formats them into a structured context with clear headers, and generates an answer.
+
+        Args:
+            query: User query string.
+            top_k: Number of relevant items to retrieve per type (default: 3).
+            chat_with_nodes: Whether to include relevant entities in context (default: True).
+            chat_with_edges: Whether to include relevant hyperedges in context (default: True).
+
+        Returns:
+            An AIMessage object containing the LLM-generated response.
+            Access the text content via response.content.
+
+        Example:
+            >>> response = hg.chat("What participates in X?", top_k=5)
+            >>> print(response.content)  # Print the generated answer
+        """
+        # Step 1: Validation
+        if not chat_with_nodes and not chat_with_edges:
+            raise ValueError(
+                "At least one of chat_with_nodes or chat_with_edges must be True."
+            )
+
+        context_parts = []
+
+        # Step 2: Retrieve and format nodes context
+        if chat_with_nodes:
+            nodes = self.search_nodes(query, top_k)
+            if nodes:
+                context_parts.append("=== Relevant Nodes ===")
+                for node in nodes:
+                    assert isinstance(node, BaseModel), (
+                        "Node must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(node.model_dump_json(indent=2))
+
+        # Step 3: Retrieve and format edges context
+        if chat_with_edges:
+            edges = self.search_edges(query, top_k)
+            if edges:
+                context_parts.append("=== Relevant Edges ===")
+                for edge in edges:
+                    assert isinstance(edge, BaseModel), (
+                        "Edge must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(edge.model_dump_json(indent=2))
+
+        # Step 4: Combine context or use fallback
+        if not context_parts:
+            context = "No relevant information found in the knowledge base."
+        else:
+            context = "\n\n".join(context_parts)
+
+        # Step 5: Invoke LLM with structured context
+        qa_prompt = ChatPromptTemplate.from_template(
+            "Based on the following Hypergraph Knowledge answer the user's question.\n\n"
+            "{context}\n\n"
+            "Question: {question}\n\n"
+            "Answer:"
+        )
+
+        qa_chain = qa_prompt | self.llm_client
+        return qa_chain.invoke({"context": context, "question": query})
 
     # ==================== Serialization ====================
 
