@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Any, Dict, Type, List
+from langchain_core.messages import AIMessage
 from langchain_core.embeddings import Embeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -27,6 +28,8 @@ class BaseAutoType(ABC, Generic[T]):
         - Automatically handle long text chunking and parallel processing
         - Store and aggregate extracted knowledge with configurable merge strategies
         - Build and maintain vector indices for semantic search
+        - Provide semantic search and retrieval capabilities
+        - Support chat/QA interactions by retrieving relevant context and feeding it to LLM
         - Provide serialization and deserialization capabilities
     """
 
@@ -329,7 +332,7 @@ class BaseAutoType(ABC, Generic[T]):
         """
         pass
 
-    # ==================== Indexing & Search ====================
+    # ==================== Indexing & Search & Chat ====================
 
     @abstractmethod
     def build_index(self):
@@ -359,6 +362,51 @@ class BaseAutoType(ABC, Generic[T]):
             List of relevant knowledge items.
         """
         pass
+
+    def chat(self, query: str, top_k: int = 3) -> AIMessage:
+        """Performs a chat-like interaction with the knowledge base.
+
+        This generic method retrieves relevant items and generates a response.
+        Subclasses with complex data structures (like graphs) should override this
+        to provide better context formatting.
+
+        Args:
+            query: User query string.
+            top_k: Number of relevant items to retrieve (default: 3).
+
+        Returns:
+            An AIMessage object containing the LLM-generated response.
+        """
+        # Step 1: Retrieve relevant items from knowledge base
+        search_results = self.search(query, top_k)
+
+        # Step 2: Format context from retrieved items
+        formatted_context = []
+
+        if not search_results:
+            context = "No relevant information found in the knowledge base."
+        else:
+            for item in search_results:
+                assert isinstance(item, BaseModel), (
+                    "Search results must be Pydantic models for formatting."
+                )
+                formatted_context.append(item.model_dump_json(indent=2))
+            context = "\n---\n".join(formatted_context)
+
+        # Step 3: Create QA prompt template and invoke LLM
+        qa_prompt = ChatPromptTemplate.from_template(
+            "Based on the following context from the knowledge base, answer the user's question.\n\n"
+            "Context:\n{context}\n\n"
+            "Question: {question}\n\n"
+            "Answer:"
+        )
+
+        qa_chain = qa_prompt | self.llm_client
+
+        response = qa_chain.invoke({"context": context, "question": query})
+
+        # Step 4: Return the AIMessage response
+        return response
 
     # ==================== Serialization: Orchestrator ====================
 

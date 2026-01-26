@@ -341,13 +341,16 @@ def run_demo():
     print("🔍 游戏管理员(GM)调查查询模块")
     print("=" * 60)
 
-    graph.build_index(index_nodes=True, index_edges=True)  # 建立索引
+    # 建立索引（默认同时索引节点和边，无需指定参数）
+    graph.build_index()
 
     # 场景1: 找谁拿了装备？
     q1 = "谁拿走了传说武器？"
     print(f"\n❓ Query: {q1}")
     try:
-        interactions = graph.search_edges(q1, top_k=3)
+        # 默认同时搜索节点和边，返回 Tuple[nodes, edges]
+        nodes, edges = graph.search(q1, top_k=3)
+        interactions = edges
         if interactions:
             for i in interactions:
                 print(f"  🚨 {i}")
@@ -360,7 +363,8 @@ def run_demo():
     q2 = "谁是治疗职业的？"
     print(f"\n❓ Query: {q2}")
     try:
-        healers = graph.search_nodes(q2, top_k=3)
+        nodes, edges = graph.search(q2, top_k=3)
+        healers = nodes
         if healers:
             for h in healers:
                 print(f"  🚑 {h}")
@@ -373,7 +377,8 @@ def run_demo():
     q3 = "谁和谁发生了冲突？"
     print(f"\n❓ Query: {q3}")
     try:
-        conflicts = graph.search_edges(q3, top_k=3)
+        nodes, edges = graph.search(q3, top_k=3)
+        conflicts = edges
         if conflicts:
             for c in conflicts:
                 print(f"  🔥 {c}")
@@ -386,7 +391,8 @@ def run_demo():
     q4 = "谁是主坦克？"
     print(f"\n❓ Query: {q4}")
     try:
-        tanks = graph.search_nodes(q4, top_k=3)
+        nodes, edges = graph.search(q4, top_k=3)
+        tanks = nodes
         if tanks:
             for t in tanks:
                 print(f"  🛡️  {t}")
