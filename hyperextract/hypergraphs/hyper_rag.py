@@ -18,7 +18,7 @@ from ontomem.merger import CustomRuleMerger
 class NodeSchema(BaseModel):
     """Represents an entity extracted from the source text."""
 
-    name: str = Field(..., description="Name of the entity")
+    name: str = Field(description="Name of the entity")
     type: str = Field(
         description="Entity type (person, organization, geo, event, role, concept, etc.)",
     )

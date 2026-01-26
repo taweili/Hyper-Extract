@@ -32,13 +32,11 @@ class StoryEntity(BaseModel):
     可以是：人物(Character), 地点(Location), 物品(Item), 派系(Faction)
     """
 
-    name: str = Field(..., description="实体名称，如 'Neo', 'Matrix', 'Excalibur'")
+    name: str = Field(description="实体名称，如 'Neo', 'Matrix', 'Excalibur'")
     category: str = Field(
-        ...,
         description="实体类别: Character(人物), Location(地点), Item(物品), Faction(派系)",
     )
     description: str = Field(
-        default="",
         description="实体的详细描述，如 '黑蛇'(Character) 的角色是 Which Snake",
     )
 
@@ -51,16 +49,15 @@ class NarrativeUnit(BaseModel):
     关键在于：它通过一个 'type' 字段来区分语义，但结构上都是连接多个实体的超边。
     """
 
-    summary: str = Field(..., description="简短描述这个单元发生了什么，或者是什么关系")
+    summary: str = Field(description="简短描述这个单元发生了什么，或者是什么关系")
 
     # 这里体现了"多类型"：LLM 会判断这具体是什么类型的连接
     edge_type: str = Field(
-        ...,
         description="超边类型: Conflict(冲突), Alliance(结盟), Possession(持有), Meeting(会议), State(状态)",
     )
 
     # 核心：连接所有相关的实体
-    participants: List[str] = Field(..., description="所有牵涉其中的实体名称列表")
+    participants: List[str] = Field(description="所有牵涉其中的实体名称列表")
 
 
 # ==============================================================================
