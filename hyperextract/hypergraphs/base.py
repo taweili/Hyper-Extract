@@ -657,40 +657,39 @@ class AutoHypergraph(
     def chat(
         self,
         query: str,
-        top_k: int = 3,
-        chat_with_nodes: bool = True,
-        chat_with_edges: bool = True,
+        top_k_nodes: int = 3,
+        top_k_edges: int = 3,
     ) -> AIMessage:
         """Performs a chat-like interaction using hypergraph knowledge.
 
-        Retrieves relevant nodes and/or hyperedges independently based on the query and flags,
+        Retrieves relevant nodes and/or hyperedges based on the query and retrieval counts,
         formats them into a structured context with clear headers, and generates an answer.
 
         Args:
             query: User query string.
-            top_k: Number of relevant items to retrieve per type (default: 3).
-            chat_with_nodes: Whether to include relevant entities in context (default: True).
-            chat_with_edges: Whether to include relevant hyperedges in context (default: True).
+            top_k_nodes: Number of relevant nodes to retrieve (default: 3). Set to 0 to disable node context.
+            top_k_edges: Number of relevant hyperedges to retrieve (default: 3). Set to 0 to disable edge context.
 
         Returns:
             An AIMessage object containing the LLM-generated response.
             Access the text content via response.content.
 
         Example:
-            >>> response = hg.chat("What participates in X?", top_k=5)
+            >>> # Chat using 5 nodes and 2 hyperedges as context
+            >>> response = hg.chat("What participates in X?", top_k_nodes=5, top_k_edges=2)
             >>> print(response.content)  # Print the generated answer
         """
         # Step 1: Validation
-        if not chat_with_nodes and not chat_with_edges:
+        if top_k_nodes <= 0 and top_k_edges <= 0:
             raise ValueError(
-                "At least one of chat_with_nodes or chat_with_edges must be True."
+                "At least one of top_k_nodes or top_k_edges must be positive."
             )
 
         context_parts = []
 
         # Step 2: Retrieve and format nodes context
-        if chat_with_nodes:
-            nodes = self.search_nodes(query, top_k)
+        if top_k_nodes > 0:
+            nodes = self.search_nodes(query, top_k=top_k_nodes)
             if nodes:
                 context_parts.append("=== Relevant Nodes ===")
                 for node in nodes:
@@ -700,8 +699,8 @@ class AutoHypergraph(
                     context_parts.append(node.model_dump_json(indent=2))
 
         # Step 3: Retrieve and format edges context
-        if chat_with_edges:
-            edges = self.search_edges(query, top_k)
+        if top_k_edges > 0:
+            edges = self.search_edges(query, top_k=top_k_edges)
             if edges:
                 context_parts.append("=== Relevant Edges ===")
                 for edge in edges:
