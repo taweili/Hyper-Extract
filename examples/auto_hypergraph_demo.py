@@ -347,6 +347,26 @@ def main():
     except Exception as e:
         print(f"\n   ⚠️  保存失败: {e}")
 
+    # ==================== 第六部分：智能对话 ====================
+    print("\n" + "=" * 70)
+    print("💬 超图智能问答")
+    print("=" * 70)
+    print("基于提取的超边关系进行多角度分析...\n")
+
+    hypergraph_questions = [
+        "这个研究小组的主要合作特点是什么？",
+        "团队成员之间的互动模式如何？",
+        "从超图结构看，谁是这个社区的关键人物？"
+    ]
+
+    for q in hypergraph_questions:
+        print(f"🔍 分析师: {q}")
+        try:
+            result = hypergraph.chat(q, top_k=5)
+            print(f"📊 深层分析: {result.content}\n")
+        except Exception as e:
+            print(f"⚠️ 分析异常: {e}\n")
+
     print("\n" + "=" * 70)
     print("✅ 分析完成！")
     print("=" * 70)

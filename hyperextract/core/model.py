@@ -40,8 +40,8 @@ class AutoModel(BaseAutoType[T]):
         *,
         strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
         **kwargs,
@@ -64,6 +64,7 @@ class AutoModel(BaseAutoType[T]):
         """
         # Store strategy before calling super().__init__
         self._strategy_or_merger = strategy_or_merger
+        self._constructor_kwargs = kwargs
 
         super().__init__(
             data_schema,
@@ -111,6 +112,7 @@ class AutoModel(BaseAutoType[T]):
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             verbose=self.verbose,
+            **self._constructor_kwargs,  # Propagate additional arguments
         )
 
     def _default_prompt(self) -> str:

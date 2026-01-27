@@ -59,8 +59,8 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         embedder: Embeddings,
         *,
         prompt: str = "",
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
         fields_for_index: List[str] | None = None,
@@ -81,6 +81,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         self.item_schema = item_schema
         self.fields_for_index = fields_for_index
+        self._constructor_kwargs = kwargs
 
         container_name = f"{item_schema.__name__}List"
         self.item_list_schema = create_model(
@@ -143,6 +144,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             max_workers=self.max_workers,
             verbose=self.verbose,
             fields_for_index=self.fields_for_index,
+            **self._constructor_kwargs,  # Propagate additional arguments
         )
 
     @property

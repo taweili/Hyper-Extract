@@ -42,8 +42,8 @@ class BaseAutoType(ABC, Generic[T]):
         embedder: Embeddings,
         *,
         prompt: str = "",
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
     ):

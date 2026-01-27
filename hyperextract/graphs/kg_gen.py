@@ -103,8 +103,8 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
     ):

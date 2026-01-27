@@ -134,8 +134,8 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         observation_date: str | None = None,
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
     ):

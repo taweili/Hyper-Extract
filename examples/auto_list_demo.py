@@ -206,6 +206,25 @@ def main():
     a_loaded_event_list.clear()
     print(f"   清空后: {len(a_loaded_event_list)} 个事件")
 
+    # 14. 智能对话 (Chat)
+    print("\n" + "=" * 80)
+    print("💬 智能对话功能")
+    print("=" * 80)
+    print("正在基于提取的事件列表进行智能问答...\n")
+
+    chat_questions = [
+        "这些新闻中，哪些事件对科技行业的影响最大？",
+        "请总结一下2024年科技领域的主要趋势。"
+    ]
+
+    for q in chat_questions:
+        print(f"❓ 问题: {q}")
+        try:
+            resp = a_event_list.chat(q, top_k=5)
+            print(f"✨ 回答: {resp.content}\n")
+        except Exception as e:
+            print(f"⚠️ 对话出错: {e}\n")
+
     print("\n" + "=" * 80)
     print("示例运行完成!")
     print("=" * 80)

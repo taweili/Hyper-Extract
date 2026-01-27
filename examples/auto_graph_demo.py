@@ -401,7 +401,28 @@ def run_demo():
     except Exception as e:
         print(f"  (搜索出错: {e})")
 
-    # ==================== 6. 保存知识图谱 ====================
+    # ==================== 6. 交互式对话 (Chat RAG) ====================
+
+    print("\n" + "=" * 60)
+    print("💬 进入交互式对话模式")
+    print("=" * 60)
+    print("🤖 正在基于提取的知识图谱回答复杂问题...\n")
+
+    chat_queries = [
+        "请总结这个公会冲突的核心原因。",
+        "暗影刺客和小甜甜的行为对团队造成了什么影响？",
+        "从这个事件中，我们学到了什么关于公会管理的经验？"
+    ]
+
+    for q in chat_queries:
+        print(f"👤 提问: {q}")
+        try:
+            response = graph.chat(q, top_k=5)
+            print(f"🤖 回答: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ 对话异常: {e}\n")
+
+    # ==================== 7. 保存知识图谱 ====================
 
     print("\n" + "=" * 60)
     print("💾 保存知识图谱到本地...")

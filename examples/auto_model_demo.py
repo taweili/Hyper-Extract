@@ -233,6 +233,26 @@ def main():
     print("   加载成功!")
     print(f"   标题: {a_loaded_document_model.data.title}")
 
+    # 11. 智能对话 (Chat)
+    print("\n" + "=" * 80)
+    print("💬 文档智能咨询")
+    print("=" * 80)
+    print("基于提取的文档结构进行智能对话...\n")
+
+    doc_questions = [
+        "这篇文档的核心观点是什么？",
+        "文档中提到的主要技术有哪些？"
+    ]
+
+    a_document_model.build_index()
+    for q in doc_questions:
+        print(f"❓ 读者: {q}")
+        try:
+            resp = a_document_model.chat(q, top_k=3)
+            print(f"📖 AI助手: {resp.content}\n")
+        except Exception as e:
+            print(f"⚠️ 回答失败: {e}\n")
+
     print("\n" + "=" * 80)
     print("示例运行完成!")
     print("=" * 80)

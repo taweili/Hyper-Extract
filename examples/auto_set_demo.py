@@ -257,6 +257,27 @@ def main():
     print("  √ 智能合并多个来源的冲突信息")
     print("  √ 支持所有怪物的语义搜索")
     print("  √ 持久化存储和加载")
+
+    # 交互式对话 (Chat)
+    print("\n" + "=" * 80)
+    print("💬 冒险者智能咨询系统")
+    print("=" * 80)
+    print("根据怪物图鉴回答冒险者的提问...\n")
+
+    adventurer_questions = [
+        "我想去地下矿井冒险，应该带什么装备来对付那里的怪物？",
+        "哪些怪物掉落最值钱的宝物？",
+        "请给我推荐一个适合新手的狩猎对象。"
+    ]
+
+    for q in adventurer_questions:
+        print(f"⚔️ 冒险者: {q}")
+        try:
+            answer = monster_codex.chat(q, top_k=5)
+            print(f"🧙 NPC商人: {answer.content}\n")
+        except Exception as e:
+            print(f"⚠️ 无法回答: {e}\n")
+
     print("=" * 80)
 
 

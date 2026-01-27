@@ -294,6 +294,29 @@ def main():
     except Exception as e:
         print(f"⚠ 警告: 无法保存结果: {str(e)}")
 
+    # ============================================================================
+    # 智能对话 (Chat)
+    # ============================================================================
+    print("\n" + "=" * 80)
+    print("💬 知识图谱智能问答")
+    print("=" * 80)
+    print("基于提取的知识进行深度对话...\n")
+
+    chat_questions = [
+        "Apple 公司的发展历史中，有哪些关键的人物和事件？",
+        "iPhone 对 Apple 公司和整个科技行业产生了什么影响？",
+        "从时间线看，Apple 的创新节奏是如何变化的？"
+    ]
+
+    kg.build_index()
+    for q in chat_questions:
+        print(f"❓ 提问: {q}")
+        try:
+            response = kg.chat(q, top_k=5)
+            print(f"💡 回答: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ 对话异常: {e}\n")
+
     print("\n" + "=" * 80)
     print("✨ Atom 演示完成！")
     print("=" * 80)
@@ -302,6 +325,7 @@ def main():
     print("  ✓ 时序追踪：产品发布日期、人物任职期间")
     print("  ✓ 证据追踪：每条关系都关联到源事实")
     print("  ✓ 语义去重：自动合并同义实体")
+    print("  ✓ 智能对话：基于知识图谱的 RAG 问答")
 
 
 if __name__ == "__main__":

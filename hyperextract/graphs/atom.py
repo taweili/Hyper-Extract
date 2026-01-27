@@ -84,15 +84,15 @@ class EdgeSchema(BaseModel):
         default_factory=list,
         description=(
             "A time or interval indicating when this relationship begins or is active. "
-            "Resolve relative temporal expressions based on the observation_date:\n"
-            "  - 'today' → exact observation_date\n"
-            "  - 'yesterday' → observation_date minus 1 day\n"
-            "  - 'this week' → Monday of observation_date's week\n"
-            "  - 'last week' → Monday of the week before observation_date\n"
-            "  - 'this month' → first day of observation_date's month\n"
-            "  - 'last month' → first day of the month before observation_date\n"
-            "  - 'this year' → January 1st of observation_date's year\n"
-            "  - 'last year' → January 1st of the year before observation_date\n"
+            "Resolve relative temporal expressions based on the observation_time:\n"
+            "  - 'today' → exact observation_time\n"
+            "  - 'yesterday' → observation_time minus 1 day\n"
+            "  - 'this week' → Monday of observation_time's week\n"
+            "  - 'last week' → Monday of the week before observation_time\n"
+            "  - 'this month' → first day of observation_time's month\n"
+            "  - 'last month' → first day of the month before observation_time\n"
+            "  - 'this year' → January 1st of observation_time's year\n"
+            "  - 'last year' → January 1st of the year before observation_time\n"
             "Keep explicit dates as-is (e.g., '18-06-2024'). "
             "For example, if 'Yassir became CEO from 2023', then t_start=['01-01-2023']. "
             "This can be a single year, a date, or a resolved relative reference. "
@@ -103,10 +103,10 @@ class EdgeSchema(BaseModel):
         default_factory=list,
         description=(
             "A time or interval indicating when this relationship ceases to hold. "
-            "Resolve relative temporal expressions based on the observation_date using the same rules as t_start:\n"
-            "  - 'today' → exact observation_date\n"
-            "  - 'yesterday' → observation_date minus 1 day\n"
-            "  - 'this week' → Monday of observation_date's week\n"
+            "Resolve relative temporal expressions based on the observation_time using the same rules as t_start:\n"
+            "  - 'today' → exact observation_time\n"
+            "  - 'yesterday' → observation_time minus 1 day\n"
+            "  - 'this week' → Monday of observation_time's week\n"
             "  - etc. (same resolution rules as t_start)\n"
             "Keep explicit dates as-is. "
             "For example, if 'Yassir left his position in 2025', then t_end=['01-01-2025']. "
@@ -138,12 +138,12 @@ class EdgeSchema(BaseModel):
 
 
 Atom_FACTOID_EXTRACTION_PROMPT = """
-Observation Date: {observation_date}
+Observation Date: {observation_time}
 
 You are an expert factoid extraction engine. Your primary function is to read a news paragraph and its associated observation date, and then decompose the text into a comprehensive list of atomic, self-contained, and temporally-grounded facts.
 
 ## Task
-Given an input paragraph and an `observation_date`, generate a list of all distinct factoids present in the text.
+Given an input paragraph and an `observation_time`, generate a list of all distinct factoids present in the text.
 
 ## Guidelines for Generating Temporal Factoids
 
@@ -158,17 +158,17 @@ Given an input paragraph and an `observation_date`, generate a list of all disti
 - Include any necessary modifiers so that each factoid is understandable in isolation
 
 ### 3. Temporal Context
-- Convert ALL time references to absolute dates/times using the observation_date
+- Convert ALL time references to absolute dates/times using the observation_time
 
 #### Conversion Rules:
-- "today" → exact observation_date
-- "yesterday" → observation_date minus 1 day
-- "this week" → Monday of observation_date's week
-- "last week" → Monday of the week before observation_date
-- "this month" → first day of observation_date's month
-- "last month" → first day of the month before observation_date
-- "this year" → January 1st of observation_date's year
-- "last year" → January 1st of the year before observation_date
+- "today" → exact observation_time
+- "yesterday" → observation_time minus 1 day
+- "this week" → Monday of observation_time's week
+- "last week" → Monday of the week before observation_time
+- "this month" → first day of observation_time's month
+- "last month" → first day of the month before observation_time
+- "this year" → January 1st of observation_time's year
+- "last year" → January 1st of the year before observation_time
 - Keep explicit dates as-is (e.g., "June 18, 2024")
 
 #### Additional Temporal Guidelines:
@@ -198,7 +198,7 @@ Given an input paragraph and an `observation_date`, generate a list of all disti
 """
 
 Atom_EDGE_EXTRACTION_PROMPT = """
-Observation Date: {observation_date}
+Observation Date: {observation_time}
 
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
 Your goal is to extract all meaningful relationships (edges) between entities, while rigorously capturing their temporal bounds and grounding evidence.
@@ -222,8 +222,8 @@ Extract a list of relationships where each relationship consists of:
 #### 2. Temporal Extraction (Critical)
 - **Format**: All dates must be in `YYYY-MM-DD` or `YYYY` format.
 - **Lists**: `t_start` and `t_end` must always be lists of strings. If no date is found, use an empty list `[]`.
-- **Relative Time Resolution**: Calculate absolute dates based on the **Observation Date** ({observation_date}).
-    - "last year" -> {observation_date} year - 1 (Jan 1st)
+- **Relative Time Resolution**: Calculate absolute dates based on the **Observation Date** ({observation_time}).
+    - "last year" -> {observation_time} year - 1 (Jan 1st)
     - "a few months ago" -> Estimate conservatively based on context.
     - "currently" -> implies the relationship is active (no `t_end`).
 - **End Actions**: If the text says someone "left" or "stopped", capture this in `t_end` while keeping the relation positive (e.g., Relation: "works_at", t_end: ["2023-01-01"]).
@@ -318,9 +318,9 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        observation_date: str | None = None,
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        observation_time: str | None = None,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         facts_per_chunk: int = 10,
         max_workers: int = 10,
         verbose: bool = False,
@@ -330,7 +330,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         Args:
             llm_client: Language model for extraction
             embedder: Embedding model for vector indexing
-            observation_date: Date when the extraction was performed, like '1997-10-10' or '1997-10-10 23:59:59'.
+            observation_time: Date when the extraction was performed, like '1997-10-10' or '1997-10-10 23:59:59'.
                 If None, uses current date and time.
             chunk_size: Characters per chunk
             chunk_overlap: Overlapping characters between chunks
@@ -340,7 +340,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         """
 
         self.facts_per_chunk = facts_per_chunk
-        self.observation_date = observation_date
+        self.observation_time = observation_time
 
         # 1. Define Key Extractors (critical for deduplication)
         # Node deduplication: exact match by name
@@ -407,7 +407,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         Returns:
             Extracted and validated graph.
         """
-        obs_date_str = self.observation_date or datetime.now().strftime("%Y-%m-%d")
+        obs_date_str = self.observation_time or datetime.now().strftime("%Y-%m-%d")
 
         # ==================== Step 1: Extract Atomic Facts ====================
         logger.info("🔍 [Phase 1] Extracting Atomic Facts...")
@@ -420,7 +420,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 2. Define Fact Extraction Chain
         fact_prompt_template = ChatPromptTemplate.from_template(
-            f"{Atom_FACTOID_EXTRACTION_PROMPT}\n\nObservation Date: {{observation_date}}\n\n### Source Text:\n{{chunk_text}}"
+            f"{Atom_FACTOID_EXTRACTION_PROMPT}\n\nObservation Date: {{observation_time}}\n\n### Source Text:\n{{chunk_text}}"
         )
         fact_chain = fact_prompt_template | self.llm_client.with_structured_output(
             AtomicFactSchema
@@ -428,7 +428,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 3. Batch Extract Facts
         fact_inputs = [
-            {"chunk_text": chunk, "observation_date": obs_date_str}
+            {"chunk_text": chunk, "observation_time": obs_date_str}
             for chunk in raw_chunks
         ]
         chunk_fact_lists: List[AtomicFactSchema] = fact_chain.batch(
@@ -491,7 +491,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 6. Batch Extract Edges directly from Fact Chunks
         # Format the edge prompt with observation date
-        edge_prompt_with_date = self.edge_prompt.format(observation_date=obs_date_str)
+        edge_prompt_with_date = self.edge_prompt.format(observation_time=obs_date_str)
         edge_prompt_template = ChatPromptTemplate.from_template(
             f"{edge_prompt_with_date}\n\n### Source Text:\n{{chunk_text}}"
         )

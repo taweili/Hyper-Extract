@@ -228,6 +228,28 @@ if __name__ == "__main__":
             print(f"  Search error: {str(e)}")
 
     # ============================================================================
+    # Chat with HyperRAG
+    # ============================================================================
+    print("\n" + "=" * 80)
+    print("💬 Interactive Chat with HyperRAG")
+    print("=" * 80)
+    print("Engaging in multi-turn dialogue based on extracted knowledge...\n")
+
+    chat_queries = [
+        "What are the main themes in this text?",
+        "How are different topics interconnected?",
+        "What insights can you draw from the relationships in this graph?"
+    ]
+
+    for q in chat_queries:
+        print(f"❓ User: {q}")
+        try:
+            response = rag.chat(q, top_k=5)
+            print(f"🤖 HyperRAG: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ Chat error: {e}\n")
+
+    # ============================================================================
     # Save Results
     # ============================================================================
     print("\n" + "=" * 80)

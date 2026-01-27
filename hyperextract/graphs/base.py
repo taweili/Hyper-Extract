@@ -154,8 +154,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
         prompt: str = "",
         prompt_for_node_extraction: str = "",
         prompt_for_edge_extraction: str = "",
-        chunk_size: int = 2000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
         node_fields_for_index: List[str] | None = None,
@@ -200,6 +200,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
         self.extraction_mode = extraction_mode
         self.node_fields_for_index = node_fields_for_index
         self.edge_fields_for_index = edge_fields_for_index
+        # Persist kwargs for reconstruction
+        self._constructor_kwargs = kwargs
 
         # Initialize prompts (use custom if provided, otherwise use defaults)
         self.node_prompt = prompt_for_node_extraction or DEFAULT_NODE_PROMPT
@@ -316,8 +318,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,
             verbose=self.verbose,
-            node_fields_for_index=self.node_fields_for_index,  # Persist node index field configuration
-            edge_fields_for_index=self.edge_fields_for_index,  # Persist edge index field configuration
+            node_fields_for_index=self.node_fields_for_index,
+            edge_fields_for_index=self.edge_fields_for_index,
+            **self._constructor_kwargs,  # Propagate additional arguments
         )
 
     @property

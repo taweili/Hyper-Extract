@@ -274,6 +274,27 @@ def main():
     print("   ✓ 每条边都自动添加了观测日期（提取时间）")
     print("   ✓ 图谱结构得到了优化和规范化")
 
+    # 6. 智能对话 (Chat)
+    print("\n" + "=" * 70)
+    print("💬 主题感知的知识问答")
+    print("=" * 70)
+    print("基于提取的主题知识图谱进行深度分析...\n")
+
+    topic_questions = [
+        "根据提取的知识，这篇文本的主要话题是什么？",
+        "文中提到的关键实体之间有什么联系？",
+        "从时间和主题的角度，你能总结一下这篇文本的核心内容吗？"
+    ]
+
+    kg.build_index()
+    for q in topic_questions:
+        print(f"🤔 提问: {q}")
+        try:
+            response = kg.chat(q, top_k=5)
+            print(f"📚 回答: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ 对话异常: {e}\n")
+
     # 保存
     try:
         output_dir = "temp/itext2kg_star_demo"

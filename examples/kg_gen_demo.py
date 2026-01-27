@@ -339,6 +339,29 @@ def main():
         print(f"  • {entity}: 参与 {count} 个关系")
 
     # ============================================================================
+    # Chat with Knowledge Graph
+    # ============================================================================
+    print("\n" + "=" * 70)
+    print("💬 Knowledge Graph Intelligence")
+    print("=" * 70)
+    print("Interactive dialogue based on extracted relationships...\n")
+
+    kg_questions = [
+        "What are the main conflicts mentioned in this text?",
+        "Which characters played the most important roles in the guild drama?",
+        "What lessons can be learned from this event?"
+    ]
+
+    kg.build_index()
+    for q in kg_questions:
+        print(f"❓ Question: {q}")
+        try:
+            response = kg.chat(q, top_k=5)
+            print(f"🤖 Answer: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ Chat error: {e}\n")
+
+    # ============================================================================
     # Save Results
     # ============================================================================
     print("\n" + "=" * 70)
