@@ -27,8 +27,8 @@ from ..core.base import BaseAutoType
 from ..utils.logging import logger
 
 
-Node = TypeVar("Node", bound=BaseModel)
-Edge = TypeVar("Edge", bound=BaseModel)
+NodeSchema = TypeVar("NodeSchema", bound=BaseModel)
+EdgeSchema = TypeVar("EdgeSchema", bound=BaseModel)
 
 
 # ==============================================================================
@@ -66,34 +66,34 @@ DEFAULT_EDGE_PROMPT = (
 )
 
 
-class AutoGraphSchema(BaseModel, Generic[Node, Edge]):
+class AutoGraphSchema(BaseModel, Generic[NodeSchema, EdgeSchema]):
     """Generic schema container for graph-based knowledge patterns."""
 
-    nodes: List[Node] = Field(default_factory=list, description="Graph nodes/entities")
-    edges: List[Edge] = Field(
+    nodes: List[NodeSchema] = Field(default_factory=list, description="Graph nodes/entities")
+    edges: List[EdgeSchema] = Field(
         default_factory=list, description="Graph edges/relationships"
     )
 
 
-class NodeListSchema(BaseModel, Generic[Node]):
+class NodeListSchema(BaseModel, Generic[NodeSchema]):
     """Intermediate schema for batch node extraction."""
 
-    items: List[Node] = Field(
+    items: List[NodeSchema] = Field(
         default_factory=list,
         description="List of identified entities or nodes found in the text.",
     )
 
 
-class EdgeListSchema(BaseModel, Generic[Edge]):
+class EdgeListSchema(BaseModel, Generic[EdgeSchema]):
     """Intermediate schema for batch edge extraction."""
 
-    items: List[Edge] = Field(
+    items: List[EdgeSchema] = Field(
         default_factory=list,
         description="List of identified relationships or edges found in the text.",
     )
 
 
-class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
+class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[NodeSchema, EdgeSchema]):
     """AutoGraph - extracts knowledge graphs with nodes and edges from text.
 
     This pattern extracts structured knowledge graphs consisting of entities (nodes) and
@@ -134,15 +134,15 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
     """
 
     if TYPE_CHECKING:
-        graph_schema: Type[AutoGraphSchema[Node, Edge]]
+        graph_schema: Type[AutoGraphSchema[NodeSchema, EdgeSchema]]
 
     def __init__(
         self,
-        node_schema: Type[Node],
-        edge_schema: Type[Edge],
-        node_key_extractor: Callable[[Node], str],
-        edge_key_extractor: Callable[[Edge], str],
-        nodes_in_edge_extractor: Callable[[Edge], Tuple[str, str]],
+        node_schema: Type[NodeSchema],
+        edge_schema: Type[EdgeSchema],
+        node_key_extractor: Callable[[NodeSchema], str],
+        edge_key_extractor: Callable[[EdgeSchema], str],
+        nodes_in_edge_extractor: Callable[[EdgeSchema], Tuple[str, str]],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
@@ -290,7 +290,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         """Returns the default prompt for one-stage graph extraction."""
         return DEFAULT_GRAPH_PROMPT
 
-    def _create_empty_instance(self) -> "AutoGraph[Node, Edge]":
+    def _create_empty_instance(self) -> "AutoGraph[NodeSchema, EdgeSchema]":
         """Creates a new empty AutoGraph instance with the same configuration as this one.
 
         Overrides parent method to handle AutoGraph-specific parameters.
@@ -321,7 +321,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         )
 
     @property
-    def data(self) -> AutoGraphSchema[Node, Edge]:
+    def data(self) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Returns the current graph state (nodes and edges).
 
         Returns:
@@ -332,7 +332,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         )
 
     @property
-    def nodes(self) -> List[Node]:
+    def nodes(self) -> List[NodeSchema]:
         """Returns the current node collection.
 
         Returns:
@@ -341,7 +341,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         return self._node_memory.items
 
     @property
-    def edges(self) -> List[Edge]:
+    def edges(self) -> List[EdgeSchema]:
         """Returns the current edge collection.
 
         Returns:
@@ -369,7 +369,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         self._node_memory.clear_index()
         self._edge_memory.clear_index()
 
-    def _set_data_state(self, data: AutoGraphSchema) -> None:
+    def _set_data_state(self, data: AutoGraphSchema[NodeSchema, EdgeSchema]) -> None:
         """Replace graph data with new data (full reset).
 
         Args:
@@ -385,7 +385,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
         self.clear_index()
 
-    def _update_data_state(self, incoming_data: AutoGraphSchema) -> None:
+    def _update_data_state(self, incoming_data: AutoGraphSchema[NodeSchema, EdgeSchema]) -> None:
         """Merge incoming graph data into current state.
 
         Args:
@@ -402,7 +402,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
     # ==================== Extraction Pipeline ====================
 
-    def _extract_data(self, text: str) -> AutoGraphSchema:
+    def _extract_data(self, text: str) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Main extraction logic dispatcher.
 
         Args:
@@ -421,7 +421,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         # Prune dangling edges to ensure graph consistency
         return self._prune_dangling_edges(raw_graph)
 
-    def _extract_data_by_one_stage(self, text: str) -> AutoGraphSchema:
+    def _extract_data_by_one_stage(self, text: str) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Extract nodes and edges simultaneously using single LLM call.
 
         Args:
@@ -451,7 +451,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         # Merge multiple graphs
         return self.merge_batch_data(graph_list)
 
-    def _extract_data_by_two_stage(self, text: str) -> AutoGraphSchema:
+    def _extract_data_by_two_stage(self, text: str) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Extract nodes first, then edges with node context (batch processing).
 
         Process:
@@ -488,7 +488,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         # 5. Global Merge (passes tuples to merge_batch_data)
         return self.merge_batch_data(partial_graphs)
 
-    def _extract_nodes_batch(self, chunks: List[str]) -> List[NodeListSchema[Node]]:
+    def _extract_nodes_batch(self, chunks: List[str]) -> List[NodeListSchema[NodeSchema]]:
         """Batch extract nodes from multiple text chunks.
 
         Args:
@@ -508,8 +508,8 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_edges_batch(
-        self, chunks: List[str], node_lists: List[NodeListSchema[Node]]
-    ) -> List[EdgeListSchema[Edge]]:
+        self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
+    ) -> List[EdgeListSchema[EdgeSchema]]:
         """Batch extract edges using corresponding node lists as context.
 
         Args:
@@ -539,7 +539,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
-    def _prune_dangling_edges(self, graph: AutoGraphSchema) -> AutoGraphSchema:
+    def _prune_dangling_edges(self, graph: AutoGraphSchema[NodeSchema, EdgeSchema]) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Prune edges that connect to non-existent nodes (Consistency Check).
 
         Ensures graph consistency by removing any edges where either endpoint
@@ -584,14 +584,14 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
 
     def merge_batch_data(
         self,
-        data_list_or_tuple: List[AutoGraphSchema]
-        | Tuple[List[List[Node]], List[List[Edge]]],
-    ) -> AutoGraphSchema:
+        data_list_or_tuple: List[AutoGraphSchema[NodeSchema, EdgeSchema]]
+        | Tuple[List[List[NodeSchema]], List[List[EdgeSchema]]],
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Merge multiple graphs or node/edge tuples into one.
 
         Supports two input formats:
         - List of AutoGraphSchema objects (standard format)
-        - Tuple of (List[List[Node]], List[List[Edge]]) (optimization for batch processing)
+        - Tuple of (List[List[NodeSchema]], List[List[EdgeSchema]]) (optimization for batch processing)
 
         Args:
             data_list_or_tuple: Either a list of AutoGraphSchema objects or a tuple of
@@ -661,7 +661,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         top_k: int = 3,
         search_nodes: bool = True,
         search_edges: bool = True,
-    ) -> List[Node] | List[Edge] | Tuple[List[Node], List[Edge]]:
+    ) -> List[NodeSchema] | List[EdgeSchema] | Tuple[List[NodeSchema], List[EdgeSchema]]:
         """Unified graph search interface.
 
         By default, searches both nodes and edges simultaneously to provide comprehensive results.
@@ -675,9 +675,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             search_edges: Whether to search edges (default: True).
 
         Returns:
-            - Tuple[List[Node], List[Edge]] if both search_nodes and search_edges are True (default).
-            - List[Node] if only search_nodes is True.
-            - List[Edge] if only search_edges is True.
+            - Tuple[List[NodeSchema], List[EdgeSchema]] if both search_nodes and search_edges are True (default).
+            - List[NodeSchema] if only search_nodes is True.
+            - List[EdgeSchema] if only search_edges is True.
 
         Raises:
             ValueError: If neither search_nodes nor search_edges is True.
@@ -708,7 +708,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
             edges = self.search_edges(query, top_k)
             return edges
 
-    def search_nodes(self, query: str, top_k: int = 3) -> List[Node]:
+    def search_nodes(self, query: str, top_k: int = 3) -> List[NodeSchema]:
         """Semantic search for nodes/entities only.
 
         Args:
@@ -720,7 +720,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[Node, Edge]], Generic[Node, Edge]):
         """
         return self._node_memory.search(query=query, top_k=top_k)
 
-    def search_edges(self, query: str, top_k: int = 3) -> List[Edge]:
+    def search_edges(self, query: str, top_k: int = 3) -> List[EdgeSchema]:
         """Semantic search for edges/relationships only.
 
         Args:
