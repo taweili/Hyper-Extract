@@ -120,7 +120,8 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         ...     node_schema=MyEntity,
         ...     edge_schema=MyTemporalEdge,
         ...     node_key_extractor=lambda x: x.name,
-        ...     temporal_edge_key_extractor=lambda x: f"{x.src}|{x.relation}|{x.dst}|{x.year or ''}",
+        ...     edge_key_extractor=lambda x: f"{x.src}|{x.relation}|{x.dst}",
+        ...     time_in_edge_extractor=lambda x: x.year or "",
         ...     nodes_in_edge_extractor=lambda x: (x.src, x.dst),
         ...     llm_client=llm,
         ...     embedder=embedder,
@@ -133,7 +134,8 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         node_schema: Type[NodeSchema],
         edge_schema: Type[EdgeSchema],
         node_key_extractor: Callable[[NodeSchema], str],
-        temporal_edge_key_extractor: Callable[[EdgeSchema], str],
+        edge_key_extractor: Callable[[EdgeSchema], str],
+        time_in_edge_extractor: Callable[[EdgeSchema], str],
         nodes_in_edge_extractor: Callable[[EdgeSchema], Tuple[str, str]],
         llm_client: BaseChatModel,
         embedder: Embeddings,
@@ -159,8 +161,10 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             node_schema: User-defined Node Pydantic model.
             edge_schema: User-defined Edge Pydantic model with time fields.
             node_key_extractor: Function to extract unique key from node (e.g., lambda x: x.name).
-            temporal_edge_key_extractor: Function to extract unique edge key including temporal info
-                (e.g., lambda x: f"{x.src}|{x.relation}|{x.dst}|{x.year}").
+            edge_key_extractor: Function to extract the base unique identifier for an edge purely based on 
+                                entities and relation (e.g., lambda x: f"{x.src}|{x.relation}|{x.dst}").
+            time_in_edge_extractor: Function to extract the time component from an edge 
+                                   (e.g., lambda x: x.year or "permanent").
                 This ensures (A, rel, B) @ 2020 and (A, rel, B) @ 2021 are treated as different edges.
             nodes_in_edge_extractor: Function to extract (source_key, target_key) from edge.
             llm_client: LangChain BaseChatModel for extraction.
@@ -185,8 +189,15 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         self.observation_time = observation_time or datetime.now().strftime("%Y-%m-%d")
 
         # Store for instance recreation
-        self.temporal_edge_key_extractor = temporal_edge_key_extractor
+        self.raw_edge_key_extractor = edge_key_extractor
+        self.time_in_edge_extractor = time_in_edge_extractor
         self._constructor_kwargs = kwargs
+
+        # Create combined extractor for unique identification in memory
+        def temporal_edge_key_extractor(edge: EdgeSchema) -> str:
+            raw_key = self.raw_edge_key_extractor(edge)
+            time_val = self.time_in_edge_extractor(edge)
+            return f"{raw_key} @ {time_val}" if time_val else raw_key
 
         # -----------------------------------------------------------
         # Construct Prompts: Role -> User Context -> System Rules
@@ -304,7 +315,8 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             node_schema=self.node_schema,
             edge_schema=self.edge_schema,
             node_key_extractor=self.node_key_extractor,
-            temporal_edge_key_extractor=self.temporal_edge_key_extractor,
+            edge_key_extractor=self.raw_edge_key_extractor,
+            time_in_edge_extractor=self.time_in_edge_extractor,
             nodes_in_edge_extractor=self.nodes_in_edge_extractor,
             llm_client=self.llm_client,
             embedder=self.embedder,

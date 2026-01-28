@@ -137,8 +137,9 @@ def run_demo():
         edge_schema=TemporalAction,
         # 1. 实体ID提取规则
         node_key_extractor=lambda x: x.name,
-        # 2. 时间感知的行动唯一性规则（包含时间维度）
-        temporal_edge_key_extractor=lambda x: f"{x.source}|{x.action}|{x.target}|{x.timestamp or ''}",
+        # 2. 时间感知的行动唯一性规则（分离 edge key 和 time）
+        edge_key_extractor=lambda x: f"{x.source}|{x.action}|{x.target}",
+        time_in_edge_extractor=lambda x: x.timestamp or "",
         # 3. 行动双方映射规则
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
         llm_client=llm,

@@ -6,7 +6,15 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
-from .base import AutoGraph, NodeSchema, EdgeSchema, NodeListSchema
+from .base import (
+    AutoGraph,
+    NodeSchema,
+    EdgeSchema,
+    NodeListSchema,
+    EdgeListSchema,
+    AutoGraphSchema,
+)
+from ..utils.logging import logger
 
 # ==============================================================================
 # Prompt Definition - Spatial "Sandwich" Injection
@@ -49,8 +57,6 @@ Extract meaningful relationships (edges) between the provided entities.
 DEFAULT_SPATIAL_EDGE_RULES_SUFFIX = """
 ### General Constraints
 1. ONLY extract edges connecting entities from the known entity list provided below.
-   - **CRITICAL**: The entity list identifies spatial entities by their Name AND Location (e.g., "Dr. Chen @ Airlock", "Dr. Chen @ Airlock").
-   - You MUST use the exact entity identifier strings from the list for 'source' and 'target' fields.
    - Do NOT abbreviate or modify the entity identifiers.
 2. DO NOT create edges involving entities that are not listed.
 3. Keep the graph structure clean and focused on valid relationships.
@@ -87,7 +93,7 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
     A flexible implementation supporting user-defined Node schemas with spatial awareness:
     - **Location Injection**: Observation Location is injected to resolve relative spatial references (e.g., "local", "nearby").
     - **Spatial Attribute Focus**: Prompts enforce treating location as a Node attribute rather than a separate Node.
-    - **Spatial Identity**: Nodes are uniquely identified by BOTH Name and Location. The same entity at different locations 
+    - **Spatial Identity**: Nodes are uniquely identified by BOTH Name and Location. The same entity at different locations
       is treated as spatially distinct (e.g., "Dr. Chen @ Airlock" vs "Dr. Chen @ MedBay" are different node identities).
     - **Schema Agnosticism**: Support any user-defined Node and Edge Pydantic models.
 
@@ -105,14 +111,15 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         ...     target: str
         ...     relation_type: str
         >>>
-        >>> llm = ChatOpenAI(model="gpt-4")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>>
         >>> graph = AutoSpatialGraph(
         ...     node_schema=SpatialEntity,
         ...     edge_schema=Relation,
-        ...     # CRITICAL: Combine Name + Location for unique spatial node identity
-        ...     spatial_node_key_extractor=lambda x: f"{x.name} @ {x.location}",
+        ...     # Split identity extraction: base name and location
+        ...     node_key_extractor=lambda x: x.name,
+        ...     location_in_node_extractor=lambda x: x.location,
         ...     edge_key_extractor=lambda x: f"{x.source}-{x.relation_type}-{x.target}",
         ...     nodes_in_edge_extractor=lambda x: (x.source, x.target),
         ...     llm_client=llm,
@@ -126,7 +133,8 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         self,
         node_schema: Type[NodeSchema],
         edge_schema: Type[EdgeSchema],
-        spatial_node_key_extractor: Callable[[NodeSchema], str],
+        node_key_extractor: Callable[[NodeSchema], str],
+        location_in_node_extractor: Callable[[NodeSchema], str],
         edge_key_extractor: Callable[[EdgeSchema], str],
         nodes_in_edge_extractor: Callable[[EdgeSchema], Tuple[str, str]],
         llm_client: BaseChatModel,
@@ -153,53 +161,41 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         **Required Arguments:**
 
         Args:
-            node_schema: User-defined Node Pydantic model class. Defines the structure of 
-                        extracted entities. Should include fields for entity attributes and optional 
+            node_schema: User-defined Node Pydantic model class. Defines the structure of
+                        extracted entities. Should include fields for entity attributes and optional
                         location information (e.g., name, type, location, coordinates).
                         Example: class Entity(BaseModel): name: str; location: str | None = None
 
-            edge_schema: User-defined Edge Pydantic model class. Defines the structure of 
-                        relationships between nodes. Must include fields to specify source and 
+            edge_schema: User-defined Edge Pydantic model class. Defines the structure of
+                        relationships between nodes. Must include fields to specify source and
                         target nodes.
                         Example: class Relation(BaseModel): source: str; target: str; relation_type: str
 
-            spatial_node_key_extractor: Callable function to extract a unique key/identifier from 
-                                       each node. Used for deduplication and matching nodes.
-                                       
-                                       **CRITICAL FOR SPATIAL GRAPHS**: Unlike general graphs, spatial nodes 
-                                       must be identified by BOTH their Name AND Location. This reflects the fact 
-                                       that the same entity (e.g., "Dr. Chen") at different locations ("Airlock" vs 
-                                       "MedBay") represents different spatial states or contexts. This ensures edges 
-                                       correctly reference spatially-contextualized entities.
-                                       
-                                       Example: lambda x: f"{x.name} ({x.location})"
+            node_key_extractor: Callable function to extract the BASE unique identifier from a node,
+                               excluding location (e.g., just the name logic).
+                               Example: lambda x: x.name
 
-            edge_key_extractor: Callable function to extract a unique key/identifier from each edge. 
+            location_in_node_extractor: Callable function to extract the location string from a node.
+                                       Example: lambda x: x.location
+
+            edge_key_extractor: Callable function to extract a unique key/identifier from each edge.
                                Used for edge deduplication and matching.
                                Example: lambda x: f"{x.source}-{x.relation_type}-{x.target}"
 
-            nodes_in_edge_extractor: Callable function to extract the (source_node_key, target_node_key) 
-                                    tuple from an edge. Used to validate edge connectivity and ensure 
-                                    edges only connect existing nodes.
-                                    
-                                    NOTE: The source and target values in your edge schema should already be 
-                                    in the format produced by spatial_node_key_extractor (e.g., "Dr. Chen (Airlock)"), 
-                                    NOT just the name. The LLM's edge extraction prompt will guide this.
-                                    
-                                    Example: lambda x: (x.source, x.target)
+            nodes_in_edge_extractor: Function to extract (source_key, target_key) node keys from an edge for validation.
 
-            llm_client: LangChain BaseChatModel instance (e.g., ChatOpenAI, ChatAnthropic). 
+            llm_client: LangChain BaseChatModel instance (e.g., ChatOpenAI, ChatAnthropic).
                        Responsible for extracting nodes and edges from text via LLM calls.
 
-            embedder: LangChain Embeddings instance (e.g., OpenAIEmbeddings, HuggingFaceEmbeddings). 
+            embedder: LangChain Embeddings instance (e.g., OpenAIEmbeddings, HuggingFaceEmbeddings).
                      Used for semantic similarity matching and vector indexing of nodes and edges.
 
         **Optional Keyword Arguments:**
 
         Args:
-            observation_location: A string describing the reference location for relative spatial 
-                                 resolution (e.g., "New York City, NY", "Building A, Room 101", 
-                                 "37.7749,-122.4194"). Used by the LLM to resolve expressions like 
+            observation_location: A string describing the reference location for relative spatial
+                                 resolution (e.g., "New York City, NY", "Building A, Room 101",
+                                 "37.7749,-122.4194"). Used by the LLM to resolve expressions like
                                  "here", "nearby", "local" to actual locations.
                                  Default: "Unknown Location"
 
@@ -208,61 +204,72 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
                             - "two_stage": Extracts nodes first, then edges with node context (more accurate).
                             Default: "two_stage"
 
-            node_strategy_or_merger: Merge strategy for deduplicating nodes (when multiple chunks 
-                                    have duplicate nodes). Can be a MergeStrategy enum value 
-                                    (e.g., MergeStrategy.LLM.BALANCED, MergeStrategy.SIMPLE) or a 
+            node_strategy_or_merger: Merge strategy for deduplicating nodes (when multiple chunks
+                                    have duplicate nodes). Can be a MergeStrategy enum value
+                                    (e.g., MergeStrategy.LLM.BALANCED, MergeStrategy.SIMPLE) or a
                                     custom BaseMerger instance.
                                     Default: MergeStrategy.LLM.BALANCED
 
-            edge_strategy_or_merger: Merge strategy for deduplicating edges. Similar to 
+            edge_strategy_or_merger: Merge strategy for deduplicating edges. Similar to
                                     node_strategy_or_merger.
                                     Default: MergeStrategy.LLM.BALANCED
 
-            prompt_for_node_extraction: Additional user-specific prompt/context to append to the 
-                                       node extraction system prompt. This allows customization of 
+            prompt_for_node_extraction: Additional user-specific prompt/context to append to the
+                                       node extraction system prompt. This allows customization of
                                        node extraction behavior without replacing the full prompt.
                                        Example: "Focus on extracting only companies and their headquarters."
                                        Default: ""
 
-            prompt_for_edge_extraction: Additional user-specific prompt/context to append to the 
+            prompt_for_edge_extraction: Additional user-specific prompt/context to append to the
                                        edge extraction system prompt.
                                        Default: ""
 
-            prompt: Additional user-specific prompt/context to append to the one-stage graph extraction 
+            prompt: Additional user-specific prompt/context to append to the one-stage graph extraction
                    system prompt. Only used when extraction_mode="one_stage".
                    Default: ""
 
-            chunk_size: Maximum character length of each text chunk for batch processing. Larger texts 
+            chunk_size: Maximum character length of each text chunk for batch processing. Larger texts
                        are split into chunks for parallel extraction.
                        Default: 2048
 
-            chunk_overlap: Number of overlapping characters between consecutive chunks to preserve 
+            chunk_overlap: Number of overlapping characters between consecutive chunks to preserve
                           context at chunk boundaries.
                           Default: 256
 
-            max_workers: Maximum number of parallel LLM calls during batch extraction. Higher values 
+            max_workers: Maximum number of parallel LLM calls during batch extraction. Higher values
                         improve speed but increase API usage and cost.
                         Default: 10
 
             verbose: Whether to print verbose logging messages during extraction, merging, and indexing.
                     Default: False
 
-            node_fields_for_index: List of node field names to include in the vector index. If None, 
-                                  all fields are indexed. Useful for focusing semantic search on 
+            node_fields_for_index: List of node field names to include in the vector index. If None,
+                                  all fields are indexed. Useful for focusing semantic search on
                                   specific attributes (e.g., ["name", "location"]).
                                   Default: None
 
-            edge_fields_for_index: List of edge field names to include in the vector index. If None, 
+            edge_fields_for_index: List of edge field names to include in the vector index. If None,
                                   all fields are indexed.
                                   Default: None
 
-            **kwargs: Additional keyword arguments passed to ontomem.merger.create_merger() when 
-                     node_strategy_or_merger or edge_strategy_or_merger are MergeStrategy enums. 
+            **kwargs: Additional keyword arguments passed to ontomem.merger.create_merger() when
+                     node_strategy_or_merger or edge_strategy_or_merger are MergeStrategy enums.
                      Ignored if they are BaseMerger instances.
         """
         # Set observation location
         self.observation_location = observation_location or "Unknown Location"
         self._constructor_kwargs = kwargs
+
+        # Store split extractors
+        self.raw_node_key_extractor = node_key_extractor
+        self.location_in_node_extractor = location_in_node_extractor
+
+        # Create combined extractor for unique identification in memory
+        # CRITICAL FOR SPATIAL: Format becomes "Name @ Location" (or just Name if no location)
+        def spatial_node_key_extractor(node: NodeSchema) -> str:
+            raw_key = node_key_extractor(node)
+            loc = location_in_node_extractor(node)
+            return f"{raw_key} @ {loc}" if loc else raw_key
 
         # -----------------------------------------------------------
         # Construct Prompts
@@ -271,13 +278,17 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         # 1. Node Extraction Prompt (Spatial logic lives here)
         full_node_prompt = DEFAULT_SPATIAL_NODE_ROLE_PREFIX
         if prompt_for_node_extraction:
-            full_node_prompt += f"\n### Context & Instructions:\n{prompt_for_node_extraction}\n"
+            full_node_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_node_extraction}\n"
+            )
         full_node_prompt += DEFAULT_SPATIAL_NODE_RULES_SUFFIX
 
         # 2. Edge Extraction Prompt
         full_edge_prompt = DEFAULT_SPATIAL_EDGE_ROLE_PREFIX
         if prompt_for_edge_extraction:
-            full_edge_prompt += f"\n### Context & Instructions:\n{prompt_for_edge_extraction}\n"
+            full_edge_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_edge_extraction}\n"
+            )
         full_edge_prompt += DEFAULT_SPATIAL_EDGE_RULES_SUFFIX
 
         # 3. One-Stage Graph Extraction Prompt
@@ -309,22 +320,25 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
             edge_fields_for_index=edge_fields_for_index,
             **kwargs,
         )
+        self._node_memory.create_lookup("id", node_key_extractor)
 
     # ==============================================================================
     # Override Extraction Methods to Dynamically Inject Observation Location
     # ==============================================================================
 
-    def _extract_nodes_batch(self, chunks: List[str]) -> List[NodeListSchema[NodeSchema]]:
+    def _extract_nodes_batch(
+        self, chunks: List[str]
+    ) -> List[NodeListSchema[NodeSchema]]:
         """
         Override: Inject observation_location into NODE extraction (Two-Stage).
-        
+
         Unlike TemporalGraph (which injects into Edges), SpatialGraph injects into Nodes
         because location is an attribute of the Node. The observation_location placeholder
         in the prompt is replaced with the actual location value.
-        
+
         Args:
             chunks: List of text chunks to extract nodes from.
-            
+
         Returns:
             List of NodeListSchema containing extracted nodes from each chunk.
         """
@@ -345,16 +359,60 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         ]
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
+    def _extract_edges_batch(
+        self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
+    ) -> List[EdgeListSchema[EdgeSchema]]:
+        """
+        Batch extract edges using corresponding node lists as context.
+
+        Override: Use raw_node_key_extractor (base name only) instead of the combined
+        spatial_node_key_extractor (name @ location).
+
+        **CRITICAL**: This method uses raw_node_key_extractor (base name only) instead of the
+        combined spatial_node_key_extractor (name @ location). This is intentional to provide
+        clean entity references during edge extraction. The LLM will extract edges with source/target
+        referring to these base names, which will be matched against the combined keys later.
+
+        Args:
+            chunks: List of text chunks.
+            node_lists: List of NodeListSchema objects (one per chunk).
+
+        Returns:
+            List of EdgeListSchema objects with extracted edges.
+        """
+        inputs = []
+        for chunk, node_list in zip(chunks, node_lists):
+            nodes = node_list.items if node_list else []
+            if not nodes:
+                node_context = "No specific entities identified in this chunk."
+            else:
+                # CRITICAL: Use raw_node_key_extractor (base keys without location) for entity references.
+                # This prevents location suffixes from cluttering the prompt and allows the LLM to focus on relationships.
+                # The edge extraction will reference these clean names, not the full "Name @ Location" identifiers.
+                node_keys = [self.raw_node_key_extractor(n) for n in nodes]
+                node_context = "Known entities: " + ", ".join(node_keys)
+
+            inputs.append({"chunk_text": chunk, "node_context": node_context})
+
+        prompt_template = ChatPromptTemplate.from_template(
+            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
+        )
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            self.edge_list_schema
+        )
+
+        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
+
     def _extract_data_by_one_stage(self, text: str) -> Any:
         """
         Override: Inject observation_location into one-stage extraction.
-        
+
         For single-stage extraction, processes entire text (or chunks if too long)
         and injects observation_location into the prompt template.
-        
+
         Args:
             text: Full text to extract from.
-            
+
         Returns:
             AutoGraphSchema containing extracted nodes and edges.
         """
@@ -365,7 +423,10 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         )
 
         if len(text) <= self.chunk_size:
-            inp = {"chunk_text": text, "observation_location": self.observation_location}
+            inp = {
+                "chunk_text": text,
+                "observation_location": self.observation_location,
+            }
             graph = llm_chain.invoke(inp)
             graph_list = [graph]
         else:
@@ -380,20 +441,79 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
 
         return self.merge_batch_data(graph_list)
 
+    def _prune_dangling_edges(
+        self, graph: AutoGraphSchema[NodeSchema, EdgeSchema]
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
+        """Override: Prune edges connecting to non-existent nodes using RAW keys.
+
+        **Reason for Override**:
+        In AutoSpatialGraph, the primary node storage uses a combined key ("Name @ Location")
+        to distinguish spatially distinct entities. However, edges are extracted using
+        only the raw entity name (to avoid location confusion in relationships).
+
+        Therefore, standard validation would fail because "Name" != "Name @ Location".
+        We must validate edge endpoints against the 'raw name' using the auxiliary lookup
+        index created in __init__ (self._node_memory.create_lookup("id", node_key_extractor)).
+
+        Args:
+            graph: Raw graph containing nodes and edges from the current extraction batch.
+
+        Returns:
+            Graph with only valid edges where both source and target exist in the node set
+            (verified via raw name lookup).
+        """
+        valid_nodes = graph.nodes
+        valid_node_keys = {self.raw_node_key_extractor(n) for n in valid_nodes}
+
+        refined_edges = []
+        dropped_count = 0
+
+        for edge in graph.edges:
+            src_key, dst_key = self.nodes_in_edge_extractor(edge)
+
+            # Check if endpoints exist in CURRENT batch OR in global memory using the ID lookup.
+            # The lookup checks against the 'id' (raw name) extractor defined in __init__,
+            # NOT the combined "Name @ Location" key used in the primary node storage.
+            src_exists = (
+                src_key in valid_node_keys
+                or self._node_memory.get_by_lookup("id", src_key) != []
+            )
+            dst_exists = (
+                dst_key in valid_node_keys
+                or self._node_memory.get_by_lookup("id", dst_key) != []
+            )
+
+            if src_exists and dst_exists:
+                refined_edges.append(edge)
+            else:
+                dropped_count += 1
+                logger.debug(
+                    f"Pruning dangling edge: {src_key} -> {dst_key} "
+                    f"(src_exists={src_exists}, dst_exists={dst_exists})"
+                )
+
+        if dropped_count > 0:
+            logger.info(
+                f"Pruned {dropped_count} dangling edges to ensure graph consistency."
+            )
+
+        return self.graph_schema(nodes=valid_nodes, edges=refined_edges)
+
     def _create_empty_instance(self) -> "AutoSpatialGraph[NodeSchema, EdgeSchema]":
         """
         Override: Recreate instance with spatial attributes preserved.
-        
+
         Used during serialization/deserialization to ensure all spatial configuration
         is maintained when creating a fresh instance.
-        
+
         Returns:
             New AutoSpatialGraph instance with identical configuration.
         """
         return self.__class__(
             node_schema=self.node_schema,
             edge_schema=self.edge_schema,
-            spatial_node_key_extractor=self.node_key_extractor,
+            node_key_extractor=self.raw_node_key_extractor,
+            location_in_node_extractor=self.location_in_node_extractor,
             edge_key_extractor=self.edge_key_extractor,
             nodes_in_edge_extractor=self.nodes_in_edge_extractor,
             llm_client=self.llm_client,

@@ -12,9 +12,7 @@ AutoSpatialGraph Demo: 深海惊魂 - "阿特拉斯"号的幽灵 🌊👻
 4. 观察点注入：所有相对描述（"这里"）必须解析为主角当前的观察点。
 """
 import sys
-import os
 from pathlib import Path
-from typing import Optional
 from dotenv import load_dotenv
 
 # 添加项目根目录到路径
@@ -22,6 +20,7 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 
 from pydantic import BaseModel, Field
+from typing import Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from hyperextract.graphs import AutoSpatialGraph
@@ -40,16 +39,18 @@ class DeepSeaEntity(BaseModel):
         description="实体类型：'船员', '怪物', '关键设备', '房间/区域', '物品'",
         default="未知",
     )
-    location: str = Field(
+    location: Optional[str] = Field(
         description="【关键字段】实体所处的具体位置。必须将相对位置解析为绝对位置。",
-        default="位置不明",
+        default=None,
     )
     status: str = Field(
         description="当前状态（例如：已死亡、损坏、锁定、活跃）", default="正常"
     )
+    description: str = Field(description="实体的详细描述")  
 
     def __repr__(self):
-        return f"📍 [{self.location}] {self.name} ({self.status})"
+        loc_display = self.location if self.location else "位置未知"
+        return f"📍 [{loc_display}] {self.name} ({self.status})"
 
 
 class InteractionEdge(BaseModel):
@@ -58,7 +59,7 @@ class InteractionEdge(BaseModel):
     source: str = Field(description="发起者")
     target: str = Field(description="对象")
     relation: str = Field(description="关系或动作（例如：'位于...内部'，'攻击'，'修复'）")
-    details: str = Field(description="互动的详细描述", default="")
+    details: str = Field(description="互动的详细描述")
 
     def __repr__(self):
         return f"{self.source} --[{self.relation}]--> {self.target}"
@@ -154,17 +155,18 @@ def run_demo():
 
     # 创建 AutoSpatialGraph
     print("📊 构建 AutoSpatialGraph 实例...\n")
-    # 关键：spatial_node_key_extractor 组合 name 和 location
-    # 这样即使同一对象出现在不同位置也会被视为不同节点
+    # 关键：使用 location_in_node_extractor 解析位置属性
     graph = AutoSpatialGraph[DeepSeaEntity, InteractionEdge](
         node_schema=DeepSeaEntity,
         edge_schema=InteractionEdge,
-        spatial_node_key_extractor=lambda x: f"{x.name}@{x.location}",
+        # Split extractors: base name and location separately
+        node_key_extractor=lambda x: x.name,
+        location_in_node_extractor=lambda x: x.location,
         edge_key_extractor=lambda x: f"{x.source}|{x.relation}|{x.target}",
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
         llm_client=llm,
         embedder=embedder,
-        observation_location="阿特拉斯(Atlas)深海科研站",  # 设定总的地理围栏
+        observation_location="Atlas深海科研站",  # 设定总的地理围栏
         extraction_mode="two_stage",
         node_strategy_or_merger=MergeStrategy.LLM.BALANCED,
         edge_strategy_or_merger=MergeStrategy.LLM.BALANCED,
@@ -177,13 +179,15 @@ def run_demo():
             "4. **实体类型**：如果是尸体，状态标为'死亡'但仍需提取为实体（携带关键物品）。\n"
         ),
         prompt_for_edge_extraction=(
-            "提取实体之间的互动关系。\n"
-            "1. 包含物理位置关系（如 '位于...内部'）。\n"
-            "2. 包含动作互动（如 '杀死了'，'连接着'）。\n"
-            "3. 如果实体A拿着实体B，建立 '持有' 关系。\n"
+            "提取实体之间所有有意义的互动与关联关系。由于位置已作为实体属性记录，**请勿提取简单的'位于...内部'关系**。\n\n"
+            "重点提取以下类型的关系：\n"
+            "1. **动作与交互**：例如 '攻击'、'修复'、'操作'、'持有/携带'、'观察到'。\n"
+            "2. **物理连接与阻挡**：例如 '连接着'（线缆）、'阻挡了'（门/障碍物）、'覆盖'。\n"
+            "3. **控制与功能**：例如 '门禁卡->开启->门'、'阀门->控制->管道'。\n"
+            "4. **因果与逻辑**：例如 '爆炸->导致->泄露'、'日志->提及->怪物'、'任务->目标是->设备'。\n"
         ),
         verbose=True,  # 开启日志以便观察提取过程
-        chunk_size=3000,  # 文本较短，一次性处理以保持上下文连贯性
+        chunk_size=2048,
     )
 
     print(f"\n📖 正在加载深海探险日志...")
@@ -211,7 +215,7 @@ def run_demo():
     nodes_by_location = {}
     for node in graph.nodes:
         # 简单处理一下位置字符串，取前几个字作为粗略分组
-        loc_key = node.location if node.location else "未知区域"
+        loc_key = node.location or "位置未知"
         if loc_key not in nodes_by_location:
             nodes_by_location[loc_key] = []
         nodes_by_location[loc_key].append(node)
