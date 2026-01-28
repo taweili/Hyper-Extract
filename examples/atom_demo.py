@@ -103,12 +103,12 @@ def main():
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    obs_date = "2024-12-15"
-    print(f"🚀 创建 Atom 实例（观察日期：{obs_date}）...")
+    obs_time = "2024-12-15"
+    print(f"🚀 创建 Atom 实例（观察时间：{obs_time}）...")
     kg = Atom(
         llm_client=llm,
         embedder=embedder,
-        observation_date=obs_date,
+        observation_time=obs_time,
         facts_per_chunk=10,
         verbose=True,
     )
@@ -303,16 +303,16 @@ def main():
     print("基于提取的知识进行深度对话...\n")
 
     chat_questions = [
-        "Apple 公司的发展历史中，有哪些关键的人物和事件？",
-        "iPhone 对 Apple 公司和整个科技行业产生了什么影响？",
-        "从时间线看，Apple 的创新节奏是如何变化的？"
+        "CyberPhone 系列从第一代到最新一代的发展过程中，主要经历了哪些关键转折点和挑战？",
+        "乔纳森·李和陈思在 FutureTech 公司的职业发展过程中扮演了什么角色，他们的离职和晋升对产品方向有什么影响？",
+        "CyberPhone 2 的电池问题危机是如何发生的，FutureTech 公司采取了什么应对措施来恢复信誉？"
     ]
 
     kg.build_index()
     for q in chat_questions:
         print(f"❓ 提问: {q}")
         try:
-            response = kg.chat(q, top_k=5)
+            response = kg.chat(q)
             print(f"💡 回答: {response.content}\n")
         except Exception as e:
             print(f"⚠️ 对话异常: {e}\n")

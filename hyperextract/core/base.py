@@ -387,10 +387,16 @@ class BaseAutoType(ABC, Generic[T]):
             context = "No relevant information found in the knowledge base."
         else:
             for item in search_results:
-                assert isinstance(item, BaseModel), (
-                    "Search results must be Pydantic models for formatting."
-                )
-                formatted_context.append(item.model_dump_json(indent=2))
+                if isinstance(item, BaseModel):
+                    formatted_context.append(item.model_dump_json(indent=2))
+                elif isinstance(item, dict):
+                    formatted_context.append(json.dumps(item, indent=2, ensure_ascii=False))
+                elif isinstance(item, str):
+                    formatted_context.append(item)
+                else:
+                    raise ValueError(
+                        "Search results must be Pydantic models, strings, or dicts for formatting."
+                    )
             context = "\n---\n".join(formatted_context)
 
         # Step 3: Create QA prompt template and invoke LLM

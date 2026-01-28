@@ -356,7 +356,7 @@ def main():
     for q in kg_questions:
         print(f"❓ Question: {q}")
         try:
-            response = kg.chat(q, top_k=5)
+            response = kg.chat(q)
             print(f"🤖 Answer: {response.content}\n")
         except Exception as e:
             print(f"⚠️ Chat error: {e}\n")

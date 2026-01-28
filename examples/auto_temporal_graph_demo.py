@@ -303,7 +303,7 @@ def run_demo():
         
         try:
             # 使用 chat 接口进行 RAG 问答
-            response = graph.chat(q, top_k=5)
+            response = graph.chat(q)
             print(f"📄 [情报简报]:\n{response.content}\n")
         except Exception as e:
             print(f"⚠️ 系统响应异常: {e}\n")

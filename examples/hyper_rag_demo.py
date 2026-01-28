@@ -244,7 +244,7 @@ if __name__ == "__main__":
     for q in chat_queries:
         print(f"❓ User: {q}")
         try:
-            response = rag.chat(q, top_k=5)
+            response = rag.chat(q)
             print(f"🤖 HyperRAG: {response.content}\n")
         except Exception as e:
             print(f"⚠️ Chat error: {e}\n")

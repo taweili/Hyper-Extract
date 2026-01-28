@@ -334,7 +334,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
                 If None, uses current date and time.
             chunk_size: Characters per chunk
             chunk_overlap: Overlapping characters between chunks
-            facts_per_chunk: Max number of atomic facts to group into a single extraction batch (default: 20)
+            facts_per_chunk: Max number of atomic facts to group into a single extraction batch (default: 10)
             max_workers: Max concurrent extraction workers
             verbose: Display detailed execution logs and progress information
         """

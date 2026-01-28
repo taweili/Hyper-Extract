@@ -417,7 +417,7 @@ def run_demo():
     for q in chat_queries:
         print(f"👤 提问: {q}")
         try:
-            response = graph.chat(q, top_k=5)
+            response = graph.chat(q)
             print(f"🤖 回答: {response.content}\n")
         except Exception as e:
             print(f"⚠️ 对话异常: {e}\n")

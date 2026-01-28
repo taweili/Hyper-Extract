@@ -290,7 +290,7 @@ def main():
     for q in topic_questions:
         print(f"🤔 提问: {q}")
         try:
-            response = kg.chat(q, top_k=5)
+            response = kg.chat(q)
             print(f"📚 回答: {response.content}\n")
         except Exception as e:
             print(f"⚠️ 对话异常: {e}\n")

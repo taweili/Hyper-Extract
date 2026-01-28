@@ -362,7 +362,7 @@ def main():
     for q in hypergraph_questions:
         print(f"🔍 分析师: {q}")
         try:
-            result = hypergraph.chat(q, top_k=5)
+            result = hypergraph.chat(q)
             print(f"📊 深层分析: {result.content}\n")
         except Exception as e:
             print(f"⚠️ 分析异常: {e}\n")
