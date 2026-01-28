@@ -236,9 +236,10 @@ if __name__ == "__main__":
     print("Engaging in multi-turn dialogue based on extracted knowledge...\n")
 
     chat_queries = [
-        "What are the main themes in this text?",
-        "How are different topics interconnected?",
-        "What insights can you draw from the relationships in this graph?"
+        "虚空水晶现在在哪里?",
+        "黑蛇和议员Valerius有什么阴谋?",
+        "谁参与了泰坦空间站的秘密会议?",
+        "Leona目前的状况如何?",
     ]
 
     for q in chat_queries:

@@ -598,53 +598,47 @@ class AutoHypergraph(
     def search(
         self,
         query: str,
-        top_k: int = 3,
-        search_nodes: bool = True,
-        search_edges: bool = True,
-    ) -> List[Node] | List[Edge] | Tuple[List[Node], List[Edge]]:
+        top_k_nodes: int = 3,
+        top_k_edges: int = 3,
+    ) -> Tuple[List[Node], List[Edge]]:
         """Unified hypergraph search interface.
 
-        By default, searches both nodes and hyperedges simultaneously to provide comprehensive results.
-        When searching both, returns a tuple of (nodes_results, edges_results).
-        When searching one type only, returns a flat list.
+        Retrieves nodes and hyperedges semantically related to the query.
+        Always returns a tuple of (nodes, edges). If a count is 0, the corresponding list will be empty.
 
         Args:
             query: Search query string.
-            top_k: Number of results to return per type (default: 3).
-            search_nodes: Whether to search nodes (default: True).
-            search_edges: Whether to search hyperedges (default: True).
+            top_k_nodes: Number of node results to return (default: 3). Set to 0 to disable node search.
+            top_k_edges: Number of hyperedge results to return (default: 3). Set to 0 to disable hyperedge search.
 
         Returns:
-            - Tuple[List[Node], List[Edge]] if both search_nodes and search_edges are True (default).
-            - List[Node] if only search_nodes is True.
-            - List[Edge] if only search_edges is True.
+            Tuple[List[Node], List[Edge]]: A tuple containing:
+                - List of matching nodes (empty if top_k_nodes <= 0)
+                - List of matching hyperedges (empty if top_k_edges <= 0)
 
         Raises:
-            ValueError: If neither search_nodes nor search_edges is True.
+            ValueError: If both top_k_nodes and top_k_edges are <= 0.
+            ValueError: If search is requested (top_k > 0) but the corresponding index is not built.
         """
-        if not search_nodes and not search_edges:
+        if top_k_nodes <= 0 and top_k_edges <= 0:
             raise ValueError(
-                "At least one of search_nodes or search_edges must be True."
+                "At least one of top_k_nodes or top_k_edges must be positive."
             )
 
-        if search_nodes and search_edges:
+        nodes: List[Node] = []
+        edges: List[Edge] = []
+
+        if top_k_nodes > 0:
             if not self._node_memory.has_index():
                 raise ValueError("Node index not built. Call build_index() first.")
+            nodes = self.search_nodes(query, top_k=top_k_nodes)
+
+        if top_k_edges > 0:
             if not self._edge_memory.has_index():
                 raise ValueError("Edge index not built. Call build_index() first.")
-            nodes = self.search_nodes(query, top_k)
-            edges = self.search_edges(query, top_k)
-            return (nodes, edges)
+            edges = self.search_edges(query, top_k=top_k_edges)
 
-        if search_nodes:
-            if not self._node_memory.has_index():
-                raise ValueError("Node index not built. Call build_index() first.")
-            return self.search_nodes(query, top_k)
-
-        if search_edges:
-            if not self._edge_memory.has_index():
-                raise ValueError("Edge index not built. Call build_index() first.")
-            return self.search_edges(query, top_k)
+        return nodes, edges
 
     def search_nodes(self, query: str, top_k: int = 3) -> List[Node]:
         """Semantic search for nodes/entities only."""

@@ -349,7 +349,7 @@ def run_demo():
     print(f"\n❓ Query: {q1}")
     try:
         # 默认同时搜索节点和边，返回 Tuple[nodes, edges]
-        nodes, edges = graph.search(q1, top_k=3)
+        nodes, edges = graph.search(q1, top_k_nodes=3, top_k_edges=3)
         interactions = edges
         if interactions:
             for i in interactions:
@@ -363,7 +363,7 @@ def run_demo():
     q2 = "谁是治疗职业的？"
     print(f"\n❓ Query: {q2}")
     try:
-        nodes, edges = graph.search(q2, top_k=3)
+        nodes, edges = graph.search(q2, top_k_nodes=3, top_k_edges=3)
         healers = nodes
         if healers:
             for h in healers:
@@ -377,7 +377,7 @@ def run_demo():
     q3 = "谁和谁发生了冲突？"
     print(f"\n❓ Query: {q3}")
     try:
-        nodes, edges = graph.search(q3, top_k=3)
+        nodes, edges = graph.search(q3, top_k_nodes=3, top_k_edges=3)
         conflicts = edges
         if conflicts:
             for c in conflicts:
@@ -391,7 +391,7 @@ def run_demo():
     q4 = "谁是主坦克？"
     print(f"\n❓ Query: {q4}")
     try:
-        nodes, edges = graph.search(q4, top_k=3)
+        nodes, edges = graph.search(q4, top_k_nodes=3, top_k_edges=3)
         tanks = nodes
         if tanks:
             for t in tanks:

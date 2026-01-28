@@ -247,7 +247,7 @@ def run_demo():
     q1 = "空间站里有哪些怪物或威胁？它们在哪？"
     print(f"\n❓ Search Query: {q1}")
     try:
-        nodes, edges = graph.search(q1, top_k=5)
+        nodes, edges = graph.search(q1, top_k_nodes=5, top_k_edges=5)
         if nodes:
             print(f"  📍 相关实体:")
             for n in nodes:
@@ -265,7 +265,7 @@ def run_demo():
     q2 = "黑匣子在哪里找到的？"
     print(f"\n❓ Search Query: {q2}")
     try:
-        nodes, edges = graph.search(q2, top_k=3)
+        nodes, edges = graph.search(q2, top_k_nodes=3, top_k_edges=3)
         if nodes:
             print(f"  📍 相关实体:")
             for n in nodes:
@@ -283,7 +283,7 @@ def run_demo():
     q3 = "动力反应堆舱（底层）里有什么东西？"
     print(f"\n❓ Search Query: {q3}")
     try:
-        nodes, edges = graph.search(q3, top_k=5)
+        nodes, edges = graph.search(q3, top_k_nodes=5, top_k_edges=5)
         if nodes:
             print(f"  📍 相关实体:")
             for n in nodes:
@@ -301,7 +301,7 @@ def run_demo():
     q4 = "权限卡在哪里？"
     print(f"\n❓ Search Query: {q4}")
     try:
-        nodes, edges = graph.search(q4, top_k=3)
+        nodes, edges = graph.search(q4, top_k_nodes=3, top_k_edges=3)
         if nodes:
             print(f"  📍 相关实体:")
             for n in nodes:

@@ -6,9 +6,12 @@ Extracts and manages multi-entity relationships with support for n-ary hyperedge
 from typing import List
 from pydantic import BaseModel, Field
 from hyperextract.hypergraphs.base import AutoHypergraph
-from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage
 from langchain_core.embeddings import Embeddings
+from langchain_core.language_models import BaseChatModel
+from langchain_core.prompts.chat import ChatPromptTemplate
 from ontomem.merger import CustomRuleMerger
+from ..utils.logging import logger
 
 # ============================================================================
 # Node Schema
@@ -52,17 +55,33 @@ class EdgeSchema(BaseModel):
 
 
 # ============================================================================
+# Query Analysis Schema
+# ============================================================================
+
+
+class QueryKeywords(BaseModel):
+    """Extracted keywords for multi-granular hypergraph retrieval."""
+
+    high_level_keywords: List[str] = Field(
+        description="Overarching concepts, themes, or abstract topics (e.g., 'International trade', 'Deforestation')."
+    )
+    low_level_keywords: List[str] = Field(
+        description="Specific entities, concrete details, or tangible objects (e.g., 'Tariffs', 'Rainforest')."
+    )
+
+
+# ============================================================================
 # Extraction Prompts
 # ============================================================================
 
-HYPER_RAG_NODE_EXTRACTION_PROMPT = """
+Hyper_RAG_NODE_EXTRACTION_PROMPT = """
 -Goal-
 Identify relevant entities from the text.
 Entities will serve as participants in complex events later.\n\n
 ### Source Text:
 """
 
-HYPER_RAG_EDGE_EXTRACTION_PROMPT = """
+Hyper_RAG_EDGE_EXTRACTION_PROMPT = """
 -Goal-
 You are an expert hypergraph knowledge extraction assistant. 
 Extract "Hyperedges" that represent relationships, events, or thematic groupings involving MULTIPLE entities (2 or more) simultaneously.
@@ -79,11 +98,45 @@ It treats all involved entities as **participants** in a shared context
 
 """
 
+Hyper_RAG_KEYWORDS_EXTRACTION_PROMPT = """---Role---
+You are a helpful assistant tasked with identifying both high-level and low-level keywords in the user's query.
+
+---Goal---
+Given the query, extract both high-level and low-level keywords.
+- High-level keywords focus on overarching concepts, themes, or abstract topics.
+- Low-level keywords focus on specific entities, concrete details, or tangible objects.
+
+---Instructions---
+- Output as a structured response with two lists.
+- High-level keywords capture broader themes and relationships.
+- Low-level keywords capture specific entities and concrete terms.
+
+---Examples---
+
+Example 1:
+Query: "How does international trade influence global economic stability?"
+High-Level: ["International trade", "Global economic stability", "Economic impact"]
+Low-Level: ["Trade agreements", "Tariffs", "Currency exchange", "Imports", "Exports"]
+
+Example 2:
+Query: "What are the environmental consequences of deforestation on biodiversity?"
+High-Level: ["Environmental consequences", "Deforestation", "Biodiversity loss"]
+Low-Level: ["Species extinction", "Habitat destruction", "Carbon emissions", "Rainforest", "Ecosystem"]
+
+Example 3:
+Query: "What is the role of education in reducing poverty?"
+High-Level: ["Education", "Poverty reduction", "Socioeconomic development"]
+Low-Level: ["School access", "Literacy rates", "Job training", "Income inequality"]
+
+---Real Data---
+Query: {query}
+"""
+
 # ============================================================================
 # Merge Templates for LLM.CUSTOM_RULE Strategy
 # ============================================================================
 
-NODE_MERGE_RULE = """You are an intelligent data merging assistant.
+Hyper_RAG_NODE_MERGE_RULE = """You are an intelligent data merging assistant.
 You will receive a list of objects representing the same Entity.
 
 Your task is to merge them into a SINGLE object exactly matching the schema.
@@ -93,7 +146,7 @@ Merge strategy:
 2. **description**: Synthesize a single, comprehensive description containing all unique details from the input descriptions. Write it in the third person. Resolve any contradictions coherently.
 """
 
-EDGE_MERGE_RULE = """You are an intelligent data merging assistant.
+Hyper_RAG_EDGE_MERGE_RULE = """You are an intelligent data merging assistant.
 You will receive a list of objects representing the same Hyperedge (Relationship/Event).
 
 Your task is to merge them into a SINGLE object exactly matching the schema.
@@ -159,7 +212,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             key_extractor=node_key_fn,
             llm_client=llm_client,
             item_schema=NodeSchema,
-            rule=NODE_MERGE_RULE,
+            rule=Hyper_RAG_NODE_MERGE_RULE,
         )
 
         # Edge merger: merges relationship descriptions using EDGE_MERGE_RULE
@@ -167,7 +220,7 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             key_extractor=edge_key_fn,
             llm_client=llm_client,
             item_schema=EdgeSchema,
-            rule=EDGE_MERGE_RULE,
+            rule=Hyper_RAG_EDGE_MERGE_RULE,
         )
 
         # 4. Call parent class initialization
@@ -182,8 +235,8 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             # Enforce two-stage extraction (nodes first, then edges)
             extraction_mode="two_stage",
             # Inject customized prompts for extraction
-            prompt_for_node_extraction=HYPER_RAG_NODE_EXTRACTION_PROMPT,
-            prompt_for_edge_extraction=HYPER_RAG_EDGE_EXTRACTION_PROMPT,
+            prompt_for_node_extraction=Hyper_RAG_NODE_EXTRACTION_PROMPT,
+            prompt_for_edge_extraction=Hyper_RAG_EDGE_EXTRACTION_PROMPT,
             # Pass custom merger instances
             node_strategy_or_merger=node_merger,
             edge_strategy_or_merger=edge_merger,
@@ -196,3 +249,133 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             max_workers=max_workers,
             verbose=verbose,
         )
+
+    def chat(
+        self,
+        query: str,
+        top_k_nodes: int = 3,
+        top_k_edges: int = 3,
+    ) -> AIMessage:
+        """Performs a chat-like interaction using hypergraph knowledge.
+
+        Implements the 'Hyper-RAG' dual-level retrieval strategy:
+        1. Analyzes the query to extract 'Low-Level' keywords (specific entities/details) and 'High-Level' keywords (overarching themes).
+        2. Retrieves Nodes using Low-Level keywords (finding specific entities).
+        3. Retrieves Hyperedges using High-Level keywords (finding broader relationships and themes).
+        4. Synthesizes an answer based on the combined multi-granular context.
+
+        Args:
+            query: User query string.
+            top_k_nodes: Number of relevant nodes to retrieve (default: 3). Set to 0 to disable node context.
+            top_k_edges: Number of relevant hyperedges to retrieve (default: 3). Set to 0 to disable edge context.
+
+        Returns:
+            An AIMessage object containing the LLM-generated response.
+            Access the text content via response.content.
+
+        Example:
+            >>> # Dual-level retrieval: specific entities + broader themes
+            >>> response = hg.chat("How does education reduce poverty?", top_k_nodes=5, top_k_edges=3)
+            >>> print(response.content)
+        """
+        # Step 1: Validation
+        if top_k_nodes <= 0 and top_k_edges <= 0:
+            raise ValueError(
+                "At least one of top_k_nodes or top_k_edges must be positive."
+            )
+
+        # Step 2: Extract Keywords (Dual-Level Strategy)
+        keyword_prompt = ChatPromptTemplate.from_template(
+            Hyper_RAG_KEYWORDS_EXTRACTION_PROMPT
+        )
+        keyword_chain = keyword_prompt | self.llm_client.with_structured_output(
+            QueryKeywords
+        )
+
+        # Containers for keywords
+        low_level_targets = []
+        high_level_targets = []
+        extraction_success = False
+
+        try:
+            keywords_result: QueryKeywords = keyword_chain.invoke({"query": query})
+            if keywords_result.low_level_keywords:
+                low_level_targets = keywords_result.low_level_keywords
+            if keywords_result.high_level_keywords:
+                high_level_targets = keywords_result.high_level_keywords
+
+            extraction_success = True
+
+            if self.verbose:
+                logger.info(
+                    f"Query Analysis:\n"
+                    f"  - Low-Level Targets: {low_level_targets}\n"
+                    f"  - High-Level Targets: {high_level_targets}"
+                )
+
+        except Exception as e:
+            if self.verbose:
+                logger.warning(
+                    f"Keyword extraction failed ({e}), falling back to raw query."
+                )
+
+        context_parts = []
+
+        # Step 3: Retrieve and format nodes context (Using Low-Level Keywords)
+        if top_k_nodes > 0:
+            found_nodes = []
+            if extraction_success and low_level_targets:
+                # Search for EACH keyword independently
+                for kw in low_level_targets:
+                    # Append ALL results directly (no deduplication)
+                    found_nodes.extend(self.search_nodes(kw, top_k=top_k_nodes))
+            else:
+                # Fallback: search with original query
+                found_nodes = self.search_nodes(query, top_k=top_k_nodes)
+
+            if found_nodes:
+                context_parts.append("=== Relevant Nodes (Entity Level) ===")
+                for node in found_nodes:
+                    assert isinstance(node, BaseModel), (
+                        "Node must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(node.model_dump_json(indent=2))
+
+        # Step 4: Retrieve and format edges context (Using High-Level Keywords)
+        if top_k_edges > 0:
+            found_edges = []
+            if extraction_success and high_level_targets:
+                # Search for EACH keyword independently
+                for kw in high_level_targets:
+                    # Append ALL results directly (no deduplication)
+                    found_edges.extend(self.search_edges(kw, top_k=top_k_edges))
+            else:
+                # Fallback: search with original query
+                found_edges = self.search_edges(query, top_k=top_k_edges)
+
+            if found_edges:
+                context_parts.append("=== Relevant Hyperedges (Thematic Level) ===")
+                for edge in found_edges:
+                    assert isinstance(edge, BaseModel), (
+                        "Edge must be a Pydantic BaseModel"
+                    )
+                    context_parts.append(edge.model_dump_json(indent=2))
+
+        # Step 5: Combine context or use fallback
+        if not context_parts:
+            context = "No relevant information found in the knowledge base."
+        else:
+            context = "\n\n".join(context_parts)
+
+        # Step 6: Invoke LLM with structured context
+        qa_prompt = ChatPromptTemplate.from_template(
+            "Based on the following Hypergraph Knowledge, answer the user's question.\n"
+            "The context includes both specific entities (Nodes) found via low-level keywords \n"
+            "and broader relationships/themes (Hyperedges) found via high-level keywords.\n\n"
+            "{context}\n\n"
+            "Question: {question}\n\n"
+            "Answer:"
+        )
+
+        qa_chain = qa_prompt | self.llm_client
+        return qa_chain.invoke({"context": context, "question": query})

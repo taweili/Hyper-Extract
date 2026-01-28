@@ -219,7 +219,7 @@ def run_demo():
     q1 = "Elias做了什么？"
     print(f"\n❓ Query: {q1}")
     try:
-        nodes, edges = graph.search(q1, top_k=5)
+        nodes, edges = graph.search(q1, top_k_nodes=5, top_k_edges=5)
         if edges:
             for e in edges:
                 print(f"  ⚡ {e}")
@@ -232,7 +232,7 @@ def run_demo():
     q2 = "发生在地铁站的事件有哪些？"
     print(f"\n❓ Query: {q2}")
     try:
-        nodes, edges = graph.search(q2, top_k=5)
+        nodes, edges = graph.search(q2, top_k_nodes=5, top_k_edges=5)
         if edges:
             for e in edges:
                 print(f"  📍 {e}")
@@ -245,7 +245,7 @@ def run_demo():
     q3 = "Viktor和Elias之间的冲突"
     print(f"\n❓ Query: {q3}")
     try:
-        nodes, edges = graph.search(q3, top_k=5)
+        nodes, edges = graph.search(q3, top_k_nodes=5, top_k_edges=5)
         if edges:
             for e in edges:
                 print(f"  🔥 {e}")
@@ -258,7 +258,7 @@ def run_demo():
     q4 = "下午的行动"
     print(f"\n❓ Query: {q4}")
     try:
-        nodes, edges = graph.search(q4, top_k=5)
+        nodes, edges = graph.search(q4, top_k_nodes=5, top_k_edges=5)
         if edges:
             for e in edges:
                 print(f"  ⏰ {e}")
@@ -271,7 +271,7 @@ def run_demo():
     q5 = "CIA和KGB分别做了什么？"
     print(f"\n❓ Query: {q5}")
     try:
-        nodes, edges = graph.search(q5, top_k=5)
+        nodes, edges = graph.search(q5, top_k_nodes=5, top_k_edges=5)
         if nodes:
             print(f"  🏢 相关实体:")
             for n in nodes:
