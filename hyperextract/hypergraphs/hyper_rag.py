@@ -6,12 +6,9 @@ Extracts and manages multi-entity relationships with support for n-ary hyperedge
 from typing import List
 from pydantic import BaseModel, Field
 from hyperextract.hypergraphs.base import AutoHypergraph
-from langchain_core.messages import AIMessage
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts.chat import ChatPromptTemplate
 from ontomem.merger import CustomRuleMerger
-from ..utils.logging import logger
 
 # ============================================================================
 # Node Schema
