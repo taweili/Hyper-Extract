@@ -9,7 +9,6 @@ This demo demonstrates the HyperGraph_RAG System:
 import os
 import sys
 
-# 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
@@ -113,28 +112,22 @@ if __name__ == "__main__":
     print("=" * 80)
 
     # 分离低阶边（2个参与者）和高阶边（3个以上参与者）
-    low_order_edges = [e for e in rag.edges if len(e.participants) == 2]
-    high_order_edges = [e for e in rag.edges if len(e.participants) > 2]
+    low_order_edges = [e for e in rag.edges if len(e.related_entities) == 2]
+    high_order_edges = [e for e in rag.edges if len(e.related_entities) > 2]
 
     print(f"\n--- Low-Order Edges (Pairwise) ---")
     for i, edge in enumerate(low_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.participants)}")
-        print(f"   Description: {edge.description}")
-        keywords_str = ", ".join(edge.keywords) if edge.keywords else "N/A"
-        print(f"   Keywords: {keywords_str}")
-        print(f"   Strength: {edge.strength}/10")
+        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
+        print(f"   Knowledge Segment: {edge.knowledge_segment}")
+        print(f"   Completeness Score: {edge.completeness_score}/10")
 
     print(f"\n--- High-Order Edges (Hyperedges) ---")
     for i, edge in enumerate(high_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.participants)}")
-        print(f"   Description: {edge.description}")
-        keywords_str = ", ".join(edge.keywords) if edge.keywords else "N/A"
-        print(f"   Keywords: {keywords_str}")
-        print(f"   Strength: {edge.strength}/10")
+        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
+        print(f"   Knowledge Segment: {edge.knowledge_segment}")
+        print(f"   Completeness Score: {edge.completeness_score}/10")
 
-    print(
-        f"\n✓ Total edges extracted: {len(rag.edges)} ({len(low_order_edges)} low-order, {len(high_order_edges)} high-order)\n"
-    )
+    print(f"\n✓ Total edges extracted: {len(rag.edges)} ({len(low_order_edges)} low-order, {len(high_order_edges)} high-order)\n")
 
     # ============================================================================
     # Display Extracted Entities
@@ -165,16 +158,16 @@ if __name__ == "__main__":
     for entity_type, count in sorted(type_counts.items()):
         print(f"  {entity_type}: {count}")
 
-    # Average edge strength
+    # Average edge completeness
     if rag.edges:
-        avg_strength = sum(e.strength for e in rag.edges) / len(rag.edges)
-        print(f"\nAverage Edge Strength: {avg_strength:.2f}/10")
+        avg_completeness = sum(e.completeness_score for e in rag.edges) / len(rag.edges)
+        print(f"\nAverage Edge Completeness: {avg_completeness:.2f}/10")
 
     # Centrality (number of relationships per entity)
     print("\nEntity Centrality (number of relationships):")
     centrality = {}
     for edge in rag.edges:
-        for participant in edge.participants:
+        for participant in edge.related_entities:
             centrality[participant] = centrality.get(participant, 0) + 1
 
     for entity, count in sorted(centrality.items(), key=lambda x: x[1], reverse=True)[
@@ -215,19 +208,15 @@ if __name__ == "__main__":
 
             if results:
                 for j, result in enumerate(results, 1):
-                    # EdgeAutoHypergraph (and base AutoHypergraph) default search returns (doc, score) tuple
+                    # AutoHypergraph search returns (doc, score) tuple
                     # The 'doc' is the EdgeSchema object
                     edge = result[0] if isinstance(result, tuple) else result
                     score = result[1] if isinstance(result, tuple) else 1.0
 
-                    # Note: EdgeSchema might not have strength if extracted via generic AutoHypergraph, but HyperGraph_RAG defines it.
-                    # We handle potential missing attrs safely
-                    strength = getattr(edge, "strength", "N/A")
-                    
                     print(f"\n  {j}. [Score: {score:.3f}]")
-                    print(f"     Participants: {' <-> '.join(edge.participants)}")
-                    print(f"     Description: {edge.description}")
-                    print(f"     Strength: {strength}/10")
+                    print(f"     Participants: {' <-> '.join(edge.related_entities)}")
+                    print(f"     Knowledge Segment: {edge.knowledge_segment}")
+                    print(f"     Completeness Score: {edge.completeness_score}/10")
             else:
                 print("  (No relevant relationships found)")
         except Exception as e:

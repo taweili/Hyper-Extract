@@ -174,8 +174,6 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             nodes_in_edge_extractor=nodes_in_edge_fn,
             llm_client=llm_client,
             embedder=embedder,
-            # Enforce one-stage extraction (first extract edges, then derive nodes)
-            extraction_mode="one_stage",
             # Inject customized prompts
             prompt_for_edge_extraction=iText2KG_Star_EDGE_EXTRACTION_PROMPT,
             # Configure deduplication strategy

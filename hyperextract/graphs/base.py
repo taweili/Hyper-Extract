@@ -431,7 +431,7 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
             text: Input text.
 
         Returns:
-            Raw extracted graph (may contain inconsistencies).
+            Raw extracted graph data.
         """
         prompt_template = ChatPromptTemplate.from_template(
             f"{self.prompt}{{chunk_text}}"

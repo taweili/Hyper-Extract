@@ -1,14 +1,24 @@
-"""
-HyperGraph_RAG: Integration of EdgeAutoHypergraph (Edge-First Extraction).
-Matches the structure of Hyper_RAG regarding Schemas and Mergers.
+"""HyperGraph_RAG implementation using AutoHypergraph as the core engine.
+
+This module provides a specialized implementation of the HyperGraphRAG algorithm
+using the AutoHypergraph framework, designed for extracting semantic knowledge
+represented as hypergraphs where hyperedges ("knowledge segments") connect
+multiple entities within specific contexts or events.
+
+The HyperGraphRAG approach represents knowledge as contextual relationships where
+each hyperedge encodes a complete semantic unit (sentence or event), maintaining
+the natural information flow and contextual dependencies of the source material.
 """
 
 from typing import List
+from hashlib import md5
 from pydantic import BaseModel, Field
-from hyperextract.hypergraphs.base import EdgeAutoHypergraph
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from ontomem.merger import CustomRuleMerger
+from langchain_core.prompts.chat import ChatPromptTemplate
+from ontomem.merger import MergeStrategy
+
+from .base import AutoHypergraph, AutoHypergraphSchema
 
 # ============================================================================
 # Node Schema
@@ -16,14 +26,19 @@ from ontomem.merger import CustomRuleMerger
 
 
 class NodeSchema(BaseModel):
-    """Represents an entity extracted from the source text."""
+    """Represents an entity extracted from the source text within a specific context."""
 
-    name: str = Field(description="Name of the entity")
+    name: str = Field(
+        description="Name of the entity. Use the same language as the input text. If English, capitalize the name."
+    )
     type: str = Field(
-        description="Entity type (person, organization, geo, event, role, concept, etc.)",
+        description="Type of the entity (e.g., organization, person, geo, event, category, concept, object)."
     )
     description: str = Field(
-        description="Comprehensive description of the entity's attributes and activities",
+        description="Comprehensive description of the entity's attributes and activities strictly within the current knowledge segment."
+    )
+    key_score: int = Field(
+        description="A score from 0 to 100 indicating the importance of the entity within this context."
     )
 
 
@@ -33,73 +48,121 @@ class NodeSchema(BaseModel):
 
 
 class EdgeSchema(BaseModel):
-    """Represents a relationship or event connecting multiple entities (low-order or high-order)."""
+    """Represents a knowledge segment (hyper-edge) that connects multiple entities through a specific context or event."""
 
-    participants: List[str] = Field(
-        description="Names of entities involved in this relationship"
+    knowledge_segment: str = Field(
+        description="A complete sentence or phrase from the text that captures a specific relationship, event, or context connecting the entities."
     )
-    description: str = Field(
-        description="Detailed explanation of the relationship or event"
+    completeness_score: int = Field(
+        description="A score from 0 to 10 indicating how complete and meaningful this knowledge segment is on its own."
     )
-    keywords: List[str] = Field(
-        description="List of keywords summarizing the relationship themes (e.g., ['conflict', 'trade', 'alliance'])",
+    related_entities: List[str] = Field(
+        description="A list of all entity names involved in or referenced by this knowledge segment."
     )
-    strength: int = Field(
-        ge=1,
-        le=10,
-        description="Numerical score indicating relationship strength (1-10)",
+
+
+# Below Schema is used for Information Extraction with LLM
+class TEMP_EdgeSchema(BaseModel):
+    """Represents a knowledge segment (hyper-edge) that connects multiple entities through a specific context or event."""
+
+    knowledge_segment: str = Field(
+        description="A complete sentence or phrase from the text that captures a specific relationship, event, or context connecting the entities."
+    )
+    completeness_score: int = Field(
+        description="A score from 0 to 10 indicating how complete and meaningful this knowledge segment is on its own."
+    )
+    related_entities: List[NodeSchema] = Field(
+        description="A list of all entities involved in or referenced by this knowledge segment."
+    )
+
+
+class TEMP_EdgeListSchema(BaseModel):
+    """Intermediate schema for batch hyperedge extraction."""
+
+    items: List[TEMP_EdgeSchema] = Field(
+        description="List of extracted hyperedges with their knowledge segments and related entities."
     )
 
 
 # ============================================================================
-# Extraction Prompts (Edge-First)
+# Extraction Prompts
 # ============================================================================
 
-HyperGraph_RAG_THEME_EXTRACTION_PROMPT = """
--Goal-
-Identify the key "Themes", "Narratives", or "Complex Events" present in the text.
-A Theme/Event should represent a significant interaction or grouping involving multiple participants.
+HyperGraph_RAG_EDGE_EXTRACTION_PROMPT = """
+You are an expert information extraction system specializing in Hypergraph RAG.
+Your goal is to extract "Hyper-edges" from the provided text. 
 
--Output-
-Return a list of these Themes/Events as descriptive strings.
-Do not list participants data formats yet, just the essence of the event (e.g., "The secret meeting at Titan Station", "The ambush in the Aurora Sector").
-"""
+A **Hyper-edge** represents a specific "knowledge segment" (a sentence or event context) that connects multiple entities together.
 
-HyperGraph_RAG_CONTEXT_NODE_PROMPT = """
--Goal-
-You are an expert knowledge extractor.
-You have been given a list of "Themes/Events" (Hyperedges) that occurred in the text.
-Your job is to identify the specific ENTITIES (participants) involved in each theme.
+# Instructions
+1. **Analyze the Text**: Break the text down into complete, meaningful knowledge segments (sentences or clauses describing an event/relationship).
+2. **Extract Entities**: For *each* segment, identify all relevant entities involved.
+3. **Structure the Output**: For each segment, output an `EdgeSchema` containing:
+    - The `knowledge_segment` text.
+    - A `completeness_score` (0-10).
+    - A list of `related_entities` found strictly within that segment.
 
--Output-
-For each Theme, list the entities that participated.
-"""
+# Extraction Rules
+- **Entity Name**: Keep original language. Capitalize if English.
+- **Entity Description**: Describe what the entity is doing or how it represents within *that specific segment*.
+- **Entity Type**: Common types include organization, person, geo, event, category, concept, object.
 
+# Few-Shot Examples
 
-# ============================================================================
-# Merge Templates for LLM.CUSTOM_RULE Strategy
-# ============================================================================
+## Example 1
+**Input Text**: 
+"Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty."
 
-Hyper_RAG_NODE_MERGE_RULE = """You are an intelligent data merging assistant.
-You will receive a list of objects representing the same Entity.
+**Output**:
+[
+  {
+    "knowledge_segment": "Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty.",
+    "completeness_score": 8,
+    "related_entities": [
+      {
+        "name": "Alex",
+        "type": "person",
+        "description": "Alex is a person displaying frustration by clenching his jaw.",
+        "key_score": 90
+      },
+      {
+        "name": "Taylor",
+        "type": "person",
+        "description": "Taylor is a person exhibiting authoritarian certainty causing Alex's frustration.",
+        "key_score": 85
+      }
+    ]
+  }
+]
 
-Your task is to merge them into a SINGLE object exactly matching the schema.
+## Example 2
+**Input Text**: 
+"The device could change the game for us," Taylor said, observing the machine with reverence.
 
-Merge strategy:
-1. **name/type**: Keep the most frequent or precise value.
-2. **description**: Synthesize a single, comprehensive description containing all unique details from the input descriptions. Write it in the third person. Resolve any contradictions coherently.
-"""
+**Output**:
+[
+  {
+    "knowledge_segment": "\"The device could change the game for us,\" Taylor said, observing the machine with reverence.",
+    "completeness_score": 9,
+    "related_entities": [
+      {
+        "name": "Taylor",
+        "type": "person",
+        "description": "Taylor is a person who believes the device is game-changing and observes it with reverence.",
+        "key_score": 95
+      },
+      {
+        "name": "device",
+        "type": "object",
+        "description": "An object that Taylor believes could change the game.",
+        "key_score": 90
+      }
+    ]
+  }
+]
 
-Hyper_RAG_EDGE_MERGE_RULE = """You are an intelligent data merging assistant.
-You will receive a list of objects representing the same Hyperedge (Relationship/Event).
-
-Your task is to merge them into a SINGLE object exactly matching the schema.
-
-Merge strategy:
-1. **participants**: Keep the list (they should be identical for the same hyperedge key).
-2. **description**: Synthesize a single, comprehensive description covering the relationship dynamics from all inputs. Write it in the third person.
-3. **keywords**: Combine keyword lists from all inputs, removing duplicates.
-4. **strength**: Calculate the average of the input strengths (round to nearest integer).
+\n\n
+### Source Text:
 """
 
 # ============================================================================
@@ -107,13 +170,34 @@ Merge strategy:
 # ============================================================================
 
 
-class HyperGraph_RAG(EdgeAutoHypergraph[NodeSchema, EdgeSchema]):
-    """
-    HyperGraph_RAG: Hypergraph-based RAG with Edge-First Extraction Strategy.
+class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
+    """HyperGraphRAG extractor using semantic knowledge segments as hyperedges.
 
-    Difference from Hyper_RAG:
-    - Uses EdgeAutoHypergraph (extracts Themes first, then Entities).
-    - Suitable for high-level narrative understanding where Themes map to specific Actors.
+    This class implements the HyperGraphRAG algorithm which models knowledge as a hypergraph
+    where each hyperedge represents a complete "knowledge segment" (atomic semantic unit)
+    that connects multiple related entities. Unlike traditional knowledge graphs that represent
+    pairwise relationships, hypergraphs can naturally express n-ary relationships and maintain
+    the original context and semantic integrity of information.
+
+    The extraction process simultaneously identifies both knowledge segments (hyperedges) and
+    the entities involved within each segment, followed by deduplication and merging across
+    multiple text chunks.
+
+    **Schema Components:**
+
+    - **NodeSchema**: Represents an entity (node) extracted from the source text within a specific context.
+        - `name` (str): The entity name, maintaining original language and capitalization.
+        - `type` (str): Entity type such as 'person', 'organization', 'event', 'location', 'concept', etc.
+        - `description` (str): Comprehensive description of the entity's attributes and activities within the knowledge segment.
+        - `key_score` (int): Importance score (0-100) indicating the entity's significance in context.
+
+    - **EdgeSchema**: Represents a knowledge segment (hyper-edge) that connects multiple entities through
+      a specific context or event.
+        - `knowledge_segment` (str): The actual text span (sentence or phrase) from source material capturing
+          the relationship, event, or context connecting entities.
+        - `completeness_score` (int): Quality score (0-10) indicating how complete and meaningful the segment
+          is as a standalone knowledge unit.
+        - `related_entities` (List[str]): Names of all entities involved in or referenced by this knowledge segment.
     """
 
     def __init__(
@@ -125,38 +209,25 @@ class HyperGraph_RAG(EdgeAutoHypergraph[NodeSchema, EdgeSchema]):
         max_workers: int = 10,
         verbose: bool = True,
     ):
-        """
-        Initialize HyperGraph_RAG engine.
+        """Initialize HyperGraph_RAG extraction engine.
+
+        Configures the hypergraph extraction pipeline with LLM-based knowledge segment
+        and entity identification, along with semantic embeddings for vector-based retrieval.
 
         Args:
-            llm_client (BaseChatModel): LLM client for text generation.
-            embedder (Embeddings): Embedding model for text embeddings.
-            chunk_size (int): Size of text chunks for extraction.
-            chunk_overlap (int): Overlap between text chunks.
-            max_workers (int): Maximum number of workers for extraction.
-            verbose (bool): Display detailed logs.
+            llm_client (BaseChatModel): Language model client for structured extraction.
+            embedder (Embeddings): Embedding model for semantic vector representation.
+            chunk_size (int): Text chunk size for processing (default: 2048 tokens).
+            chunk_overlap (int): Overlap between consecutive chunks to preserve context (default: 256 tokens).
+            max_workers (int): Maximum parallel workers for batch extraction (default: 10).
+            verbose (bool): Whether to display detailed extraction logs (default: True).
         """
         # 1. Define Key Extractors
         node_key_fn = lambda x: x.name
-        edge_key_fn = lambda x: tuple(sorted(x.participants))
-        nodes_in_edge_fn = lambda x: x.participants
+        edge_key_fn = lambda x: md5(x.knowledge_segment.encode()).hexdigest()
+        nodes_in_edge_fn = lambda x: x.related_entities
 
-        # 2. Setup Mergers
-        node_merger = CustomRuleMerger(
-            key_extractor=node_key_fn,
-            llm_client=llm_client,
-            item_schema=NodeSchema,
-            rule=Hyper_RAG_NODE_MERGE_RULE,
-        )
-
-        edge_merger = CustomRuleMerger(
-            key_extractor=edge_key_fn,
-            llm_client=llm_client,
-            item_schema=EdgeSchema,
-            rule=Hyper_RAG_EDGE_MERGE_RULE,
-        )
-
-        # 3. Initialize EdgeAutoHypergraph (Parent)
+        # 4. Call parent class initialization
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -165,21 +236,82 @@ class HyperGraph_RAG(EdgeAutoHypergraph[NodeSchema, EdgeSchema]):
             nodes_in_edge_extractor=nodes_in_edge_fn,
             llm_client=llm_client,
             embedder=embedder,
-            # Prompts
-            # Stage 1: Extract Themes
-            prompt_for_edge_extraction=HyperGraph_RAG_THEME_EXTRACTION_PROMPT,
-            # Stage 2: Extract Particles given Themes
-            prompt_for_node_extraction=HyperGraph_RAG_CONTEXT_NODE_PROMPT,
-            # Merger strategies
-            node_strategy_or_merger=node_merger,
-            edge_strategy_or_merger=edge_merger,
-            # Indexing optimization
+            # Inject customized prompts for extraction
+            prompt_for_edge_extraction=HyperGraph_RAG_EDGE_EXTRACTION_PROMPT,
+            # Pass custom merger instances
+            node_strategy_or_merger=MergeStrategy.LLM.BALANCED,
+            edge_strategy_or_merger=MergeStrategy.LLM.BALANCED,
+            # Optimize indexing
             node_fields_for_index=["name", "type", "description"],
-            edge_fields_for_index=["keywords", "description"],
-            # BaseAutoType Params
+            edge_fields_for_index=["knowledge_segment"],
+            # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
         )
 
+    def _extract_data(self, text: str) -> AutoHypergraphSchema[NodeSchema, EdgeSchema]:
+        """Extract hypergraph knowledge from text via knowledge segment identification.
+
+        Performs simultaneous extraction of knowledge segments (hyperedges) and associated entities
+        from the input text. The extraction process:
+        1. Segments the text into knowledge-bearing units (sentences/clauses)
+        2. Identifies all entities referenced within each knowledge segment
+        3. Merges and deduplicates extracted components across multiple chunks
+        4. Prunes dangling edges (hyperedges without valid entity references)
+
+        Args:
+            text (str): Source text for hypergraph extraction.
+
+        Returns:
+            AutoHypergraphSchema[NodeSchema, EdgeSchema]: Extracted hypergraph containing
+                deduplicated and merged entities (nodes) and knowledge segments (hyperedges).
+        """
+        # 1. Extract Hyperedges
+
+        prompt_template = ChatPromptTemplate.from_template(
+            f"{self.prompt}{{chunk_text}}"
+        )
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            TEMP_EdgeListSchema
+        )
+
+        # Extract from single chunk or multiple chunks
+        if len(text) <= self.chunk_size:
+            raw_hyperedges = llm_chain.invoke({"chunk_text": text})
+            raw_hyperedges_list = [raw_hyperedges]
+        else:
+            chunks = self.text_splitter.split_text(text)
+            inputs = [{"chunk_text": chunk} for chunk in chunks]
+            raw_hyperedges_list = llm_chain.batch(
+                inputs, config={"max_concurrency": self.max_workers}
+            )
+
+        # Extract Nodes and Edges from raw_hyperedges_list
+        all_nodes_list, all_edges_list = [], []
+
+        for raw_hyperedges in raw_hyperedges_list:
+            cur_nodes, cur_edges = [], []
+            data_list = raw_hyperedges.items
+            for data in data_list:
+                data: TEMP_EdgeSchema
+                cur_nodes.extend(data.related_entities)
+                cur_edges.append(
+                    EdgeSchema(
+                        knowledge_segment=data.knowledge_segment,
+                        completeness_score=data.completeness_score,
+                        related_entities=[
+                            self.node_key_extractor(node)
+                            for node in data.related_entities
+                        ],
+                    )
+                )
+            all_nodes_list.append(cur_nodes)
+            all_edges_list.append(cur_edges)
+
+        # Merge multiple hypergraphs
+        partial_hypergraphs = (all_nodes_list, all_edges_list)
+        raw_hypergraph = self.merge_batch_data(partial_hypergraphs)
+
+        return self._prune_dangling_edges(raw_hypergraph)
