@@ -411,7 +411,12 @@ class BaseAutoType(ABC, Generic[T]):
 
         response = qa_chain.invoke({"context": context, "question": query})
 
-        # Step 4: Return the AIMessage response
+        # Step 4: Inject retrieved items into response metadata
+        if not response.additional_kwargs:
+            response.additional_kwargs = {}
+        response.additional_kwargs["retrieved_items"] = search_results
+
+        # Step 5: Return the AIMessage response
         return response
 
     # ==================== Serialization: Orchestrator ====================

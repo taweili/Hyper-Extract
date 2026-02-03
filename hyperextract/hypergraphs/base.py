@@ -719,6 +719,7 @@ class AutoHypergraph(
         context_parts = []
 
         # Step 2: Retrieve and format nodes context
+        nodes = []
         if top_k_nodes > 0:
             nodes = self.search_nodes(query, top_k=top_k_nodes)
             if nodes:
@@ -730,6 +731,7 @@ class AutoHypergraph(
                     context_parts.append(node.model_dump_json(indent=2))
 
         # Step 3: Retrieve and format edges context
+        edges = []
         if top_k_edges > 0:
             edges = self.search_edges(query, top_k=top_k_edges)
             if edges:
@@ -755,7 +757,15 @@ class AutoHypergraph(
         )
 
         qa_chain = qa_prompt | self.llm_client
-        return qa_chain.invoke({"context": context, "question": query})
+        response = qa_chain.invoke({"context": context, "question": query})
+
+        # Step 6: Inject retrieved nodes and edges into response metadata
+        if not response.additional_kwargs:
+            response.additional_kwargs = {}
+        response.additional_kwargs["retrieved_nodes"] = nodes
+        response.additional_kwargs["retrieved_edges"] = edges
+
+        return response
 
     # ==================== Serialization ====================
 

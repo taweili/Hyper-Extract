@@ -1,9 +1,8 @@
 """
-HyperGraph_RAG Demo: Edge-First Extraction Strategy
+HyperGraph-RAG Demo: Extracting Hyperedges from Text
 
-This demo demonstrates the HyperGraph_RAG System:
-1.  **Edge-First Strategy**: Extracts Themes/Events (Hyperedges) first, then contextually extracts participating entities.
-2.  **Narrative Understanding**: Focuses on identifying high-level themes before drilling down to actors.
+This script demonstrates the usage of the HyperGraph_RAG system, which is a
+system designed to extract hyperedges from text.
 """
 
 import os
@@ -19,7 +18,7 @@ from hyperextract.hypergraphs import HyperGraph_RAG
 load_dotenv()
 
 # ============================================================================
-# Sample Story for Extraction (Shared with AutoHypergraph Demo)
+# Sample Story for Extraction
 # ============================================================================
 
 STORY = """
