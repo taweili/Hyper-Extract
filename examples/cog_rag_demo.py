@@ -2,32 +2,30 @@
 Cog_RAG Demo: Theme-based Knowledge Extraction + Entity-Relation Detail Retrieval
 
 This demo demonstrates the unified Cog_RAG System Wrapper:
-1.  **Layer 1 (Theme Layer)**: Extracts Key Entities and Themes (Narrative Arcs).
-2.  **Layer 2 (Detail Layer)**: Extracts Entities and Semantic Relationships.
+1.  **Macro Layer (Theme Layer)**: Extracts Narrative Arcs (Themes) and their Participant Entities.
+2.  **Micro Layer (Detail Layer)**: Extracts Entities and their Semantic Relationships.
 3.  **Process**:
     -   Feeds the same story to the Unified System.
-    -   Performs a "Theme-First" retrieval process automatically.
+    -   The system automatically distributes extraction tasks to both layers.
+    -   Performs a Dual-Layer Chat/Search.
 """
 
 import os
 import sys
 
-# 添加项目根目录到路径
+# Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
 # Try to load dotenv, ignoring if not installed
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
 
-from hyperextract.hypergraphs import Cog_RAG
+from dotenv import load_dotenv
+load_dotenv()
+
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from hyperextract.hypergraphs.cog_rag import Cog_RAG
 
 # ============================================================================
-# Sample Story for Extraction (Shared with AutoHypergraph Demo)
+# Sample Story for Extraction
 # ============================================================================
 
 STORY = """
@@ -81,12 +79,13 @@ Leona 被迫带着虚空水晶，从极光星区逃往荒凉的废土行星 Z-9�
 
 if __name__ == "__main__":
     # ============================================================================
-    # Initialize the CogRAG system with LLM and Embeddings
+    # Initialize the Cog_RAG system
     # ============================================================================
     print("=" * 80)
-    print("Initializing Unified CogRAG System...")
+    print("Initializing Unified Cog_RAG System...")
     print("=" * 80)
 
+    # Use a capable model for extraction
     llm_client = ChatOpenAI(
         model="gpt-4o-mini",
         extra_body={
@@ -100,97 +99,74 @@ if __name__ == "__main__":
     rag = Cog_RAG(
         llm_client=llm_client,
         embedder=embedder,
-        verbose=True,
+        chunk_size=1000,
+        verbose=True
     )
 
     # ============================================================================
     # Feed text to the system
     # ============================================================================
-    print("\nFeeding story to the system...")
+    print("\nFeeding story to the Cog_RAG System (Dual-Layer Extraction)...")
     rag.feed_text(STORY)
     print("✓ Story processed successfully\n")
 
     # ============================================================================
-    # Display Extracted Entities
+    # Display Extracted Data (Unified View)
     # ============================================================================
     print("=" * 80)
-    print("EXTRACTED ENTITIES (Both Layers)")
+    print("EXTRACTED KNOWLEDGE")
     print("=" * 80)
 
-    # Note: Cog_RAG.nodes property aggregates nodes from both layers
-    nodes = rag.nodes
-    sorted_nodes = sorted(nodes, key=lambda x: x.name)
-
-    for node in sorted_nodes:
-        print(f"\n【{node.name}】(Type: {node.type})")
-        print(f"  Description: {node.description}")
-
-    print(f"\n✓ Total unique entities extracted: {len(nodes)}\n")
-
-    # ============================================================================
-    # Display Extracted Hyperedges (Separate Layers)
-    # ============================================================================
-    print("=" * 80)
-    print("EXTRACTED HYPEREDGES (Dual Layer)")
-    print("=" * 80)
-
-    print(f"\n--- Layer 1: Theme Hyperedges (Macro) ---")
+    # 1. Macro Themes
+    print("\n--- MACRO LAYER: Themes (Narrative Arcs) ---")
     for i, edge in enumerate(rag.theme_layer.edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.participants)}")
-        print(f"   Theme: {edge.description}")
+        print(f"\nTheme {i}: {edge.description}")
+        print(f"   Participants: {', '.join(edge.participants)}")
 
-    print(f"\n--- Layer 2: Relation Hyperedges (Micro) ---")
-    for i, edge in enumerate(rag.detail_layer.edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.participants)}")
-        print(f"   Description: {edge.description}")
-        keywords_str = ", ".join(edge.keywords) if edge.keywords else "N/A"
-        print(f"   Keywords: {keywords_str}")
-        print(f"   Strength: {edge.strength}/10")
+    print(f"\n✓ Total Themes extracted: {len(rag.theme_layer.edges)}")
 
-    print(
-        f"\n✓ Total edges extracted: {len(rag.edges)} ({len(rag.theme_layer.edges)} themes, {len(rag.detail_layer.edges)} relations)\n"
-    )
+    # 2. Micro Relations
+    print(f"\n--- MICRO LAYER: Entity Relations ---")
+    
+    low_order_edges = [e for e in rag.detail_layer.edges if len(e.participants) == 2]
+    high_order_edges = [e for e in rag.detail_layer.edges if len(e.participants) > 2]
 
-    # ============================================================================
-    # Statistics
-    # ============================================================================
-    print("=" * 80)
-    print("STATISTICS")
-    print("=" * 80)
+    print(f"\nMicro Relations (Pairwise):")
+    for i, edge in enumerate(low_order_edges[:5], 1): # Show top 5
+        print(f"{i}. {edge.description} (Entities: {', '.join(edge.participants)})")
+    if len(low_order_edges) > 5:
+        print(f"... and {len(low_order_edges) - 5} more.")
 
-    # Entity type distribution
-    type_counts = {}
-    for node in rag.nodes:
-        type_counts[node.type] = type_counts.get(node.type, 0) + 1
+    print(f"\nMicro Relations (Hyperedges):")
+    for i, edge in enumerate(high_order_edges[:5], 1): # Show top 5
+        print(f"{i}. {edge.description} (Entities: {', '.join(edge.participants)})")
+    if len(high_order_edges) > 5:
+        print(f"... and {len(high_order_edges) - 5} more.")
 
-    print("\nEntity Type Distribution:")
-    for entity_type, count in sorted(type_counts.items()):
-        print(f"  {entity_type}: {count}")
+    print(f"\n✓ Total Micro Relations extracted: {len(rag.detail_layer.edges)}")
 
-    # Centrality (number of relationships/themes per entity)
-    print("\nEntity Participation (Centrality):")
-    centrality = {}
-    for edge in rag.edges:
-        for participant in edge.participants:
-            centrality[participant] = centrality.get(participant, 0) + 1
-
-    for entity, count in sorted(centrality.items(), key=lambda x: x[1], reverse=True)[
-        :10
-    ]:
-        print(f"  {entity}: {count}")
+    # 3. Entities
+    print(f"\n--- UNIQUE ENTITIES (Combined) ---")
+    print(f"Total Unique Entities: {len(rag.nodes)}")
+    
+    # Display top 5 entities
+    for i, node in enumerate(rag.nodes[:5], 1):
+        print(f"{i}. 【{node.name}】 ({node.type})")
+    if len(rag.nodes) > 5:
+        print(f"... and {len(rag.nodes) - 5} more.")
 
     # ============================================================================
-    # Build Semantic Index for Q&A
+    # Build Semantic Index
     # ============================================================================
     print("\n" + "=" * 80)
-    print("Building Semantic Index...")
+    print("Building Semantic Indexes...")
     print("=" * 80)
 
     rag.build_index()
-    print("✓ Semantic index built successfully\n")
+    print("✓ Semantic indexes built successfully\n")
 
     # ============================================================================
-    # Q&A: Semantic Search over Hypergraph
+    # Q&A: Dual-Layer Search
     # ============================================================================
     print("=" * 80)
     print("Q&A: DUAL-LAYER SEMANTIC SEARCH")
@@ -206,48 +182,38 @@ if __name__ == "__main__":
     for i, query in enumerate(queries, 1):
         print(f"\n【问题 {i}】{query}")
         print("-" * 60)
+        
+        # Search BOTH layers
+        results = rag.search(query, top_k_themes=2, top_k_entities=2)
+        
+        print("  [Macro Themes Found]:")
+        if results['themes']:
+            for t in results['themes']:
+                print(f"    - {t.description}")
+        else:
+            print("    (None)")
 
-        try:
-            # Cog_RAG returns a dict with 'themes' and 'entities'
-            results = rag.search(query, top_k_themes=3, top_k_entities=3)
+        print("  [Micro Entities Found]:")
+        if results['entities']:
+            for e in results['entities']:
+                print(f"    - {e.name}: {e.description[:50]}...")
+        else:
+            print("    (None)")
 
-            print("  [Layer 1: Macro Themes]")
-            if results['themes']:
-                for j, theme in enumerate(results['themes'], 1):
-                    print(f"    {j}. {theme.description}")
-            else:
-                print("    (No relevant themes found)")
-
-            print("\n  [Layer 2: Micro Entities]")
-            if results['entities']:
-                for j, entity in enumerate(results['entities'], 1):
-                    print(f"    {j}. [{entity.name}] {entity.description[:100]}...")
-            else:
-                print("    (No relevant entities found)")
-
-        except Exception as e:
-            print(f"  Search error: {str(e)}")
 
     # ============================================================================
-    # Chat with CogRAG
+    # Chat with Cog_RAG
     # ============================================================================
     print("\n" + "=" * 80)
-    print("💬 Interactive Chat with CogRAG")
+    print("💬 Interactive Chat with Cog_RAG")
     print("=" * 80)
-    print("Engaging in multi-turn dialogue based on extracted knowledge...\n")
+    print("Engaging in multi-turn dialogue based on Dual-Layer Knowledge...\n")
 
-    chat_queries = [
-        "虚空水晶现在在哪里?",
-        "黑蛇和议员Valerius有什么阴谋?",
-        "谁参与了泰坦空间站的秘密会议?",
-        "Leona目前的状况如何?",
-    ]
-
-    for q in chat_queries:
+    for q in queries:
         print(f"❓ User: {q}")
         try:
             response = rag.chat(q)
-            print(f"🤖 CogRAG: {response.content}\n")
+            print(f"🤖 Cog_RAG: {response.content}\n")
         except Exception as e:
             print(f"⚠️ Chat error: {e}\n")
 
@@ -260,6 +226,9 @@ if __name__ == "__main__":
 
     try:
         output_dir = "temp/cog_rag_demo"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            
         rag.dump(output_dir)
         print(f"✓ Results saved to {output_dir}/")
 
