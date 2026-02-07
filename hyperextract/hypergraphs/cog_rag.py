@@ -3,10 +3,10 @@ COG_RAG: Cognitive-Inspired Dual-Hypergraph RAG System Pattern
 Extracts and manages Theme-Entity relationships where Themes act as Hyperedges connecting multiple Entities.
 """
 
-from typing import List, Type, Callable, Tuple, Any
-from pydantic import BaseModel, Field, create_model
+from typing import List, Tuple
+from hashlib import md5
+from pydantic import BaseModel, Field
 from hyperextract.hypergraphs.base import AutoHypergraph, AutoHypergraphSchema
-from hyperextract.utils.logging import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
@@ -31,7 +31,7 @@ class NodeSchema(BaseModel):
 
 
 # ============================================================================
-# Edge Schema (Theme)
+# Theme Schemas (Layer 1: Macro Narrative)
 # ============================================================================
 
 
@@ -46,8 +46,27 @@ class ThemeSchema(BaseModel):
     )
 
 
+class TEMP_ThemeSchema(BaseModel):
+    """Temporary schema for extracting Themes with nested Entities."""
+
+    description: str = Field(
+        description="A sentence that describes the primary theme, reflecting the main conflict, resolution, or key message"
+    )
+    participants: List[NodeSchema] = Field(
+        description="List of key entities involved in this theme, with their details."
+    )
+
+
+class TEMP_ThemeListSchema(BaseModel):
+    """List of extracted themes."""
+
+    items: List[TEMP_ThemeSchema] = Field(
+        description="List of extracted themes and their participants."
+    )
+
+
 # ============================================================================
-# Edge Schema (Entity Relation)
+# Edge Schema (Layer 2: Micro Entity Relation)
 # ============================================================================
 
 
@@ -70,44 +89,28 @@ class EdgeSchema(BaseModel):
     )
 
 
-class EdgeDescriptionList(BaseModel):
-    """Intermediate schema for identifying edge concepts first."""
-
-    items: List[str] = Field(
-        description="List of primary edge concepts/themes identified"
-    )
-
-
 # ============================================================================
 # Extraction Prompts
 # ============================================================================
 
-
-DEFAULT_CONTEXTUAL_NODE_PROMPT = """-Goal-
-You are given a list of "Primary Concepts" (Themes/Events/Relationships) identified from the text.
-Your task is to Populate these concepts with their specific Participant Entities.
-
-CRITICAL RULES:
-1. Extract ALL key participants for each concept.
-2. Nodes must be specific entities (People, Organizations, Locations, Concepts, etc.).
-"""
-
 COG_RAG_THEME_PROMPT = """
--Goal-
-Analyze the text to identify the primary themes (narrative arcs).
-A Theme is a high-level concept, conflict, or main idea acting as a Hyperedge.
-"""
+You are an expert narrative analyst.
+Your goal is to extract "Themes" (Narrative Arcs) from the text.
 
-COG_RAG_KEY_ENTITY_PROMPT = """
--Goal-
-You are given a list of "Primary Themes" identified from the text.
-Your task is to populate these themes with key entities (Participants).
+A **Theme** is a high-level concept, conflict, or main idea that connects multiple entities.
+For each Theme, you must also identify the key **Participants** (Entities) involved.
+
+# Instructions
+1. Analyze the text to identify primary themes/events.
+2. For each theme, identify the entities involved.
+3. Output the Theme description and the list of Participant Entities.
 """
 
 COG_RAG_NODE_EXTRACTION_PROMPT = """
 -Goal-
 Identify relevant entities from the text.
 Entities will serve as participants in complex events later.
+
 ### Source Text:
 """
 
@@ -169,215 +172,11 @@ Merge strategy:
 # ============================================================================
 
 
-class EdgeAutoHypergraph(AutoHypergraph[NodeSchema, EdgeSchema]):
-    """EdgeAutoHypergraph - Edge-First extraction: Extract relationships/themes first, then entities.
-
-    Extraction Strategy: Two-Stage (Edge-First)
-    1. Stage 1: Extract all Edges/Concepts (high-level themes, events, narratives).
-    2. Stage 2: Extract Nodes (entities) that participate in those specific Edges.
-
-    Suitable for:
-    - Narrative-driven knowledge graphs (Theme -> Character)
-    - Event-driven extraction (Event -> Participant)
-    """
-
-    def __init__(
-        self,
-        node_schema: Type[NodeSchema],
-        edge_schema: Type[EdgeSchema],
-        node_key_extractor: Callable[[NodeSchema], str],
-        edge_key_extractor: Callable[[EdgeSchema], str],
-        nodes_in_edge_extractor: Callable[[EdgeSchema], Tuple[str, ...]],
-        llm_client: BaseChatModel,
-        embedder: Embeddings,
-        *,
-        prompt_for_node_extraction: str = "",
-        **kwargs: Any,
-    ):
-        """Initialize EdgeAutoHypergraph and build dynamic Stage 2 schemas.
-
-        Args:
-            prompt_for_node_extraction: In pure Edge-First context, this is the "Stage 2 Prompt".
-                                        (Extract Nodes given Edges).
-        """
-        super().__init__(
-            node_schema=node_schema,
-            edge_schema=edge_schema,
-            node_key_extractor=node_key_extractor,
-            edge_key_extractor=edge_key_extractor,
-            nodes_in_edge_extractor=nodes_in_edge_extractor,
-            llm_client=llm_client,
-            embedder=embedder,
-            prompt_for_node_extraction=prompt_for_node_extraction,
-            **kwargs,
-        )
-
-        # Build Stage 2 Schema (Edges containing nested Nodes)
-        # We assume the edge schema has a 'participants' field (List[str]).
-        # We create a new model where 'participants' is List[NodeSchema].
-
-        # 1. Base fields from EdgeSchema (excluding participants)
-        valid_fields = {
-            k: (v.annotation, v)
-            for k, v in edge_schema.model_fields.items()
-            if k != "participants"
-        }
-
-        # 2. Add Nested Participants field
-        valid_fields["participants"] = (
-            List[node_schema],
-            Field(description="List of entities participating in this concept/edge."),
-        )
-
-        # 3. Create Contextual Edge Model
-        self.contextual_edge_schema = create_model(
-            f"Contextual{edge_schema.__name__}", **valid_fields
-        )
-
-        # 4. Create Result List Model
-        self.stage2_result_schema = create_model(
-            f"{edge_schema.__name__}FirstResult",
-            items=(List[self.contextual_edge_schema], Field(default_factory=list)),
-        )
-
-        # Set default prompt if not provided
-        if not prompt_for_node_extraction:
-            self.node_prompt = DEFAULT_CONTEXTUAL_NODE_PROMPT
-
-    def _extract_data(self, text: str) -> AutoHypergraphSchema:
-        """Main extraction logic dispatcher (Edge-First)."""
-        if self.extraction_mode == "two_stage":
-            raw_graph = self._extract_data_by_two_stage(text)
-        elif self.extraction_mode == "one_stage":
-            raise NotImplementedError(
-                "Single-stage extraction not yet supported for EdgeAutoHypergraph."
-            )
-        else:
-            raise ValueError(f"Invalid extraction_mode: {self.extraction_mode}")
-
-        # Note: Dangle pruning might be less critical here since nodes are derived from edges,
-        # but we keep it for consistency if nodes are merged globally.
-        return self._prune_dangling_edges(raw_graph)
-
-    def _extract_data_by_two_stage(self, text: str) -> AutoHypergraphSchema:
-        """Extract edges/themes first, then entities within those contexts (batch processing).
-
-        Process:
-        1. Split text into chunks.
-        2. Batch extract Edge Concepts (Theme Strings) for all chunks.
-        3. Batch extract Nodes and Full Edges for all chunks (using Edge Concepts as context).
-        4. Merge all partial results into one global hypergraph.
-        """
-        # 1. Prepare chunks
-        if len(text) <= self.chunk_size:
-            chunks = [text]
-        else:
-            chunks = self.text_splitter.split_text(text)
-
-        if self.verbose:
-            logger.info(f"Edge-First Extraction: Processing {len(chunks)} chunks...")
-
-        # 2. Stage 1: Identify Edge Concepts (Strings)
-        edge_concepts_lists = self._extract_edge_concepts_batch(chunks)
-
-        # 3. Stage 2: Extract Nodes and Full Edges (Context-aware)
-        chunk_results = self._extract_details_batch(chunks, edge_concepts_lists)
-
-        # 4. Global Merge
-        # chunk_results is List[AutoHypergraphSchema]
-        return self.merge_batch_data(chunk_results)
-
-    def _extract_edge_concepts_batch(self, chunks: List[str]) -> List[List[str]]:
-        """Stage 1: Batch extract edge concept strings."""
-        # This uses the 'prompt_for_edge_extraction' (self.edge_prompt) to find concepts
-        # We assume the prompt is geared towards finding a LIST of themes/concepts.
-
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        chain = prompt_template | self.llm_client.with_structured_output(
-            EdgeDescriptionList
-        )
-
-        inputs = [{"chunk_text": chunk} for chunk in chunks]
-        results = chain.batch(inputs, config={"max_concurrency": self.max_workers})
-
-        return [res.items if res else [] for res in results]
-
-    def _extract_details_batch(
-        self, chunks: List[str], edge_concepts_list: List[List[str]]
-    ) -> List[AutoHypergraphSchema]:
-        """Generic Stage 2: Extract entities and details given identified edge concepts."""
-
-        # 1. Prepare Inputs
-        inputs = []
-        valid_map = {}
-        for i, (chunk, concepts) in enumerate(zip(chunks, edge_concepts_list)):
-            if concepts:
-                concepts_str = "- " + "\n- ".join(concepts)
-                inputs.append({"chunk_text": chunk, "edge_concepts": concepts_str})
-                valid_map[len(inputs) - 1] = i
-
-        if not inputs:
-            return [self.graph_schema(nodes=[], edges=[]) for _ in chunks]
-
-        # 2. Chain Execution
-        # Uses self.node_prompt as the instruction for contextual node extraction
-        prompt = ChatPromptTemplate.from_template(
-            f"{self.node_prompt}\n\n### Primary Concepts/Themes:\n{{edge_concepts}}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        chain = prompt | self.llm_client.with_structured_output(
-            self.stage2_result_schema
-        )
-
-        results = chain.batch(inputs, config={"max_concurrency": self.max_workers})
-
-        # 3. Transform Nested Result -> Flat AutoHypergraphSchema
-        final_schemas = [
-            self.graph_schema(nodes=[], edges=[]) for _ in range(len(chunks))
-        ]
-
-        for i, result in enumerate(results):
-            if not result or not result.items:
-                continue
-
-            original_idx = valid_map[i]
-            current_nodes = []
-            current_edges = []
-
-            for item in result.items:
-                # item is a ContextualEdge (has nested participants=List[Node])
-
-                # Extract Nodes
-                nested_nodes = item.participants
-                node_names = []
-                for n in nested_nodes:
-                    current_nodes.append(n)
-                    node_names.append(self.node_key_extractor(n))
-
-                # Reconstruct Flat Edge
-                edge_data = item.model_dump()
-                edge_data["participants"] = sorted(
-                    node_names
-                )  # Ensure sorted for consistency
-
-                new_edge = self.edge_schema(**edge_data)
-                current_edges.append(new_edge)
-
-            final_schemas[original_idx] = self.graph_schema(
-                nodes=current_nodes, edges=current_edges
-            )
-
-        return final_schemas
-
-
-# ============================================================================
-
-
-class Cog_RAG_ThemeLayer(EdgeAutoHypergraph[NodeSchema, ThemeSchema]):
+class Cog_RAG_ThemeLayer(AutoHypergraph[NodeSchema, ThemeSchema]):
     """
     Layer 1 of Cog_RAG: Theme-First Extraction.
-    Extracts Themes (Hyperedges) and Key Entities (Nodes).
+    Extracts Themes (Hyperedges) and Key Entities (Nodes) simultaneously.
+    Follows the HyperGraph_RAG pattern (Edge-First).
     """
 
     def __init__(
@@ -389,28 +188,17 @@ class Cog_RAG_ThemeLayer(EdgeAutoHypergraph[NodeSchema, ThemeSchema]):
         max_workers: int = 10,
         verbose: bool = True,
     ):
-        """
-        Initialize COG_RAG engine.
-
-        Args:
-            llm_client (BaseChatModel): LLM client for text generation.
-            embedder (Embeddings): Embedding model for text embeddings.
-            chunk_size (int): Size of text chunks for indexing.
-            chunk_overlap (int): Overlap between text chunks for indexing.
-            max_workers (int): Maximum number of workers for indexing.
-            verbose (bool): Display detailed execution logs and progress information.
-        """
         # 1. Define Key Extractors
         # Node key: exact match by name
         node_key_fn = lambda x: x.name
 
-        # Edge key: sorted tuple of participants
-        edge_key_fn = lambda x: tuple(sorted(x.participants))
+        # Theme key: md5 hash of description (Semantic uniqueness)
+        edge_key_fn = lambda x: md5(x.description.encode()).hexdigest()
 
-        # 2. Edge consistency check: tell AutoHypergraph which nodes this edge connects
+        # Nodes in theme
         nodes_in_edge_fn = lambda x: x.participants
 
-        # 3. Create custom Mergers with LLM.CUSTOM_RULE strategy
+        # 2. Create custom Mergers
         node_merger = CustomRuleMerger(
             key_extractor=node_key_fn,
             llm_client=llm_client,
@@ -425,7 +213,6 @@ class Cog_RAG_ThemeLayer(EdgeAutoHypergraph[NodeSchema, ThemeSchema]):
             rule=COG_RAG_THEME_MERGE_RULE,
         )
 
-        # 4. Call parent class initialization
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=ThemeSchema,
@@ -434,11 +221,7 @@ class Cog_RAG_ThemeLayer(EdgeAutoHypergraph[NodeSchema, ThemeSchema]):
             nodes_in_edge_extractor=nodes_in_edge_fn,
             llm_client=llm_client,
             embedder=embedder,
-            # Enforce two-stage extraction
-            extraction_mode="two_stage",
-            # Inject customized prompts for extraction
-            # prompt_for_node_extraction acts as the Stage 2 (Edge -> Node) prompt
-            prompt_for_node_extraction=COG_RAG_KEY_ENTITY_PROMPT,
+            # Prompt is utilized in _extract_data override
             prompt_for_edge_extraction=COG_RAG_THEME_PROMPT,
             # Pass custom merger instances
             node_strategy_or_merger=node_merger,
@@ -446,12 +229,65 @@ class Cog_RAG_ThemeLayer(EdgeAutoHypergraph[NodeSchema, ThemeSchema]):
             # Optimize indexing
             node_fields_for_index=["name", "type", "description"],
             edge_fields_for_index=["description"],
-            # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
         )
+
+    def _extract_data(self, text: str) -> AutoHypergraphSchema:
+        """
+        Extract Themes and nested Participants (One-Stage).
+        Implements the HyperGraph_RAG extraction pattern.
+        """
+        prompt_template = ChatPromptTemplate.from_template(
+            f"{self.edge_prompt}\n\n### Source Text:\n{{chunk_text}}"
+        )
+        llm_chain = prompt_template | self.llm_client.with_structured_output(
+            TEMP_ThemeListSchema
+        )
+
+        # Batch Processing
+        if len(text) <= self.chunk_size:
+            raw_results_list = [llm_chain.invoke({"chunk_text": text})]
+        else:
+            chunks = self.text_splitter.split_text(text)
+            inputs = [{"chunk_text": chunk} for chunk in chunks]
+            raw_results_list = llm_chain.batch(
+                inputs, config={"max_concurrency": self.max_workers}
+            )
+
+        # Transform to Flat Schema
+        all_nodes_list = []
+        all_edges_list = []
+
+        for result in raw_results_list:
+            if not result or not result.items:
+                continue
+
+            cur_nodes = []
+            cur_edges = []
+
+            for item in result.items:
+                item: TEMP_ThemeSchema
+                extracted_nodes = item.participants
+                cur_nodes.extend(extracted_nodes)
+
+                cur_edges.append(
+                    ThemeSchema(
+                        description=item.description,
+                        participants=[
+                            self.node_key_extractor(n) for n in extracted_nodes
+                        ],
+                    )
+                )
+
+            all_nodes_list.append(cur_nodes)
+            all_edges_list.append(cur_edges)
+
+        # Merge
+        raw_graph = self.merge_batch_data((all_nodes_list, all_edges_list))
+        return self._prune_dangling_edges(raw_graph)
 
 
 # ============================================================================
@@ -463,6 +299,7 @@ class Cog_RAG_DetailLayer(AutoHypergraph[NodeSchema, EdgeSchema]):
     """
     Layer 2 of Cog_RAG: Entity-First Extraction.
     Extracts Entities (Nodes) and Semantic Relationships (Hyperedges).
+    Follows the Hyper_RAG pattern (Two-Stage).
     """
 
     def __init__(
@@ -474,10 +311,8 @@ class Cog_RAG_DetailLayer(AutoHypergraph[NodeSchema, EdgeSchema]):
         max_workers: int = 10,
         verbose: bool = True,
     ):
-        """
-        Initialize COG_RAG Entity-Relation engine.
-        """
         node_key_fn = lambda x: x.name
+        # Relations: Unique by Sorted Participants
         edge_key_fn = lambda x: tuple(sorted(x.participants))
         nodes_in_edge_fn = lambda x: x.participants
 
@@ -562,17 +397,17 @@ class Cog_RAG:
     def feed_text(self, text: str):
         """Feed text to both hypergraph layers."""
         if self.verbose:
-            logger.info("Cog_RAG: Feeding text to Theme Layer...")
+            print("Cog_RAG: Feeding text to Theme Layer...")
         self.theme_layer.feed_text(text)
 
         if self.verbose:
-            logger.info("Cog_RAG: Feeding text to Detail Layer...")
+            print("Cog_RAG: Feeding text to Detail Layer...")
         self.detail_layer.feed_text(text)
 
     def build_index(self):
         """Build indices for both layers."""
         if self.verbose:
-            logger.info("Cog_RAG: Building indices...")
+            print("Cog_RAG: Building indices...")
         self.theme_layer.build_index()
         self.detail_layer.build_index()
 
@@ -635,8 +470,6 @@ class Cog_RAG:
     @property
     def nodes(self):
         """Return combined unique nodes from both layers (simple aggregation)."""
-        # Note: This is a property for valid introspection, but nodes are managed separately.
-        # We perform a simple name-based deduction for display.
         seen = set()
         unique = []
         for n in self.theme_layer.nodes + self.detail_layer.nodes:
