@@ -23,8 +23,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 
-from ..core.base import BaseAutoType
-from ..utils.logging import logger
+from hyperextract.core import BaseAutoType
+from hyperextract.utils.logging import logger
 
 
 NodeSchema = TypeVar("NodeSchema", bound=BaseModel)

@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
-from .base import (
+from hyperextract.graphs.base import (
     AutoGraph,
     NodeSchema,
     EdgeSchema,
@@ -14,7 +14,7 @@ from .base import (
     EdgeListSchema,
     AutoGraphSchema,
 )
-from ..utils.logging import logger
+from hyperextract.utils.logging import logger
 
 # ==============================================================================
 # Prompt Definition - Spatial "Sandwich" Injection

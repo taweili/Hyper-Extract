@@ -3,7 +3,7 @@ COG_RAG: Cognitive-Inspired Dual-Hypergraph RAG System Pattern
 Extracts and manages Theme-Entity relationships where Themes act as Hyperedges connecting multiple Entities.
 """
 
-from typing import List, Tuple
+from typing import List
 from hashlib import md5
 from pydantic import BaseModel, Field
 from hyperextract.hypergraphs.base import AutoHypergraph, AutoHypergraphSchema

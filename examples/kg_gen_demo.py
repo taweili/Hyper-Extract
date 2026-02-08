@@ -266,7 +266,6 @@ def main():
     print("阈值越高 (0.0-1.0)，匹配条件越严格，合并越少")
     print()
     # 使用较为宽松的阈值 (0.9) 来演示合并效果
-    # 注意：首次运行时会自动下载 sentence-transformers 模型
     kg.self_deduplicate(threshold=0.9)
 
     # 显示去重后的节点

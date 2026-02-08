@@ -16,8 +16,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, CustomRuleMerger
 
-from .base import AutoGraph, AutoGraphSchema
-from ..utils.logging import logger
+from hyperextract.utils.logging import logger
+from hyperextract.graphs.base import AutoGraph, AutoGraphSchema
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original Atom implementation

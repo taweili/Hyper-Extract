@@ -22,8 +22,8 @@ from pydantic import BaseModel, Field, create_model
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from .base import BaseAutoType
-from ..utils.logging import logger
+from hyperextract.core import BaseAutoType
+from hyperextract.utils.logging import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)
@@ -116,7 +116,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             verbose: Whether to display detailed execution logs and progress information.
             fields_for_index: Optional list of field names in item_schema to include in vector index.
                              If None, all text fields are indexed by default.
-                             Useful for optimizing search on complex schemas. 
+                             Useful for optimizing search on complex schemas.
                              Example: ['name', 'summary'] (only index these fields)
             **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
                       a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.

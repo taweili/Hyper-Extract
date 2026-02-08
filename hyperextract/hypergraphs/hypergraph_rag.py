@@ -18,7 +18,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts.chat import ChatPromptTemplate
 from ontomem.merger import MergeStrategy
 
-from .base import AutoHypergraph, AutoHypergraphSchema
+from hyperextract.hypergraphs.base import AutoHypergraph, AutoHypergraphSchema
 
 # ============================================================================
 # Node Schema

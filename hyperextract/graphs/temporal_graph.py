@@ -7,7 +7,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
-from .base import AutoGraph, NodeSchema, EdgeSchema, NodeListSchema, EdgeListSchema
+from hyperextract.graphs.base import (
+    AutoGraph,
+    NodeSchema,
+    EdgeSchema,
+    NodeListSchema,
+    EdgeListSchema,
+)
 
 # ==============================================================================
 # Prompt Definition - Split for "Sandwich" Injection (Role -> User -> Rules)
@@ -161,9 +167,9 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             node_schema: User-defined Node Pydantic model.
             edge_schema: User-defined Edge Pydantic model with time fields.
             node_key_extractor: Function to extract unique key from node (e.g., lambda x: x.name).
-            edge_key_extractor: Function to extract the base unique identifier for an edge purely based on 
+            edge_key_extractor: Function to extract the base unique identifier for an edge purely based on
                                 entities and relation (e.g., lambda x: f"{x.src}|{x.relation}|{x.dst}").
-            time_in_edge_extractor: Function to extract the time component from an edge 
+            time_in_edge_extractor: Function to extract the time component from an edge
                                    (e.g., lambda x: x.year or "permanent").
                 This ensures (A, rel, B) @ 2020 and (A, rel, B) @ 2021 are treated as different edges.
             nodes_in_edge_extractor: Function to extract (source_key, target_key) from edge.
@@ -203,17 +209,21 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         # Construct Prompts: Role -> User Context -> System Rules
         # ("Sandwich" structure for optimal LLM instruction sequencing)
         # -----------------------------------------------------------
-        
+
         # 1. Node Extraction Prompt
         full_node_prompt = DEFAULT_TEMPORAL_NODE_ROLE_PREFIX
         if prompt_for_node_extraction:
-            full_node_prompt += f"\n### Context & Instructions:\n{prompt_for_node_extraction}\n"
+            full_node_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_node_extraction}\n"
+            )
         full_node_prompt += DEFAULT_TEMPORAL_NODE_RULES_SUFFIX
 
         # 2. Edge Extraction Prompt
         full_edge_prompt = DEFAULT_TEMPORAL_EDGE_ROLE_PREFIX
         if prompt_for_edge_extraction:
-            full_edge_prompt += f"\n### Context & Instructions:\n{prompt_for_edge_extraction}\n"
+            full_edge_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_edge_extraction}\n"
+            )
         full_edge_prompt += DEFAULT_TEMPORAL_EDGE_RULES_SUFFIX
 
         # 3. One-Stage Graph Extraction Prompt

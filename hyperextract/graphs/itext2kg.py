@@ -12,8 +12,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from .base import AutoGraph
-from ..utils.logging import logger
+from hyperextract.graphs.base import AutoGraph
+from hyperextract.utils.logging import logger
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original iText2KG implementation

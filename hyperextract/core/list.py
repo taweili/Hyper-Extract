@@ -19,8 +19,8 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.vectorstores import FAISS
 
-from .base import BaseAutoType
-from ..utils.logging import logger
+from hyperextract.core import BaseAutoType
+from hyperextract.utils.logging import logger
 
 
 Item = TypeVar("Item", bound=BaseModel)

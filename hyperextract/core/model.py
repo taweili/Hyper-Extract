@@ -9,8 +9,8 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
-from .base import BaseAutoType, T
-from ..utils.logging import logger
+from hyperextract.core import BaseAutoType, T
+from hyperextract.utils.logging import logger
 
 
 class AutoModel(BaseAutoType[T]):

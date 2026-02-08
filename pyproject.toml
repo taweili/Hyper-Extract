@@ -28,10 +28,9 @@ dependencies = [
     "langchain-openai>=1.1.7",
     "loguru>=0.7.3",
     "ontomem>=0.2.0",
-    "numpy>=2.4.1",
+    "ontosight>=0.1.1",
     "python-dotenv>=1.2.1",
     "semhash>=0.3.2",
-    "sentence-transformers>=5.1",
 ]
 
 [dependency-groups]

@@ -9,14 +9,12 @@ knowledge graph extraction logic.
 
 from semhash import SemHash
 from pydantic import BaseModel, Field
-from sentence_transformers import SentenceTransformer
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-
-from .base import AutoGraph, AutoGraphSchema
-from ..utils.logging import logger
+from hyperextract.graphs.base import AutoGraph, AutoGraphSchema
+from hyperextract.utils.logging import logger
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original kg_gen
@@ -161,24 +159,16 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         self,
         graph_data: AutoGraphSchema[NodeSchema, EdgeSchema],
         threshold: float = 0.9,
-        model: str | SentenceTransformer = "sentence-transformers/all-MiniLM-L6-v2",
     ):
         """Internal helper to apply SemHash deduplication on a graph data object.
 
         Args:
             graph_data: The graph data object (nodes/edges) to process in-place.
             threshold: SemHash similarity threshold (0.0 to 1.0).
-            model: Embedding model for SemHash.
 
         Returns:
             The modified graph_data object.
         """
-        if isinstance(model, str):
-            model = SentenceTransformer(model)
-        else:
-            assert isinstance(model, SentenceTransformer), (
-                "Model must be a string or SentenceTransformer instance."
-            )
 
         nodes, edges = graph_data.nodes, graph_data.edges
 
@@ -189,7 +179,17 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         # 1. Prepare data and run SemHash
         node_names = [n.name for n in nodes]
 
-        semhash = SemHash.from_records(records=node_names, model=model)
+        try:
+            embeddings = self.embedder.embed_documents(node_names)
+        except Exception as e:
+            logger.error(f"❌ Failed to generate embeddings: {e}")
+            return graph_data
+
+        semhash = SemHash.from_records(
+            embeddings=embeddings,
+            records=node_names,
+            model=None,  # Embeddings already provided
+        )
         result = semhash.self_deduplicate(threshold=threshold)
 
         # 2. Build mapping from duplicates result
@@ -216,21 +216,17 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
     def deduplicate(
         self,
         threshold: float = 0.9,
-        model: str | SentenceTransformer = "sentence-transformers/all-MiniLM-L6-v2",
     ) -> "KG_Gen":
         """Return a NEW KG_Gen instance with deduplicated entities and edges.
         Does not modify the current instance.
 
         Args:
             threshold: Similarity threshold for SemHash (0.0 to 1.0). Higher means stricter.
-            model: Embedding model for SemHash (default: sentence-transformers/all-MiniLM-L6-v2).
 
         Returns:
             A new, deduplicated KG_Gen instance.
         """
-        logger.info(
-            f"📋 Creating deduplicated copy (threshold={threshold}, model={model})..."
-        )
+        logger.info(f"📋 Creating deduplicated copy (threshold={threshold})...")
 
         # 1. Deep copy current data
         graph_data = self.data.model_copy(deep=True)
@@ -238,7 +234,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         original_edge_count = len(self.edges)
 
         # 2. Process deduplication
-        graph_data = self._deduplicate_graph(graph_data, threshold, model)
+        graph_data = self._deduplicate_graph(graph_data, threshold)
 
         # 3. Populate new instance - let OMem handle merging
         new_instance = self._create_empty_instance()
@@ -255,19 +251,17 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
     def self_deduplicate(
         self,
         threshold: float = 0.9,
-        model: str | SentenceTransformer = "sentence-transformers/all-MiniLM-L6-v2",
     ) -> "KG_Gen":
         """Deduplicate the current graph IN-PLACE using SemHash.
 
         Args:
             threshold: Similarity threshold (0.0 to 1.0).
-            model: Embedding model for SemHash (default: sentence-transformers/all-MiniLM-L6-v2).
 
         Returns:
             self (modified in-place)
         """
         logger.info(
-            f"🔄 Starting in-place SemHash deduplication (threshold={threshold}, model={model})..."
+            f"🔄 Starting in-place SemHash deduplication (threshold={threshold})..."
         )
 
         graph_data = self.data.model_copy()
@@ -276,7 +270,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         original_edge_count = len(graph_data.edges)
 
         # 1. Process deduplication directly on current data
-        graph_data = self._deduplicate_graph(graph_data, threshold, model)
+        graph_data = self._deduplicate_graph(graph_data, threshold)
 
         # 2. Atomic swap: re-index and rebuild OMem
         self._set_data_state(graph_data)
