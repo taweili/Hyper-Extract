@@ -39,30 +39,27 @@ class DeepSeaEntity(BaseModel):
         description="实体类型：'船员', '怪物', '关键设备', '房间/区域', '物品'",
         default="未知",
     )
-    location: Optional[str] = Field(
-        description="【关键字段】实体所处的具体位置。必须将相对位置解析为绝对位置。",
-        default=None,
-    )
     status: str = Field(
         description="当前状态（例如：已死亡、损坏、锁定、活跃）", default="正常"
     )
     description: str = Field(description="实体的详细描述")  
 
     def __repr__(self):
-        loc_display = self.location if self.location else "位置未知"
-        return f"📍 [{loc_display}] {self.name} ({self.status})"
+        return f"🕵️ {self.name} ({self.status}) [{self.category}]"
 
 
 class InteractionEdge(BaseModel):
-    """实体间的互动关系"""
+    """实体间的互动关系 (包含空间信息)"""
 
     source: str = Field(description="发起者")
     target: str = Field(description="对象")
-    relation: str = Field(description="关系或动作（例如：'位于...内部'，'攻击'，'修复'）")
+    relation: str = Field(description="关系或动作（例如：'攻击'，'修复'，'操作'，'持有/携带'）")
+    location: Optional[str] = Field(description="互动发生的具体位置", default=None)
     details: str = Field(description="互动的详细描述")
 
     def __repr__(self):
-        return f"{self.source} --[{self.relation}]--> {self.target}"
+        loc_str = f" @ {self.location}" if self.location else ""
+        return f"⚡ {self.source} --[{self.relation}]--> {self.target}{loc_str}"
 
 
 # ==================== 2. 深海探险日志文本 ====================
@@ -155,38 +152,32 @@ def run_demo():
 
     # 创建 AutoSpatialGraph
     print("📊 构建 AutoSpatialGraph 实例...\n")
-    # 关键：使用 location_in_node_extractor 解析位置属性
     graph = AutoSpatialGraph[DeepSeaEntity, InteractionEdge](
         node_schema=DeepSeaEntity,
         edge_schema=InteractionEdge,
-        # Split extractors: base name and location separately
         node_key_extractor=lambda x: x.name,
-        location_in_node_extractor=lambda x: x.location,
+        # 基础边 Key
         edge_key_extractor=lambda x: f"{x.source}|{x.relation}|{x.target}",
+        # 空间提取器移至边上
+        location_in_edge_extractor=lambda x: x.location or "",
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
         llm_client=llm,
         embedder=embedder,
-        observation_location="Atlas深海科研站",  # 设定总的地理围栏
+        observation_location="Atlas深海科研站",
         extraction_mode="two_stage",
         node_strategy_or_merger=MergeStrategy.LLM.BALANCED,
         edge_strategy_or_merger=MergeStrategy.LLM.BALANCED,
         prompt_for_node_extraction=(
-            "提取深海空间站中的所有实体。\n"
-            "关键空间规则：\n"
-            "1. **位置注入**：仔细分析文本中的相对位置描述。例如，如果主角在'中央枢纽'，那么'头顶上方'应被解析为'上层甲板'。\n"
-            "2. **属性化**：不要提取'上层'、'左边'、'地下'作为节点。将它们解析为实体具体的 location 属性。\n"
-            "3. **3D结构**：注意区分甲板层级（上层甲板、主层、底层/动力舱）。\n"
-            "4. **实体类型**：如果是尸体，状态标为'死亡'但仍需提取为实体（携带关键物品）。\n"
+            "提取深海空间站中的所有关键实体（船员、设备、怪物等）。\n"
+            "注意：不要在节点中提取位置信息，位置将作为关系属性提取。"
         ),
         prompt_for_edge_extraction=(
-            "提取实体之间所有有意义的互动与关联关系。由于位置已作为实体属性记录，**请勿提取简单的'位于...内部'关系**。\n\n"
-            "重点提取以下类型的关系：\n"
-            "1. **动作与交互**：例如 '攻击'、'修复'、'操作'、'持有/携带'、'观察到'。\n"
-            "2. **物理连接与阻挡**：例如 '连接着'（线缆）、'阻挡了'（门/障碍物）、'覆盖'。\n"
-            "3. **控制与功能**：例如 '门禁卡->开启->门'、'阀门->控制->管道'。\n"
-            "4. **因果与逻辑**：例如 '爆炸->导致->泄露'、'日志->提及->怪物'、'任务->目标是->设备'。\n"
+            "提取实体之间的互动关系，并精确捕获它们发生的地理位置。\n"
+            "特别是：\n"
+            "- 解析相对位置（如'这里'解析为 observation_location）\n"
+            "- 注意 3D 空间层级（上层甲板、中央枢纽、反应堆舱）"
         ),
-        verbose=True,  # 开启日志以便观察提取过程
+        verbose=True,
         chunk_size=2048,
     )
 
@@ -203,35 +194,24 @@ def run_demo():
 
     print("\n" + "=" * 70)
     print(f"✅ 空间结构分析完成！")
-    print("=" * 70)
+    print("=" * 80)
     print(f"   提取的实体: {len(graph.nodes)} 个")
     print(f"   记录的互动关系: {len(graph.edges)} 个")
 
     print("\n" + "-" * 70)
-    print("📍 空间站实体分布 (Nodes - 按位置分组)")
+    print("🕵️ 空间站实体清单 (Nodes)")
     print("-" * 70)
-
-    # 按位置简单的分组打印
-    nodes_by_location = {}
-    for node in graph.nodes:
-        # 简单处理一下位置字符串，取前几个字作为粗略分组
-        loc_key = node.location or "位置未知"
-        if loc_key not in nodes_by_location:
-            nodes_by_location[loc_key] = []
-        nodes_by_location[loc_key].append(node)
-
-    for loc, entities in sorted(nodes_by_location.items()):
-        print(f"\n🏢 区域: {loc}")
-        for entity in entities:
-            print(f"   - {entity.name} [{entity.category}]: {entity.status}")
+    for i, node in enumerate(graph.nodes, 1):
+        print(f"   {i}. {node}")
 
     print("\n" + "-" * 70)
-    print("🔗 关键互动关系 (Edges)")
+    print("📍 空间互动时间表 (Edges - 按位置排序)")
     print("-" * 70)
-    for i, edge in enumerate(graph.edges[:15]):  # 只打印前15个
-        print(f"   {i+1}. {edge}")
-    if len(graph.edges) > 15:
-        print(f"   ... (还有 {len(graph.edges) - 15} 条关系)")
+    
+    # 按位置排序打印关系
+    sorted_edges = sorted(graph.edges, key=lambda x: x.location or "ZZZ")
+    for i, edge in enumerate(sorted_edges, 1):
+        print(f"   {i}. {edge}")
 
     # ==================== 5. 空间情报检索 (Search 阶段) ====================
 

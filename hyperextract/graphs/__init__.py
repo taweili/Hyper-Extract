@@ -5,6 +5,7 @@ from .itext2kg_star import iText2KG_Star
 from .atom import Atom
 from .temporal_graph import AutoTemporalGraph
 from .spatial_graph import AutoSpatialGraph
+from .spatio_temporal_graph import AutoSpatioTemporalGraph
 
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "Atom",
     "AutoTemporalGraph",
     "AutoSpatialGraph",
+    "AutoSpatioTemporalGraph",
 ]
