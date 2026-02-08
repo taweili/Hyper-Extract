@@ -9,7 +9,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
-from hyperextract.core import BaseAutoType, T
+from .base import BaseAutoType, T
 from hyperextract.utils.logging import logger
 
 

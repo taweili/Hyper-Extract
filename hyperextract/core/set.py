@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field, create_model
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from hyperextract.core import BaseAutoType
+from .base import BaseAutoType
 from hyperextract.utils.logging import logger
 
 
