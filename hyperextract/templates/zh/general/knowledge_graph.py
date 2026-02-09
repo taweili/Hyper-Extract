@@ -1,0 +1,68 @@
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from hyperextract.graphs import AutoGraph
+
+# ==============================================================================
+# 1. Schema 定义 (Schema Definitions)
+# ==============================================================================
+
+class Entity(BaseModel):
+    """通用实体，代表人物、组织、地点、物体或核心概念。"""
+    name: str = Field(description="实体的名称。")
+    category: str = Field(
+        description="实体的类别（例如：人物、组织、地理位置、概念、事件、物体）。"
+    )
+    description: Optional[str] = Field(
+        description="该实体的简要描述及其在文本中的作用。"
+    )
+
+class Relation(BaseModel):
+    """两个实体之间的事实关系。"""
+    source: str = Field(description="源实体的名。")
+    target: str = Field(description="目标实体的名称。")
+    relation: str = Field(description="关系类型（例如：任职于、位于、创立、收购）。")
+    details: Optional[str] = Field(description="关于该关系的额外上下文或详细描述。")
+
+# ==============================================================================
+# 2. 提示词 (Prompts)
+# ==============================================================================
+
+KNOWLEDGE_GRAPH_PROMPT = (
+    "你是一个专业的知识提取专家。你的任务是从提供的文本中提取一个事实知识图谱。"
+    "重点识别关键实体（人物、组织、地理位置、重要物体）以及它们之间明确的关系。\n\n"
+    "提取指南：\n"
+    "- 准确性：从文本中提取明确的实体及其事实属性。\n"
+    "- 关系映射：描述实体之间如何互动或连接。\n"
+    "- 简洁性：使用清晰、简洁的语言进行描述和关系定义。"
+)
+
+KNOWLEDGE_GRAPH_NODE_PROMPT = (
+    "请从文本中提取所有关键实体。重点识别人物、组织、地理位置以及重要的物体。"
+    "为每个实体提供名称、类别以及简明扼要的描述。"
+)
+
+KNOWLEDGE_GRAPH_EDGE_PROMPT = (
+    "基于文本识别以下已知实体之间的事实关系。重点关注如“任职于”、“位于”、“创立”或“收购”等互动。"
+    "请勿虚构不在列表中的实体。"
+)
+
+# ==============================================================================
+# 3. 模板类 (Template Class)
+# ==============================================================================
+
+class KnowledgeGraph(AutoGraph[Entity, Relation]):
+    """
+    通用事实知识图谱模板，适用于新闻报道、百科条目及传记。
+    """
+    def __init__(self, **kwargs):
+        super().__init__(
+            node_schema=Entity,
+            edge_schema=Relation,
+            node_key_extractor=lambda x: x.name.strip(),
+            edge_key_extractor=lambda x: f"{x.source.strip()}--[{x.relation.lower()}]-->{x.target.strip()}",
+            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            prompt=KNOWLEDGE_GRAPH_PROMPT,
+            prompt_for_node_extraction=KNOWLEDGE_GRAPH_NODE_PROMPT,
+            prompt_for_edge_extraction=KNOWLEDGE_GRAPH_EDGE_PROMPT,
+            **kwargs
+        )
