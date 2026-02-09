@@ -12,9 +12,7 @@ from hyperextract.graphs.base import (
     EdgeSchema,
     NodeListSchema,
     EdgeListSchema,
-    AutoGraphSchema,
 )
-from hyperextract.utils.logging import logger
 
 # ==============================================================================
 # Prompt Definition - Spatial "Sandwich" Injection
@@ -158,7 +156,23 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
             edge_key_extractor: Function to extract the base unique identifier for an edge.
             location_in_edge_extractor: Function to extract the spatial component from an edge.
             nodes_in_edge_extractor: Function to extract (source_key, target_key) from edge.
-            ... (other args same as AutoGraph)
+            llm_client: LangChain BaseChatModel for extraction.
+            embedder: LangChain Embeddings for semantic operations.
+            observation_time: Date context for relative time resolution (default: today in YYYY-MM-DD format).
+            extraction_mode: "one_stage" or "two_stage" (default: "two_stage").
+            node_strategy_or_merger: Merge strategy for duplicate nodes (default: LLM.BALANCED).
+            edge_strategy_or_merger: Merge strategy for duplicate edges (default: LLM.BALANCED).
+            prompt_for_node_extraction: Additional user prompt to append to node extraction system prompt.
+            prompt_for_edge_extraction: Additional user prompt to append to edge extraction system prompt.
+            prompt: Additional user prompt to append to one-stage graph extraction system prompt.
+            chunk_size: Size of text chunks for processing (default: 2048).
+            chunk_overlap: Overlap between text chunks (default: 256).
+            max_workers: Maximum number of concurrent LLM calls (default: 10).
+            verbose: Whether to print verbose output (default: False).
+            node_fields_for_index: List of node fields to include in vector index (optional).
+            edge_fields_for_index: List of edge fields to include in vector index (optional).
+            **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
+                      a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
         # Set observation location
         self.observation_location = observation_location or "Unknown Location"
