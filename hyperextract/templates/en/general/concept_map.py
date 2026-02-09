@@ -1,5 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
 from hyperextract.graphs import AutoGraph
 
 # ==============================================================================
@@ -52,16 +54,62 @@ CONCEPT_MAP_EDGE_PROMPT = (
 
 class ConceptMap(AutoGraph[Concept, ConceptRelation]):
     """
-    A template for building conceptual graphs and taxonomies.
-    Ideal for technical documentation, educational materials, and glossaries.
+    A template for building concept maps and taxonomies.
+    
+    Ideal for structured learning, technical documentation, and glossary extraction.
+    It focuses on definitions, semantic categories, and hierarchical relationships.
+    
+    Example:
+        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> embedder = OpenAIEmbeddings()
+        >>> # Initialize the template
+        >>> cm = ConceptMap(llm_client=llm, embedder=embedder)
+        >>> # Extract taxonomy from text
+        >>> text = "Machine Learning is a subset of Artificial Intelligence that uses data to learn."
+        >>> cm.feed_text(text)
+        >>> print(cm.edges)  # Output shows: Machine Learning --(is a)--> Artificial Intelligence
     """
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "one_stage",
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any
+    ):
+        """
+        Initialize the ConceptMap template.
+
+        Args:
+            llm_client: The language model client used for extraction.
+            embedder: The embedding model used for concept deduplication and indexing.
+            extraction_mode: The strategy for extraction:
+                - "one_stage": Extract nodes and edges simultaneously (faster).
+                - "two_stage": Extract nodes first, then edges (higher accuracy).
+            chunk_size: Maximum number of characters per text chunk.
+            chunk_overlap: Number of characters to overlap between chunks.
+            max_workers: Maximum number of parallel workers for processing.
+            verbose: If True, prints detailed progress logs.
+            **kwargs: Additional arguments passed to the AutoGraph constructor.
+        """
         super().__init__(
             node_schema=Concept,
             edge_schema=ConceptRelation,
             node_key_extractor=lambda x: x.term.strip(),
             edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=CONCEPT_MAP_PROMPT,
             prompt_for_node_extraction=CONCEPT_MAP_NODE_PROMPT,
             prompt_for_edge_extraction=CONCEPT_MAP_EDGE_PROMPT,

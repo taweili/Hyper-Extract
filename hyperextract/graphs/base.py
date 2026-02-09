@@ -22,6 +22,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
+from ontosight import view_graph
 
 from hyperextract.core import BaseAutoType
 from hyperextract.utils.logging import logger
@@ -69,7 +70,9 @@ DEFAULT_EDGE_PROMPT = (
 class AutoGraphSchema(BaseModel, Generic[NodeSchema, EdgeSchema]):
     """Generic schema container for graph-based knowledge patterns."""
 
-    nodes: List[NodeSchema] = Field(default_factory=list, description="Graph nodes/entities")
+    nodes: List[NodeSchema] = Field(
+        default_factory=list, description="Graph nodes/entities"
+    )
     edges: List[EdgeSchema] = Field(
         default_factory=list, description="Graph edges/relationships"
     )
@@ -93,7 +96,10 @@ class EdgeListSchema(BaseModel, Generic[EdgeSchema]):
     )
 
 
-class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[NodeSchema, EdgeSchema]):
+class AutoGraph(
+    BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]],
+    Generic[NodeSchema, EdgeSchema],
+):
     """AutoGraph - extracts knowledge graphs with nodes and edges from text.
 
     This pattern extracts structured knowledge graphs consisting of entities (nodes) and
@@ -388,7 +394,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
 
         self.clear_index()
 
-    def _update_data_state(self, incoming_data: AutoGraphSchema[NodeSchema, EdgeSchema]) -> None:
+    def _update_data_state(
+        self, incoming_data: AutoGraphSchema[NodeSchema, EdgeSchema]
+    ) -> None:
         """Merge incoming graph data into current state.
 
         Args:
@@ -424,7 +432,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
         # Prune dangling edges to ensure graph consistency
         return self._prune_dangling_edges(raw_graph)
 
-    def _extract_data_by_one_stage(self, text: str) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
+    def _extract_data_by_one_stage(
+        self, text: str
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Extract nodes and edges simultaneously using single LLM call.
 
         Args:
@@ -454,7 +464,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
         # Merge multiple graphs
         return self.merge_batch_data(graph_list)
 
-    def _extract_data_by_two_stage(self, text: str) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
+    def _extract_data_by_two_stage(
+        self, text: str
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Extract nodes first, then edges with node context (batch processing).
 
         Process:
@@ -491,7 +503,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
         # 5. Global Merge (passes tuples to merge_batch_data)
         return self.merge_batch_data(partial_graphs)
 
-    def _extract_nodes_batch(self, chunks: List[str]) -> List[NodeListSchema[NodeSchema]]:
+    def _extract_nodes_batch(
+        self, chunks: List[str]
+    ) -> List[NodeListSchema[NodeSchema]]:
         """Batch extract nodes from multiple text chunks.
 
         Args:
@@ -542,7 +556,9 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
 
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
-    def _prune_dangling_edges(self, graph: AutoGraphSchema[NodeSchema, EdgeSchema]) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
+    def _prune_dangling_edges(
+        self, graph: AutoGraphSchema[NodeSchema, EdgeSchema]
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Prune edges that connect to non-existent nodes (Consistency Check).
 
         Ensures graph consistency by removing any edges where either endpoint
@@ -851,3 +867,49 @@ class AutoGraph(BaseAutoType[AutoGraphSchema[NodeSchema, EdgeSchema]], Generic[N
                 self._edge_memory.load_index(str(edge_index_path))
             except Exception as e:
                 logger.warning(f"Failed to load edge index: {e}")
+
+    def show(
+        self,
+        node_label_extractor: Callable[[NodeSchema], str],
+        edge_label_extractor: Callable[[EdgeSchema], str],
+    ) -> None:
+        """Visualize the graph using OntoSight.
+
+        Args:
+            node_label_extractor: A function that takes a NodeSchema and returns a string label for visualization.
+            edge_label_extractor: A function that takes an EdgeSchema and returns a string label for visualization.
+        """
+
+        if self._node_memory.has_index() and self._edge_memory.has_index():
+            logger.info(
+                "Visualizing graph with search and chat capabilities (indices detected)."
+            )
+
+            def search_callback(query: str) -> None:
+                return self.search(query, top_k_nodes=3, top_k_edges=3)
+
+            def chat_callback(question: str) -> None:
+                response = self.chat(question, top_k_nodes=3, top_k_edges=3)
+                content = response.content
+                retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
+                retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])
+                return content, (retrieved_nodes, retrieved_edges)
+        else:
+            logger.info(
+                "Visualizing graph without search and chat capabilities (no indices detected)."
+            )
+            search_callback = None
+            chat_callback = None
+
+        view_graph(
+            node_list=self.nodes,
+            edge_list=self.edges,
+            node_schema=self.node_schema,
+            edge_schema=self.edge_schema,
+            node_id_extractor=self.node_key_extractor,
+            node_ids_in_edge_extractor=self.nodes_in_edge_extractor,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            on_search=search_callback,
+            on_chat=chat_callback,
+        )

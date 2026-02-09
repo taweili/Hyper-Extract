@@ -1,5 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
 from hyperextract.graphs import AutoGraph
 
 # ==============================================================================
@@ -55,15 +57,61 @@ KNOWLEDGE_GRAPH_EDGE_PROMPT = (
 class KnowledgeGraph(AutoGraph[Entity, Relation]):
     """
     A foundational knowledge graph template for factual extraction.
-    Best for news, biographies, and descriptive encyclopedic content.
+    
+    This template is optimized for extracting entities (People, Places, Organizations) 
+    and their factual interactions from news articles, biographies, and encyclopedic texts.
+    
+    Example:
+        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> embedder = OpenAIEmbeddings()
+        >>> # Initialize the template
+        >>> kg = KnowledgeGraph(llm_client=llm, embedder=embedder)
+        >>> # Extract knowledge from text
+        >>> text = "Steve Jobs co-founded Apple in Cupertino."
+        >>> kg.feed_text(text)
+        >>> print(kg.nodes)  # Output: [Entity(name='Steve Jobs', ...), Entity(name='Apple', ...)]
     """
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "one_stage",
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any
+    ):
+        """
+        Initialize the KnowledgeGraph template.
+
+        Args:
+            llm_client: The language model client used for extraction.
+            embedder: The embedding model used for entity deduplication and indexing.
+            extraction_mode: The strategy for extraction:
+                - "one_stage": Extract nodes and edges simultaneously (faster).
+                - "two_stage": Extract nodes first, then edges (higher accuracy).
+            chunk_size: Maximum number of characters per text chunk.
+            chunk_overlap: Number of characters to overlap between chunks.
+            max_workers: Maximum number of parallel workers for processing.
+            verbose: If True, prints detailed progress logs.
+            **kwargs: Additional arguments passed to the AutoGraph constructor.
+        """
         super().__init__(
             node_schema=Entity,
             edge_schema=Relation,
             node_key_extractor=lambda x: x.name.strip(),
             edge_key_extractor=lambda x: f"{x.source.strip()}--[{x.relation.lower()}]-->{x.target.strip()}",
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=KNOWLEDGE_GRAPH_PROMPT,
             prompt_for_node_extraction=KNOWLEDGE_GRAPH_NODE_PROMPT,
             prompt_for_edge_extraction=KNOWLEDGE_GRAPH_EDGE_PROMPT,

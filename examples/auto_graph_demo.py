@@ -411,7 +411,7 @@ def run_demo():
     chat_queries = [
         "请总结这个公会冲突的核心原因。",
         "暗影刺客和小甜甜的行为对团队造成了什么影响？",
-        "从这个事件中，我们学到了什么关于公会管理的经验？"
+        "从这个事件中，我们学到了什么关于公会管理的经验？",
     ]
 
     for q in chat_queries:
@@ -433,6 +433,11 @@ def run_demo():
         print(f"✅ 图谱已保存到: {save_path}")
     except Exception as e:
         print(f"⚠️  保存失败: {e}")
+
+    graph.show(
+        node_label_extractor=lambda n: f"{n.name} ({n.category})",
+        edge_label_extractor=lambda e: e.action_type,
+    )
 
 
 if __name__ == "__main__":

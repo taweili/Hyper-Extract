@@ -1,5 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
 from hyperextract.graphs import AutoGraph
 
 # ==============================================================================
@@ -51,15 +53,62 @@ LOGIC_GRAPH_EDGE_PROMPT = (
 class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
     """
     A template for analyzing reasoning, arguments, and causal chains.
-    Ideal for analytical reports, debate transcripts, and scientific reasoning.
+    
+    This template is designed to map out the logical structure of analytical reports, 
+    scientific papers, or debate transcripts. It captures claims, evidence, and 
+    the logical links (Support/Contradict) between them.
+    
+    Example:
+        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> embedder = OpenAIEmbeddings()
+        >>> # Initialize the template
+        >>> lg = LogicGraph(llm_client=llm, embedder=embedder)
+        >>> # Extract logic from text
+        >>> text = "The climate is warming because carbon levels are rising."
+        >>> lg.feed_text(text)
+        >>> print(lg.edges)  # Output shows: Carbon levels rising --(Supports)--> Climate is warming
     """
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "one_stage",
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any
+    ):
+        """
+        Initialize the LogicGraph template.
+
+        Args:
+            llm_client: The language model client used for extraction.
+            embedder: The embedding model used for logic point deduplication and indexing.
+            extraction_mode: The strategy for extraction:
+                - "one_stage": Extract nodes and edges simultaneously (faster).
+                - "two_stage": Extract nodes first, then edges (higher accuracy).
+            chunk_size: Maximum number of characters per text chunk.
+            chunk_overlap: Number of characters to overlap between chunks.
+            max_workers: Maximum number of parallel workers for processing.
+            verbose: If True, prints detailed progress logs.
+            **kwargs: Additional arguments passed to the AutoGraph constructor.
+        """
         super().__init__(
             node_schema=LogicNode,
             edge_schema=LogicRelation,
             node_key_extractor=lambda x: x.statement.strip(),
             edge_key_extractor=lambda x: f"{x.source.strip()}--({x.inference.lower()})-->{x.target.strip()}",
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=LOGIC_GRAPH_PROMPT,
             prompt_for_node_extraction=LOGIC_GRAPH_NODE_PROMPT,
             prompt_for_edge_extraction=LOGIC_GRAPH_EDGE_PROMPT,

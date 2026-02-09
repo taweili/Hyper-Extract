@@ -1,5 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
 from hyperextract.graphs import AutoGraph
 
 # ==============================================================================
@@ -49,16 +51,61 @@ CONCEPT_MAP_EDGE_PROMPT = (
 
 class ConceptMap(AutoGraph[Concept, ConceptRelation]):
     """
-    用于构建概念图谱和分类体系的模板。
-    适用于技术文档、教育材料、术语表解析等场景。
+    用于构建概念图和分类体系的模板。
+    
+    适用于结构化学习、技术文档和术语表提取。侧重于定义、语义类别和层级关系。
+    
+    示例:
+        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> embedder = OpenAIEmbeddings()
+        >>> # 初始化模板
+        >>> cm = ConceptMap(llm_client=llm, embedder=embedder)
+        >>> # 从文本中提取分类体系
+        >>> text = "机器学习是人工智能的一个子集，它利用数据进行学习。"
+        >>> cm.feed_text(text)
+        >>> print(cm.edges)  # 输出显示：机器学习 --(是一种)--> 人工智能
     """
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "one_stage",
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any
+    ):
+        """
+        初始化 ConceptMap 模板。
+
+        Args:
+            llm_client: 用于提取的语言模型客户端。
+            embedder: 用于概念去重和索引的嵌入模型。
+            extraction_mode: 提取策略：
+                - "one_stage": 同时提取节点和边（速度更快）。
+                - "two_stage": 先提取节点，再提取边（准确度更高）。
+            chunk_size: 每个文本块的最大字符数。
+            chunk_overlap: 文本块之间的重叠字符数。
+            max_workers: 并行处理的最大线程数。
+            verbose: 如果为 True，则打印详细的进度日志。
+            **kwargs: 传给 AutoGraph 构造函数的其他参数。
+        """
         super().__init__(
             node_schema=Concept,
             edge_schema=ConceptRelation,
             node_key_extractor=lambda x: x.term.strip(),
             edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=CONCEPT_MAP_PROMPT,
             prompt_for_node_extraction=CONCEPT_MAP_NODE_PROMPT,
             prompt_for_edge_extraction=CONCEPT_MAP_EDGE_PROMPT,
