@@ -371,6 +371,11 @@ def main():
     print("✅ 分析完成！")
     print("=" * 70)
 
+    hypergraph.show(
+        node_label_extractor=lambda n: f"{n.name}\n({n.category})",
+        edge_label_extractor=lambda e: f"{e.edge_type}",
+    )
+
 
 if __name__ == "__main__":
     main()

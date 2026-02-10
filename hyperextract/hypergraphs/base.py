@@ -23,6 +23,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
+from ontosight import view_hypergraph
 
 from hyperextract.core import BaseAutoType
 from hyperextract.utils.logging import logger
@@ -809,3 +810,58 @@ class AutoHypergraph(
                 self._edge_memory.load_index(str(edge_index_path))
             except Exception as e:
                 logger.warning(f"Failed to load edge index: {e}")
+
+    def show(
+        self,
+        node_label_extractor: Callable[[NodeSchema], str],
+        edge_label_extractor: Callable[[EdgeSchema], str],
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """Visualize the hypergraph using OntoSight.
+
+        Args:
+            node_label_extractor: A function that takes a NodeSchema and returns a string label for visualization.
+            edge_label_extractor: A function that takes an EdgeSchema and returns a string label for visualization.
+            top_k_nodes_for_search: Number of nodes to retrieve for search callback (default: 3).
+            top_k_edges_for_search: Number of edges to retrieve for search callback (default: 3).
+            top_k_nodes_for_chat: Number of nodes to retrieve for chat callback (default: 3).
+            top_k_edges_for_chat: Number of edges to retrieve for chat callback (default: 3).
+        """
+
+        if self._node_memory.has_index() and self._edge_memory.has_index():
+            logger.info(
+                "Visualizing hypergraph with search and chat capabilities (indices detected)."
+            )
+
+            def search_callback(query: str) -> None:
+                return self.search(query, top_k_nodes=top_k_nodes_for_search, top_k_edges=top_k_edges_for_search)
+
+            def chat_callback(question: str) -> None:
+                response = self.chat(question, top_k_nodes=top_k_nodes_for_chat, top_k_edges=top_k_edges_for_chat)
+                content = response.content
+                retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
+                retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])
+                return content, (retrieved_nodes, retrieved_edges)
+        else:
+            logger.info(
+                "Visualizing hypergraph without search and chat capabilities (no indices detected)."
+            )
+            search_callback = None
+            chat_callback = None
+
+        view_hypergraph(
+            node_list=self.nodes,
+            edge_list=self.edges,
+            node_schema=self.node_schema,
+            edge_schema=self.edge_schema,
+            node_id_extractor=self.node_key_extractor,
+            node_ids_in_edge_extractor=self.nodes_in_edge_extractor,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            on_search=search_callback,
+            on_chat=chat_callback,
+        )

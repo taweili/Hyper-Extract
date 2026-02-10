@@ -1,0 +1,111 @@
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
+from hyperextract.graphs import AutoGraph
+
+# ==============================================================================
+# 1. Schema Definitions
+# ==============================================================================
+
+class AgriEntity(BaseModel):
+    """An entity in the agricultural domain (e.g., Crop, Soil, Pest, Pest Control, Equipment)."""
+    name: str = Field(description="The name of the agricultural entity.")
+    category: str = Field(
+        description="Category: 'Crop', 'Growth Stage', 'Soil/Climate Condition', 'Task/Activity', 'Stress/Pest', 'Input/Fertilizer'."
+    )
+    description: Optional[str] = Field(description="Specific characteristics or state of the entity.")
+
+class AgriRelation(BaseModel):
+    """A relationship between agricultural entities (e.g., 'requires', 'affected by', 'follows')."""
+    source: str = Field(description="The source entity name.")
+    target: str = Field(description="The target entity name.")
+    relation_type: str = Field(
+        description="Type: 'is at stage', 'impacts', 'requires task', 'applied to', 'leads to next stage'."
+    )
+    specification: Optional[str] = Field(description="Dosage, timing, or specific impact details.")
+
+# ==============================================================================
+# 2. Prompts
+# ==============================================================================
+
+CROP_CYCLE_PROMPT = (
+    "You are an expert agronomist. Extract a crop growth and management graph from the text.\n\n"
+    "Guidelines:\n"
+    "- Identify the crop and its specific growth stages (e.g., Sowing, Flowering).\n"
+    "- Map soil conditions, weather requirements, and necessary farming activities (irrigation, fertilization) to specific stages.\n"
+    "- Note any threats like pests or diseases and their impact on the crop."
+)
+
+CROP_CYCLE_NODE_PROMPT = (
+    "Extract key agricultural components: crop types, growth stages, environmental conditions (soil/pH/temp), "
+    "farming tasks, and biological stresses (pests/fungi). Provide a clear category for each."
+)
+
+CROP_CYCLE_EDGE_PROMPT = (
+    "Establish logical links in the crop cycle. Connect stages in sequence, link tasks to the stages they belong to, "
+    "and map environmental requirements to the entities they affect. Use specific relation types like 'requires' or 'inhibits'."
+)
+
+# ==============================================================================
+# 3. Template Class
+# ==============================================================================
+
+class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
+    """
+    Template for mapping crop growth stages, environmental requirements, and farming activities.
+    
+    Ideal for precision agriculture, crop management guides, and seasonal planning.
+    
+    Example:
+        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> embedder = OpenAIEmbeddings()
+        >>> graph = CropCycleGraph(llm_client=llm, embedder=embedder)
+        >>> text = "Corn requires high nitrogen during the vegetative stage."
+        >>> graph.feed_text(text)
+        >>> print(graph.nodes) # Extracted Corn, Nitrogen, Vegetative Stage
+    """
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "one_stage",
+        chunk_size: int = 2048,
+        chunk_overlap: int = 256,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any
+    ):
+        """
+        Initialize the CropCycleGraph template.
+
+        Args:
+            llm_client: The language model client for extraction.
+            embedder: The embedding model for deduplication.
+            extraction_mode: "one_stage" or "two_stage".
+            chunk_size: Max characters per chunk.
+            chunk_overlap: Overlap between chunks.
+            max_workers: Parallel processing workers.
+            verbose: Enable progress logging.
+            **kwargs: Extra arguments for AutoGraph.
+        """
+        super().__init__(
+            node_schema=AgriEntity,
+            edge_schema=AgriRelation,
+            node_key_extractor=lambda x: x.name.strip(),
+            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
+            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            max_workers=max_workers,
+            verbose=verbose,
+            prompt=CROP_CYCLE_PROMPT,
+            prompt_for_node_extraction=CROP_CYCLE_NODE_PROMPT,
+            prompt_for_edge_extraction=CROP_CYCLE_EDGE_PROMPT,
+            **kwargs
+        )
