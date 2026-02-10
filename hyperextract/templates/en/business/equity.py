@@ -40,13 +40,21 @@ EQUITY_CONSOLIDATED_PROMPT = (
 )
 
 EQUITY_NODE_PROMPT = (
-    "Extract all companies, investment funds, and individuals mentioned in the context of ownership. "
-    "Classify them into 'Natural Person', 'Private Company', etc."
+    "You are a corporate paralegal and financial analyst. Your task is to identify all stakeholders (Nodes) within a corporate structure.\n\n"
+    "Extraction Rules:\n"
+    "- Identify companies, investment funds, government bodies, and individual persons.\n"
+    "- Classify each as 'Natural Person', 'Public Company', 'Private Company', etc.\n"
+    "- Flag entities identified as Ultimate Beneficial Owners (UBO) where explicit.\n"
+    "- DO NOT extract ownership percentages or control links at this stage."
 )
 
 EQUITY_EDGE_PROMPT = (
-    "Construct ownership edges. Capture the percentage of equity and the specific type of control. "
-    "Identify the flow of capital from shareholder to the target entity."
+    "You are a corporate paralegal and financial analyst. Given the list of stakeholders, map the ownership and control relationships (Edges).\n\n"
+    "Extraction Rules:\n"
+    "- Extract the exact percentage of equity held between a shareholder (source) and a company (target).\n"
+    "- Specify the nature of control (e.g., Voting Rights, Direct Control, Nominee Shareholding).\n"
+    "- Create edges only between entities found in the provided stakeholder list.\n"
+    "- Capture the 'as of' date or historical period for the ownership record."
 )
 
 # ==============================================================================

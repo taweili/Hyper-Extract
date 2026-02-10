@@ -41,12 +41,21 @@ METABOLIC_CONSOLIDATED_PROMPT = (
 )
 
 METABOLIC_NODE_PROMPT = (
-    "Identify all chemical substances (metabolites) and enzymes. Focus on accurate nomenclature."
+    "You are a biochemist. Your task is to identify all metabolites and catalytic enzymes (Nodes) involved in metabolic processes.\n\n"
+    "Extraction Rules:\n"
+    "- Identify chemical components (substrates/products) and the enzymes that facilitate their transformation.\n"
+    "- Capture formulas, charges, and cellular compartments if described.\n"
+    "- Ensure names are standardized (e.g., 'Glucose-6-phosphate').\n"
+    "- DO NOT construct reaction equations or complexes at this stage."
 )
 
 METABOLIC_EDGE_PROMPT = (
-    "Define hyperedges representing metabolic reactions. Include ALL participating metabolites and enzymes "
-    "for each identified reaction event."
+    "You are a biochemist. Given the following list of metabolites and enzymes, extract complex metabolic reactions (Hyperedges).\n\n"
+    "Extraction Rules:\n"
+    "- Group all participants (substrates, products, and enzymes) into single reaction events.\n"
+    "- Clearly distinguish between substrates (inputs) and products (outputs) within the reaction metadata.\n"
+    "- Only include participants that exist in the provided entity list.\n"
+    "- Record stoichiometry and reversibility where specific data is available."
 )
 
 # ==============================================================================

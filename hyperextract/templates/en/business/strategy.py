@@ -40,12 +40,21 @@ STRATEGY_CONSOLIDATED_PROMPT = (
 )
 
 STRATEGY_NODE_PROMPT = (
-    "Extract business units, product lines, and high-level corporate goals. Identify their organizational importance."
+    "You are a management consultant. Your task is to identify strategic entities and objectives (Nodes).\n\n"
+    "Extraction Rules:\n"
+    "- Identify business divisions, specific products, and overarching corporate goals (e.g., 'Sustainability').\n"
+    "- Determine the scope and organizational importance of each unit.\n"
+    "- Focus on nouns and noun phrases representing strategic focus areas.\n"
+    "- DO NOT extract strategic moves or transitions at this stage."
 )
 
 STRATEGY_EDGE_PROMPT = (
-    "Map strategic transitions over time. Ensure the 'timestamp' is resolved to specific periods. "
-    "Identify what the company moved FROM (source) and what it moved TO (target)."
+    "You are a management consultant. Given the identified strategic units, map the temporal shifts in strategy (Edges).\n\n"
+    "Extraction Rules:\n"
+    "- Extract 'Pivots' and actions like 'Acquire', 'Divest', or 'Sunset'.\n"
+    "- Link the source (old focus) to the target (new focus) with a precise timestamp.\n"
+    "- Capture the underlying rationale and any financial commitment (budget) mentioned.\n"
+    "- Only reference nodes present in the strategic units list."
 )
 
 # ==============================================================================

@@ -43,12 +43,21 @@ REACTION_CONSOLIDATED_PROMPT = (
 )
 
 REACTION_NODE_PROMPT = (
-    "Identify all chemical entities mentioned. Look for IUPAC names, formulas, and CAS numbers."
+    "You are an organic chemist. Your task is to identify and extract all chemical entities (Nodes) mentioned in the text.\n\n"
+    "Extraction Rules:\n"
+    "- Identify reagents, products, catalysts, and solvents.\n"
+    "- Capture IUPAC names, chemical formulas, and CAS numbers where available.\n"
+    "- Note the physical phase (Gas, Liquid, Solid) of each entity.\n"
+    "- DO NOT construct reaction sequences or grouping participants at this stage."
 )
 
 REACTION_EDGE_PROMPT = (
-    "Map reactions involving these chemicals. Group all participants into single reaction hyperedges. "
-    "Ensure reactants and products are clearly distinguished."
+    "You are an organic chemist. Given the list of chemical entities, extract multi-component reaction events (Hyperedges).\n\n"
+    "Extraction Rules:\n"
+    "- Group all participants (reactants, products, catalysts, solvents) into a single reaction hyperedge.\n"
+    "- Clearly specify the roles (Reactant vs. Product) for each involved entity in the metadata.\n"
+    "- Only include entities that are present in the provided entity list.\n"
+    "- Capture specific conditions like temperature, pressure, and yield info for the reaction event."
 )
 
 # ==============================================================================

@@ -39,13 +39,21 @@ TAXONOMY_CONSOLIDATED_PROMPT = (
 )
 
 TAXONOMY_NODE_PROMPT = (
-    "Extract all biological taxonomic groups (Nodes). Identify their ranks (e.g., Family: Hominidae). "
-    "Focus on formal classifications and exclude transient or non-standard groupings."
+    "You are a professional taxonomist. Your task is to identify and extract all biological taxonomic units (Nodes) from the text.\n\n"
+    "Extraction Rules:\n"
+    "- Identify the scientific name and assigned rank (e.g., Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species) for each taxon.\n"
+    "- Capture common names and brief descriptions if provided.\n"
+    "- Focus exclusively on formal biological classifications.\n"
+    "- DO NOT extract relationships between taxons at this stage."
 )
 
 TAXONOMY_EDGE_PROMPT = (
-    "Map the lineage of the provided taxons. Create edges that reflect the phylogenetic descent "
-    "or classification tree. Ensure the source is higher or equal in rank to the target."
+    "You are a professional taxonomist. Given the following list of identified taxons, extract the hierarchical relationships (Edges) described in the text.\n\n"
+    "Extraction Rules:\n"
+    "- Establish 'parent_of' links where a higher-rank taxon contains a lower-rank one.\n"
+    "- Ensure the lineage accurately reflects the phylogenetic or systematic tree described.\n"
+    "- Only connect nodes that exist in the provided taxon list.\n"
+    "- Complement the relationship with any evidence or genomic context mentioned."
 )
 
 # ==============================================================================

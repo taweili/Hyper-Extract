@@ -40,12 +40,21 @@ MOLECULAR_CONSOLIDATED_PROMPT = (
 )
 
 MOLECULAR_NODE_PROMPT = (
-    "Extract all individual atoms. Note their element type and electronic hybridization states."
+    "You are a computational chemist. Your task is to identify and extract all individual atoms (Nodes) from the molecular structure.\n\n"
+    "Extraction Rules:\n"
+    "- Identify the unique atom identifier (e.g., C1) and its chemical element symbol.\n"
+    "- Capture the electronic hybridization state (sp, sp2, sp3) and formal charge for each atom.\n"
+    "- Focus on maintaining the exact nomenclature present in the source text.\n"
+    "- DO NOT identify bonds or spatial connectivity at this stage."
 )
 
 MOLECULAR_EDGE_PROMPT = (
-    "Map the connectivity (bonds) between atoms. Specifically identify the spatial position "
-    "where the connection occurs within the molecular framework."
+    "You are a computational chemist. Given the list of atoms, map the chemical bonds and spatial connectivity (Edges).\n\n"
+    "Extraction Rules:\n"
+    "- Define the bond type (Single, Double, Aromatic, etc.) between a source and target atom.\n"
+    "- Precisely identify the spatial position or stereochemical orientation (e.g., Axial, Equatorial, Cis, Trans).\n"
+    "- Only create bonds between atoms that are present in the provided atom list.\n"
+    "- Capture bond lengths if numerical data is provided."
 )
 
 # ==============================================================================

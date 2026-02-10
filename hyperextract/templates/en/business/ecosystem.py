@@ -38,12 +38,21 @@ ECOSYSTEM_CONSOLIDATED_PROMPT = (
 )
 
 ECOSYSTEM_NODE_PROMPT = (
-    "Identify all business and regulatory actors in the ecosystem. Note their market ranks and tech focus."
+    "You are a market analyst. Your task is to identify all participants (Nodes) within an industrial ecosystem.\n\n"
+    "Extraction Rules:\n"
+    "- Identify companies, NGOs, and regulatory bodies mentioned.\n"
+    "- Capture their market rank and primary technological focus area.\n"
+    "- Focus on naming actors that collaborate or compete as a group.\n"
+    "- DO NOT identify alliances, joint ventures, or consortia at this stage."
 )
 
 ECOSYSTEM_EDGE_PROMPT = (
-    "Extract collective alliances. Group participating entities into clusters (hyperedges). "
-    "Focus on consortiums, standard-setting bodies, and joint market actions."
+    "You are a market analyst. Given the industrial participants, extract the collective relationships (Hyperedges).\n\n"
+    "Extraction Rules:\n"
+    "- Group multiple participants (3+) into alliances, standard bodies, or joint ventures.\n"
+    "- Define the shared goal (e.g., 'R&D', 'Anti-monopoly Review') for the entire group.\n"
+    "- Record any mentioned governance structures or leading participants.\n"
+    "- Ensure every group member is selected from the provided participants list."
 )
 
 # ==============================================================================

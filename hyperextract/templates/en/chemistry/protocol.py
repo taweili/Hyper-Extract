@@ -42,11 +42,21 @@ PROTOCOL_CONSOLIDATED_PROMPT = (
 )
 
 PROTOCOL_NODE_PROMPT = (
-    "Identify individual laboratory operations, actions, and the equipment/reagents used for each."
+    "You are a laboratory technician. Your task is to identify individual protocol operations (Nodes).\n\n"
+    "Extraction Rules:\n"
+    "- Identify discrete actions (e.g., Centrifuge, Incubate, Titrate).\n"
+    "- Note the equipment used and any reagents added during that specific step.\n"
+    "- Capture safety precautions associated with the operation.\n"
+    "- DO NOT establish the sequence or timing between steps at this stage."
 )
 
 PROTOCOL_EDGE_PROMPT = (
-    "Track the chronological flow between these operations. Identify the time elapsed or conditions required to move between steps."
+    "You are a laboratory technician. Given the list of laboratory operations, extract the sequential flow (Edges).\n\n"
+    "Extraction Rules:\n"
+    "- Connect the source step to the target step in chronological order.\n"
+    "- Identify the duration of the transition and the specific timestamp or sequence number.\n"
+    "- Record any wait conditions required before moving to the next operation.\n"
+    "- Only reference operations that exist in the provided operations list."
 )
 
 # ==============================================================================

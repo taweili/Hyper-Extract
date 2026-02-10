@@ -38,13 +38,22 @@ CROP_CYCLE_PROMPT = (
 )
 
 CROP_CYCLE_NODE_PROMPT = (
-    "Extract key agricultural components: crop types, growth stages, environmental conditions (soil/pH/temp), "
-    "farming tasks, and biological stresses (pests/fungi). Provide a clear category for each."
+    "You are an expert agronomist. Your task is to identify and extract all key agricultural entities (Nodes) from the text.\n\n"
+    "Extraction Rules:\n"
+    "- Identify crop types, specific growth stages, environmental factors (e.g., pH, temperature), and farming tasks.\n"
+    "- Capture biological stresses such as specific pests, fungi, or diseases.\n"
+    "- Classify each node into the appropriate category: 'Crop', 'Growth Stage', 'Task/Activity', etc.\n"
+    "- DO NOT identify sequences or dependencies between these entities at this stage."
 )
 
 CROP_CYCLE_EDGE_PROMPT = (
-    "Establish logical links in the crop cycle. Connect stages in sequence, link tasks to the stages they belong to, "
-    "and map environmental requirements to the entities they affect. Use specific relation types like 'requires' or 'inhibits'."
+    "You are an expert agronomist. Given the list of agricultural entities, map the logical links and cycles (Edges).\n\n"
+    "Extraction Rules:\n"
+    "- Establish sequential links between growth stages.\n"
+    "- Link farming tasks to the specific growth stages where they must be performed.\n"
+    "- Map how environmental conditions and pests impact the crop or its stages.\n"
+    "- Use specific relation types such as 'is at stage', 'requires task', 'inhibits', or 'applied to'.\n"
+    "- Only connect entities that exist in the provided agricultural entity list."
 )
 
 # ==============================================================================
