@@ -8,22 +8,42 @@ from hyperextract.types import AutoHypergraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class IndustryParticipant(BaseModel):
     """
     An entity (Company, Regulatory Body, NGO) within an industrial ecosystem.
     """
-    name: str = Field(description="Name of the actor (e.g., 'TSMC', 'European Commission').")
-    rank: Optional[str] = Field(None, description="Market position: 'Tier 1 Supplier', 'Market Leader', 'Challenger'.")
-    technological_focus: Optional[str] = Field(None, description="Primary tech or domain (e.g., '5G', 'Lithography').")
+
+    name: str = Field(
+        description="Name of the actor (e.g., 'TSMC', 'European Commission')."
+    )
+    rank: Optional[str] = Field(
+        None,
+        description="Market position: 'Tier 1 Supplier', 'Market Leader', 'Challenger'.",
+    )
+    technological_focus: Optional[str] = Field(
+        None, description="Primary tech or domain (e.g., '5G', 'Lithography')."
+    )
+
 
 class CollectiveAlliance(BaseModel):
     """
     A hyperedge representing a consortium, alliance, market cartel, or joint standard-setting body.
     """
-    alliance_id: str = Field(description="Name or identifier of the alliance (e.g., 'CHIPS Alliance').")
-    participants: List[str] = Field(description="Names of all entities collaborating or competing in this group.")
-    shared_goal: str = Field(description="The objective: 'Standardization', 'Anti-monopoly Review', 'Joint R&D'.")
-    governance: Optional[str] = Field(None, description="Rules of participation or leading entity.")
+
+    alliance_id: str = Field(
+        description="Name or identifier of the alliance (e.g., 'CHIPS Alliance')."
+    )
+    participants: List[str] = Field(
+        description="Names of all entities collaborating or competing in this group."
+    )
+    shared_goal: str = Field(
+        description="The objective: 'Standardization', 'Anti-monopoly Review', 'Joint R&D'."
+    )
+    governance: Optional[str] = Field(
+        None, description="Rules of participation or leading entity."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -59,10 +79,12 @@ ECOSYSTEM_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAlliance]):
     """
     Hypergraph template for industrial clusters, ecosystem coalitions, and complex market alliances.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -73,7 +95,7 @@ class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAllianc
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=IndustryParticipant,
@@ -91,5 +113,5 @@ class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAllianc
             prompt=ECOSYSTEM_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=ECOSYSTEM_NODE_PROMPT,
             prompt_for_edge_extraction=ECOSYSTEM_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )

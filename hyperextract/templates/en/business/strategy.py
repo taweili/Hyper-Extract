@@ -8,24 +8,44 @@ from hyperextract.types import AutoTemporalGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class StrategicNode(BaseModel):
     """
     An organizational entity, business division, or strategic objective.
     """
-    name: str = Field(description="Name of the strategic unit or goal (e.g., 'Azure', 'Carbon Neutrality').")
-    scope: str = Field(description="Scope: 'Global', 'Regional', 'Product-specific', 'Corporate-wide'.")
-    importance: Optional[str] = Field(None, description="Criticality: 'Core Business', 'Emerging Market', 'Legacy'.")
+
+    name: str = Field(
+        description="Name of the strategic unit or goal (e.g., 'Azure', 'Carbon Neutrality')."
+    )
+    scope: str = Field(
+        description="Scope: 'Global', 'Regional', 'Product-specific', 'Corporate-wide'."
+    )
+    importance: Optional[str] = Field(
+        None, description="Criticality: 'Core Business', 'Emerging Market', 'Legacy'."
+    )
+
 
 class StrategicPivot(BaseModel):
     """
     A temporal transition representing a change in strategic focus, investment, or divestiture.
     """
+
     source: str = Field(description="The original area of focus or acting entity.")
     target: str = Field(description="The new target, direction, or goal.")
-    action: str = Field(description="Strategic action: 'Pivot to', 'Acquire', 'Divest', 'Merge', 'Sunset', 'Scale'.")
-    timestamp: str = Field(description="When the shift occurred (e.g., 'Q4 2022', '2025-01-01').")
-    rationale: Optional[str] = Field(None, description="The 'Why' behind the move (market pressure, CEO change, tech shift).")
-    budget: Optional[str] = Field(None, description="Financial commitment mentioned alongside the pivot.")
+    action: str = Field(
+        description="Strategic action: 'Pivot to', 'Acquire', 'Divest', 'Merge', 'Sunset', 'Scale'."
+    )
+    timestamp: str = Field(
+        description="When the shift occurred (e.g., 'Q4 2022', '2025-01-01')."
+    )
+    rationale: Optional[str] = Field(
+        None,
+        description="The 'Why' behind the move (market pressure, CEO change, tech shift).",
+    )
+    budget: Optional[str] = Field(
+        None, description="Financial commitment mentioned alongside the pivot."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -61,10 +81,12 @@ STRATEGY_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
     """
     Temporal template for tracking corporate strategy, longitudinal organizational change, and market shifts.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -75,13 +97,15 @@ class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=StrategicNode,
             edge_schema=StrategicPivot,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}-({x.action})->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}-({x.action})->{x.target.strip()}"
+            ),
             time_in_edge_extractor=lambda x: x.timestamp.strip(),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
@@ -94,5 +118,5 @@ class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
             prompt=STRATEGY_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=STRATEGY_NODE_PROMPT,
             prompt_for_edge_extraction=STRATEGY_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )

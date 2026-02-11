@@ -8,25 +8,44 @@ from hyperextract.types import AutoTemporalGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class LabOperation(BaseModel):
     """
     A specific step or action in a chemical or biological protocol (e.g., 'Centrifugation', 'Titration').
     """
+
     op_id: str = Field(description="Action name (e.g., 'Centrifuge', 'Heat', 'Add').")
-    equipment: Optional[str] = Field(None, description="Device used (e.g., 'Microcentrifuge', 'Bunsen burner').")
-    reagents_added: List[str] = Field(default_factory=list, description="Chemicals introduced during this specific step.")
-    precautions: Optional[str] = Field(None, description="Safety or accuracy warnings (e.g., 'Keep on ice').")
+    equipment: Optional[str] = Field(
+        None, description="Device used (e.g., 'Microcentrifuge', 'Bunsen burner')."
+    )
+    reagents_added: List[str] = Field(
+        default_factory=list,
+        description="Chemicals introduced during this specific step.",
+    )
+    precautions: Optional[str] = Field(
+        None, description="Safety or accuracy warnings (e.g., 'Keep on ice')."
+    )
+
 
 class ProtocolTransition(BaseModel):
     """
     The sequential transition between protocol steps, capturing duration and order.
     """
+
     transition_id: str = Field(description="Unique id for the step transition.")
     source_step: str = Field(description="The preceding operation.")
     target_step: str = Field(description="The succeeding operation.")
-    duration: Optional[str] = Field(None, description="Time spent in or between steps (e.g., '15 mins', 'Overnight').")
-    timestamp: str = Field(description="The sequence order or relative time marker (e.g., 'T+0', 'Step 2').")
-    wait_condition: Optional[str] = Field(None, description="Condition to proceed (e.g., 'Until precipitate forms').")
+    duration: Optional[str] = Field(
+        None,
+        description="Time spent in or between steps (e.g., '15 mins', 'Overnight').",
+    )
+    timestamp: str = Field(
+        description="The sequence order or relative time marker (e.g., 'T+0', 'Step 2')."
+    )
+    wait_condition: Optional[str] = Field(
+        None, description="Condition to proceed (e.g., 'Until precipitate forms')."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -63,10 +82,12 @@ PROTOCOL_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
     """
     Temporal graph template for capturing step-by-step laboratory procedures and experimental workflows.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -77,14 +98,17 @@ class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=LabOperation,
             edge_schema=ProtocolTransition,
             node_key_extractor=lambda x: x.op_id.strip(),
             edge_key_extractor=lambda x: x.transition_id.strip(),
-            nodes_in_edge_extractor=lambda x: (x.source_step.strip(), x.target_step.strip()),
+            nodes_in_edge_extractor=lambda x: (
+                x.source_step.strip(),
+                x.target_step.strip(),
+            ),
             time_in_edge_extractor=lambda x: x.timestamp.strip(),
             llm_client=llm_client,
             embedder=embedder,
@@ -96,5 +120,5 @@ class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
             prompt=PROTOCOL_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=PROTOCOL_NODE_PROMPT,
             prompt_for_edge_extraction=PROTOCOL_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )

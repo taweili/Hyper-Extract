@@ -8,22 +8,33 @@ from hyperextract.types import AutoHypergraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class IndustryParticipant(BaseModel):
     """
     产业生态系统中的实体（公司、监管机构、非政府组织）。
     """
+
     name: str = Field(description="参与者名称（如：'台积电'、'欧盟委员会'）。")
-    rank: Optional[str] = Field(None, description="市场地位：'一级供应商'、'市场领导者'、'挑战者'。")
-    technological_focus: Optional[str] = Field(None, description="主要技术或领域（如：'5G'、'光刻技术'）。")
+    rank: Optional[str] = Field(
+        None, description="市场地位：'一级供应商'、'市场领导者'、'挑战者'。"
+    )
+    technological_focus: Optional[str] = Field(
+        None, description="主要技术或领域（如：'5G'、'光刻技术'）。"
+    )
+
 
 class CollectiveAlliance(BaseModel):
     """
     代表财团、联盟、市场卡特尔或联合标准制定机构的超边。
     """
+
     alliance_id: str = Field(description="联盟的名称或标识符（如：'芯片联盟'）。")
-    participants: List[str] = Field(description="在该团体中进行合作或竞争的所有实体的名称列表。")
+    participants: List[str] = Field(
+        description="在该团体中进行合作或竞争的所有实体的名称列表。"
+    )
     shared_goal: str = Field(description="目标：'标准化'、'反垄断审查'、'联合研发'。")
     governance: Optional[str] = Field(None, description="参与原则或领导实体。")
+
 
 # ==============================================================================
 # 2. Prompts
@@ -59,10 +70,12 @@ ECOSYSTEM_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAlliance]):
     """
     用于产业集群、生态系统联盟和复杂市场协同的超图模板。
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -73,7 +86,7 @@ class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAllianc
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=IndustryParticipant,
@@ -91,5 +104,5 @@ class MarketEcosystemHyper(AutoHypergraph[IndustryParticipant, CollectiveAllianc
             prompt=ECOSYSTEM_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=ECOSYSTEM_NODE_PROMPT,
             prompt_for_edge_extraction=ECOSYSTEM_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )

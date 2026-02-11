@@ -8,24 +8,37 @@ from hyperextract.types import AutoTemporalGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class StrategicNode(BaseModel):
     """
     组织实体、业务部门或战略目标。
     """
+
     name: str = Field(description="战略单元或目标的名称（如：'Azure'、'碳中和'）。")
     scope: str = Field(description="范围：'全球'、'区域'、'特定产品'、'集团层面'。")
-    importance: Optional[str] = Field(None, description="重要性：'核心业务'、'新兴市场'、'传统存量'。")
+    importance: Optional[str] = Field(
+        None, description="重要性：'核心业务'、'新兴市场'、'传统存量'。"
+    )
+
 
 class StrategicPivot(BaseModel):
     """
     代表战略重点转移、投资或剥离的时间性转变。
     """
+
     source: str = Field(description="原始关注领域或施加动作的实体。")
     target: str = Field(description="新的目标、方向或目的。")
-    action: str = Field(description="战略动作：'转型为'、'收购'、'剥离'、'合并'、'关停'、'规模化'。")
-    timestamp: str = Field(description="转型发生的时间（如：'2022年第四季度'、'2025-01-01'）。")
-    rationale: Optional[str] = Field(None, description="举措背后的原因（市场压力、CEO 变动、技术变革）。")
+    action: str = Field(
+        description="战略动作：'转型为'、'收购'、'剥离'、'合并'、'关停'、'规模化'。"
+    )
+    timestamp: str = Field(
+        description="转型发生的时间（如：'2022年第四季度'、'2025-01-01'）。"
+    )
+    rationale: Optional[str] = Field(
+        None, description="举措背后的原因（市场压力、CEO 变动、技术变革）。"
+    )
     budget: Optional[str] = Field(None, description="与转型相关的财务承诺或预算。")
+
 
 # ==============================================================================
 # 2. Prompts
@@ -61,10 +74,12 @@ STRATEGY_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
     """
     用于追踪公司战略、长期组织变革和市场表现的时序模板。
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -75,13 +90,15 @@ class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=StrategicNode,
             edge_schema=StrategicPivot,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}-({x.action})->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}-({x.action})->{x.target.strip()}"
+            ),
             time_in_edge_extractor=lambda x: x.timestamp.strip(),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
@@ -94,5 +111,5 @@ class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
             prompt=STRATEGY_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=STRATEGY_NODE_PROMPT,
             prompt_for_edge_extraction=STRATEGY_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )

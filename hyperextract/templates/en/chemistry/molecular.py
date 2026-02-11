@@ -8,24 +8,41 @@ from hyperextract.types import AutoSpatialGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class AtomNode(BaseModel):
     """
     An individual atom in a chemical structure.
     """
-    name: str = Field(description="Atom identifier (e.g., 'C1', 'O2') or element symbol.")
+
+    name: str = Field(
+        description="Atom identifier (e.g., 'C1', 'O2') or element symbol."
+    )
     element: str = Field(description="The chemical element (e.g., 'Carbon', 'H').")
-    hybridization: Optional[str] = Field(None, description="Electronic state: 'sp3', 'sp2', 'sp'.")
-    formal_charge: int = Field(0, description="The electrical charge assigned to the atom.")
+    hybridization: Optional[str] = Field(
+        None, description="Electronic state: 'sp3', 'sp2', 'sp'."
+    )
+    formal_charge: int = Field(
+        0, description="The electrical charge assigned to the atom."
+    )
+
 
 class ChemicalBond(BaseModel):
     """
     A chemical bond between two atoms, including spatial/positional metadata.
     """
+
     source: str = Field(description="The originating atom (e.g., 'C1').")
     target: str = Field(description="The connected atom (e.g., 'C2').")
-    bond_type: str = Field(description="Type: 'Single', 'Double', 'Triple', 'Aromatic', 'Hydrogen'.")
-    spatial_position: str = Field(description="The physical or logical position in the molecule (e.g., 'C4 position', 'Axial', 'Equatorial').")
-    bond_length: Optional[float] = Field(None, description="Distance between atoms in Angstroms.")
+    bond_type: str = Field(
+        description="Type: 'Single', 'Double', 'Triple', 'Aromatic', 'Hydrogen'."
+    )
+    spatial_position: str = Field(
+        description="The physical or logical position in the molecule (e.g., 'C4 position', 'Axial', 'Equatorial')."
+    )
+    bond_length: Optional[float] = Field(
+        None, description="Distance between atoms in Angstroms."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -61,10 +78,12 @@ MOLECULAR_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
     """
     Spatial graph template for high-resolution molecular modeling and structural biology.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -75,13 +94,15 @@ class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=AtomNode,
             edge_schema=ChemicalBond,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.bond_type})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.bond_type})-->{x.target.strip()}"
+            ),
             location_in_edge_extractor=lambda x: x.spatial_position.strip(),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
@@ -94,5 +115,5 @@ class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
             prompt=MOLECULAR_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=MOLECULAR_NODE_PROMPT,
             prompt_for_edge_extraction=MOLECULAR_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
