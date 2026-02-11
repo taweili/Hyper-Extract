@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.graphs.itext2kg_star import iText2KG_Star
+from hyperextract.types.itext2kg_star import iText2KG_Star
 
 load_dotenv()
 

@@ -18,7 +18,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts.chat import ChatPromptTemplate
 from ontomem.merger import MergeStrategy
 
-from hyperextract.hypergraphs.base import AutoHypergraph, AutoHypergraphSchema
+from hyperextract.types import AutoHypergraph, AutoHypergraphSchema
 
 # ============================================================================
 # Node Schema
@@ -315,3 +315,4 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
         raw_hypergraph = self.merge_batch_data(partial_hypergraphs)
 
         return self._prune_dangling_edges(raw_hypergraph)
+

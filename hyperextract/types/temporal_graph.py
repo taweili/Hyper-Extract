@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
-from hyperextract.graphs.base import (
+from .graph import (
     AutoGraph,
     NodeSchema,
     EdgeSchema,
@@ -20,12 +20,12 @@ from hyperextract.graphs.base import (
 # ==============================================================================
 
 # Node Extraction Prompts
-DEFAULT_SPATIO_TEMPORAL_NODE_ROLE_PREFIX = """
+DEFAULT_TEMPORAL_NODE_ROLE_PREFIX = """
 You are a professional entity extraction specialist.
 Your task is to extract all important entities (Nodes) from the text.
 """
 
-DEFAULT_SPATIO_TEMPORAL_NODE_RULES_SUFFIX = """
+DEFAULT_TEMPORAL_NODE_RULES_SUFFIX = """
 # Core Principles
 1. **Comprehensiveness**: Extract persons, organizations, locations, events, concepts, and other noun-based entities.
 2. **Accuracy**: Keep entity names consistent with the source text.
@@ -37,101 +37,101 @@ DEFAULT_SPATIO_TEMPORAL_NODE_RULES_SUFFIX = """
 """
 
 # Edge Extraction Prompts
-DEFAULT_SPATIO_TEMPORAL_EDGE_ROLE_PREFIX = """
-You are an expert spatio-temporal knowledge extraction specialist.
-Extract meaningful relationships (edges) between the provided entities, specifically capturing WHEN and WHERE they occur.
+DEFAULT_TEMPORAL_EDGE_ROLE_PREFIX = """
+You are an expert temporal knowledge extraction specialist.
+Extract meaningful relationships (edges) between the provided entities.
 """
 
-DEFAULT_SPATIO_TEMPORAL_EDGE_RULES_SUFFIX = """
-### Spatio-Temporal Extraction Rules
+DEFAULT_TEMPORAL_EDGE_RULES_SUFFIX = """
+### Temporal Extraction Rules
 Current Observation Date: {observation_time}
-Current Observation Location: {observation_location}
 
 1. **Relative Time Resolution**: You MUST resolve relative time expressions based on the Observation Date.
    - "last year" -> Calculate the year before {observation_time}
    - "yesterday" -> Calculate the date before {observation_time}
    - "currently" -> The relationship is active (implies no end date)
+   - "this month" -> First day of the month in {observation_time}
+   - "last month" -> First day of the month before {observation_time}
 
-2. **Relative Location Resolution**: You MUST resolve relative location expressions based on the Observation Location.
-   - "here", "local", "this city" -> {observation_location}
-   - "nearby" -> Near {observation_location}
+2. **Explicit Dates**: Keep explicit dates (e.g., "2023", "2024-01-01") exactly as written.
 
-3. **Explicit Context**:
-   - Keep explicit dates (e.g., "2023", "2024-01-01") exactly as written.
-   - Keep explicit locations (e.g., "New York", "Room 101") specifically associated with the relationship.
-
-4. **Missing Information**: If no time or location information is present, leave those fields empty. DO NOT hallucinate.
+3. **Missing Time**: If no time information is present, leave time fields empty. DO NOT hallucinate dates.
 
 ### General Constraints
 1. ONLY extract edges connecting entities from the known entity list provided below.
 2. DO NOT create edges involving entities that are not listed.
-3. Use the defined schema fields for time and space as specified in the output format.
+3. Use the defined schema fields for time as specified in the output format.
 
 """
 
 # One-Stage Graph Extraction Prompts
-DEFAULT_SPATIO_TEMPORAL_GRAPH_ROLE_PREFIX = """
-You are a professional spatio-temporal knowledge graph extraction specialist.
-Your task is to extract entities (Nodes) and spatio-temporal relationships (Edges) from the text.
+DEFAULT_TEMPORAL_GRAPH_ROLE_PREFIX = """
+You are a professional temporal knowledge graph extraction specialist.
+Your task is to extract entities (Nodes) and temporal relationships (Edges) from the text.
 """
 
-DEFAULT_SPATIO_TEMPORAL_GRAPH_RULES_SUFFIX = """
+DEFAULT_TEMPORAL_GRAPH_RULES_SUFFIX = """
 # Core Principles for Nodes
 1. Extract persons, organizations, locations, events, concepts, and other noun-based entities.
-2. **NEVER** extract dates/times as independent nodes. Time and Space are attributes of relationships.
+2. **NEVER** extract dates/times as independent nodes. Time is an attribute of relationships, not a node.
 3. Keep entity names consistent with the source text.
 
 # Core Principles for Edges
 Current Observation Date: {observation_time}
-Current Observation Location: {observation_location}
 
-1. **Relative Time Resolution**: Resolve relative time expressions based on {observation_time}.
-2. **Relative Location Resolution**: Resolve relative location expressions based on {observation_location}.
-3. **Explicit Context**: Keep explicit dates and locations as provided in the text.
-4. **Missing Information**: Leave time/location fields empty if not present.
+1. **Relative Time Resolution**: You MUST resolve relative time expressions based on the Observation Date.
+   - "last year" -> Calculate the year before {observation_time}
+   - "yesterday" -> Calculate the date before {observation_time}
+   - "currently" -> The relationship is active (implies no end date)
+   - "this month" -> First day of the month in {observation_time}
+   - "last month" -> First day of the month before {observation_time}
+
+2. **Explicit Dates**: Keep explicit dates (e.g., "2023", "2024-01-01") exactly as written.
+
+3. **Missing Time**: If no time information is present, leave time fields empty. DO NOT hallucinate dates.
 
 ### Source Text:
 """
 
 
-class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
+class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
     """
-    Generic Spatio-Temporal Graph Extractor (AutoSpatioTemporalGraph).
+    Generic Temporal Graph Extractor (AutoTemporalGraph).
 
-    A flexible implementation supporting user-defined Node and Edge schemas with spatio-temporal awareness:
+    A flexible implementation supporting user-defined Node and Edge schemas with temporal awareness:
     - **Schema Agnosticism**: Support any user-defined Node and Edge Pydantic models.
-    - **Spatio-Temporal-Aware Deduplication**: Time and Space info are integrated into edge deduplication.
-    - **Dynamic Context Injection**: Observation Date and Location are injected during extraction.
+    - **Temporal-Aware Deduplication**: Time information is integrated into edge deduplication logic.
+    - **Dynamic Time Injection**: Observation Date is injected during extraction for relative time resolution.
 
     Key Design:
-    - Decoupled Extractors: `time_in_edge_extractor` and `location_in_edge_extractor` are separate.
-    - Composite Key: Automatically fuses base key, time, and location for unique identification.
+    - `temporal_edge_key_extractor`: A unified function to extract the unique key for an edge,
+      including temporal components (e.g., lambda x: f"{x.src}|{x.relation}|{x.dst}|{x.year}").
+      This ensures (A, rel, B) @ 2020 and (A, rel, B) @ 2021 are treated as different edges.
+    - Unified Prompt Management: Temporal system prompts are prepended to any user-provided prompts.
 
     Example:
         >>> from pydantic import BaseModel, Field
         >>>
         >>> class MyEntity(BaseModel):
         ...     name: str
+        ...     category: str = "Unknown"
         >>>
-        >>> class MySTEdge(BaseModel):
+        >>> class MyTemporalEdge(BaseModel):
         ...     src: str
         ...     dst: str
         ...     relation: str
-        ...     time: Optional[str] = None
-        ...     place: Optional[str] = None
+        ...     year: Optional[str] = None
         >>>
-        >>> kg = AutoSpatioTemporalGraph(
+        >>> kg = AutoTemporalGraph(
         ...     node_schema=MyEntity,
-        ...     edge_schema=MySTEdge,
+        ...     edge_schema=MyTemporalEdge,
         ...     node_key_extractor=lambda x: x.name,
         ...     edge_key_extractor=lambda x: f"{x.src}|{x.relation}|{x.dst}",
-        ...     time_in_edge_extractor=lambda x: x.time or "",
-        ...     location_in_edge_extractor=lambda x: x.place or "",
+        ...     time_in_edge_extractor=lambda x: x.year or "",
         ...     nodes_in_edge_extractor=lambda x: (x.src, x.dst),
         ...     llm_client=llm,
         ...     embedder=embedder,
-        ...     observation_time="2024-01-15",
-        ...     observation_location="Beijing"
+        ...     observation_time="2024-01-15"
         ... )
     """
 
@@ -142,12 +142,10 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         node_key_extractor: Callable[[NodeSchema], str],
         edge_key_extractor: Callable[[EdgeSchema], str],
         time_in_edge_extractor: Callable[[EdgeSchema], str],
-        location_in_edge_extractor: Callable[[EdgeSchema], str],
         nodes_in_edge_extractor: Callable[[EdgeSchema], Tuple[str, str]],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         observation_time: str | None = None,
-        observation_location: str | None = None,
         extraction_mode: str = "two_stage",
         node_strategy_or_merger: "MergeStrategy | BaseMerger" = MergeStrategy.LLM.BALANCED,
         edge_strategy_or_merger: "MergeStrategy | BaseMerger" = MergeStrategy.LLM.BALANCED,
@@ -163,15 +161,17 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         **kwargs: Any,
     ):
         """
-        Initialize AutoSpatioTemporalGraph.
+        Initialize AutoTemporalGraph.
 
         Args:
             node_schema: User-defined Node Pydantic model.
-            edge_schema: User-defined Edge Pydantic model with time/space fields.
-            node_key_extractor: Function to extract unique key from node.
-            edge_key_extractor: Function to extract the base unique identifier for an edge.
-            time_in_edge_extractor: Function to extract the time component.
-            location_in_edge_extractor: Function to extract the spatial component.
+            edge_schema: User-defined Edge Pydantic model with time fields.
+            node_key_extractor: Function to extract unique key from node (e.g., lambda x: x.name).
+            edge_key_extractor: Function to extract the base unique identifier for an edge purely based on
+                                entities and relation (e.g., lambda x: f"{x.src}|{x.relation}|{x.dst}").
+            time_in_edge_extractor: Function to extract the time component from an edge
+                                   (e.g., lambda x: x.year or "permanent").
+                This ensures (A, rel, B) @ 2020 and (A, rel, B) @ 2021 are treated as different edges.
             nodes_in_edge_extractor: Function to extract (source_key, target_key) from edge.
             llm_client: LangChain BaseChatModel for extraction.
             embedder: LangChain Embeddings for semantic operations.
@@ -191,51 +191,52 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             **kwargs: Additional arguments passed to create_merger() when strategy_or_merger is
                       a MergeStrategy enum. Ignored if strategy_or_merger is a BaseMerger instance.
         """
-        # Set contexts
+        # Set observation date (default: today)
         self.observation_time = observation_time or datetime.now().strftime("%Y-%m-%d")
-        self.observation_location = observation_location or "Unknown"
 
-        # Store extractors
+        # Store for instance recreation
         self.raw_edge_key_extractor = edge_key_extractor
         self.time_in_edge_extractor = time_in_edge_extractor
-        self.location_in_edge_extractor = location_in_edge_extractor
         self._constructor_kwargs = kwargs
 
-        # Create composite extractor for unique identification in memory
-        def composite_spatio_temporal_key_extractor(edge: EdgeSchema) -> str:
+        # Create combined extractor for unique identification in memory
+        def temporal_edge_key_extractor(edge: EdgeSchema) -> str:
             raw_key = self.raw_edge_key_extractor(edge)
             time_val = self.time_in_edge_extractor(edge)
-            loc_val = self.location_in_edge_extractor(edge)
+            return f"{raw_key} @ {time_val}" if time_val else raw_key
 
-            final_key = raw_key
-            if time_val:
-                final_key += f" @ {time_val}"
-            if loc_val:
-                final_key += f" at {loc_val}"
-            return final_key
+        # -----------------------------------------------------------
+        # Construct Prompts: Role -> User Context -> System Rules
+        # ("Sandwich" structure for optimal LLM instruction sequencing)
+        # -----------------------------------------------------------
 
-        # Construct Prompts
-        full_node_prompt = DEFAULT_SPATIO_TEMPORAL_NODE_ROLE_PREFIX
+        # 1. Node Extraction Prompt
+        full_node_prompt = DEFAULT_TEMPORAL_NODE_ROLE_PREFIX
         if prompt_for_node_extraction:
-            full_node_prompt += f"\n### Context:\n{prompt_for_node_extraction}\n"
-        full_node_prompt += DEFAULT_SPATIO_TEMPORAL_NODE_RULES_SUFFIX
+            full_node_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_node_extraction}\n"
+            )
+        full_node_prompt += DEFAULT_TEMPORAL_NODE_RULES_SUFFIX
 
-        full_edge_prompt = DEFAULT_SPATIO_TEMPORAL_EDGE_ROLE_PREFIX
+        # 2. Edge Extraction Prompt
+        full_edge_prompt = DEFAULT_TEMPORAL_EDGE_ROLE_PREFIX
         if prompt_for_edge_extraction:
-            full_edge_prompt += f"\n### Context:\n{prompt_for_edge_extraction}\n"
-        full_edge_prompt += DEFAULT_SPATIO_TEMPORAL_EDGE_RULES_SUFFIX
+            full_edge_prompt += (
+                f"\n### Context & Instructions:\n{prompt_for_edge_extraction}\n"
+            )
+        full_edge_prompt += DEFAULT_TEMPORAL_EDGE_RULES_SUFFIX
 
-        full_graph_prompt = DEFAULT_SPATIO_TEMPORAL_GRAPH_ROLE_PREFIX
+        # 3. One-Stage Graph Extraction Prompt
+        full_graph_prompt = DEFAULT_TEMPORAL_GRAPH_ROLE_PREFIX
         if prompt:
-            full_graph_prompt += f"\n### Context:\n{prompt}\n"
-        full_graph_prompt += DEFAULT_SPATIO_TEMPORAL_GRAPH_RULES_SUFFIX
-
+            full_graph_prompt += f"\n### Context & Instructions:\n{prompt}\n"
+        full_graph_prompt += DEFAULT_TEMPORAL_GRAPH_RULES_SUFFIX
         # Initialize parent AutoGraph
         super().__init__(
             node_schema=node_schema,
             edge_schema=edge_schema,
             node_key_extractor=node_key_extractor,
-            edge_key_extractor=composite_spatio_temporal_key_extractor,
+            edge_key_extractor=temporal_edge_key_extractor,
             nodes_in_edge_extractor=nodes_in_edge_extractor,
             llm_client=llm_client,
             embedder=embedder,
@@ -255,29 +256,29 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         )
 
     # ==============================================================================
-    # Override Extraction Methods to Dynamically Inject Context
+    # Override Extraction Methods to Dynamically Inject Observation Date
     # ==============================================================================
 
     def _extract_edges_batch(
         self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
     ) -> List[EdgeListSchema[EdgeSchema]]:
-        """Inject observation_time and observation_location into edge extraction."""
+        """
+        Override: Inject observation_time into edge extraction during two-stage extraction.
+        """
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
-            node_context = (
-                "Known entities: "
-                + ", ".join([self.node_key_extractor(n) for n in nodes])
-                if nodes
-                else "No specific entities identified."
-            )
+            if not nodes:
+                node_context = "No specific entities identified in this chunk."
+            else:
+                node_keys = [self.node_key_extractor(n) for n in nodes]
+                node_context = "Known entities: " + ", ".join(node_keys)
 
             inputs.append(
                 {
                     "chunk_text": chunk,
                     "node_context": node_context,
                     "observation_time": self.observation_time,
-                    "observation_location": self.observation_location,
                 }
             )
 
@@ -287,10 +288,13 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         llm_chain = prompt_template | self.llm_client.with_structured_output(
             self.edge_list_schema
         )
+
         return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
-        """Inject observation_time and observation_location into one-stage extraction."""
+        """
+        Override: Inject observation_time into one-stage extraction.
+        """
         template_str = f"{self.prompt}{{chunk_text}}"
         prompt_template = ChatPromptTemplate.from_template(template_str)
         llm_chain = prompt_template | self.llm_client.with_structured_output(
@@ -298,21 +302,13 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         )
 
         if len(text) <= self.chunk_size:
-            inp = {
-                "chunk_text": text,
-                "observation_time": self.observation_time,
-                "observation_location": self.observation_location,
-            }
+            inp = {"chunk_text": text, "observation_time": self.observation_time}
             graph = llm_chain.invoke(inp)
             graph_list = [graph]
         else:
             chunks = self.text_splitter.split_text(text)
             inputs = [
-                {
-                    "chunk_text": chunk,
-                    "observation_time": self.observation_time,
-                    "observation_location": self.observation_location,
-                }
+                {"chunk_text": chunk, "observation_time": self.observation_time}
                 for chunk in chunks
             ]
             graph_list = llm_chain.batch(
@@ -321,22 +317,20 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
 
         return self.merge_batch_data(graph_list)
 
-    def _create_empty_instance(
-        self,
-    ) -> "AutoSpatioTemporalGraph[NodeSchema, EdgeSchema]":
-        """Recreate instance with all spatio-temporal attributes."""
+    def _create_empty_instance(self) -> "AutoTemporalGraph[NodeSchema, EdgeSchema]":
+        """
+        Override: Recreate instance with all temporal-specific attributes.
+        """
         return self.__class__(
             node_schema=self.node_schema,
             edge_schema=self.edge_schema,
             node_key_extractor=self.node_key_extractor,
             edge_key_extractor=self.raw_edge_key_extractor,
             time_in_edge_extractor=self.time_in_edge_extractor,
-            location_in_edge_extractor=self.location_in_edge_extractor,
             nodes_in_edge_extractor=self.nodes_in_edge_extractor,
             llm_client=self.llm_client,
             embedder=self.embedder,
             observation_time=self.observation_time,
-            observation_location=self.observation_location,
             extraction_mode=self.extraction_mode,
             node_strategy_or_merger=self.node_merger,
             edge_strategy_or_merger=self.edge_merger,
@@ -346,5 +340,5 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             verbose=self.verbose,
             node_fields_for_index=self.node_fields_for_index,
             edge_fields_for_index=self.edge_fields_for_index,
-            **self._constructor_kwargs,
+            **self._constructor_kwargs,  # Propagate additional arguments
         )

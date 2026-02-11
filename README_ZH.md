@@ -41,7 +41,7 @@ Hyper-Extract 让复杂结构的提取和使用变得异常简单：
 
 ```python
 from pydantic import BaseModel, Field
-from hyperextract.graphs import AutoGraph
+from hyperextract.types import AutoGraph
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 # 1. 定义你想要提取的结构 (Schema)
@@ -96,9 +96,8 @@ print(answer.content)
 
 ## 🏗️ 核心组件
 
-- **`hyperextract.core`**: 核心抽象层，管理长文本切片、并行处理与知识聚合。
-- **`hyperextract.graphs`**: 各类图谱组件（包括时空、地理、标准图谱）。
-- **`hyperextract.hypergraphs`**: 强大的超图 RAG 实现，处理超出一对一关系的复杂逻辑。
+- **`hyperextract.types`**: 核心 AutoTypes 数据类型（如 AutoModel, AutoGraph, AutoHypergraph 等）。
+- **`hyperextract.methods`**: 知识提取算法与 RAG 策略（如 Hyper-RAG, Cog-RAG, iText2KG 等）。
 - **`hyperextract.utils`**: 日志、合并策略等实用工具。
 
 ---

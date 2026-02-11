@@ -5,7 +5,7 @@ Extracts and manages multi-entity relationships with support for n-ary hyperedge
 
 from typing import List
 from pydantic import BaseModel, Field
-from hyperextract.hypergraphs.base import AutoHypergraph
+from hyperextract.types import AutoHypergraph
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from ontomem.merger import CustomRuleMerger
@@ -196,3 +196,4 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             max_workers=max_workers,
             verbose=verbose,
         )
+

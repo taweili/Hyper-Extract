@@ -25,7 +25,7 @@ from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from ontosight import view_hypergraph
 
-from hyperextract.core import BaseAutoType
+from .base import BaseAutoType
 from hyperextract.utils.logging import logger
 
 

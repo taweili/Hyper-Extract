@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.graphs import AutoSpatialGraph
+from hyperextract.types import AutoSpatialGraph
 from ontomem import MergeStrategy
 
 load_dotenv()

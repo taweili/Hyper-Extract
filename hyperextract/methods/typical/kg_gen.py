@@ -13,7 +13,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from hyperextract.graphs.base import AutoGraph, AutoGraphSchema
+from hyperextract.types import AutoGraph, AutoGraphSchema
 from hyperextract.utils.logging import logger
 
 # ==============================================================================
@@ -128,7 +128,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         nodes_in_edge_fn = lambda x: (x.subject, x.object)
 
         # 3. Call parent class initialization
-        logger.info("🚀 Initializing KGGenGraph (Knowledge Graph Generator)")
+        logger.info("馃殌 Initializing KGGenGraph (Knowledge Graph Generator)")
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -173,7 +173,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         nodes, edges = graph_data.nodes, graph_data.edges
 
         if len(nodes) == 0:
-            logger.warning("⚠️ No nodes to deduplicate; skipping deduplication.")
+            logger.warning("鈿狅笍 No nodes to deduplicate; skipping deduplication.")
             return graph_data
 
         # 1. Prepare data and run SemHash
@@ -182,7 +182,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         try:
             embeddings = self.embedder.embed_documents(node_names)
         except Exception as e:
-            logger.error(f"❌ Failed to generate embeddings: {e}")
+            logger.error(f"鉂?Failed to generate embeddings: {e}")
             return graph_data
 
         semhash = SemHash.from_records(
@@ -226,7 +226,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         Returns:
             A new, deduplicated KG_Gen instance.
         """
-        logger.info(f"📋 Creating deduplicated copy (threshold={threshold})...")
+        logger.info(f"馃搵 Creating deduplicated copy (threshold={threshold})...")
 
         # 1. Deep copy current data
         graph_data = self.data.model_copy(deep=True)
@@ -241,7 +241,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         new_instance._set_data_state(graph_data)
 
         logger.info(
-            f"✅ Deduplication Complete: "
+            f"鉁?Deduplication Complete: "
             f"Nodes {original_node_count} -> {len(new_instance.nodes)}, "
             f"Edges {original_edge_count} -> {len(new_instance.edges)}"
         )
@@ -261,7 +261,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             self (modified in-place)
         """
         logger.info(
-            f"🔄 Starting in-place SemHash deduplication (threshold={threshold})..."
+            f"馃攧 Starting in-place SemHash deduplication (threshold={threshold})..."
         )
 
         graph_data = self.data.model_copy()
@@ -276,8 +276,9 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         self._set_data_state(graph_data)
 
         logger.info(
-            f"✅ In-place deduplication complete: "
+            f"鉁?In-place deduplication complete: "
             f"Nodes {original_node_count} -> {len(self.nodes)}, "
             f"Edges {original_edge_count} -> {len(self.edges)}"
         )
         return self
+

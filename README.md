@@ -41,7 +41,7 @@ Hyper-Extract makes complex extraction and interaction dead simple:
 
 ```python
 from pydantic import BaseModel, Field
-from hyperextract.graphs import AutoGraph
+from hyperextract.types import AutoGraph
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 # 1. Define your world view (Schema)
@@ -96,9 +96,8 @@ The `hyperextract/templates` directory provides a wealth of domain-specific defi
 
 ## 🏗️ Core Components
 
-- **`hyperextract.core`**: Core abstraction layer handling long-text chunking, parallel processing, and knowledge aggregation.
-- **`hyperextract.graphs`**: Various graph components including spatial, temporal, and standard graphs.
-- **`hyperextract.hypergraphs`**: Powerful Hypergraph-based RAG implementations for complex multi-entity logic.
+- **`hyperextract.types`**: Core AutoTypes data structures (AutoModel, AutoGraph, AutoHypergraph, etc.).
+- **`hyperextract.methods`**: Extraction algorithms and RAG strategies (Hyper-RAG, Cog-RAG, iText2KG, etc.).
 - **`hyperextract.utils`**: Essential utilities for logging and merging strategies.
 
 ---

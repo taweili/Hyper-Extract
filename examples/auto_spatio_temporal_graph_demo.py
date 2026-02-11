@@ -25,7 +25,7 @@ sys.path.append(str(project_root))
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.graphs import AutoSpatioTemporalGraph
+from hyperextract.types import AutoSpatioTemporalGraph
 from ontomem import MergeStrategy
 
 import dotenv

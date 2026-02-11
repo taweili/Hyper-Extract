@@ -2,16 +2,41 @@
 
 This library provides Auto-prefixed intelligent data structures that automatically
 extract structured information from text using Large Language Models (LLMs).
+
+Architecture:
+- types: Core data structure primitives (AutoModel, AutoList, AutoSet, AutoGraph, etc.)
+- methods: Algorithms and strategies (rag, typical graph construction methods)
+- templates: Domain-specific extraction templates
 """
 
-from .core import AutoModel, AutoList, AutoSet
+# Core AutoType primitives
+from .types import (
+    BaseAutoType,
+    AutoModel,
+    AutoList,
+    AutoSet,
+    AutoGraph,
+    AutoHypergraph,
+    AutoTemporalGraph,
+    AutoSpatialGraph,
+    AutoSpatioTemporalGraph,
+)
 
-__version__ = "0.2.0"
+__version__ = "0.1.0"
 __author__ = "Yifan Feng"
 __email__ = "evanfeng97@gmail.com"
 
 __all__ = [
+    # Base class
+    "BaseAutoType",
+    # Scalar types
     "AutoModel",
     "AutoList",
     "AutoSet",
+    # Graph types
+    "AutoGraph",
+    "AutoHypergraph",
+    "AutoTemporalGraph",
+    "AutoSpatialGraph",
+    "AutoSpatioTemporalGraph",
 ]

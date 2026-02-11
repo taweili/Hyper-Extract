@@ -1,8 +1,8 @@
-from typing import List, Optional, Any, Tuple
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from hyperextract.hypergraphs.base import AutoHypergraph
+from hyperextract.types import AutoHypergraph
 
 # ==============================================================================
 # 1. Schema Definitions

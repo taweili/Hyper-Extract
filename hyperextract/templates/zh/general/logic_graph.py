@@ -2,7 +2,7 @@ from typing import List, Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from hyperextract.graphs import AutoGraph
+from hyperextract.types import AutoGraph
 
 # ==============================================================================
 # 1. Schema 定义 (Schema Definitions)

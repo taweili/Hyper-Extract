@@ -17,7 +17,7 @@ from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, CustomRuleMerger
 
 from hyperextract.utils.logging import logger
-from hyperextract.graphs.base import AutoGraph, AutoGraphSchema
+from hyperextract.types import AutoGraph, AutoGraphSchema
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original Atom implementation
@@ -85,14 +85,14 @@ class EdgeSchema(BaseModel):
         description=(
             "A time or interval indicating when this relationship begins or is active. "
             "Resolve relative temporal expressions based on the observation_time:\n"
-            "  - 'today' → exact observation_time\n"
-            "  - 'yesterday' → observation_time minus 1 day\n"
-            "  - 'this week' → Monday of observation_time's week\n"
-            "  - 'last week' → Monday of the week before observation_time\n"
-            "  - 'this month' → first day of observation_time's month\n"
-            "  - 'last month' → first day of the month before observation_time\n"
-            "  - 'this year' → January 1st of observation_time's year\n"
-            "  - 'last year' → January 1st of the year before observation_time\n"
+            "  - 'today' 鈫?exact observation_time\n"
+            "  - 'yesterday' 鈫?observation_time minus 1 day\n"
+            "  - 'this week' 鈫?Monday of observation_time's week\n"
+            "  - 'last week' 鈫?Monday of the week before observation_time\n"
+            "  - 'this month' 鈫?first day of observation_time's month\n"
+            "  - 'last month' 鈫?first day of the month before observation_time\n"
+            "  - 'this year' 鈫?January 1st of observation_time's year\n"
+            "  - 'last year' 鈫?January 1st of the year before observation_time\n"
             "Keep explicit dates as-is (e.g., '18-06-2024'). "
             "For example, if 'Yassir became CEO from 2023', then t_start=['01-01-2023']. "
             "This can be a single year, a date, or a resolved relative reference. "
@@ -104,9 +104,9 @@ class EdgeSchema(BaseModel):
         description=(
             "A time or interval indicating when this relationship ceases to hold. "
             "Resolve relative temporal expressions based on the observation_time using the same rules as t_start:\n"
-            "  - 'today' → exact observation_time\n"
-            "  - 'yesterday' → observation_time minus 1 day\n"
-            "  - 'this week' → Monday of observation_time's week\n"
+            "  - 'today' 鈫?exact observation_time\n"
+            "  - 'yesterday' 鈫?observation_time minus 1 day\n"
+            "  - 'this week' 鈫?Monday of observation_time's week\n"
             "  - etc. (same resolution rules as t_start)\n"
             "Keep explicit dates as-is. "
             "For example, if 'Yassir left his position in 2025', then t_end=['01-01-2025']. "
@@ -161,14 +161,14 @@ Given an input paragraph and an `observation_time`, generate a list of all disti
 - Convert ALL time references to absolute dates/times using the observation_time
 
 #### Conversion Rules:
-- "today" → exact observation_time
-- "yesterday" → observation_time minus 1 day
-- "this week" → Monday of observation_time's week
-- "last week" → Monday of the week before observation_time
-- "this month" → first day of observation_time's month
-- "last month" → first day of the month before observation_time
-- "this year" → January 1st of observation_time's year
-- "last year" → January 1st of the year before observation_time
+- "today" 鈫?exact observation_time
+- "yesterday" 鈫?observation_time minus 1 day
+- "this week" 鈫?Monday of observation_time's week
+- "last week" 鈫?Monday of the week before observation_time
+- "this month" 鈫?first day of observation_time's month
+- "last month" 鈫?first day of the month before observation_time
+- "this year" 鈫?January 1st of observation_time's year
+- "last year" 鈫?January 1st of the year before observation_time
 - Keep explicit dates as-is (e.g., "June 18, 2024")
 
 #### Additional Temporal Guidelines:
@@ -203,7 +203,7 @@ Observation Date: {observation_time}
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
 Your goal is to extract all meaningful relationships (edges) between entities, while rigorously capturing their temporal bounds and grounding evidence.
 
-### 🎯 Objective
+### 馃幆 Objective
 Extract a list of relationships where each relationship consists of:
 1. **Start Node**: The subject entity (Name + Label).
 2. **End Node**: The object entity (Name + Label).
@@ -212,7 +212,7 @@ Extract a list of relationships where each relationship consists of:
 5. **Time End (`t_end`)**: Strategies for when the relation ended.
 6. **Evidence (`atomic_facts`)**: The exact source sentences/facts supporting this edge.
 
-### 📝 Guidelines
+### 馃摑 Guidelines
 
 #### 1. Entity & Relation Standards
 - **Entities**: Extract precise names (e.g., "Apple Inc.", "Steve Jobs"). Assign accurate semantic labels (e.g., "Organization", "Person").
@@ -235,7 +235,7 @@ Extract a list of relationships where each relationship consists of:
 - **NO Paraphrasing**: Do not summarize or rewrite the source text in this field.
 - If a relationship is derived from multiple facts, include all distinct facts in the list.
 
-### 🧠 Few-Shot Examples
+### 馃�� Few-Shot Examples
 
 **Input**: "Michel served as CFO at Acme Corp from 2019 to 2021. He was hired by Beta Inc in 2021, but left that role in 2023."
 **Output**:
@@ -255,7 +255,7 @@ Extract a list of relationships where each relationship consists of:
 **Output**:
 - (John Doe, has_status, Married, t_start=["2026-02-26"], t_end=[], atomic_facts=["John Doe's marriage is happening on 26-02-2026."])
 
-### 🚀 Directives
+### 馃殌 Directives
 - Extract strictly what is in the text. Do not hallucinate external facts.
 - Use the **Observation Date** as the anchor for all relative temporal expressions.
 - Maintain consistency: The same entity name should be used across multiple relations.
@@ -361,7 +361,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         )
 
         # 3. Call parent class initialization
-        logger.info("🚀 Initializing Atom")
+        logger.info("馃殌 Initializing Atom")
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -408,7 +408,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         obs_date_str = self.observation_time or datetime.now().strftime("%Y-%m-%d")
 
         # ==================== Step 1: Extract Atomic Facts ====================
-        logger.info("🔍 [Phase 1] Extracting Atomic Facts...")
+        logger.info("馃攳 [Phase 1] Extracting Atomic Facts...")
 
         # 1. Prepare raw chunks
         if len(text) <= self.chunk_size:
@@ -439,14 +439,14 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             if fact_list and fact_list.atomic_fact:
                 all_facts.extend(fact_list.atomic_fact)
 
-        logger.info(f"✅ Extracted {len(all_facts)} atomic facts.")
+        logger.info(f"鉁?Extracted {len(all_facts)} atomic facts.")
 
         if not all_facts:
-            logger.warning("⚠️ No facts extracted. Returning empty graph.")
+            logger.warning("鈿狅笍 No facts extracted. Returning empty graph.")
             return AutoGraphSchema()
 
         # ==================== Step 2: Extract Edges from Facts ====================
-        logger.info("🔍 [Phase 2] Extracting Edges from Atomic Facts...")
+        logger.info("馃攳 [Phase 2] Extracting Edges from Atomic Facts...")
 
         # 5. Group Facts into Chunks (Controlled by count AND size)
         # This ensures each fact remains intact and fact IDs reset per chunk
@@ -548,23 +548,23 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             The updated Atom instance with matched nodes and updated edges.
         """
         logger.info(
-            f"🔄 Starting node matching and edge update (threshold={threshold})..."
+            f"馃攧 Starting node matching and edge update (threshold={threshold})..."
         )
 
         nodes, edges = self.nodes, self.edges
 
         if not nodes:
-            logger.warning("⚠️ No nodes to match; skipping matching.")
+            logger.warning("鈿狅笍 No nodes to match; skipping matching.")
             return self
 
         # 1. Generate Embeddings using self.embedder.embed_documents
         node_names = [n.name for n in nodes]
-        logger.info(f"📊 Generating embeddings for {len(node_names)} nodes...")
+        logger.info(f"馃搳 Generating embeddings for {len(node_names)} nodes...")
 
         try:
             embeddings = self.embedder.embed_documents(node_names)
         except Exception as e:
-            logger.error(f"❌ Failed to generate embeddings: {e}")
+            logger.error(f"鉂?Failed to generate embeddings: {e}")
             return self
 
         # 2. Initialize SemHash from embeddings
@@ -585,10 +585,10 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
                 mapping[record.record] = record.duplicates[0][0]
 
         if not mapping:
-            logger.info("✅ No similar nodes found above threshold.")
+            logger.info("鉁?No similar nodes found above threshold.")
             return self
 
-        logger.info(f"🔗 Found {len(mapping)} nodes to merge.")
+        logger.info(f"馃敆 Found {len(mapping)} nodes to merge.")
 
         # 5. Apply mapping to graph data
         # Update Node names
@@ -608,6 +608,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         self._set_data_state(new_data)
 
         logger.info(
-            f"✅ Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
+            f"鉁?Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
         )
         return self
+

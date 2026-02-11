@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from hyperextract.hypergraphs.cog_rag import Cog_RAG
+from hyperextract.types.cog_rag import Cog_RAG
 
 # ============================================================================
 # Sample Story for Extraction

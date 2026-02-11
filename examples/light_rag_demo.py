@@ -1,24 +1,26 @@
 """
-HyperGraph-RAG Demo: Extracting Hyperedges from Text
+Light-RAG Demo: Entity-Relationship Extraction with Standard Binary Graphs
 
-This script demonstrates the usage of the HyperGraph_RAG system, which is a
-system designed to extract hyperedges from text.
+This demo demonstrates:
+1. Extracting entities and binary relationships from a complex sci-fi story.
+2. Analysis of standard graph relationships (Source -> Target).
+3. Semantic Search over the constructed Knowledge Graph (Q&A).
 """
 
 import os
 import sys
 
+# 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-from hyperextract.types import HyperGraph_RAG
-
 load_dotenv()
 
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from hyperextract.methods.rag import Light_RAG
+
 # ============================================================================
-# Sample Story for Extraction
+# Sample Story for Extraction (Shared with AutoHypergraph Demo)
 # ============================================================================
 
 STORY = """
@@ -72,12 +74,13 @@ Leona 被迫带着虚空水晶，从极光星区逃往荒凉的废土行星 Z-9�
 
 if __name__ == "__main__":
     # ============================================================================
-    # Initialize the HyperGraph_RAG system
+    # Initialize the Light-RAG system with LLM and Embeddings
     # ============================================================================
     print("=" * 80)
-    print("Initializing HyperGraph_RAG System (Edge-First)...")
+    print("Initializing Light-RAG System...")
     print("=" * 80)
 
+    # Use a capable model for extraction
     llm_client = ChatOpenAI(
         model="gpt-4o-mini",
         extra_body={
@@ -87,9 +90,7 @@ if __name__ == "__main__":
     )
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # Initialize HyperGraph_RAG
-    # Note: enable_llm_cache=False for demo purposes to force new extractions if needed
-    rag = HyperGraph_RAG(
+    rag = Light_RAG(
         llm_client=llm_client,
         embedder=embedder,
         verbose=True,
@@ -104,31 +105,6 @@ if __name__ == "__main__":
     print("✓ Story processed successfully\n")
 
     # ============================================================================
-    # Display Extracted Hyperedges
-    # ============================================================================
-    print("=" * 80)
-    print("EXTRACTED HYPEREDGES")
-    print("=" * 80)
-
-    # 分离低阶边（2个参与者）和高阶边（3个以上参与者）
-    low_order_edges = [e for e in rag.edges if len(e.related_entities) == 2]
-    high_order_edges = [e for e in rag.edges if len(e.related_entities) > 2]
-
-    print(f"\n--- Low-Order Edges (Pairwise) ---")
-    for i, edge in enumerate(low_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
-        print(f"   Knowledge Segment: {edge.knowledge_segment}")
-        print(f"   Completeness Score: {edge.completeness_score}/10")
-
-    print(f"\n--- High-Order Edges (Hyperedges) ---")
-    for i, edge in enumerate(high_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
-        print(f"   Knowledge Segment: {edge.knowledge_segment}")
-        print(f"   Completeness Score: {edge.completeness_score}/10")
-
-    print(f"\n✓ Total edges extracted: {len(rag.edges)} ({len(low_order_edges)} low-order, {len(high_order_edges)} high-order)\n")
-
-    # ============================================================================
     # Display Extracted Entities
     # ============================================================================
     print("=" * 80)
@@ -140,6 +116,21 @@ if __name__ == "__main__":
         print(f"  Description: {node.description}")
 
     print(f"\n✓ Total entities extracted: {len(rag.nodes)}\n")
+
+    # ============================================================================
+    # Display Extracted Edges
+    # ============================================================================
+    print("=" * 80)
+    print("EXTRACTED EDGES (Binary Relationships)")
+    print("=" * 80)
+
+    for i, edge in enumerate(rag.edges, 1):
+        print(f"\n{i}. {edge.source} -> {edge.target}")
+        print(f"   Description: {edge.description}")
+        print(f"   Keywords: {edge.keywords}")
+        print(f"   Strength: {edge.strength}/10")
+
+    print(f"\n✓ Total edges extracted: {len(rag.edges)}\n")
 
     # ============================================================================
     # Statistics
@@ -157,17 +148,17 @@ if __name__ == "__main__":
     for entity_type, count in sorted(type_counts.items()):
         print(f"  {entity_type}: {count}")
 
-    # Average edge completeness
+    # Average edge strength
     if rag.edges:
-        avg_completeness = sum(e.completeness_score for e in rag.edges) / len(rag.edges)
-        print(f"\nAverage Edge Completeness: {avg_completeness:.2f}/10")
+        avg_strength = sum(e.strength for e in rag.edges) / len(rag.edges)
+        print(f"\nAverage Edge Strength: {avg_strength:.2f}/10")
 
-    # Centrality (number of relationships per entity)
-    print("\nEntity Centrality (number of relationships):")
+    # Centrality (Out-degree + In-degree)
+    print("\nEntity Centrality (Degree):")
     centrality = {}
     for edge in rag.edges:
-        for participant in edge.related_entities:
-            centrality[participant] = centrality.get(participant, 0) + 1
+        centrality[edge.source] = centrality.get(edge.source, 0) + 1
+        centrality[edge.target] = centrality.get(edge.target, 0) + 1
 
     for entity, count in sorted(centrality.items(), key=lambda x: x[1], reverse=True)[
         :10
@@ -185,7 +176,7 @@ if __name__ == "__main__":
     print("✓ Semantic index built successfully\n")
 
     # ============================================================================
-    # Q&A: Semantic Search over Hypergraph
+    # Q&A: Semantic Search over Graph
     # ============================================================================
     print("=" * 80)
     print("Q&A: SEMANTIC SEARCH")
@@ -207,40 +198,33 @@ if __name__ == "__main__":
 
             if results:
                 for j, result in enumerate(results, 1):
-                    # AutoHypergraph search returns (doc, score) tuple
-                    # The 'doc' is the EdgeSchema object
+                    # LightRAG search_edges returns (Edge, score) tuples or just Edges depending on impl
                     edge = result[0] if isinstance(result, tuple) else result
                     score = result[1] if isinstance(result, tuple) else 1.0
 
                     print(f"\n  {j}. [Score: {score:.3f}]")
-                    print(f"     Participants: {' <-> '.join(edge.related_entities)}")
-                    print(f"     Knowledge Segment: {edge.knowledge_segment}")
-                    print(f"     Completeness Score: {edge.completeness_score}/10")
+                    # Note: LightRAG EdgeSchema uses source/target, not participants list
+                    print(f"     Relation: {edge.source} -> {edge.target}")
+                    print(f"     Description: {edge.description}")
+                    print(f"     Strength: {edge.strength}/10")
             else:
                 print("  (No relevant relationships found)")
         except Exception as e:
             print(f"  Search error: {str(e)}")
 
     # ============================================================================
-    # Chat with HyperGraph_RAG
+    # Chat with LightRAG
     # ============================================================================
     print("\n" + "=" * 80)
-    print("💬 Interactive Chat with HyperGraph_RAG")
+    print("💬 Interactive Chat with LightRAG")
     print("=" * 80)
     print("Engaging in multi-turn dialogue based on extracted knowledge...\n")
 
-    chat_queries = [
-        "虚空水晶现在在哪里?",
-        "黑蛇和议员Valerius有什么阴谋?",
-        "谁参与了泰坦空间站的秘密会议?",
-        "Leona目前的状况如何?",
-    ]
-
-    for q in chat_queries:
+    for q in queries:
         print(f"❓ User: {q}")
         try:
             response = rag.chat(q)
-            print(f"🤖 HyperGraph_RAG: {response.content}\n")
+            print(f"🤖 LightRAG: {response.content}\n")
         except Exception as e:
             print(f"⚠️ Chat error: {e}\n")
 
@@ -252,7 +236,7 @@ if __name__ == "__main__":
     print("=" * 80)
 
     try:
-        output_dir = "temp/hypergraph_rag_demo"
+        output_dir = "temp/light_rag_demo"
         rag.dump(output_dir)
         print(f"✓ Results saved to {output_dir}/")
 
@@ -272,4 +256,3 @@ if __name__ == "__main__":
         print(f"⚠ Warning: Could not save results: {str(e)}")
 
     print("\n" + "=" * 80 + "\n")
-

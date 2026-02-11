@@ -16,7 +16,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from hyperextract.graphs.base import AutoGraph, AutoGraphSchema
+from hyperextract.types import AutoGraph, AutoGraphSchema
 from hyperextract.utils.logging import logger
 
 # ==============================================================================
@@ -165,7 +165,7 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
         nodes_in_edge_fn = lambda x: (x.startNode.name, x.endNode.name)
 
         # 3. Call parent class initialization
-        logger.info("🚀 Initializing iText2KG_Star")
+        logger.info("馃殌 Initializing iText2KG_Star")
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -274,23 +274,23 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             The updated iText2KG_Star instance with matched nodes and updated edges.
         """
         logger.info(
-            f"🔄 Starting node matching and edge update (threshold={threshold})..."
+            f"馃攧 Starting node matching and edge update (threshold={threshold})..."
         )
 
         nodes, edges = self.nodes, self.edges
 
         if not nodes:
-            logger.warning("⚠️ No nodes to match; skipping matching.")
+            logger.warning("鈿狅笍 No nodes to match; skipping matching.")
             return self
 
         # 1. Generate Embeddings using self.embedder.embed_documents
         node_names = [n.name for n in nodes]
-        logger.info(f"📊 Generating embeddings for {len(node_names)} nodes...")
+        logger.info(f"馃搳 Generating embeddings for {len(node_names)} nodes...")
 
         try:
             embeddings = self.embedder.embed_documents(node_names)
         except Exception as e:
-            logger.error(f"❌ Failed to generate embeddings: {e}")
+            logger.error(f"鉂?Failed to generate embeddings: {e}")
             return self
 
         # 2. Initialize SemHash from embeddings
@@ -311,10 +311,10 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
                 mapping[record.record] = record.duplicates[0][0]
 
         if not mapping:
-            logger.info("✅ No similar nodes found above threshold.")
+            logger.info("鉁?No similar nodes found above threshold.")
             return self
 
-        logger.info(f"🔗 Found {len(mapping)} nodes to merge.")
+        logger.info(f"馃敆 Found {len(mapping)} nodes to merge.")
 
         # 5. Apply mapping to graph data
         # Update Node names
@@ -334,6 +334,7 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
         self._set_data_state(new_data)
 
         logger.info(
-            f"✅ Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
+            f"鉁?Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
         )
         return self
+

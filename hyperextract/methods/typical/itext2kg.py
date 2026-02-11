@@ -12,7 +12,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from hyperextract.graphs.base import AutoGraph
+from hyperextract.types import AutoGraph
 from hyperextract.utils.logging import logger
 
 # ==============================================================================
@@ -172,3 +172,4 @@ class iText2KG(AutoGraph[NodeSchema, EdgeSchema]):
             max_workers=max_workers,
             verbose=verbose,
         )
+
