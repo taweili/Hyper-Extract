@@ -18,21 +18,22 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.vectorstores import FAISS
+from ontosight import view_graph
 
 from .base import BaseAutoType
 from hyperextract.utils.logging import logger
 
 
-Item = TypeVar("Item", bound=BaseModel)
+ItemSchema = TypeVar("ItemSchema", bound=BaseModel)
 
 
-class AutoListSchema(BaseModel, Generic[Item]):
+class AutoListSchema(BaseModel, Generic[ItemSchema]):
     """Generic schema container for list-based knowledge patterns."""
 
-    items: List[Item] = Field(default_factory=list, description="Item list")
+    items: List[ItemSchema] = Field(default_factory=list, description="Item list")
 
 
-class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
+class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
     """AutoList - extracts a collection of objects from text.
 
     This pattern extracts multiple independent objects from a document, suitable for
@@ -50,11 +51,11 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     if TYPE_CHECKING:
         # Use generic version during type checking to maintain complete type hints
-        item_list_schema: Type[AutoListSchema[Item]]
+        item_list_schema: Type[AutoListSchema[ItemSchema]]
 
     def __init__(
         self,
-        item_schema: Type[Item],
+        item_schema: Type[ItemSchema],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
@@ -121,11 +122,11 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         )
 
     @property
-    def items(self) -> List[Item]:
+    def items(self) -> List[ItemSchema]:
         """Returns the internal list of extracted items."""
         return getattr(self._data, "items", [])
 
-    def _create_empty_instance(self) -> "AutoList[Item]":
+    def _create_empty_instance(self) -> "AutoList[ItemSchema]":
         """Creates a new empty instance with the same configuration.
 
         Overrides base class method to handle AutoList's item_schema parameter.
@@ -264,7 +265,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 logger.error("FAISS not available. Install with: pip install faiss-cpu")
                 raise
 
-    def search(self, query: str, top_k: int = 3) -> List[Item]:
+    def search(self, query: str, top_k: int = 3) -> List[ItemSchema]:
         """Searches items in the list using semantic similarity.
 
         Args:
@@ -282,7 +283,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             raise Exception("Vector store not initialized")
 
         docs = self._index.similarity_search(query, k=top_k)
-        results: List[Item] = []
+        results: List[ItemSchema] = []
         for doc in docs:
             # Attempt to restore as object
             try:
@@ -313,13 +314,67 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
             str(folder), self.embedder, allow_dangerous_deserialization=True
         )
 
+    def show(
+        self,
+        item_label_extractor: Callable[[ItemSchema], str],
+        *,
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ) -> None:
+        """Visualize the list using OntoSight.
+
+        Args:
+            item_label_extractor: A function that takes an ItemSchema and returns a string label for visualization.
+            top_k_for_search: Number of items to retrieve for search callback (default: 3).
+            top_k_for_chat: Number of items to retrieve for chat callback (default: 3).
+        """
+
+        if self._index is not None:
+            logger.info(
+                "Visualizing list with search and chat capabilities (indices detected)."
+            )
+
+            def search_callback(query: str) -> None:
+                related_items = self.search(query, top_k=top_k_for_search)
+                return related_items, []
+
+            def chat_callback(question: str) -> None:
+                response = self.chat(question, top_k=top_k_for_chat)
+                content = response.content
+                retrieved_items = response.additional_kwargs.get("retrieved_items", [])
+                return content, (retrieved_items, [])
+        else:
+            logger.info(
+                "Visualizing list without search and chat capabilities (no indices detected)."
+            )
+            search_callback = None
+            chat_callback = None
+
+        from hashlib import md5
+
+        def item_id_extractor(item: ItemSchema) -> str:
+            return md5(str(item.model_dump()).encode()).hexdigest()[:8]
+
+        view_graph(
+            node_list=self.items,
+            edge_list=[],
+            node_schema=self.item_schema,
+            edge_schema=None,
+            node_id_extractor=item_id_extractor,
+            node_ids_in_edge_extractor=None,
+            node_label_extractor=item_label_extractor,
+            edge_label_extractor=None,
+            on_search=search_callback,
+            on_chat=chat_callback,
+        )
+
     # ==================== Pythonic Sequence Operations ====================
 
     def __len__(self) -> int:
         """Returns the number of elements in the list."""
         return len(self.items)
 
-    def __getitem__(self, key: int | slice) -> Item | "AutoList[Item]":
+    def __getitem__(self, key: int | slice) -> ItemSchema | "AutoList[ItemSchema]":
         """Support index access and slicing.
 
         Args:
@@ -353,7 +408,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 f"List indices must be integers or slices, not {type(key).__name__}"
             )
 
-    def __setitem__(self, index: int, item: Item) -> None:
+    def __setitem__(self, index: int, item: ItemSchema) -> None:
         """Support index assignment.
 
         Args:
@@ -377,7 +432,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def __add__(self, other: "BaseAutoType[Item]") -> "AutoList[Item]":
+    def __add__(self, other: "BaseAutoType[ItemSchema]") -> "AutoList[ItemSchema]":
         """Operator overload for '+' to combine knowledge instances.
 
         Supports multiple combination patterns:
@@ -459,7 +514,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def __iter__(self) -> Iterator[Item]:
+    def __iter__(self) -> Iterator[ItemSchema]:
         """Support iteration over items.
 
         Returns:
@@ -474,7 +529,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         """
         return iter(self.items)
 
-    def __contains__(self, item: Item) -> bool:
+    def __contains__(self, item: ItemSchema) -> bool:
         """Support 'in' operator for membership testing.
 
         Args:
@@ -524,7 +579,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== List Modification Methods ====================
 
-    def append(self, item: Item) -> None:
+    def append(self, item: ItemSchema) -> None:
         """Append a single item to the end of the list.
 
         Args:
@@ -545,7 +600,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def extend(self, items: Iterable[Item] | "AutoList[Item]") -> None:
+    def extend(self, items: Iterable[ItemSchema] | "AutoList[ItemSchema]") -> None:
         """Extend the list by appending multiple items.
 
         Args:
@@ -586,7 +641,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def insert(self, index: int, item: Item) -> None:
+    def insert(self, index: int, item: ItemSchema) -> None:
         """Insert an item at a specific position.
 
         Args:
@@ -609,7 +664,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def remove(self, item: Item) -> None:
+    def remove(self, item: ItemSchema) -> None:
         """Remove the first occurrence of an item from the list.
 
         Args:
@@ -638,7 +693,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         # Item not found
         raise ValueError(f"{item} is not in list")
 
-    def pop(self, index: int = -1) -> Item:
+    def pop(self, index: int = -1) -> ItemSchema:
         """Remove and return an item at the given position.
 
         Args:
@@ -668,7 +723,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
     # ==================== Query and Utility Methods ====================
 
-    def index(self, item: Item, start: int = 0, stop: int | None = None) -> int:
+    def index(self, item: ItemSchema, start: int = 0, stop: int | None = None) -> int:
         """Return the index of the first occurrence of item.
 
         Args:
@@ -696,7 +751,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
 
         raise ValueError(f"{item} is not in list")
 
-    def count(self, item: Item) -> int:
+    def count(self, item: ItemSchema) -> int:
         """Return the number of times item appears in the list.
 
         Args:
@@ -717,7 +772,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
                 count += 1
         return count
 
-    def copy(self) -> "AutoList[Item]":
+    def copy(self) -> "AutoList[ItemSchema]":
         """Create a deep copy of this AutoList instance.
 
         Returns:
@@ -756,7 +811,7 @@ class AutoList(BaseAutoType[AutoListSchema[Item]], Generic[Item]):
         self.metadata["updated_at"] = datetime.now()
 
     def sort(
-        self, key: Callable[[Item], Any] | None = None, reverse: bool = False
+        self, key: Callable[[ItemSchema], Any] | None = None, reverse: bool = False
     ) -> None:
         """Sort the items in place.
 

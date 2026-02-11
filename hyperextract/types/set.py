@@ -16,26 +16,29 @@ from typing import (
 )
 from pathlib import Path
 from datetime import datetime
-from ontomem import OMem
-from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from pydantic import BaseModel, Field, create_model
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
+from ontomem import OMem
+from ontomem.merger import MergeStrategy, create_merger, BaseMerger
+from ontosight import view_graph
 
 from .base import BaseAutoType
 from hyperextract.utils.logging import logger
 
 
-Item = TypeVar("Item", bound=BaseModel)
+ItemSchema = TypeVar("ItemSchema", bound=BaseModel)
 
 
-class AutoSetSchema(BaseModel, Generic[Item]):
+class AutoSetSchema(BaseModel, Generic[ItemSchema]):
     """Generic schema container for set-based knowledge patterns."""
 
-    items: List[Item] = Field(default_factory=list, description="Set of unique items")
+    items: List[ItemSchema] = Field(
+        default_factory=list, description="Set of unique items"
+    )
 
 
-class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
+class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
     """AutoSet - extracts a unique collection of objects.
 
     This pattern automatically deduplicates items based on a user-specified
@@ -81,14 +84,14 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     if TYPE_CHECKING:
         # Use generic version during type checking to maintain complete type hints
-        item_set_schema: Type[AutoSetSchema[Item]]
+        item_set_schema: Type[AutoSetSchema[ItemSchema]]
 
     def __init__(
         self,
-        item_schema: Type[Item],
+        item_schema: Type[ItemSchema],
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        key_extractor: Callable[[Item], Any],
+        key_extractor: Callable[[ItemSchema], Any],
         *,
         strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
@@ -161,7 +164,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             )
 
         # Initialize OMem instance BEFORE calling super().__init__ so _init_internal_state can use it
-        self._data_memory: OMem[Item] = OMem(
+        self._data_memory: OMem[ItemSchema] = OMem(
             memory_schema=item_schema,
             key_extractor=key_extractor,
             llm_client=llm_client,
@@ -184,7 +187,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Override Instance Creation ====================
 
-    def _create_empty_instance(self) -> "AutoSet[Item]":
+    def _create_empty_instance(self) -> "AutoSet[ItemSchema]":
         """Creates a new empty instance with the same configuration.
 
         Overrides parent method to include AutoSet-specific parameters.
@@ -218,7 +221,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         )
 
     @property
-    def data(self) -> AutoSetSchema[Item]:
+    def data(self) -> AutoSetSchema[ItemSchema]:
         """Returns all stored knowledge (read-only access).
 
         Returns:
@@ -235,7 +238,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         return self._data_memory.empty()
 
     @property
-    def items(self) -> List[Item]:
+    def items(self) -> List[ItemSchema]:
         """Returns the internal items as a list (for external interface compatibility).
 
         Returns:
@@ -265,7 +268,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """Initialize vector index to empty state."""
         self._data_memory.clear_index()
 
-    def _set_data_state(self, data: AutoSetSchema[Item]) -> None:
+    def _set_data_state(self, data: AutoSetSchema[ItemSchema]) -> None:
         """
         SET: Full Reset. Wipe OMem and refill from data (e.g., load from disk).
         Called by extract() or load() where data IS the new state.
@@ -275,7 +278,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
             self._data_memory.add(data.items)
         self.clear_index()
 
-    def _update_data_state(self, incoming_data: AutoSetSchema[Item]) -> None:
+    def _update_data_state(self, incoming_data: AutoSetSchema[ItemSchema]) -> None:
         """
         UPDATE: Incremental merge. Add to OMem efficiently (called by feed()).
 
@@ -292,8 +295,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
     # ==================== Core Override Methods ====================
 
     def merge_batch_data(
-        self, data_list: List[AutoSetSchema[Item]]
-    ) -> AutoSetSchema[Item]:
+        self, data_list: List[AutoSetSchema[ItemSchema]]
+    ) -> AutoSetSchema[ItemSchema]:
         """Merges multiple data containers with automatic deduplication.
 
         Pure function: Does not modify internal state.
@@ -332,7 +335,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         self._data_memory.build_index(force=force)
 
-    def search(self, query: str, top_k: int = 3) -> List[Item]:
+    def search(self, query: str, top_k: int = 3) -> List[ItemSchema]:
         """Searches items in the set using semantic similarity.
 
         Args:
@@ -358,6 +361,57 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
     def load_index(self, folder_path: str | Path) -> None:
         """Loads FAISS vector index from disk."""
         self._data_memory.load_index(Path(folder_path))
+
+    def show(
+        self,
+        item_label_extractor: Callable[[ItemSchema], str],
+        *,
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ) -> None:
+        """Visualize the set using OntoSight.
+
+        Args:
+            item_label_extractor: A function that takes an ItemSchema and returns a string label for visualization.
+            top_k_for_search: Number of items to retrieve for search callback (default: 3).
+            top_k_for_chat: Number of items to retrieve for chat callback (default: 3).
+        """
+
+        if self._data_memory.has_index():
+            logger.info(
+                "Visualizing set with search and chat capabilities (indices detected)."
+            )
+
+            def search_callback(query: str) -> None:
+                related_items = self.search(query, top_k=top_k_for_search)
+                return related_items, []
+
+            def chat_callback(question: str) -> None:
+                response = self.chat(question, top_k=top_k_for_chat)
+                content = response.content
+                retrieved_items = response.additional_kwargs.get("retrieved_items", [])
+                return content, (retrieved_items, [])
+        else:
+            logger.info(
+                "Visualizing set without search and chat capabilities (no indices detected)."
+            )
+            search_callback = None
+            chat_callback = None
+
+        view_graph(
+            node_list=self.items,
+            edge_list=[],
+            node_schema=self.item_schema,
+            edge_schema=None,
+            node_id_extractor=self.key_extractor,
+            node_ids_in_edge_extractor=None,
+            node_label_extractor=item_label_extractor,
+            edge_label_extractor=None,
+            on_search=search_callback,
+            on_chat=chat_callback,
+        )
+
+    # ==================== Set Interface Methods ====================
 
     def __len__(self) -> int:
         """Returns the number of unique items in the set."""
@@ -397,7 +451,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Set-Specific Methods ====================
 
-    def add(self, item: Item) -> None:
+    def add(self, item: ItemSchema) -> None:
         """Adds a single item to the set with automatic deduplication.
 
         Args:
@@ -408,7 +462,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         self.clear_index()
         self.metadata["updated_at"] = datetime.now()
 
-    def remove(self, key: Any) -> Optional[Item]:
+    def remove(self, key: Any) -> Optional[ItemSchema]:
         """Removes an item by its unique key value.
 
         Args:
@@ -441,7 +495,9 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         return self._data_memory.get(key) is not None
 
-    def get(self, key: Any, default: Optional[Item] = None) -> Optional[Item]:
+    def get(
+        self, key: Any, default: Optional[ItemSchema] = None
+    ) -> Optional[ItemSchema]:
         """Gets an item by its unique key value.
 
         Args:
@@ -454,7 +510,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         result = self._data_memory.get(key)
         return result if result is not None else default
 
-    def update(self, items: List[Item]) -> None:
+    def update(self, items: List[ItemSchema]) -> None:
         """Batch adds multiple items.
 
         Args:
@@ -485,7 +541,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         except (KeyError, Exception):
             pass
 
-    def pop(self) -> Item:
+    def pop(self) -> ItemSchema:
         """Removes and returns an arbitrary item from the set.
 
         Args:
@@ -517,7 +573,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return item
 
-    def copy(self) -> "AutoSet[Item]":
+    def copy(self) -> "AutoSet[ItemSchema]":
         """Creates a deep copy of the set.
 
         Returns:
@@ -540,7 +596,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Set Operations ====================
 
-    def __or__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def __or__(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Union operation: set1 | set2.
 
         Returns a new set containing all items from both sets.
@@ -572,7 +628,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __and__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def __and__(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Intersection operation: set1 & set2.
 
         Returns a new set containing only items present in both sets.
@@ -611,7 +667,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __sub__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def __sub__(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Difference operation: set1 - set2.
 
         Returns a new set containing items in self but not in other.
@@ -650,7 +706,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return new_set
 
-    def __xor__(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def __xor__(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Symmetric difference operation: set1 ^ set2.
 
         Returns a new set containing items in either set but not in both.
@@ -700,19 +756,21 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
     # ==================== Named Set Operations ====================
 
-    def union(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def union(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Union operation (named method)."""
         return self | other
 
-    def intersection(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def intersection(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Intersection operation (named method)."""
         return self & other
 
-    def difference(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def difference(self, other: "AutoSet[ItemSchema]") -> "AutoSet[ItemSchema]":
         """Difference operation (named method)."""
         return self - other
 
-    def symmetric_difference(self, other: "AutoSet[Item]") -> "AutoSet[Item]":
+    def symmetric_difference(
+        self, other: "AutoSet[ItemSchema]"
+    ) -> "AutoSet[ItemSchema]":
         """Symmetric difference operation (named method)."""
         return self ^ other
 
@@ -749,7 +807,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         return not self.__eq__(other)
 
-    def __le__(self, other: "AutoSet[Item]") -> bool:
+    def __le__(self, other: "AutoSet[ItemSchema]") -> bool:
         """Subset comparison: set1 <= set2.
 
         Args:
@@ -775,7 +833,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return set(self.keys).issubset(set(other.keys))
 
-    def __lt__(self, other: "AutoSet[Item]") -> bool:
+    def __lt__(self, other: "AutoSet[ItemSchema]") -> bool:
         """Proper subset comparison: set1 < set2.
 
         Args:
@@ -792,7 +850,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return self <= other and self != other
 
-    def __ge__(self, other: "AutoSet[Item]") -> bool:
+    def __ge__(self, other: "AutoSet[ItemSchema]") -> bool:
         """Superset comparison: set1 >= set2.
 
         Args:
@@ -815,7 +873,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return set(self.keys).issuperset(set(other.keys))
 
-    def __gt__(self, other: "AutoSet[Item]") -> bool:
+    def __gt__(self, other: "AutoSet[ItemSchema]") -> bool:
         """Proper superset comparison: set1 > set2.
 
         Args:
@@ -832,7 +890,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
 
         return self >= other and self != other
 
-    def issubset(self, other: "AutoSet[Item]") -> bool:
+    def issubset(self, other: "AutoSet[ItemSchema]") -> bool:
         """Test whether every key in the set is in other.
 
         Args:
@@ -846,7 +904,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         return self <= other
 
-    def issuperset(self, other: "AutoSet[Item]") -> bool:
+    def issuperset(self, other: "AutoSet[ItemSchema]") -> bool:
         """Test whether every key in other is in the set.
 
         Args:
@@ -860,7 +918,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[Item]], Generic[Item]):
         """
         return self >= other
 
-    def isdisjoint(self, other: "AutoSet[Item]") -> bool:
+    def isdisjoint(self, other: "AutoSet[ItemSchema]") -> bool:
         """Test whether the set has no keys in common with other.
 
         Args:

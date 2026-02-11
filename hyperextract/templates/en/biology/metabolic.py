@@ -8,25 +8,42 @@ from hyperextract.types import AutoHypergraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class MetaboliteNode(BaseModel):
     """
     Any physical substance (substrate or product) involved in a metabolic reaction.
     """
-    name: str = Field(description="Chemical or common name of the molecule (e.g., 'Pyruvate').")
+
+    name: str = Field(
+        description="Chemical or common name of the molecule (e.g., 'Pyruvate')."
+    )
     formula: Optional[str] = Field(None, description="Chemical formula/notation.")
-    charge: Optional[int] = Field(None, description="Net electrical charge of the metabolite.")
-    compartment: Optional[str] = Field(description="Cellular location: 'Cytosol', 'Mitochondria', 'Extracellular'.")
+    charge: Optional[int] = Field(
+        None, description="Net electrical charge of the metabolite."
+    )
+    compartment: Optional[str] = Field(
+        description="Cellular location: 'Cytosol', 'Mitochondria', 'Extracellular'."
+    )
+
 
 class MetabolicReactionHyperedge(BaseModel):
     """
     A multi-reagent biochemical reaction where multiple substrates yield multiple products.
     """
-    reaction_id: str = Field(description="Unique identifier or EC number (e.g., 'EC 1.1.1.1').")
+
+    reaction_id: str = Field(
+        description="Unique identifier or EC number (e.g., 'EC 1.1.1.1')."
+    )
     substrates: List[str] = Field(description="List of substrate metabolite names.")
     products: List[str] = Field(description="List of product metabolite names.")
-    enzymes: List[str] = Field(default_factory=list, description="List of catalysts (enzymes) involved.")
-    stoichiometry: Optional[str] = Field(None, description="Balancing coefficients if mentioned in text.")
+    enzymes: List[str] = Field(
+        default_factory=list, description="List of catalysts (enzymes) involved."
+    )
+    stoichiometry: Optional[str] = Field(
+        None, description="Balancing coefficients if mentioned in text."
+    )
     reversibility: bool = Field(True, description="Whether the reaction is reversible.")
+
 
 # ==============================================================================
 # 2. Prompts
@@ -62,10 +79,12 @@ METABOLIC_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHyperedge]):
     """
     Complex hypergraph template for metabolic pathways involving multi-substrate/multi-product reactions.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -76,14 +95,16 @@ class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHypere
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=MetaboliteNode,
             edge_schema=MetabolicReactionHyperedge,
             node_key_extractor=lambda x: x.name.strip(),
             edge_key_extractor=lambda x: x.reaction_id.strip(),
-            nodes_in_edge_extractor=lambda x: tuple(set(x.substrates + x.products + x.enzymes)),
+            nodes_in_edge_extractor=lambda x: tuple(
+                set(x.substrates + x.products + x.enzymes)
+            ),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -94,5 +115,38 @@ class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHypere
             prompt=METABOLIC_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=METABOLIC_NODE_PROMPT,
             prompt_for_edge_extraction=METABOLIC_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+
+        def node_label_extractor(node: MetaboliteNode) -> str:
+            return f"{node.name}"
+
+        def edge_label_extractor(edge: MetabolicReactionHyperedge) -> str:
+            return f"{edge.reaction_id}"
+
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

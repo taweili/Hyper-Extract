@@ -8,10 +8,12 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class KnowledgePointNode(BaseModel):
     """
     A discrete unit of knowledge, concept, or skill within a specific curriculum.
     """
+
     name: str = Field(
         description="Standardized name of the knowledge point or concept."
     )
@@ -25,19 +27,22 @@ class KnowledgePointNode(BaseModel):
         None, description="A brief pedagogical summary of what this concept entails."
     )
 
+
 class PrerequisiteRelation(BaseModel):
     """
     Directional dependency indicating that one concept must be learned before another.
     """
-    source: str = Field(description="The prerequisite knowledge point (must be learned first).")
+
+    source: str = Field(
+        description="The prerequisite knowledge point (must be learned first)."
+    )
     target: str = Field(description="The successor knowledge point (learned after).")
     dependency_type: str = Field(
         "Prerequisite",
-        description="Nature of link: 'Prerequisite' (strict), 'Corequisite' (together), 'Recommended' (helpful)."
+        description="Nature of link: 'Prerequisite' (strict), 'Corequisite' (together), 'Recommended' (helpful).",
     )
-    weight: float = Field(
-        1.0, description="Strength of dependency from 0.0 to 1.0."
-    )
+    weight: float = Field(1.0, description="Strength of dependency from 0.0 to 1.0.")
+
 
 # ==============================================================================
 # 2. Prompts
@@ -70,6 +75,7 @@ EDUCATION_EDGE_PROMPT = (
 # ==============================================================================
 # 3. Template Class
 # ==============================================================================
+
 
 class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
     """
@@ -119,7 +125,10 @@ class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
             edge_key_extractor=lambda x: (
                 f"{x.source.strip().lower()}->{x.target.strip().lower()}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip().lower(), x.target.strip().lower()),
+            nodes_in_edge_extractor=lambda x: (
+                x.source.strip().lower(),
+                x.target.strip().lower(),
+            ),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -131,4 +140,37 @@ class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
             prompt_for_node_extraction=EDUCATION_NODE_PROMPT,
             prompt_for_edge_extraction=EDUCATION_EDGE_PROMPT,
             **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+
+        def node_label_extractor(node: KnowledgePointNode) -> str:
+            return f"{node.name}"
+
+        def edge_label_extractor(edge: PrerequisiteRelation) -> str:
+            return f"{edge.dependency_type}"
+
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

@@ -8,17 +8,23 @@ from hyperextract.types import AutoHypergraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class ConceptNode(BaseModel):
     """
     A fundamental academic concept that might belong to multiple disciplines.
     """
+
     name: str = Field(description="Standard name of the concept.")
-    primary_field: str = Field(description="The primary discipline this concept originates from.")
+    primary_field: str = Field(
+        description="The primary discipline this concept originates from."
+    )
+
 
 class InterdisciplinaryEdge(BaseModel):
     """
     A hyperedge representing a connection between multiple concepts across different fields.
     """
+
     participants: List[str] = Field(
         description="List of nodes (concept names) participating in this interdisciplinary nexus."
     )
@@ -28,6 +34,7 @@ class InterdisciplinaryEdge(BaseModel):
     connectivity_insight: str = Field(
         description="The scientific or pedagogical value of connecting these specific dots."
     )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -59,7 +66,10 @@ NEXUS_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
-class InterdisciplinaryNexusHypergraph(AutoHypergraph[ConceptNode, InterdisciplinaryEdge]):
+
+class InterdisciplinaryNexusHypergraph(
+    AutoHypergraph[ConceptNode, InterdisciplinaryEdge]
+):
     """
     Educational template for mapping non-binary, multi-point academic connections.
     Ideal for research synthesis, curriculum cross-linking, and holistic knowledge management.
@@ -103,7 +113,9 @@ class InterdisciplinaryNexusHypergraph(AutoHypergraph[ConceptNode, Interdiscipli
             edge_key_extractor=lambda x: (
                 f"{x.unifying_theme.strip().lower()}_linking_{sorted(x.participants)}"
             ),
-            nodes_in_edge_extractor=lambda x: [p.strip().lower() for p in x.participants],
+            nodes_in_edge_extractor=lambda x: [
+                p.strip().lower() for p in x.participants
+            ],
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -115,4 +127,37 @@ class InterdisciplinaryNexusHypergraph(AutoHypergraph[ConceptNode, Interdiscipli
             prompt_for_node_extraction=NEXUS_NODE_PROMPT,
             prompt_for_edge_extraction=NEXUS_EDGE_PROMPT,
             **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+
+        def node_label_extractor(node: ConceptNode) -> str:
+            return f"{node.name}"
+
+        def edge_label_extractor(edge: InterdisciplinaryEdge) -> str:
+            return f"{edge.unifying_theme}"
+
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

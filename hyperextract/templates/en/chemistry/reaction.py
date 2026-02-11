@@ -124,3 +124,37 @@ class ChemicalReactionHyper(AutoHypergraph[ChemicalEntity, ReactionEvent]):
             prompt_for_edge_extraction=REACTION_EDGE_PROMPT,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+
+        def node_label_extractor(node: ChemicalEntity) -> str:
+            info = f" ({node.phase})" if getattr(node, "phase", None) else ""
+            return f"{node.name}{info}"
+
+        def edge_label_extractor(edge: ReactionEvent) -> str:
+            return f"{edge.reaction_id}"
+
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
+        )

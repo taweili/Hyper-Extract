@@ -8,10 +8,12 @@ from hyperextract.types import AutoSet
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class AcademicTerm(BaseModel):
     """
     A standardized academic term, concept, or definition aggregated from multiple sources.
     """
+
     term: str = Field(
         description="The primary name of the academic term/concept. Acts as the unique identifier."
     )
@@ -22,12 +24,13 @@ class AcademicTerm(BaseModel):
         description="A comprehensive, synthesized definition of the term."
     )
     synonyms: List[str] = Field(
-        default_factory=list,
-        description="Alternative names or closely related terms."
+        default_factory=list, description="Alternative names or closely related terms."
     )
     key_expression: Optional[str] = Field(
-        None, description="A formula, notation, or iconic expression associated with this term."
+        None,
+        description="A formula, notation, or iconic expression associated with this term.",
     )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -44,6 +47,7 @@ ACADEMIC_LEXICON_PROMPT = (
 # ==============================================================================
 # 3. Template Class
 # ==============================================================================
+
 
 class AcademicLexiconSet(AutoSet[AcademicTerm]):
     """
@@ -64,7 +68,7 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        extraction_mode: str = "one_stage", # For AutoSet, this is standard
+        extraction_mode: str = "one_stage",  # For AutoSet, this is standard
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -96,4 +100,27 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
             verbose=verbose,
             prompt=ACADEMIC_LEXICON_PROMPT,
             **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the collection using OntoSight.
+
+        Args:
+            top_k_for_search (int): Number of items to retrieve for search context. Default 3.
+            top_k_for_chat (int): Number of items to retrieve for chat context. Default 3.
+        """
+
+        def item_label_extractor(item: AcademicTerm) -> str:
+            return f"{item.term}"
+
+        super().show(
+            item_label_extractor=item_label_extractor,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

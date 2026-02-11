@@ -8,23 +8,43 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class TaxonNode(BaseModel):
     """
     Represents a biological taxon in the Tree of Life.
     """
-    name: str = Field(description="Scientific name (Latin) or standardized common name of the organism/group.")
-    rank: str = Field(description="Taxonomic rank: 'Domain', 'Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species'.")
-    common_name: Optional[str] = Field(None, description="General name used in non-scientific contexts.")
-    description: Optional[str] = Field(None, description="Brief biological characteristics, habitat, or distinguishing traits.")
+
+    name: str = Field(
+        description="Scientific name (Latin) or standardized common name of the organism/group."
+    )
+    rank: str = Field(
+        description="Taxonomic rank: 'Domain', 'Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species'."
+    )
+    common_name: Optional[str] = Field(
+        None, description="General name used in non-scientific contexts."
+    )
+    description: Optional[str] = Field(
+        None,
+        description="Brief biological characteristics, habitat, or distinguishing traits.",
+    )
+
 
 class TaxonomyRelation(BaseModel):
     """
     A direct hierarchical relationship between two taxons.
     """
+
     source: str = Field(description="The parent taxon (e.g., 'Mammalia').")
     target: str = Field(description="The child taxon (e.g., 'Primates').")
-    type: str = Field("parent_of", description="Relationship type: 'parent_of', 'subspecies_of', 'classified_under'.")
-    evidence: Optional[str] = Field(None, description="Reference to phenotypic or genomic data justifying the classification.")
+    type: str = Field(
+        "parent_of",
+        description="Relationship type: 'parent_of', 'subspecies_of', 'classified_under'.",
+    )
+    evidence: Optional[str] = Field(
+        None,
+        description="Reference to phenotypic or genomic data justifying the classification.",
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -60,10 +80,12 @@ TAXONOMY_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
     """
     High-fidelity template for biological classification and phylogenetic hierarchies.
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -74,13 +96,15 @@ class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             node_schema=TaxonNode,
             edge_schema=TaxonomyRelation,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.type})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.type})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -92,5 +116,38 @@ class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
             prompt=TAXONOMY_CONSOLIDATED_PROMPT,
             prompt_for_node_extraction=TAXONOMY_NODE_PROMPT,
             prompt_for_edge_extraction=TAXONOMY_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+
+        def node_label_extractor(node: TaxonNode) -> str:
+            return f"{node.name}"
+
+        def edge_label_extractor(edge: TaxonomyRelation) -> str:
+            return f"{edge.type}"
+
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

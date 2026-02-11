@@ -20,6 +20,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
+
 # 定义单个新闻事件的 Schema
 class NewsEvent(BaseModel):
     """新闻事件结构"""
@@ -214,7 +215,7 @@ def main():
 
     chat_questions = [
         "这些新闻中，哪些事件对科技行业的影响最大？",
-        "请总结一下2024年科技领域的主要趋势。"
+        "请总结一下2024年科技领域的主要趋势。",
     ]
 
     for q in chat_questions:
@@ -228,6 +229,12 @@ def main():
     print("\n" + "=" * 80)
     print("示例运行完成!")
     print("=" * 80)
+
+    a_event_list.show(
+        item_label_extractor=lambda item: item.title,
+        top_k_for_search=3,
+        top_k_for_chat=3,
+    )
 
 
 if __name__ == "__main__":

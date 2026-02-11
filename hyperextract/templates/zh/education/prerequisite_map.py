@@ -130,3 +130,35 @@ class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
             prompt_for_edge_extraction=EDUCATION_EDGE_PROMPT,
             **kwargs,
         )
+    def show(
+        self,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the graph using OntoSight.
+    
+        Args:
+            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
+            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
+            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
+            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+        """
+        def node_label_extractor(node: KnowledgePointNode) -> str:
+            info = f" ({ node.description })" if getattr(node, "description", None) else ""
+            return f"{ node.name }{info}"
+    
+        def edge_label_extractor(edge: PrerequisiteRelation) -> str:
+            return f"{ edge.source }"
+    
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
+        )

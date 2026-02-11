@@ -280,6 +280,12 @@ def main():
 
     print("=" * 80)
 
+    monster_codex.show(
+        item_label_extractor=lambda x: x.name,
+        top_k_for_search=5,
+        top_k_for_chat=5
+    )
+
 
 if __name__ == "__main__":
     main()

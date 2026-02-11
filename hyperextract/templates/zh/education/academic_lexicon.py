@@ -95,3 +95,24 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
             prompt=ACADEMIC_LEXICON_PROMPT,
             **kwargs,
         )
+    def show(
+        self,
+        *,
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ) -> None:
+        """
+        Visualize the collection using OntoSight.
+    
+        Args:
+            top_k_for_search (int): Number of items to retrieve for search context. Default 3.
+            top_k_for_chat (int): Number of items to retrieve for chat context. Default 3.
+        """
+        def item_label_extractor(item: AcademicTerm) -> str:
+            return f"{ item.term }"
+    
+        super().show(
+            item_label_extractor=item_label_extractor,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
+        )
