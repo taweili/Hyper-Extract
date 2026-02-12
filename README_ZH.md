@@ -88,9 +88,9 @@ print(answer.content)
 | :--- | :--- | :--- |
 | **通用** | `General`, `IText2KG` | 适用于大多数日常知识提取。 |
 | **科学** | `Physics`, `Chemistry`, `Biology` | 捕捉科学实验、元素、反应过程。 |
-| **行业** | `Finance`, `Legal`, `Cybersecurity` | 提取合规、风险点、实体关联。 |
-| **娱乐** | `Game`, `Movie`, `Music` | 完美支持游戏剧情、角色关系网。 |
-| ... | | 更多 20+ 领域见 [templates 目录](hyperextract/templates) |
+| **行业** | `Finance`, `Legal` | 提取合规、风险点、实体关联。 |
+| **娱乐** | `Game`, `Movie`, `Food` | 完美支持游戏剧情、角色关系网、食谱制作。 |
+| ... | | 更多 15+ 领域见 [templates 目录](hyperextract/templates) |
 
 ---
 

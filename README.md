@@ -88,9 +88,9 @@ The `hyperextract/templates` directory provides a wealth of domain-specific defi
 | :--- | :--- | :--- |
 | **General** | `General`, `IText2KG` | Versatile extraction for most daily knowledge. |
 | **Science** | `Physics`, `Chemistry`, `Biology` | Capture experiments, elements, and reactions. |
-| **Industry** | `Finance`, `Legal`, `Cybersecurity` | Extract compliance, risks, and entity webs. |
-| **Entertainment** | `Game`, `Movie`, `Music` | Perfect for story plots and character networks. |
-| ... | | 20+ more domains in the [templates folder](hyperextract/templates) |
+| **Industry** | `Finance`, `Legal` | Extract compliance, risks, and entity webs. |
+| **Entertainment** | `Game`, `Movie`, `Food` | Perfect for story plots, character networks, and recipes. |
+| ... | | 15+ domains in the [templates folder](hyperextract/templates) |
 
 ---
 
