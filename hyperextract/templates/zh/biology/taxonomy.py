@@ -112,12 +112,10 @@ class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: TaxonNode) -> str:
-            info = f" ({ node.description })" if getattr(node, "description", None) else ""
-            return f"{ node.name }{info}"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: TaxonomyRelation) -> str:
-            info = f" ({ edge.type })" if getattr(edge, "type", None) else ""
-            return f"{ edge.source }{info}"
+            return f"{edge.type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

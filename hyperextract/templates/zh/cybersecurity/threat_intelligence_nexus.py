@@ -161,10 +161,10 @@ class ThreatIntelligenceNexusHypergraph(
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: ThreatActorNode) -> str:
-            return f"{ node.actor_name }"
+            return f"{node.actor_name}"
     
         def edge_label_extractor(edge: IntelligenceNexus) -> str:
-            return f"{ edge.participants }"
+            return f"{edge.campaign_name}"
     
         super().show(
             node_label_extractor=node_label_extractor,

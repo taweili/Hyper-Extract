@@ -8,22 +8,31 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class AgriEntity(BaseModel):
     """An entity in the agricultural domain (e.g., Crop, Soil, Pest, Pest Control, Equipment)."""
+
     name: str = Field(description="The name of the agricultural entity.")
     category: str = Field(
         description="Category: 'Crop', 'Growth Stage', 'Soil/Climate Condition', 'Task/Activity', 'Stress/Pest', 'Input/Fertilizer'."
     )
-    description: Optional[str] = Field(description="Specific characteristics or state of the entity.")
+    description: Optional[str] = Field(
+        description="Specific characteristics or state of the entity."
+    )
+
 
 class AgriRelation(BaseModel):
     """A relationship between agricultural entities (e.g., 'requires', 'affected by', 'follows')."""
+
     source: str = Field(description="The source entity name.")
     target: str = Field(description="The target entity name.")
     relation_type: str = Field(
         description="Type: 'is at stage', 'impacts', 'requires task', 'applied to', 'leads to next stage'."
     )
-    specification: Optional[str] = Field(description="Dosage, timing, or specific impact details.")
+    specification: Optional[str] = Field(
+        description="Dosage, timing, or specific impact details."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -60,12 +69,13 @@ CROP_CYCLE_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
     """
     Template for mapping crop growth stages, environmental requirements, and farming activities.
-    
+
     Ideal for precision agriculture, crop management guides, and seasonal planning.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -75,6 +85,7 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
         >>> graph.feed_text(text)
         >>> print(graph.nodes) # Extracted Corn, Nitrogen, Vegetative Stage
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -85,7 +96,7 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the CropCycleGraph template.
@@ -104,7 +115,9 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
             node_schema=AgriEntity,
             edge_schema=AgriRelation,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -116,8 +129,9 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
             prompt=CROP_CYCLE_PROMPT,
             prompt_for_node_extraction=CROP_CYCLE_NODE_PROMPT,
             prompt_for_edge_extraction=CROP_CYCLE_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -128,21 +142,21 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: AgriEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: AgriRelation) -> str:
-            info = f" ({ edge.specification })" if getattr(edge, "specification", None) else ""
-            return f"{ edge.source }{info}"
-    
+            return f"{edge.relation_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

@@ -136,12 +136,11 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: AgriEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
     
         def edge_label_extractor(edge: AgriRelation) -> str:
-            info = f" ({ edge.specification })" if getattr(edge, "specification", None) else ""
-            return f"{ edge.source }{info}"
+            return f"{edge.relation_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

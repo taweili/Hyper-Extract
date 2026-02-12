@@ -160,11 +160,10 @@ class IntrusionKillChainGraph(AutoGraph[AttackStageNode, KillChainLink]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: AttackStageNode) -> str:
-            info = f" ({ node.timestamp })" if getattr(node, "timestamp", None) else ""
-            return f"{ node.stage_name }{info}"
+            return f"{node.stage_name}"
     
         def edge_label_extractor(edge: KillChainLink) -> str:
-            return f"{ edge.source }"
+            return f"{edge.causality}"
     
         super().show(
             node_label_extractor=node_label_extractor,

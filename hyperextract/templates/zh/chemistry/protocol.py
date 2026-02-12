@@ -116,11 +116,10 @@ class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: LabOperation) -> str:
-            return f"{ node.op_id }"
+            return f"{node.op_id}"
     
         def edge_label_extractor(edge: ProtocolTransition) -> str:
-            info = f" ({ edge.timestamp })" if getattr(edge, "timestamp", None) else ""
-            return f"{ edge.transition_id }{info}"
+            return f"{edge.transition_id}"
     
         super().show(
             node_label_extractor=node_label_extractor,

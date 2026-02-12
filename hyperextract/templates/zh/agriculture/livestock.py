@@ -8,22 +8,27 @@ from hyperextract.types import AutoGraph
 # 1. Schema 定义 (Schema Definitions)
 # ==============================================================================
 
+
 class AnimalNode(BaseModel):
     """畜牧管理中的实体（如个体动物、品种、群体、健康状况）。"""
+
     name: str = Field(description="动物个体或群体的名称/ID。")
     category: str = Field(
         description="类别：'个体', '品种', '品系', '健康状况', '营养/饲料', '设施'。"
     )
     traits: Optional[str] = Field(description="关键体貌特征、基因标记或健康指标。")
 
+
 class BreedingRelation(BaseModel):
     """育种与健康管理中的关系。"""
+
     source: str = Field(description="源畜牧实体。")
     target: str = Field(description="目标畜牧实体。")
     relation_type: str = Field(
         description="类型：'父代/母代', '与...交配', '属于', '诊断为', '饲喂'。"
     )
     details: Optional[str] = Field(description="继承特征、剂量或具体的健康观察。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -37,24 +42,21 @@ LIVESTOCK_GRAPH_PROMPT = (
     "- 将动物与其健康状况、疫苗接种和营养记录关联起来。"
 )
 
-LIVESTOCK_NODE_PROMPT = (
-    "请提取畜牧实体：识别特定动物（通过ID或名称）、品种、健康状况、疫苗类型以及特定的饲料。为每一项提供相关的特征或指标。"
-)
+LIVESTOCK_NODE_PROMPT = "请提取畜牧实体：识别特定动物（通过ID或名称）、品种、健康状况、疫苗类型以及特定的饲料。为每一项提供相关的特征或指标。"
 
-LIVESTOCK_EDGE_PROMPT = (
-    "逻辑化地连接畜牧实体。映射家族树（亲缘链接）、育种历史以及医疗/营养事件。确保准确使用'与...交配'或'饲喂'等关系类型。"
-)
+LIVESTOCK_EDGE_PROMPT = "逻辑化地连接畜牧实体。映射家族树（亲缘链接）、育种历史以及医疗/营养事件。确保准确使用'与...交配'或'饲喂'等关系类型。"
 
 # ==============================================================================
 # 3. 模板类 (Template Class)
 # ==============================================================================
 
+
 class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
     """
     用于管理畜牧系谱、健康记录和育种计划的模板。
-    
+
     适用于牧场管理软件、兽医记录和基因追踪。
-    
+
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -64,6 +66,7 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
         >>> graph.feed_text(text)
         >>> print(graph.edges) # 提取育种关系
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -74,7 +77,7 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化 LivestockGraph 模板。
@@ -93,7 +96,9 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
             node_schema=AnimalNode,
             edge_schema=BreedingRelation,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -105,8 +110,9 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
             prompt=LIVESTOCK_GRAPH_PROMPT,
             prompt_for_node_extraction=LIVESTOCK_NODE_PROMPT,
             prompt_for_edge_extraction=LIVESTOCK_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -117,20 +123,21 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: AnimalNode) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: BreedingRelation) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

@@ -128,10 +128,10 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: LogicNode) -> str:
-            return f"{ node.statement }"
+            return f"{node.statement}"
     
         def edge_label_extractor(edge: LogicRelation) -> str:
-            return f"{ edge.source }"
+            return f"{edge.inference}"
     
         super().show(
             node_label_extractor=node_label_extractor,

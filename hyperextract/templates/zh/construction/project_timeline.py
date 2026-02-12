@@ -144,12 +144,11 @@ class ProjectSchedulingTimeline(AutoTemporalGraph[MilestoneTaskNode, TemporalDep
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: MilestoneTaskNode) -> str:
-            info = f" ({ node.phase })" if getattr(node, "phase", None) else ""
-            return f"{ node.task_name }{info}"
+            info = f" ({node.phase})" if getattr(node, "phase", None) else ""
+            return f"{node.task_name}{info}"
     
         def edge_label_extractor(edge: TemporalDependency) -> str:
-            info = f" ({ edge.timestamp })" if getattr(edge, "timestamp", None) else ""
-            return f"{ edge.source }{info}"
+            return f"{edge.dependency_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

@@ -129,10 +129,10 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: Concept) -> str:
-            return f"{ node.term }"
+            return f"{node.term}"
     
         def edge_label_extractor(edge: ConceptRelation) -> str:
-            return f"{ edge.source }"
+            return f"{edge.relation_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

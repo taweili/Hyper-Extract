@@ -114,11 +114,10 @@ class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHypere
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: MetaboliteNode) -> str:
-            info = f" ({ node.formula })" if getattr(node, "formula", None) else ""
-            return f"{ node.name }{info}"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: MetabolicReactionHyperedge) -> str:
-            return f"{ edge.reaction_id }"
+            return f"{edge.reaction_id}"
     
         super().show(
             node_label_extractor=node_label_extractor,

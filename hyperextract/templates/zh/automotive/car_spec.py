@@ -129,7 +129,7 @@ class CarSpecGraph(AutoGraph[CarComponent, CarSystemRelation]):
             return f"{ node.name }{info}"
     
         def edge_label_extractor(edge: CarSystemRelation) -> str:
-            return f"{ edge.source }"
+            return f"{ edge.relation_type }"
     
         super().show(
             node_label_extractor=node_label_extractor,

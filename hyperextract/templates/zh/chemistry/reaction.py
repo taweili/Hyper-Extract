@@ -116,11 +116,11 @@ class ChemicalReactionHyper(AutoHypergraph[ChemicalEntity, ReactionEvent]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: ChemicalEntity) -> str:
-            info = f" ({ node.phase })" if getattr(node, "phase", None) else ""
-            return f"{ node.name }{info}"
+            info = f" ({node.phase})" if getattr(node, "phase", None) else ""
+            return f"{node.name}{info}"
     
         def edge_label_extractor(edge: ReactionEvent) -> str:
-            return f"{ edge.reaction_id }"
+            return f"{edge.reaction_id}"
     
         super().show(
             node_label_extractor=node_label_extractor,

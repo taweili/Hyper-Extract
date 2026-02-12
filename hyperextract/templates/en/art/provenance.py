@@ -8,22 +8,31 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class ArtEntity(BaseModel):
     """An entity in the art world (e.g., Artwork, Artist, Museum, Collector, Auction House)."""
+
     name: str = Field(description="Name of the artwork, person, or organization.")
     category: str = Field(
         description="Category: 'Artwork', 'Artist', 'Collector', 'Institution', 'Location'."
     )
-    description: Optional[str] = Field(description="Medium, creation date, or historical status.")
+    description: Optional[str] = Field(
+        description="Medium, creation date, or historical status."
+    )
+
 
 class ProvenanceEdge(BaseModel):
     """The transfer of ownership or location of an artwork."""
+
     source: str = Field(description="Previous owner or starting location.")
     target: str = Field(description="New owner or destination.")
     transfer_type: str = Field(
         description="Type: 'Acquired by', 'Sold to', 'Donated to', 'Lent to', 'Commissioned by'."
     )
-    specification: Optional[str] = Field(description="Date of transfer, sale price, or auction details.")
+    specification: Optional[str] = Field(
+        description="Date of transfer, sale price, or auction details."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -51,12 +60,13 @@ PROVENANCE_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
     """
     Template for tracking the ownership history (provenance) of artworks and artifacts.
-    
+
     Essential for art authentication, museum archives, and historical research.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -66,6 +76,7 @@ class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
         >>> graph.feed_text(text)
         >>> print(graph.edges) # Extracted ownership transfer
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -76,7 +87,7 @@ class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the ProvenanceGraph template.
@@ -95,7 +106,9 @@ class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
             node_schema=ArtEntity,
             edge_schema=ProvenanceEdge,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.transfer_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.transfer_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -107,8 +120,9 @@ class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
             prompt=PROVENANCE_GRAPH_PROMPT,
             prompt_for_node_extraction=PROVENANCE_NODE_PROMPT,
             prompt_for_edge_extraction=PROVENANCE_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -119,21 +133,21 @@ class ProvenanceGraph(AutoGraph[ArtEntity, ProvenanceEdge]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: ArtEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: ProvenanceEdge) -> str:
-            info = f" ({ edge.specification })" if getattr(edge, "specification", None) else ""
-            return f"{ edge.source }{info}"
-    
+            return f"{edge.transfer_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

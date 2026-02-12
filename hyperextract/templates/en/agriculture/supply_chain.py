@@ -8,22 +8,31 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class SupplyEntity(BaseModel):
     """An actor or asset in the agri-supply chain (e.g., Farm, Warehouse, Processor, Logistics, Retailer)."""
+
     name: str = Field(description="Name of the organization, facility, or batch ID.")
     category: str = Field(
         description="Category: 'Producer/Farm', 'Processor', 'Distributor', 'Logistics Provider', 'Retailer', 'Batch/Product'."
     )
-    location_or_cert: Optional[str] = Field(description="Geographic location or quality certification (e.g., Organic, ISO).")
+    location_or_cert: Optional[str] = Field(
+        description="Geographic location or quality certification (e.g., Organic, ISO)."
+    )
+
 
 class SupplyFlow(BaseModel):
     """The flow of products or information between supply chain actors."""
+
     source: str = Field(description="The starting entity (sender/producer).")
     target: str = Field(description="The receiving entity (buyer/processor).")
     flow_type: str = Field(
         description="Type: 'Ships to', 'Processes', 'Sells to', 'Tests', 'Certifies'."
     )
-    specification: Optional[str] = Field(description="Quantity, transportation mode, or quality check result.")
+    specification: Optional[str] = Field(
+        description="Quantity, transportation mode, or quality check result."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -51,12 +60,13 @@ AGRI_SUPPLY_CHAIN_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
     """
     Template for agricultural traceability, logistics mapping, and supply chain transparency.
-    
+
     Ideal for food safety tracking, logistics optimization, and trade analysis.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -66,6 +76,7 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
         >>> graph.feed_text(text)
         >>> print(graph.edges) # Extracted logistics flow
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -76,7 +87,7 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the AgriSupplyChain template.
@@ -95,7 +106,9 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
             node_schema=SupplyEntity,
             edge_schema=SupplyFlow,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.flow_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.flow_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -107,8 +120,9 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
             prompt=AGRI_SUPPLY_CHAIN_PROMPT,
             prompt_for_node_extraction=AGRI_SUPPLY_CHAIN_NODE_PROMPT,
             prompt_for_edge_extraction=AGRI_SUPPLY_CHAIN_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -119,21 +133,21 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: SupplyEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: SupplyFlow) -> str:
-            info = f" ({ edge.specification })" if getattr(edge, "specification", None) else ""
-            return f"{ edge.source }{info}"
-    
+            return f"{edge.flow_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

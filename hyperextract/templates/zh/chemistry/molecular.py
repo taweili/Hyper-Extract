@@ -114,10 +114,10 @@ class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: AtomNode) -> str:
-            return f"{ node.name }"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: ChemicalBond) -> str:
-            return f"{ edge.source }"
+            return f"{edge.bond_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

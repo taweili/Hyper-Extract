@@ -118,7 +118,7 @@ class BiologicalNetwork(AutoGraph[BioEntityNode, BioInteractionEdge]):
             return f"{ node.name }{info}"
     
         def edge_label_extractor(edge: BioInteractionEdge) -> str:
-            return f"{ edge.source }"
+            return f"{ edge.interaction_type }"
     
         super().show(
             node_label_extractor=node_label_extractor,

@@ -8,22 +8,29 @@ from hyperextract.types import AutoGraph
 # 1. Schema 定义 (Schema Definitions)
 # ==============================================================================
 
+
 class SupplyEntity(BaseModel):
     """农产品供应链中的参与者或资产（如农场、仓库、加工商、物流商、零售商）。"""
+
     name: str = Field(description="机构、设施的名称或批次ID。")
     category: str = Field(
         description="类别：'生产者/农场', '加工商', '分销商', '物流商', '零售商', '批次/产品'。"
     )
-    location_or_cert: Optional[str] = Field(description="地理位置或质量认证（如：有机认证、ISO）。")
+    location_or_cert: Optional[str] = Field(
+        description="地理位置或质量认证（如：有机认证、ISO）。"
+    )
+
 
 class SupplyFlow(BaseModel):
     """供应链参与者之间的产品或信息流。"""
+
     source: str = Field(description="起始实体（发送方/生产者）。")
     target: str = Field(description="接收实体（购买方/加工商）。")
     flow_type: str = Field(
         description="类型：'发货至', '加工', '销售给', '检测', '认证'。"
     )
     specification: Optional[str] = Field(description="数量、运输方式或质量检测结果。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -37,24 +44,21 @@ AGRI_SUPPLY_CHAIN_PROMPT = (
     "- 捕获文本中提到的质量检测、认证和运输方式。"
 )
 
-AGRI_SUPPLY_CHAIN_NODE_PROMPT = (
-    "请提取供应链实体：识别特定的农场、工厂、物流枢纽和零售商。记录它们的角色、位置以及提及的任何质量认证。"
-)
+AGRI_SUPPLY_CHAIN_NODE_PROMPT = "请提取供应链实体：识别特定的农场、工厂、物流枢纽和零售商。记录它们的角色、位置以及提及的任何质量认证。"
 
-AGRI_SUPPLY_CHAIN_EDGE_PROMPT = (
-    "建立货物与信息的流动。连接生产者到加工商，以及加工商到零售商。使用'发货至'或'加工'等具体的关系类型，并包含运输方式或数量等细节。"
-)
+AGRI_SUPPLY_CHAIN_EDGE_PROMPT = "建立货物与信息的流动。连接生产者到加工商，以及加工商到零售商。使用'发货至'或'加工'等具体的关系类型，并包含运输方式或数量等细节。"
 
 # ==============================================================================
 # 3. 模板类 (Template Class)
 # ==============================================================================
 
+
 class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
     """
     用于农产品溯源、物流映射和供应链透明化的模板。
-    
+
     适用于食品安全追踪、物流优化和贸易分析。
-    
+
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -64,6 +68,7 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
         >>> graph.feed_text(text)
         >>> print(graph.edges) # 提取物流流向
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -74,7 +79,7 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化 AgriSupplyChain 模板。
@@ -93,7 +98,9 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
             node_schema=SupplyEntity,
             edge_schema=SupplyFlow,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.flow_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.flow_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -105,8 +112,9 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
             prompt=AGRI_SUPPLY_CHAIN_PROMPT,
             prompt_for_node_extraction=AGRI_SUPPLY_CHAIN_NODE_PROMPT,
             prompt_for_edge_extraction=AGRI_SUPPLY_CHAIN_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -117,21 +125,21 @@ class AgriSupplyChain(AutoGraph[SupplyEntity, SupplyFlow]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: SupplyEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: SupplyFlow) -> str:
-            info = f" ({ edge.specification })" if getattr(edge, "specification", None) else ""
-            return f"{ edge.source }{info}"
-    
+            return f"{edge.flow_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

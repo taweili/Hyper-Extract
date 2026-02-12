@@ -142,10 +142,10 @@ class SiteTopologyGraph(AutoSpatialGraph[PhysicalElementNode, SpatialRelation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: PhysicalElementNode) -> str:
-            return f"{ node.name }"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: SpatialRelation) -> str:
-            return f"{ edge.source }"
+            return f"{edge.relation_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

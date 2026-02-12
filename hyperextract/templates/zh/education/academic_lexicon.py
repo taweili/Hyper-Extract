@@ -109,7 +109,7 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
             top_k_for_chat (int): Number of items to retrieve for chat context. Default 3.
         """
         def item_label_extractor(item: AcademicTerm) -> str:
-            return f"{ item.term }"
+            return f"{item.term}"
     
         super().show(
             item_label_extractor=item_label_extractor,

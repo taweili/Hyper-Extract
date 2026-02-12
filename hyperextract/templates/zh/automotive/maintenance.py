@@ -125,7 +125,7 @@ class CarMaintenanceGraph(AutoGraph[MaintenanceItem, MaintenanceSequence]):
             return f"{ node.item_name }{info}"
     
         def edge_label_extractor(edge: MaintenanceSequence) -> str:
-            return f"{ edge.source }"
+            return f"{ edge.action }"
     
         super().show(
             node_label_extractor=node_label_extractor,

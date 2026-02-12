@@ -129,7 +129,7 @@ class AutomotiveMfgGraph(AutoGraph[ManufacturingEntity, SupplyChainRelation]):
             return f"{ node.name }{info}"
     
         def edge_label_extractor(edge: SupplyChainRelation) -> str:
-            return f"{ edge.source }"
+            return f"{ edge.relation_type }"
     
         super().show(
             node_label_extractor=node_label_extractor,

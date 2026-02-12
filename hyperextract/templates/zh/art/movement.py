@@ -8,22 +8,27 @@ from hyperextract.types import AutoGraph
 # 1. 模式定义 (Schema)
 # ==============================================================================
 
+
 class MovementEntity(BaseModel):
     """艺术流派、风格、艺术家或具有影响力的作品。"""
+
     name: str = Field(description="流派名称（如：印象派）或艺术家姓名。")
     category: str = Field(
         description="类别：'流派'、'风格'、'艺术家'、'宣言'、'代表作'。"
     )
     attributes: Optional[str] = Field(description="核心特征、常用媒介或流行时期。")
 
+
 class ArtInfluenceEdge(BaseModel):
     """艺术史中的影响、衍生或成员关系。"""
+
     source: str = Field(description="前驱流派 or 影响源。")
     target: str = Field(description="后继流派、具体作品或艺术家。")
     relation: str = Field(
         description="关系：'影响了'、'创始人'、'成员'、'是对...的反叛'、'衍生自'。"
     )
     details: Optional[str] = Field(description="具体的风格技巧传承或历史事件。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -41,20 +46,19 @@ MOVEMENT_NODE_PROMPT = (
     "提取艺术流派、风格、相关艺术家及关键作品。描述其视觉语言和核心理论。"
 )
 
-MOVEMENT_EDGE_PROMPT = (
-    "定义流派与个人之间的联系。使用诸如'是对...的反叛'或'影响了'等关系词。记录代际之间传递的具体技法。"
-)
+MOVEMENT_EDGE_PROMPT = "定义流派与个人之间的联系。使用诸如'是对...的反叛'或'影响了'等关系词。记录代际之间传递的具体技法。"
 
 # ==============================================================================
 # 3. 模板类
 # ==============================================================================
 
+
 class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
     """
     艺术流派图谱模板，用于映射艺术风格、流派影响力和艺术家所属流派。
-    
+
     适用于教学应用和艺术史深度分析。
-    
+
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI()
@@ -64,6 +68,7 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
         >>> graph.feed_text(text)
         >>> print(graph.nodes) # 流派与艺术家详情
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -74,7 +79,7 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化艺术流派图谱模板。
@@ -93,7 +98,9 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
             node_schema=MovementEntity,
             edge_schema=ArtInfluenceEdge,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -105,8 +112,9 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
             prompt=MOVEMENT_GRAPH_PROMPT,
             prompt_for_node_extraction=MOVEMENT_NODE_PROMPT,
             prompt_for_edge_extraction=MOVEMENT_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -117,20 +125,21 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: MovementEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: ArtInfluenceEdge) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

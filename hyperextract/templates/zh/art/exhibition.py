@@ -8,22 +8,27 @@ from hyperextract.types import AutoGraph
 # 1. 模式定义 (Schema)
 # ==============================================================================
 
+
 class ExhibitionEntity(BaseModel):
     """艺术展览的组成要素（策展人、主题、作品、场馆、赞助商）。"""
+
     name: str = Field(description="展览名称、艺术家姓名或策展人姓名。")
     type: str = Field(
         description="类型：'展览'、'主题'、'艺术品'、'策展人'、'场馆'、'合作伙伴'。"
     )
     details: Optional[str] = Field(description="展览日期、理念说明或地理位置。")
 
+
 class ExhibitionRelation(BaseModel):
     """展览策划与执行中的连接关系。"""
+
     source: str = Field(description="组织或控制实体。")
     target: str = Field(description="相关的作品 or 参与者。")
     relation_type: str = Field(
         description="类型：'策展自'、'参展于'、'举办于'、'赞助自'、'主题关联至'。"
     )
     context: Optional[str] = Field(description="具体展厅、借展条件或主题子组。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -49,12 +54,13 @@ EXHIBITION_EDGE_PROMPT = (
 # 3. 模板类
 # ==============================================================================
 
+
 class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
     """
     展览策划图谱模板，用于策划筹备和展览分析。
-    
+
     追踪艺术品、主题、策展人和场馆之间的关系。
-    
+
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI()
@@ -64,6 +70,7 @@ class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
         >>> graph.feed_text(text)
         >>> print(graph.edges) # 展览关联信息
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -74,7 +81,7 @@ class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化展览策划图谱模板。
@@ -93,7 +100,9 @@ class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
             node_schema=ExhibitionEntity,
             edge_schema=ExhibitionRelation,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -105,8 +114,9 @@ class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
             prompt=EXHIBITION_GRAPH_PROMPT,
             prompt_for_node_extraction=EXHIBITION_NODE_PROMPT,
             prompt_for_edge_extraction=EXHIBITION_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -117,20 +127,21 @@ class ExhibitionGraph(AutoGraph[ExhibitionEntity, ExhibitionRelation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: ExhibitionEntity) -> str:
-            info = f" ({ node.type })" if getattr(node, "type", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.type})" if getattr(node, "type", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: ExhibitionRelation) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

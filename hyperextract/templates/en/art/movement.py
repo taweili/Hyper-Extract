@@ -8,22 +8,33 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class MovementEntity(BaseModel):
     """An art movement, style, artist, or influential work."""
-    name: str = Field(description="Name of the movement (e.g., Impressionism) or Artist.")
+
+    name: str = Field(
+        description="Name of the movement (e.g., Impressionism) or Artist."
+    )
     category: str = Field(
         description="Category: 'Movement', 'Style', 'Artist', 'Manifesto', 'Masterpiece'."
     )
-    attributes: Optional[str] = Field(description="Key characteristics, materials, or timeframe.")
+    attributes: Optional[str] = Field(
+        description="Key characteristics, materials, or timeframe."
+    )
+
 
 class ArtInfluenceEdge(BaseModel):
     """Influence, derivation, or membership relations in art history."""
+
     source: str = Field(description="The precursor or movement.")
     target: str = Field(description="The follower or specific work/artist.")
     relation: str = Field(
         description="Relation: 'Influenced', 'Founder of', 'Member of', 'Reaction against', 'Derived from'."
     )
-    details: Optional[str] = Field(description="Specific stylistic techniques or historical events.")
+    details: Optional[str] = Field(
+        description="Specific stylistic techniques or historical events."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -37,9 +48,7 @@ MOVEMENT_GRAPH_PROMPT = (
     "- Capture the core philosophies and visual characteristics defined in manifestos or works."
 )
 
-MOVEMENT_NODE_PROMPT = (
-    "Extract art movements, styles, associated artists, and pivotal artworks. Describe their visual language and key theories."
-)
+MOVEMENT_NODE_PROMPT = "Extract art movements, styles, associated artists, and pivotal artworks. Describe their visual language and key theories."
 
 MOVEMENT_EDGE_PROMPT = (
     "Define connections between movements and individuals. Use relations like 'Reaction against' or 'Influenced'. "
@@ -50,12 +59,13 @@ MOVEMENT_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
     """
     Template for mapping art movements, stylistic influences, and artist school affiliations.
-    
+
     Useful for educational applications and art historical analysis.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI()
@@ -65,6 +75,7 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
         >>> graph.feed_text(text)
         >>> print(graph.nodes) # Movement and Artist details
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -75,7 +86,7 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the ArtMovementGraph template.
@@ -94,7 +105,9 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
             node_schema=MovementEntity,
             edge_schema=ArtInfluenceEdge,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -106,8 +119,9 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
             prompt=MOVEMENT_GRAPH_PROMPT,
             prompt_for_node_extraction=MOVEMENT_NODE_PROMPT,
             prompt_for_edge_extraction=MOVEMENT_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -118,20 +132,21 @@ class ArtMovementGraph(AutoGraph[MovementEntity, ArtInfluenceEdge]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: MovementEntity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: ArtInfluenceEdge) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

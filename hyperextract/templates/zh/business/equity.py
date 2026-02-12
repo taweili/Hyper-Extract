@@ -136,7 +136,7 @@ class EquityStructureGraph(AutoGraph[StakeholderNode, OwnershipRelation]):
             return f"{ node.name }{info}"
     
         def edge_label_extractor(edge: OwnershipRelation) -> str:
-            return f"{ edge.source }"
+            return f"{edge.control_type}"
     
         super().show(
             node_label_extractor=node_label_extractor,

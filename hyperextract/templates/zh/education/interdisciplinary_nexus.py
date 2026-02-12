@@ -134,10 +134,10 @@ class InterdisciplinaryNexusHypergraph(AutoHypergraph[ConceptNode, Interdiscipli
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: ConceptNode) -> str:
-            return f"{ node.name }"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: InterdisciplinaryEdge) -> str:
-            return f"{ edge.participants }"
+            return f"{edge.unifying_theme}"
     
         super().show(
             node_label_extractor=node_label_extractor,

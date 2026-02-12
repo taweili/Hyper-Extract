@@ -132,11 +132,11 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: Entity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
     
         def edge_label_extractor(edge: Relation) -> str:
-            return f"{ edge.source }"
+            return f"{edge.relation}"
     
         super().show(
             node_label_extractor=node_label_extractor,

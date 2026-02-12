@@ -131,11 +131,10 @@ class StrategicChainGraph(AutoTemporalGraph[StrategicNode, StrategicPivot]):
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
         def node_label_extractor(node: StrategicNode) -> str:
-            return f"{ node.name }"
+            return f"{node.name}"
     
         def edge_label_extractor(edge: StrategicPivot) -> str:
-            info = f" ({ edge.timestamp })" if getattr(edge, "timestamp", None) else ""
-            return f"{ edge.source }{info}"
+            return f"{edge.action}"
     
         super().show(
             node_label_extractor=node_label_extractor,
