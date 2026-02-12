@@ -40,7 +40,7 @@ class InterdisciplinaryEdge(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-NEXUS_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a Polymath and Interdisciplinary Researcher. Identify deep connections between concepts across different academic fields.\n\n"
     "Extraction Rules:\n"
     "- Identify core concepts as Nodes.\n"
@@ -48,14 +48,14 @@ NEXUS_CONSOLIDATED_PROMPT = (
     "- Focus on finding surprising but scientifically valid bridges (e.g., connecting Biology and Economics through Game Theory)."
 )
 
-NEXUS_NODE_PROMPT = (
+_NODE_PROMPT = (
     "Identify fundamental academic concepts that carry cross-disciplinary potential.\n\n"
     "Rules:\n"
     "- Extract nouns/concepts that are central to their respective fields.\n"
     "- Identify the field of origin."
 )
 
-NEXUS_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "Identify the 'Nexuses' or Hyperedges that unify a group of concepts.\n\n"
     "Rules:\n"
     "- A hyperedge must involve more than two nodes whenever possible.\n"
@@ -123,9 +123,9 @@ class InterdisciplinaryNexusHypergraph(
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=NEXUS_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=NEXUS_NODE_PROMPT,
-            prompt_for_edge_extraction=NEXUS_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

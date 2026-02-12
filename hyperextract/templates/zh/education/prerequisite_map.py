@@ -43,7 +43,7 @@ class PrerequisiteRelation(BaseModel):
 # 2. Prompts 提示词
 # ==============================================================================
 
-EDUCATION_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位资深课程架构师和教育心理学家。请从文本中提取知识点的逻辑结构。\n\n"
     "提取规则：\n"
     "- 识别构成学习路径的原子化概念。\n"
@@ -51,7 +51,7 @@ EDUCATION_CONSOLIDATED_PROMPT = (
     "- 确保生成的图谱符合科学的教学演进逻辑。"
 )
 
-EDUCATION_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位擅长知识拆解的教育心理学家。你的任务是识别所有离散的知识点（节点）。\n\n"
     "提取规则：\n"
     "- 关注代表特定学术概念、公式或方法的名词或名词短语。\n"
@@ -59,7 +59,7 @@ EDUCATION_NODE_PROMPT = (
     "- 此阶段不要识别关系或依赖。"
 )
 
-EDUCATION_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位课程设计师。根据已识别的知识点，映射先修关系（边）。\n\n"
     "提取规则：\n"
     "- 确定概念 A 是否是学习概念 B 的必要前提。\n"
@@ -125,9 +125,9 @@ class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=EDUCATION_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=EDUCATION_NODE_PROMPT,
-            prompt_for_edge_extraction=EDUCATION_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
     def show(

@@ -35,7 +35,7 @@ class LogicRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-LOGIC_GRAPH_PROMPT = (
+_PROMPT = (
     "You are a logical analyst. Extract the reasoning structure from the text into a directed graph.\n\n"
     "Guidelines:\n"
     "- Identify the main claims (conclusions) and the evidence or premises that lead to them.\n"
@@ -43,12 +43,12 @@ LOGIC_GRAPH_PROMPT = (
     "- Do not just extract facts; extract the 'argument' and 'reasoning' flow."
 )
 
-LOGIC_GRAPH_NODE_PROMPT = (
+_NODE_PROMPT = (
     "Extract the individual building blocks of the argument. Identify core claims, supporting evidence, "
     "and underlying premises. For each, determine its type and note any source attribution mentioned."
 )
 
-LOGIC_GRAPH_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "Map the logical flow between the extracted claims and evidence. Focus on how statements "
     "Support, Contradict, or Lead to one another. Ensure every edge represents a step in the reasoning chain."
 )
@@ -120,9 +120,9 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=LOGIC_GRAPH_PROMPT,
-            prompt_for_node_extraction=LOGIC_GRAPH_NODE_PROMPT,
-            prompt_for_edge_extraction=LOGIC_GRAPH_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

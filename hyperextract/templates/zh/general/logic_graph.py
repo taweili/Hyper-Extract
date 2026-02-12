@@ -28,7 +28,7 @@ class LogicRelation(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-LOGIC_GRAPH_PROMPT = (
+_PROMPT = (
     "你是一位逻辑分析师。请将文本中的论证结构提取并转化为一个有向图。\n\n"
     "提取指南：\n"
     "- 识别主要主张（结论）以及引向这些结论的证据或前提。\n"
@@ -36,11 +36,11 @@ LOGIC_GRAPH_PROMPT = (
     "- 不仅要提取事实，更要提取“论证”和“推理”的流向。"
 )
 
-LOGIC_GRAPH_NODE_PROMPT = (
+_NODE_PROMPT = (
     "请提取论证中的各个基本构成要素。识别核心主张、支持性证据和底层前提。对于每一项，确定其类型并记录提及的任何来源出处。"
 )
 
-LOGIC_GRAPH_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "映射提取出的主张与证据之间的逻辑流向。重点关注各个陈述之间是如何相互 支持、反驳 或 导致 彼此的。确保每条边都代表推理链中的一个步骤。"
 )
 
@@ -105,9 +105,9 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=LOGIC_GRAPH_PROMPT,
-            prompt_for_node_extraction=LOGIC_GRAPH_NODE_PROMPT,
-            prompt_for_edge_extraction=LOGIC_GRAPH_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

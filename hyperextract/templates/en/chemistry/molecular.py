@@ -48,7 +48,7 @@ class ChemicalBond(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-MOLECULAR_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a computational chemist and crystallographer. Extract the 3D molecular topology.\n\n"
     "Rules:\n"
     "- Identify every atom as a node.\n"
@@ -56,7 +56,7 @@ MOLECULAR_CONSOLIDATED_PROMPT = (
     "- Capture the formal charge and hybridization of each atom."
 )
 
-MOLECULAR_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are a computational chemist. Your task is to identify and extract all individual atoms (Nodes) from the molecular structure.\n\n"
     "Extraction Rules:\n"
     "- Identify the unique atom identifier (e.g., C1) and its chemical element symbol.\n"
@@ -65,7 +65,7 @@ MOLECULAR_NODE_PROMPT = (
     "- DO NOT identify bonds or spatial connectivity at this stage."
 )
 
-MOLECULAR_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a computational chemist. Given the list of atoms, map the chemical bonds and spatial connectivity (Edges).\n\n"
     "Extraction Rules:\n"
     "- Define the bond type (Single, Double, Aromatic, etc.) between a source and target atom.\n"
@@ -112,9 +112,9 @@ class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=MOLECULAR_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=MOLECULAR_NODE_PROMPT,
-            prompt_for_edge_extraction=MOLECULAR_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

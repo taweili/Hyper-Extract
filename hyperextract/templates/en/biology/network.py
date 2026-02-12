@@ -31,7 +31,7 @@ class BioInteractionEdge(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-NETWORK_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a bioinformatics expert specializing in molecular signaling and regulatory networks. "
     "Extract interactions from the text to build a biological network graph.\n\n"
     "Rules:\n"
@@ -40,7 +40,7 @@ NETWORK_CONSOLIDATED_PROMPT = (
     "- Capture the specific biochemical mechanism for each edge."
 )
 
-NETWORK_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are a bioinformatics expert. Your task is to identify all molecular entities (Nodes) mentioned in the text.\n\n"
     "Extraction Rules:\n"
     "- Identify genes, proteins, RNAs, and metabolites. Use standard nomenclature (e.g., HGNC symbols).\n"
@@ -49,7 +49,7 @@ NETWORK_NODE_PROMPT = (
     "- DO NOT extract interactions or state changes at this stage."
 )
 
-NETWORK_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a bioinformatics expert. Given the following list of molecular entities, extract their physical and functional interactions (Edges).\n\n"
     "Extraction Rules:\n"
     "- Identify the type of interaction (Phosphorylation, Inhibition, Activation, Binding, etc.).\n"
@@ -91,9 +91,9 @@ class BiologicalNetwork(AutoGraph[BioEntityNode, BioInteractionEdge]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=NETWORK_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=NETWORK_NODE_PROMPT,
-            prompt_for_edge_extraction=NETWORK_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

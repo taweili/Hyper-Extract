@@ -34,11 +34,30 @@ Before designing a Schema, ask yourself:
 ## 2. Implementation Rules
 
 ### A. Prompt Definition
-*   **Mandatory Constant**: Define `_TEMPLATE_PROMPT` (a multi-line string) outside the class.
+*   **Mandatory Constant**: Define `_PROMPT` (a multi-line string) outside the class.
 *   **Content**: Clearly define the expert persona and extraction logic. Mention specific formatting rules if necessary.
+*   **Graph/Hypergraph Two-Stage Support**: If your template inherits from `AutoGraph`, `AutoHypergraph`, `AutoTemporalGraph`, `AutoSpatialGraph`, or `AutoSpatioTemporalGraph`, you **MUST define three separate prompts** to support both extraction modes:
+    1.  `_PROMPT`: For "one_stage" (extract Nodes & Edges simultaneously, faster).
+    2.  `_NODE_PROMPT`: For "two_stage" step 1 (extract Nodes only, foundations).
+    3.  `_EDGE_PROMPT`: For "two_stage" step 2 (extract Edges/Hyperedges given existing Nodes, more precise).
+    
+    Pass these to `super().__init__` as:
+    ```python
+    super().__init__(
+        ...,
+        prompt=_PROMPT,
+        prompt_for_node_extraction=_NODE_PROMPT,
+        prompt_for_edge_extraction=_EDGE_PROMPT,
+        ...
+    )
+    ```
 
 ### B. Class Structure
 *   **Schemas**: All Pydantic fields MUST include a `description` attribute. This is vital for the LLM to understand the target.
+*   **Documentation**:
+    *   **Class Docstring**: Must include a high-level description and a usage **Example** showing how to instantiate and use the template.
+    *   **Method Docstrings**: The `__init__` and `show` methods MUST include standard Google-style docstrings with detailed `Args` descriptions for every parameter.
+*   **Parameter Accuracy**: Verify that every argument in your `__init__` exists in the base class. Common mistake: `extraction_mode` exists in `AutoGraph` but NOT in `AutoSet`.
 *   **Initialization**: Explicitly list parameters (`llm_client`, `embedder`, etc.) and pass the prompt to `super().__init__(..., prompt=_TEMPLATE_PROMPT, ...)`.
 *   **Visualization (`show`)**: YOU MUST override the `show` method.
     *   **Parameter Constraint**: **DO NOT** include `label_extractor` parameters (e.g., `node_label_extractor`) in the template's `show` method signature.
@@ -61,7 +80,7 @@ class ItemSchema(BaseModel):
     ...
 
 # 2. Define Prompt
-_TEMPLATE_PROMPT = """
+_PROMPT = """
 You are an expert in [Domain]. Your task is to extract [Structure] from text...
 """
 
@@ -80,7 +99,7 @@ class MyTemplate(AutoType[ItemSchema]): # Replace with actual base class (AutoLi
             item_schema=ItemSchema,
             llm_client=llm_client,
             embedder=embedder,
-            prompt=_TEMPLATE_PROMPT,
+            prompt=_PROMPT,
             chunk_size=chunk_size,
             **kwargs
         )

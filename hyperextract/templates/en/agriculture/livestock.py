@@ -38,7 +38,7 @@ class BreedingRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-LIVESTOCK_GRAPH_PROMPT = (
+_PROMPT = (
     "You are a livestock specialist and geneticist. Extract a breeding and health management graph.\n\n"
     "Guidelines:\n"
     "- Identify individual animals and their breeds.\n"
@@ -46,12 +46,12 @@ LIVESTOCK_GRAPH_PROMPT = (
     "- Link animals to their health status, vaccinations, and nutrition records."
 )
 
-LIVESTOCK_NODE_PROMPT = (
+_NODE_PROMPT = (
     "Extract livestock entities: identify specific animals (by ID or name), breeds, health conditions, "
     "vaccines, and specific feed types. Provide relevant traits or metrics for each."
 )
 
-LIVESTOCK_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "Link livestock entities logically. Map family trees (parental links), breeding history, "
     "and medical/nutritional events. Ensure relation types like 'bred with' or 'fed with' are used accurately."
 )
@@ -117,9 +117,9 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=LIVESTOCK_GRAPH_PROMPT,
-            prompt_for_node_extraction=LIVESTOCK_NODE_PROMPT,
-            prompt_for_edge_extraction=LIVESTOCK_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

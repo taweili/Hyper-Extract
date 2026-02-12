@@ -29,7 +29,7 @@ class Relation(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-KNOWLEDGE_GRAPH_PROMPT = (
+_PROMPT = (
     "你是一个专业的知识提取专家。你的任务是从提供的文本中提取一个事实知识图谱。"
     "重点识别关键实体（人物、组织、地理位置、重要物体）以及它们之间明确的关系。\n\n"
     "提取指南：\n"
@@ -38,12 +38,12 @@ KNOWLEDGE_GRAPH_PROMPT = (
     "- 简洁性：使用清晰、简洁的语言进行描述和关系定义。"
 )
 
-KNOWLEDGE_GRAPH_NODE_PROMPT = (
+_NODE_PROMPT = (
     "请从文本中提取所有关键实体。重点识别人物、组织、地理位置以及重要的物体。"
     "为每个实体提供名称、类别以及简明扼要的描述。"
 )
 
-KNOWLEDGE_GRAPH_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "基于文本识别以下已知实体之间的事实关系。重点关注如“任职于”、“位于”、“创立”或“收购”等互动。"
     "请勿虚构不在列表中的实体。"
 )
@@ -109,9 +109,9 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=KNOWLEDGE_GRAPH_PROMPT,
-            prompt_for_node_extraction=KNOWLEDGE_GRAPH_NODE_PROMPT,
-            prompt_for_edge_extraction=KNOWLEDGE_GRAPH_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

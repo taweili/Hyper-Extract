@@ -32,7 +32,7 @@ class MetabolicReactionHyperedge(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-METABOLIC_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位擅长代谢工程的生物化学家。请提取复杂的 N 元反应。\n\n"
     "规则：\n"
     "- 将所有参与者（底物、产物和酶）归为一个超边（Hyperedge）。\n"
@@ -40,7 +40,7 @@ METABOLIC_CONSOLIDATED_PROMPT = (
     "- 将催化酶作为超边参与者的一部分进行捕获。"
 )
 
-METABOLIC_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位生物化学家。你的任务是识别代谢过程中涉及的所有代谢物和催化酶（节点）。\n\n"
     "提取规则：\n"
     "- 识别化学组分（底物/产物）以及促进其转化的酶。\n"
@@ -49,7 +49,7 @@ METABOLIC_NODE_PROMPT = (
     "- 在此阶段请勿构建反应方程式或复合物。"
 )
 
-METABOLIC_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位生物化学家。根据以下代谢物和酶的清单，提取复杂的代谢反应（超边）。\n\n"
     "提取规则：\n"
     "- 将所有参与者（底物、产物和酶）归入单个反应事件中。\n"
@@ -91,9 +91,9 @@ class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHypere
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=METABOLIC_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=METABOLIC_NODE_PROMPT,
-            prompt_for_edge_extraction=METABOLIC_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

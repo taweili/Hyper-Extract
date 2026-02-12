@@ -48,7 +48,7 @@ class PrerequisiteRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-EDUCATION_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a Senior Curriculum Architect and Educational Psychologist. Extract the logical structure of knowledge points from the text.\n\n"
     "Rules:\n"
     "- Identify atomic concepts that constitute the learning path.\n"
@@ -56,7 +56,7 @@ EDUCATION_CONSOLIDATED_PROMPT = (
     "- Ensure that the resulting graph reflects a sound pedagogical sequence."
 )
 
-EDUCATION_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are an Educational Psychologist specializing in knowledge decomposition. Your task is to identify all discrete Knowledge Points (Nodes).\n\n"
     "Extraction Rules:\n"
     "- Focus on nouns or noun phrases that represent specific academic concepts, formulas, or methods.\n"
@@ -64,7 +64,7 @@ EDUCATION_NODE_PROMPT = (
     "- DO NOT identify relationships or dependencies at this stage."
 )
 
-EDUCATION_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a Curriculum Designer. Given the identified knowledge points, map the Prerequisite Relations (Edges).\n\n"
     "Extraction Rules:\n"
     "- Determine if Concept A is a necessary precursor to Concept B.\n"
@@ -136,9 +136,9 @@ class PrerequisiteMapGraph(AutoGraph[KnowledgePointNode, PrerequisiteRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=EDUCATION_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=EDUCATION_NODE_PROMPT,
-            prompt_for_edge_extraction=EDUCATION_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

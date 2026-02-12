@@ -38,7 +38,7 @@ class AgriRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-CROP_CYCLE_PROMPT = (
+_PROMPT = (
     "You are an expert agronomist. Extract a crop growth and management graph from the text.\n\n"
     "Guidelines:\n"
     "- Identify the crop and its specific growth stages (e.g., Sowing, Flowering).\n"
@@ -46,7 +46,7 @@ CROP_CYCLE_PROMPT = (
     "- Note any threats like pests or diseases and their impact on the crop."
 )
 
-CROP_CYCLE_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are an expert agronomist. Your task is to identify and extract all key agricultural entities (Nodes) from the text.\n\n"
     "Extraction Rules:\n"
     "- Identify crop types, specific growth stages, environmental factors (e.g., pH, temperature), and farming tasks.\n"
@@ -55,7 +55,7 @@ CROP_CYCLE_NODE_PROMPT = (
     "- DO NOT identify sequences or dependencies between these entities at this stage."
 )
 
-CROP_CYCLE_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are an expert agronomist. Given the list of agricultural entities, map the logical links and cycles (Edges).\n\n"
     "Extraction Rules:\n"
     "- Establish sequential links between growth stages.\n"
@@ -126,9 +126,9 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=CROP_CYCLE_PROMPT,
-            prompt_for_node_extraction=CROP_CYCLE_NODE_PROMPT,
-            prompt_for_edge_extraction=CROP_CYCLE_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

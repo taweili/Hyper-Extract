@@ -56,7 +56,7 @@ class ReactionEvent(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-REACTION_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are an expert organic and inorganic chemist. Extract multi-component reaction events.\n\n"
     "Rules:\n"
     "- Represent each reaction as a Hyperedge connecting all reactants, products, and catalysts.\n"
@@ -64,7 +64,7 @@ REACTION_CONSOLIDATED_PROMPT = (
     "- Identify the role of each chemical entity correctly in the reaction context."
 )
 
-REACTION_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are an organic chemist. Your task is to identify and extract all chemical entities (Nodes) mentioned in the text.\n\n"
     "Extraction Rules:\n"
     "- Identify reagents, products, catalysts, and solvents.\n"
@@ -73,7 +73,7 @@ REACTION_NODE_PROMPT = (
     "- DO NOT construct reaction sequences or grouping participants at this stage."
 )
 
-REACTION_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are an organic chemist. Given the list of chemical entities, extract multi-component reaction events (Hyperedges).\n\n"
     "Extraction Rules:\n"
     "- Group all participants (reactants, products, catalysts, solvents) into a single reaction hyperedge.\n"
@@ -119,9 +119,9 @@ class ChemicalReactionHyper(AutoHypergraph[ChemicalEntity, ReactionEvent]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=REACTION_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=REACTION_NODE_PROMPT,
-            prompt_for_edge_extraction=REACTION_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

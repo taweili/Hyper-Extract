@@ -34,7 +34,7 @@ class ReactionEvent(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-REACTION_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位专业的有机和无机化学家。请提取多组分的反应事件。\n\n"
     "规则：\n"
     "- 将每个反应表示为一个超边（Hyperedge），连接所有反应物、产物和催化剂。\n"
@@ -42,7 +42,7 @@ REACTION_CONSOLIDATED_PROMPT = (
     "- 在反应语境中正确识别每个化学实体的角色。"
 )
 
-REACTION_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位有机化学家。你的任务是识别出文本中提及的所有化学实体（节点）。\n\n"
     "提取规则：\n"
     "- 识别反应试剂、产物、催化剂和溶剂。\n"
@@ -51,7 +51,7 @@ REACTION_NODE_PROMPT = (
     "- 在此阶段请勿构建反应序列或对参与者进行分组。"
 )
 
-REACTION_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位有机化学家。根据化学实体清单，提取多组分反应事件（超边）。\n\n"
     "提取规则：\n"
     "- 将所有参与者（反应物、产物、催化剂、溶剂）归入单个反应超边中。\n"
@@ -93,9 +93,9 @@ class ChemicalReactionHyper(AutoHypergraph[ChemicalEntity, ReactionEvent]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=REACTION_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=REACTION_NODE_PROMPT,
-            prompt_for_edge_extraction=REACTION_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

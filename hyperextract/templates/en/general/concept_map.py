@@ -38,7 +38,7 @@ class ConceptRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-CONCEPT_MAP_PROMPT = (
+_PROMPT = (
     "You are an expert in semantic modeling. Extract a concept map from the text, focusing on "
     "definitions, terminologies, and their hierarchical or associative relationships.\n\n"
     "Guidelines:\n"
@@ -47,13 +47,13 @@ CONCEPT_MAP_PROMPT = (
     "- Capture illustrative examples if mentioned."
 )
 
-CONCEPT_MAP_NODE_PROMPT = (
+_NODE_PROMPT = (
     "Extract all foundational concepts and technical terms from the text. "
     "For each concept, provide its term, a precise definition, a list of key attributes, "
     "and any specific examples mentioned in the source."
 )
 
-CONCEPT_MAP_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "Establish semantic relationships between the provided concepts. "
     "Focus on hierarchical taxonomies (is-a, part-of) and functional associations (used-for, instance-of). "
     "Ensure edges logically connect the defined concepts."
@@ -125,9 +125,9 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=CONCEPT_MAP_PROMPT,
-            prompt_for_node_extraction=CONCEPT_MAP_NODE_PROMPT,
-            prompt_for_edge_extraction=CONCEPT_MAP_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

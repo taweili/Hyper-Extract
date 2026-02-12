@@ -34,11 +34,30 @@
 ## 2. 实现规范 (Implementation Rules)
 
 ### A. Prompt 定义
-*   **强制常数**：必须在类外部定义 `_TEMPLATE_PROMPT`（多行字符串）。
+*   **强制常数**：必须在类外部定义 `_PROMPT`（多行字符串）。
 *   **内容要求**：明确定义专家角色、提取逻辑。如果某些字段有特定的提取格式要求，请在 Prompt 中强调。
+*   **图谱/超图双阶段支持**：如果模板继承自 `AutoGraph`、`AutoHypergraph`、`AutoTemporalGraph`、`AutoSpatialGraph` 或 `AutoSpatioTemporalGraph`，你**必须定义三个独立的 Prompt** 以支持所有提取模式：
+    1.  `_PROMPT`: 用于 "one_stage"（同时提取节点和边，速度快）。
+    2.  `_NODE_PROMPT`: 用于 "two_stage" 第一步（仅提取节点，打基础）。
+    3.  `_EDGE_PROMPT`: 用于 "two_stage" 第二步（基于已有节点提取边/超边，更精准）。
+    
+    在 `super().__init__` 中分别传递：
+    ```python
+    super().__init__(
+        ...,
+        prompt=_PROMPT,
+        prompt_for_node_extraction=_NODE_PROMPT,
+        prompt_for_edge_extraction=_EDGE_PROMPT,
+        ...
+    )
+    ```
 
 ### B. 类结构
 *   **Schema**：所有 Pydantic 字段必须包含 `description` 属性，这是 LLM 理解抽取目标的关键。
+*   **文档注释 (Documentation)**：
+    *   **类文档字符串 (Class Docstring)**：必须包含高层功能描述，以及一个展示如何初始化和使用的 **示例 (Example)**。
+    *   **方法文档字符串 (Method Docstring)**：`__init__` 和 `show` 方法必须包含标准的 Google 风格文档字符串，详细说明每个参数 (`Args`)。
+*   **参数准确性 (Parameter Accuracy)**：确保 `__init__` 中的每一个参数都在基类中存在。常见错误：`extraction_mode` 仅存在于 `AutoGraph` 系列中，**不存在**于 `AutoSet` 或 `AutoList` 中。
 *   **初始化 (`__init__`)**：显式列参数（`llm_client`, `embedder` 等），并正确调用 `super().__init__(..., prompt=_TEMPLATE_PROMPT, ...)`。
 *   **可视化 (`show`)**：必须覆盖 `show` 方法。
     *   **参数约束**：**禁止**在模板类的 `show` 方法签名中包含 `label_extractor` 参数。
@@ -61,7 +80,7 @@ class ItemSchema(BaseModel):
     ...
 
 # 2. 定义 Prompt
-_TEMPLATE_PROMPT = """
+_PROMPT = """
 你是一位[领域]专家。你的任务是从文本中提取[结构化知识]...
 """
 
@@ -80,7 +99,7 @@ class MyTemplate(AutoType[ItemSchema]): # 替换为 AutoList, AutoSet 等
             item_schema=ItemSchema,
             llm_client=llm_client,
             embedder=embedder,
-            prompt=_TEMPLATE_PROMPT,
+            prompt=_PROMPT,
             chunk_size=chunk_size,
             **kwargs
         )

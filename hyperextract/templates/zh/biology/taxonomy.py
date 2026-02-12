@@ -30,7 +30,7 @@ class TaxonomyRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-TAXONOMY_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位专业的分类学家和系统生物学家。请从文本中提取生物层级（分类学）信息。\n\n"
     "规则：\n"
     "- 识别所有分类阶元（从界到种）及其特定的等级。\n"
@@ -38,7 +38,7 @@ TAXONOMY_CONSOLIDATED_PROMPT = (
     "- 捕捉可用的学名和常用名。"
 )
 
-TAXONOMY_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位专业的分类学家。你的任务是从文本中识别并提取所有生物分类单元（节点）。\n\n"
     "提取规则：\n"
     "- 为每个分类单元识别其学名和指定的等级（如：域、界、门、纲、目、科、属、种）。\n"
@@ -47,7 +47,7 @@ TAXONOMY_NODE_PROMPT = (
     "- 在此阶段请勿提取分类单元之间的关系。"
 )
 
-TAXONOMY_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位专业的分类学家。根据以下已识别分类单元的清单，提取文本中描述的层级关系（边）。\n\n"
     "提取规则：\n"
     "- 在高层级分类单元包含低层级分类单元时建立 'parent_of' 链接。\n"
@@ -89,9 +89,9 @@ class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=TAXONOMY_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=TAXONOMY_NODE_PROMPT,
-            prompt_for_edge_extraction=TAXONOMY_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

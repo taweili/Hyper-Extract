@@ -51,7 +51,7 @@ class ProtocolTransition(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-PROTOCOL_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a laboratory technician specializing in protocol documentation. Extract sequential lab steps.\n\n"
     "Rules:\n"
     "- Represent each operation as a Node.\n"
@@ -60,7 +60,7 @@ PROTOCOL_CONSOLIDATED_PROMPT = (
     "- Map the timeline precisely (e.g., 'Step 1' -> 'Step 2')."
 )
 
-PROTOCOL_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are a laboratory technician. Your task is to identify individual protocol operations (Nodes).\n\n"
     "Extraction Rules:\n"
     "- Identify discrete actions (e.g., Centrifuge, Incubate, Titrate).\n"
@@ -69,7 +69,7 @@ PROTOCOL_NODE_PROMPT = (
     "- DO NOT establish the sequence or timing between steps at this stage."
 )
 
-PROTOCOL_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a laboratory technician. Given the list of laboratory operations, extract the sequential flow (Edges).\n\n"
     "Extraction Rules:\n"
     "- Connect the source step to the target step in chronological order.\n"
@@ -117,9 +117,9 @@ class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=PROTOCOL_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=PROTOCOL_NODE_PROMPT,
-            prompt_for_edge_extraction=PROTOCOL_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

@@ -33,7 +33,7 @@ class AcademicTerm(BaseModel):
 # 2. Prompts 提示词
 # ==============================================================================
 
-ACADEMIC_LEXICON_PROMPT = (
+_PROMPT = (
     "你是一位学术百科全书编辑和词典编纂者。你的目标是提取并标准化学术定义。\n\n"
     "提取规则：\n"
     "- 识别唯一的学术术语及其高度精确的定义。\n"
@@ -92,7 +92,7 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=ACADEMIC_LEXICON_PROMPT,
+            prompt=_PROMPT,
             **kwargs,
         )
     def show(

@@ -33,7 +33,7 @@ class InterdisciplinaryEdge(BaseModel):
 # 2. Prompts 提示词
 # ==============================================================================
 
-NEXUS_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位通才和跨学科研究专家。请识别不同学术领域概念之间的深层联系。\n\n"
     "提取规则：\n"
     "- 识别核心概念作为节点。\n"
@@ -41,14 +41,14 @@ NEXUS_CONSOLIDATED_PROMPT = (
     "- 专注于发现令人惊讶但科学有效的桥梁连接（例如：通过博弈论连接生物学和经济学）。"
 )
 
-NEXUS_NODE_PROMPT = (
+_NODE_PROMPT = (
     "识别具有跨学科潜力的基础学术概念。\n\n"
     "提取规则：\n"
     "- 提取对各自领域至关重要的名词/概念。\n"
     "- 标注其学科来源。"
 )
 
-NEXUS_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "识别连接一组概念的“纽带”或称之为超边。\n\n"
     "提取规则：\n"
     "- 只要可能，一个超边应涉及两个以上的节点。\n"
@@ -111,9 +111,9 @@ class InterdisciplinaryNexusHypergraph(AutoHypergraph[ConceptNode, Interdiscipli
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=NEXUS_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=NEXUS_NODE_PROMPT,
-            prompt_for_edge_extraction=NEXUS_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
     def show(

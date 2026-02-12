@@ -38,7 +38,7 @@ class Relation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-KNOWLEDGE_GRAPH_PROMPT = (
+_PROMPT = (
     "You are an expert knowledge extraction system. Your task is to extract a factual knowledge graph "
     "from the provided text. Focus on identifying key entities (People, Organizations, Locations, and relevant Objects) "
     "and the explicit relationships between them.\n\n"
@@ -48,12 +48,12 @@ KNOWLEDGE_GRAPH_PROMPT = (
     "- Use clear, concise language for descriptions and relations."
 )
 
-KNOWLEDGE_GRAPH_NODE_PROMPT = (
+_NODE_PROMPT = (
     "Extract all key entities from the text. Focus on identifying People, Organizations, Locations, and important Objects. "
     "Provide a name, a category, and a concise description for each entity."
 )
 
-KNOWLEDGE_GRAPH_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "Identify factual relationships between the following listed entities based on the text. "
     "Focus on interactions like 'works for', 'located in', 'acquired', or 'partnered with'. "
     "Do not hallucinate entities not in the provided list."
@@ -125,9 +125,9 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=KNOWLEDGE_GRAPH_PROMPT,
-            prompt_for_node_extraction=KNOWLEDGE_GRAPH_NODE_PROMPT,
-            prompt_for_edge_extraction=KNOWLEDGE_GRAPH_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

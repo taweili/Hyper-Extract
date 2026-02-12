@@ -49,7 +49,7 @@ class MetabolicReactionHyperedge(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-METABOLIC_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a biochemist specializing in metabolic engineering. Extract complex N-ary reactions.\n\n"
     "Rules:\n"
     "- Group all participants (substrates, products, and enzymes) into a single Hyperedge.\n"
@@ -57,7 +57,7 @@ METABOLIC_CONSOLIDATED_PROMPT = (
     "- Capture the catalytic enzymes as part of the hyperedge participants."
 )
 
-METABOLIC_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are a biochemist. Your task is to identify all metabolites and catalytic enzymes (Nodes) involved in metabolic processes.\n\n"
     "Extraction Rules:\n"
     "- Identify chemical components (substrates/products) and the enzymes that facilitate their transformation.\n"
@@ -66,7 +66,7 @@ METABOLIC_NODE_PROMPT = (
     "- DO NOT construct reaction equations or complexes at this stage."
 )
 
-METABOLIC_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a biochemist. Given the following list of metabolites and enzymes, extract complex metabolic reactions (Hyperedges).\n\n"
     "Extraction Rules:\n"
     "- Group all participants (substrates, products, and enzymes) into single reaction events.\n"
@@ -112,9 +112,9 @@ class MetabolicHypergraph(AutoHypergraph[MetaboliteNode, MetabolicReactionHypere
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=METABOLIC_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=METABOLIC_NODE_PROMPT,
-            prompt_for_edge_extraction=METABOLIC_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

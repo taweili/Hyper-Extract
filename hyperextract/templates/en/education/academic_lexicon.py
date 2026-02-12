@@ -36,7 +36,7 @@ class AcademicTerm(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-ACADEMIC_LEXICON_PROMPT = (
+_PROMPT = (
     "You are a Lexicographer and Academic Encyclopedia Editor. Your goal is to extract standardize academic definitions.\n\n"
     "Extraction Rules:\n"
     "- Identify unique academic terms and their highly precise definitions.\n"
@@ -98,7 +98,7 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=ACADEMIC_LEXICON_PROMPT,
+            prompt=_PROMPT,
             **kwargs,
         )
 

@@ -31,7 +31,7 @@ class ChemicalBond(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-MOLECULAR_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位计算化学家和晶体学家。请提取 3D 分子拓扑结构。\n\n"
     "规则：\n"
     "- 将每个原子识别为一个节点。\n"
@@ -39,7 +39,7 @@ MOLECULAR_CONSOLIDATED_PROMPT = (
     "- 捕获每个原子的形式电荷和杂化轨道。"
 )
 
-MOLECULAR_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位计算化学家。你的任务是从分子结构中识别并提取所有单个原子（节点）。\n\n"
     "提取规则：\n"
     "- 识别唯一的原子标识符（如：C1）及其化学元素符号。\n"
@@ -48,7 +48,7 @@ MOLECULAR_NODE_PROMPT = (
     "- 在此阶段请勿识别化学键或空间连接性。"
 )
 
-MOLECULAR_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位计算化学家。根据原子清单，映射化学键和空间连接性（边）。\n\n"
     "提取规则：\n"
     "- 定义源原子与目标原子之间的化学键类型（单键、双键、芳香键等）。\n"
@@ -91,9 +91,9 @@ class MolecularStructureGraph(AutoSpatialGraph[AtomNode, ChemicalBond]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=MOLECULAR_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=MOLECULAR_NODE_PROMPT,
-            prompt_for_edge_extraction=MOLECULAR_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

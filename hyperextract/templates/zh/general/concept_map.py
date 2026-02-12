@@ -27,7 +27,7 @@ class ConceptRelation(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-CONCEPT_MAP_PROMPT = (
+_PROMPT = (
     "你是一位语义建模专家。请从文本中提取概念图（Concept Map），重点关注术语定义及其层级或关联关系。\n\n"
     "提取指南：\n"
     "- 识别核心术语，并基于文本提供精确定义。\n"
@@ -35,12 +35,12 @@ CONCEPT_MAP_PROMPT = (
     "- 如果文本提到了说明性的示例，请一并捕获。"
 )
 
-CONCEPT_MAP_NODE_PROMPT = (
+_NODE_PROMPT = (
     "请从文本中提取所有基础概念和技术术语。对于每个概念，提供其术语名称、精确定义、关键属性列表，"
     "以及文本中提到的任何具体示例。"
 )
 
-CONCEPT_MAP_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "在提供的概念之间建立语义关系。重点关注层级分类（是一种、属于）以及功能性关联（用于、为...的实例）。"
     "确保边逻辑上连接了已定义的各个概念。"
 )
@@ -106,9 +106,9 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=CONCEPT_MAP_PROMPT,
-            prompt_for_node_extraction=CONCEPT_MAP_NODE_PROMPT,
-            prompt_for_edge_extraction=CONCEPT_MAP_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

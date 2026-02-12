@@ -32,7 +32,7 @@ class ProtocolTransition(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-PROTOCOL_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位擅长实验方案记录的实验室技术员。请提取顺序性的实验步骤。\n\n"
     "规则：\n"
     "- 将每个操作表示为一个节点（Node）。\n"
@@ -41,7 +41,7 @@ PROTOCOL_CONSOLIDATED_PROMPT = (
     "- 精确映射时间线（例如：'步骤 1' -> '步骤 2'）。"
 )
 
-PROTOCOL_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位实验室技术员。你的任务是识别出单个实验方案操作（节点）。\n\n"
     "提取规则：\n"
     "- 识别离散的动作（如：离心、孵育、滴定）。\n"
@@ -50,7 +50,7 @@ PROTOCOL_NODE_PROMPT = (
     "- 在此阶段请勿建立步骤之间的顺序或时间关系。"
 )
 
-PROTOCOL_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位实验室技术员。根据实验室操作清单，提取顺序流向（边）。\n\n"
     "提取规则：\n"
     "- 按时间顺序将源步骤连接到目标步骤。\n"
@@ -93,9 +93,9 @@ class LabProtocolTemporal(AutoTemporalGraph[LabOperation, ProtocolTransition]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=PROTOCOL_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=PROTOCOL_NODE_PROMPT,
-            prompt_for_edge_extraction=PROTOCOL_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

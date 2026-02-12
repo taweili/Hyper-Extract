@@ -38,7 +38,7 @@ class AgriPestRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-_TEMPLATE_PROMPT = """
+_PROMPT = """
 You are an expert agronomist and pest management specialist. 
 Your task is to extract a comprehensive knowledge graph of crop pests, diseases, and their control methods.
 
@@ -87,7 +87,7 @@ class AgriPestControl(AutoGraph[AgriPestEntity, AgriPestRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=_TEMPLATE_PROMPT,
+            prompt=_PROMPT,
             **kwargs,
         )
 

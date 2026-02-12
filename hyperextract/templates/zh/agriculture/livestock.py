@@ -34,7 +34,7 @@ class BreedingRelation(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-LIVESTOCK_GRAPH_PROMPT = (
+_PROMPT = (
     "你是一位畜牧专家和遗传学家。请从文本中提取育种与健康管理图谱。\n\n"
     "提取指南：\n"
     "- 识别动物个体及其品种。\n"
@@ -42,9 +42,9 @@ LIVESTOCK_GRAPH_PROMPT = (
     "- 将动物与其健康状况、疫苗接种和营养记录关联起来。"
 )
 
-LIVESTOCK_NODE_PROMPT = "请提取畜牧实体：识别特定动物（通过ID或名称）、品种、健康状况、疫苗类型以及特定的饲料。为每一项提供相关的特征或指标。"
+_NODE_PROMPT = "请提取畜牧实体：识别特定动物（通过ID或名称）、品种、健康状况、疫苗类型以及特定的饲料。为每一项提供相关的特征或指标。"
 
-LIVESTOCK_EDGE_PROMPT = "逻辑化地连接畜牧实体。映射家族树（亲缘链接）、育种历史以及医疗/营养事件。确保准确使用'与...交配'或'饲喂'等关系类型。"
+_EDGE_PROMPT = "逻辑化地连接畜牧实体。映射家族树（亲缘链接）、育种历史以及医疗/营养事件。确保准确使用'与...交配'或'饲喂'等关系类型。"
 
 # ==============================================================================
 # 3. 模板类 (Template Class)
@@ -107,9 +107,9 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=LIVESTOCK_GRAPH_PROMPT,
-            prompt_for_node_extraction=LIVESTOCK_NODE_PROMPT,
-            prompt_for_edge_extraction=LIVESTOCK_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

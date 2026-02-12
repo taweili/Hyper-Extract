@@ -29,7 +29,7 @@ class AgriRelation(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-CROP_CYCLE_PROMPT = (
+_PROMPT = (
     "你是一位资深农艺师。请从文本中提取作物生长与管理图谱。\n\n"
     "提取指南：\n"
     "- 识别作物及其具体的生长阶段（如：播种、开花、成熟）。\n"
@@ -37,7 +37,7 @@ CROP_CYCLE_PROMPT = (
     "- 记录任何提及的威胁因素（如病虫害）及其对作物的影响。"
 )
 
-CROP_CYCLE_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位资深农艺师。你的任务是从文本中识别并提取所有关键农业实体（节点）。\n\n"
     "提取规则：\n"
     "- 识别作物类型、具体生长阶段、环境因子（如 pH 值、温度）以及农事任务。\n"
@@ -46,7 +46,7 @@ CROP_CYCLE_NODE_PROMPT = (
     "- 在此阶段请勿识别这些实体之间的逻辑顺序或依赖关系。"
 )
 
-CROP_CYCLE_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位资深农艺师。根据农业实体清单，映射其中的逻辑链路和周期关系（边）。\n\n"
     "提取规则：\n"
     "- 在生长阶段之间建立顺序链接。\n"
@@ -113,9 +113,9 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=CROP_CYCLE_PROMPT,
-            prompt_for_node_extraction=CROP_CYCLE_NODE_PROMPT,
-            prompt_for_edge_extraction=CROP_CYCLE_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(

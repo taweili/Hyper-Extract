@@ -38,7 +38,7 @@ class AgriPestRelation(BaseModel):
 # 2. 提示词 (Prompt)
 # ==============================================================================
 
-_TEMPLATE_PROMPT = """
+_PROMPT = """
 你是一位资深农艺师和植物保护专家。
 你的任务是从文本中提取详尽的农作物病虫害及其防治知识图谱。
 
@@ -87,7 +87,7 @@ class AgriPestControl(AutoGraph[AgriPestEntity, AgriPestRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=_TEMPLATE_PROMPT,
+            prompt=_PROMPT,
             **kwargs,
         )
 

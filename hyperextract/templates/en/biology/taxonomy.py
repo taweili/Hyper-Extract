@@ -50,7 +50,7 @@ class TaxonomyRelation(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-TAXONOMY_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "You are a professional taxonomist and systematic biologist. Extract the biological hierarchy (Taxonomy) from the text.\n\n"
     "Rules:\n"
     "- Identify all taxons (Kingdom to Species) and their specific ranks.\n"
@@ -58,7 +58,7 @@ TAXONOMY_CONSOLIDATED_PROMPT = (
     "- Capture both scientific names and common names where available."
 )
 
-TAXONOMY_NODE_PROMPT = (
+_NODE_PROMPT = (
     "You are a professional taxonomist. Your task is to identify and extract all biological taxonomic units (Nodes) from the text.\n\n"
     "Extraction Rules:\n"
     "- Identify the scientific name and assigned rank (e.g., Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species) for each taxon.\n"
@@ -67,7 +67,7 @@ TAXONOMY_NODE_PROMPT = (
     "- DO NOT extract relationships between taxons at this stage."
 )
 
-TAXONOMY_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "You are a professional taxonomist. Given the following list of identified taxons, extract the hierarchical relationships (Edges) described in the text.\n\n"
     "Extraction Rules:\n"
     "- Establish 'parent_of' links where a higher-rank taxon contains a lower-rank one.\n"
@@ -113,9 +113,9 @@ class TaxonomyGraph(AutoGraph[TaxonNode, TaxonomyRelation]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=TAXONOMY_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=TAXONOMY_NODE_PROMPT,
-            prompt_for_edge_extraction=TAXONOMY_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs,
         )
 

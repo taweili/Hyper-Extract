@@ -31,7 +31,7 @@ class BioInteractionEdge(BaseModel):
 # 2. Prompts
 # ==============================================================================
 
-NETWORK_CONSOLIDATED_PROMPT = (
+_PROMPT = (
     "你是一位擅长分子信号转导和调节网络的生物信息学专家。"
     "请从文本中提取相互作用，以构建生物网络图。\n\n"
     "规则：\n"
@@ -40,7 +40,7 @@ NETWORK_CONSOLIDATED_PROMPT = (
     "- 捕捉每条边具体的生化机制。"
 )
 
-NETWORK_NODE_PROMPT = (
+_NODE_PROMPT = (
     "你是一位生物信息学专家。你的任务是识别出文本中提及的所有分子实体（节点）。\n\n"
     "提取规则：\n"
     "- 识别基因、蛋白质、RNA 和代谢物。使用标准命名法（如：HGNC 符号）。\n"
@@ -49,7 +49,7 @@ NETWORK_NODE_PROMPT = (
     "- 在此阶段请勿提取相互作用或状态变化。"
 )
 
-NETWORK_EDGE_PROMPT = (
+_EDGE_PROMPT = (
     "你是一位生物信息学专家。根据以下分子实体清单，提取它们之间的物理和功能相互作用（边）。\n\n"
     "提取规则：\n"
     "- 识别相互作用的类型（磷酸化、抑制、激活、结合等）。\n"
@@ -91,9 +91,9 @@ class BiologicalNetwork(AutoGraph[BioEntityNode, BioInteractionEdge]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            prompt=NETWORK_CONSOLIDATED_PROMPT,
-            prompt_for_node_extraction=NETWORK_NODE_PROMPT,
-            prompt_for_edge_extraction=NETWORK_EDGE_PROMPT,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
             **kwargs
         )
     def show(
