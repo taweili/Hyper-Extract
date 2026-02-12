@@ -8,20 +8,31 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class Concept(BaseModel):
     """A conceptual node representing a term, idea, or theory."""
+
     term: str = Field(description="The technical term or concept name.")
-    definition: str = Field(description="A formal definition or explanation of the concept.")
-    examples: Optional[List[str]] = Field(default_factory=list, description="Examples that illustrate this concept.")
-    attributes: Optional[List[str]] = Field(default_factory=list, description="Key properties or attributes of the concept.")
+    definition: str = Field(
+        description="A formal definition or explanation of the concept."
+    )
+    examples: Optional[List[str]] = Field(
+        default_factory=list, description="Examples that illustrate this concept."
+    )
+    attributes: Optional[List[str]] = Field(
+        default_factory=list, description="Key properties or attributes of the concept."
+    )
+
 
 class ConceptRelation(BaseModel):
     """A semantic relationship between two concepts."""
+
     source: str = Field(description="The source concept.")
     target: str = Field(description="The target concept.")
     relation_type: str = Field(
         description="Type of relationship (e.g., is-a, part-of, related-to, used-for, instance-of)."
     )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -52,13 +63,14 @@ CONCEPT_MAP_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class ConceptMap(AutoGraph[Concept, ConceptRelation]):
     """
     A template for building concept maps and taxonomies.
-    
+
     Ideal for structured learning, technical documentation, and glossary extraction.
     It focuses on definitions, semantic categories, and hierarchical relationships.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -70,6 +82,7 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
         >>> cm.feed_text(text)
         >>> print(cm.edges)  # Output shows: Machine Learning --(is a)--> Artificial Intelligence
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -80,7 +93,7 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the ConceptMap template.
@@ -101,7 +114,9 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
             node_schema=Concept,
             edge_schema=ConceptRelation,
             node_key_extractor=lambda x: x.term.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.relation_type.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -113,8 +128,9 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
             prompt=CONCEPT_MAP_PROMPT,
             prompt_for_node_extraction=CONCEPT_MAP_NODE_PROMPT,
             prompt_for_edge_extraction=CONCEPT_MAP_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -125,19 +141,20 @@ class ConceptMap(AutoGraph[Concept, ConceptRelation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: Concept) -> str:
-            return f"{ node.term }"
-    
+            return f"{node.term}"
+
         def edge_label_extractor(edge: ConceptRelation) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation_type}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

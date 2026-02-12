@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -8,21 +8,28 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class LogicNode(BaseModel):
     """A node representing a claim, evidence, or premise in an argument."""
+
     statement: str = Field(description="The central claim, fact, or observation.")
     node_type: str = Field(
         description="Type of node: Claim (main point), Evidence (supporting data), Premise (underlying assumption)."
     )
-    source_attribution: Optional[str] = Field(description="Where or who this logic point originates from.")
+    source_attribution: Optional[str] = Field(
+        description="Where or who this logic point originates from."
+    )
+
 
 class LogicRelation(BaseModel):
     """The logical connection between two statements."""
+
     source: str = Field(description="The source statement.")
     target: str = Field(description="The target statement.")
     inference: str = Field(
         description="The logical link: Supports, Contradicts, Proves, Leads to, Explains."
     )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -50,14 +57,15 @@ LOGIC_GRAPH_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
     """
     A template for analyzing reasoning, arguments, and causal chains.
-    
-    This template is designed to map out the logical structure of analytical reports, 
-    scientific papers, or debate transcripts. It captures claims, evidence, and 
+
+    This template is designed to map out the logical structure of analytical reports,
+    scientific papers, or debate transcripts. It captures claims, evidence, and
     the logical links (Support/Contradict) between them.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -69,6 +77,7 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
         >>> lg.feed_text(text)
         >>> print(lg.edges)  # Output shows: Carbon levels rising --(Supports)--> Climate is warming
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -79,7 +88,7 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the LogicGraph template.
@@ -100,7 +109,9 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
             node_schema=LogicNode,
             edge_schema=LogicRelation,
             node_key_extractor=lambda x: x.statement.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--({x.inference.lower()})-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--({x.inference.lower()})-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -112,8 +123,9 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
             prompt=LOGIC_GRAPH_PROMPT,
             prompt_for_node_extraction=LOGIC_GRAPH_NODE_PROMPT,
             prompt_for_edge_extraction=LOGIC_GRAPH_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -124,19 +136,20 @@ class LogicGraph(AutoGraph[LogicNode, LogicRelation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: LogicNode) -> str:
-            return f"{ node.statement }"
-    
+            return f"{node.statement}"
+
         def edge_label_extractor(edge: LogicRelation) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.inference}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,

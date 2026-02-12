@@ -8,8 +8,10 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class Entity(BaseModel):
     """A general entity representing a person, organization, location, or object."""
+
     name: str = Field(description="The primary name of the entity.")
     category: str = Field(
         description="Category of the entity (e.g., Person, Organization, Location, Event, Object)."
@@ -18,12 +20,19 @@ class Entity(BaseModel):
         description="A concise summary of the entity and its role in the text."
     )
 
+
 class Relation(BaseModel):
     """A factual relationship between two entities."""
+
     source: str = Field(description="The name of the source entity.")
     target: str = Field(description="The name of the target entity.")
-    relation: str = Field(description="The type of relationship (e.g., Works for, Located in, Born in, Acquired).")
-    details: Optional[str] = Field(description="Additional context or details about this relationship.")
+    relation: str = Field(
+        description="The type of relationship (e.g., Works for, Located in, Born in, Acquired)."
+    )
+    details: Optional[str] = Field(
+        description="Additional context or details about this relationship."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -54,13 +63,14 @@ KNOWLEDGE_GRAPH_EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class KnowledgeGraph(AutoGraph[Entity, Relation]):
     """
     A foundational knowledge graph template for factual extraction.
-    
-    This template is optimized for extracting entities (People, Places, Organizations) 
+
+    This template is optimized for extracting entities (People, Places, Organizations)
     and their factual interactions from news articles, biographies, and encyclopedic texts.
-    
+
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
@@ -72,6 +82,7 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
         >>> kg.feed_text(text)
         >>> print(kg.nodes)  # Output: [Entity(name='Steve Jobs', ...), Entity(name='Apple', ...)]
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
@@ -82,7 +93,7 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize the KnowledgeGraph template.
@@ -103,7 +114,9 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
             node_schema=Entity,
             edge_schema=Relation,
             node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--[{x.relation.lower()}]-->{x.target.strip()}",
+            edge_key_extractor=lambda x: (
+                f"{x.source.strip()}--[{x.relation.lower()}]-->{x.target.strip()}"
+            ),
             nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
             llm_client=llm_client,
             embedder=embedder,
@@ -115,8 +128,9 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
             prompt=KNOWLEDGE_GRAPH_PROMPT,
             prompt_for_node_extraction=KNOWLEDGE_GRAPH_NODE_PROMPT,
             prompt_for_edge_extraction=KNOWLEDGE_GRAPH_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
@@ -127,20 +141,21 @@ class KnowledgeGraph(AutoGraph[Entity, Relation]):
     ) -> None:
         """
         Visualize the graph using OntoSight.
-    
+
         Args:
             top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
             top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
             top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
             top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
         """
+
         def node_label_extractor(node: Entity) -> str:
-            info = f" ({ node.category })" if getattr(node, "category", None) else ""
-            return f"{ node.name }{info}"
-    
+            info = f" ({node.category})" if getattr(node, "category", None) else ""
+            return f"{node.name}{info}"
+
         def edge_label_extractor(edge: Relation) -> str:
-            return f"{ edge.source }"
-    
+            return f"{edge.relation}"
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
