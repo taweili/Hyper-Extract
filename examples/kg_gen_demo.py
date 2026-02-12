@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from hyperextract.types import KG_Gen
+from hyperextract.methods.typical import KG_Gen
 
 load_dotenv()
 

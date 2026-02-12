@@ -17,7 +17,7 @@ from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, CustomRuleMerger
 
 from hyperextract.utils.logging import logger
-from hyperextract.types import AutoGraph, AutoGraphSchema
+from hyperextract.types.graph import AutoGraph, AutoGraphSchema
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original Atom implementation

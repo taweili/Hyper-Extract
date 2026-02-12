@@ -13,7 +13,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
-from hyperextract.types import AutoGraph, AutoGraphSchema
+from hyperextract.types.graph import AutoGraph, AutoGraphSchema
 from hyperextract.utils.logging import logger
 
 # ==============================================================================

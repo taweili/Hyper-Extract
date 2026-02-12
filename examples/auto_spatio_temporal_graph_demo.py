@@ -26,7 +26,6 @@ from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from hyperextract.types import AutoSpatioTemporalGraph
-from ontomem import MergeStrategy
 
 import dotenv
 

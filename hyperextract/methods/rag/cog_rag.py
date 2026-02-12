@@ -6,7 +6,7 @@ Extracts and manages Theme-Entity relationships where Themes act as Hyperedges c
 from typing import List
 from hashlib import md5
 from pydantic import BaseModel, Field
-from hyperextract.types import AutoHypergraph, AutoHypergraphSchema
+from hyperextract.types.hypergraph import AutoHypergraph, AutoHypergraphSchema
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
@@ -482,4 +482,3 @@ class Cog_RAG:
     def edges(self):
         """Return all edges (Themes + Relations)."""
         return self.theme_layer.edges + self.detail_layer.edges
-
