@@ -11,6 +11,14 @@ Before writing any code, you MUST:
 
 ## 1. Design Phase: Feasibility & Selection
 
+### Document-First Protocol
+Before designing any template, you **MUST** answer the following:
+*   **What is the target document?**: Which core document type(s) in this domain is the template designed for? (e.g., Annual Reports, SOP Manuals, Court Filings, HACCP Safety Plans).
+*   **Is the logic structure native to the text?**: Does this structure naturally exist in the original document, or is it artificially imposed? (Reject designs for "imagined knowledge structures").
+*   **Is extraction evidence clear?**: Are there explicit linguistic cues in the text that allow the LLM to extract accurately?
+
+Never design templates for abstract knowledge graphs disconnected from real documents. Templates must map the **inherent logical structures** of actual text.
+
 ### The Extractability Rule
 Before designing a Schema, ask yourself:
 *   **Evidence Availability**: Does the input text explicitly contain evidence for this field? (Do not design fields for dynamic data typically found in external databases).
@@ -22,7 +30,7 @@ Before designing a Schema, ask yourself:
 | :--- | :--- | :--- | :--- |
 | **Single Object** (Summary/Meta) | `AutoModel` | `hyperextract/types/model.py` | One object per document |
 | **Pattern Collection** (Repeating) | `AutoList` | `hyperextract/types/list.py` | No deduplication. Extracts all instances found. |
-| **Unique Collection** (Glossary) | `AutoSet` | `hyperextract/types/set.py` | Auto-deduplication; requires `key_extractor` |
+| **Key-Based Accumulator** (Glossary) | `AutoSet` | `hyperextract/types/set.py` | Information Accumulation by Exact Key; requires `key_extractor` |
 | **Binary Graph** (Entity-Relation) | `AutoGraph` | `hyperextract/types/graph.py` | Standard binary relationships |
 | **Temporal Graph** (Timestamps) | `AutoTemporalGraph` | `hyperextract/types/temporal_graph.py` | Edges MUST have time fields |
 | **Spatial Graph** (Locations) | `AutoSpatialGraph` | `hyperextract/types/spatial_graph.py` | Nodes/Edges MUST have location/coords |
@@ -55,7 +63,13 @@ Before designing a Schema, ask yourself:
 ### B. Class Structure
 *   **Schemas**: All Pydantic fields MUST include a `description` attribute. This is vital for the LLM to understand the target.
 *   **Documentation**:
-    *   **Class Docstring**: Must include a high-level description and a usage **Example** showing how to instantiate and use the template.
+    *   **Class Docstring**:
+        *   **Mandatory Declaration (First Line)**: At the **very beginning** of the class docstring, you **MUST** declare the **applicable document types** using this format:
+            ```
+            Applicable to: [List specific document types, e.g., "SEC 10-K Item 1A, Prospectus Filings"]
+            ```
+        *   High-level functional description.
+        *   A usage **Example** showing how to instantiate and use the template.
     *   **Method Docstrings**: The `__init__` and `show` methods MUST include standard Google-style docstrings with detailed `Args` descriptions for every parameter.
 *   **Parameter Accuracy**: Verify that every argument in your `__init__` exists in the base class. Common mistake: `extraction_mode` exists in `AutoGraph` but NOT in `AutoSet`.
 *   **Initialization**: Explicitly list parameters (`llm_client`, `embedder`, etc.) and pass the prompt to `super().__init__(..., prompt=_TEMPLATE_PROMPT, ...)`.
@@ -119,4 +133,130 @@ class MyTemplate(AutoType[ItemSchema]): # Replace with actual base class (AutoLi
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )
+```
+
+
+---
+
+## 4. Runtime Behavior & Usage Guide
+
+### Automatic Extraction
+
+After calling the `feed_text()` method, the Hyper-Extract framework will **automatically and immediately** process the text and execute knowledge extraction:
+
+```python
+template = MyTemplate(llm_client=..., embedder=...)
+
+# 1. Input text
+template.feed_text("Your input text here...")
+
+# 2. Framework handles it automatically! No need to call extract()
+# - Text automatically chunked
+# - Schemas automatically extracted
+# - Deduplication and relationships established automatically
+
+# 3. Directly view results or visualize
+print(template.items)  # View extracted items
+template.show()         # Visualize knowledge graph
+```
+
+**Key Points**:
+- `feed_text()` action automatically triggers the full extraction pipeline
+- **No need to call `extract()` method** (this is an internal implementation detail)
+- Supports method chaining: `template.feed_text(...).show()`
+- Supports accumulation: multiple calls to `feed_text()` accumulate knowledge
+
+### Custom Extraction Mode
+
+For `AutoGraph` series templates, you can choose the extraction strategy during initialization:
+
+```python
+# One-stage: Extract nodes and edges simultaneously (faster)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="one_stage")
+
+# Two-stage: Extract nodes first, then edges (more accurate)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="two_stage")
+```
+
+
+---
+
+## 4. Runtime Behavior & Usage Guide
+
+### Automatic Extraction
+
+After calling the `feed_text()` method, the Hyper-Extract framework will **automatically and immediately** process the text and execute knowledge extraction:
+
+```python
+template = MyTemplate(llm_client=..., embedder=...)
+
+# 1. Input text
+template.feed_text("Your input text here...")
+
+# 2. Framework handles it automatically! No need to call extract()
+# - Text automatically chunked
+# - Schemas automatically extracted
+# - Deduplication and relationships established automatically
+
+# 3. Directly view results or visualize
+print(template.items)  # View extracted items
+template.show()         # Visualize knowledge graph
+```
+
+**Key Points**:
+- `feed_text()` action automatically triggers the full extraction pipeline
+- **No need to call `extract()` method** (this is an internal implementation detail)
+- Supports method chaining: `template.feed_text(...).show()`
+- Supports accumulation: multiple calls to `feed_text()` accumulate knowledge
+
+### Custom Extraction Mode
+
+For `AutoGraph` series templates, you can choose the extraction strategy during initialization:
+
+```python
+# One-stage: Extract nodes and edges simultaneously (faster)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="one_stage")
+
+# Two-stage: Extract nodes first, then edges (more accurate)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="two_stage")
+```
+
+## 4. Runtime Behavior & Usage
+
+### Automatic Extraction
+
+Once the `feed_text()` method is called, the Hyper-Extract framework **automatically and immediately** processes the text and executes the knowledge extraction pipeline:
+
+```python
+template = MyTemplate(llm_client=..., embedder=...)
+
+# 1. Input Text
+template.feed_text("Your input text here...")
+
+# 2. Framework handles extraction automatically! No need to call extract()
+# - Automatic Text Chunking
+# - Automatic Schema Extraction
+# - Automatic Deduplication / Relation Building
+
+# 3. View Results or Visualize
+print(template.items)  # Access extracted items
+template.show()         # Visualize the graph
+```
+
+**Key Points**:
+- The `feed_text()` action automatically triggers the complete extraction pipeline.
+- **Do NOT call the `extract()` method manually** (this is an internal implementation detail).
+- Supports chain calling: `template.feed_text(...).show()`
+- Supports accumulation: Multiple calls to `feed_text()` will accumulate knowledge.
+
+### Custom Extraction Mode
+
+For `AutoGraph` family templates, you can choose the extraction strategy during initialization:
+
+```python
+# One Stage: Extract Nodes and Edges simultaneously (Faster)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="one_stage")
+
+# Two Stage: Extract Nodes first, then Edges (Higher Precision)
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="two_stage")
 ```

@@ -11,6 +11,14 @@
 
 ## 1. 设计阶段：可行性与选型
 
+### 文档源优先 (Document-First Protocol)
+在设计任何模板前，你**必须**明确回答以下问题：
+*   **目标文档是什么？**：该模板是为该领域的哪类核心文档而设计？（如年报、SOP 手册、法律判决书、食品安全计划书）。
+*   **文本逻辑是否原生？**：该结构是否在原始文档中自然存在，而非人为设计？（拒绝为"想当然的知识"设计结构）。
+*   **提取证据清晰吗？**：文本中是否有显式的线索让 LLM 能够准确提取？
+
+绝不设计为空中楼阁的知识图谱。模板必须映射真实文本的**已有逻辑结构**。
+
 ### 可提取性原则 (Extractability)
 在设计 Schema 前自问：
 *   **证据可用性**：输入文本是否显式包含该字段的证据？（拒绝为外部数据库才有的动态数据设计字段）。
@@ -22,7 +30,7 @@
 | :--- | :--- | :--- | :--- |
 | **单对象** (摘要/元数据) | `AutoModel` | `hyperextract/types/model.py` | 每个文档只提一个对象 |
 | **模式集合** (重复提取) | `AutoList` | `hyperextract/types/list.py` | 不去重。提取文本中出现的所有模式实例 |
-| **唯一集合** (术语/清单) | `AutoSet` | `hyperextract/types/set.py` | 自动去重，需定义 `key_extractor` |
+| **键值累加器** (术语/清单) | `AutoSet` | `hyperextract/types/set.py` | 按精确键累加信息，需定义 `key_extractor` |
 | **标准图谱** (实体-关系) | `AutoGraph` | `hyperextract/types/graph.py` | 标准二元关系 |
 | **时序图谱** (含时间戳) | `AutoTemporalGraph` | `hyperextract/types/temporal_graph.py` | 边必须包含时间字段 |
 | **空间关系图谱** | `AutoSpatialGraph` | `hyperextract/types/spatial_graph.py` | 节点/边需包含位置坐标信息 |
@@ -55,7 +63,13 @@
 ### B. 类结构
 *   **Schema**：所有 Pydantic 字段必须包含 `description` 属性，这是 LLM 理解抽取目标的关键。
 *   **文档注释 (Documentation)**：
-    *   **类文档字符串 (Class Docstring)**：必须包含高层功能描述，以及一个展示如何初始化和使用的 **示例 (Example)**。
+    *   **类文档字符串 (Class Docstring)**：
+        *   **强制声明（第一行）**：在类文档字符串的**最开头**，你**必须**用下列格式声明该模板的**适用文档类型**：
+            ```
+            Applicable to: [List specific document types, e.g., "SEC 10-K Item 1A, Prospectus Filings"]
+            ```
+        *   高层功能描述。
+        *   一个展示如何初始化和使用的 **示例 (Example)**。
     *   **方法文档字符串 (Method Docstring)**：`__init__` 和 `show` 方法必须包含标准的 Google 风格文档字符串，详细说明每个参数 (`Args`)。
 *   **参数准确性 (Parameter Accuracy)**：确保 `__init__` 中的每一个参数都在基类中存在。常见错误：`extraction_mode` 仅存在于 `AutoGraph` 系列中，**不存在**于 `AutoSet` 或 `AutoList` 中。
 *   **初始化 (`__init__`)**：显式列参数（`llm_client`, `embedder` 等），并正确调用 `super().__init__(..., prompt=_TEMPLATE_PROMPT, ...)`。
@@ -119,4 +133,88 @@ class MyTemplate(AutoType[ItemSchema]): # 替换为 AutoList, AutoSet 等
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )
+```
+
+
+---
+
+## 4. 运行时行为与使用说明 (Runtime Behavior & Usage)
+
+### 自动提取 (Automatic Extraction)
+
+调用 feed_text() 方法后，Hyper-Extract 框架会**自动并立即**处理文本并执行知识抽取：
+
+\\python
+template = MyTemplate(llm_client=..., embedder=...)
+
+# 1. 输入文本
+template.feed_text('你的输入文本...')
+
+# 2. 框架自动处理！无需显式调用 extract()
+# - 文本自动分块
+# - Schema 自动抽取
+# - 去重/关系建立自动完成
+
+# 3. 直接查看结果或可视化
+print(template.items)  # 查看提取的项目
+template.show()         # 可视化知识图谱
+\
+**关键点**：
+- feed_text() 动作会自动触发完整的提取流水线
+- **不需要调用 extract() 方法**（这是内部实现细节）
+- 支持链式调用：template.feed_text(...).show()
+- 支持累积：多次调用 feed_text() 会累加知识
+
+### 自定义提取模式 (Custom Extraction Mode)
+
+对于 AutoGraph 系列模板，可在初始化时选择提取策略：
+
+\\python
+# 一阶段：同时提取节点和边（速度快）
+template = MyGraph(llm_client=..., embedder=..., extraction_mode='one_stage')
+
+# 二阶段：先提取节点，再提取边（精度高）
+template = MyGraph(llm_client=..., embedder=..., extraction_mode='two_stage')
+\
+
+---
+
+## 4. 运行时行为与使用说明 (Runtime Behavior & Usage)
+
+### 自动提取 (Automatic Extraction)
+
+调用 `feed_text()` 方法后，Hyper-Extract 框架会**自动并立即**处理文本并执行知识抽取：
+
+```python
+template = MyTemplate(llm_client=..., embedder=...)
+
+# 1. 输入文本
+template.feed_text("你的输入文本...")
+
+# 2. 框架自动处理！无需显式调用 extract()
+# - 文本自动分块
+# - Schema 自动抽取
+# - 去重/关系建立自动完成
+
+# 3. 直接查看结果或可视化
+print(template.items)  # 查看提取的项目
+template.show()         # 可视化知识图谱
+```
+
+**关键点**：
+- `feed_text()` 动作会自动触发完整的提取流水线
+- **不需要调用 `extract()` 方法**（这是内部实现细节）
+- 支持链式调用：`template.feed_text(...).show()`
+- 支持累积：多次调用 `feed_text()` 会累加知识
+
+### 自定义提取模式 (Custom Extraction Mode)
+
+对于 `AutoGraph` 系列模板，可在初始化时选择提取策略：
+
+```python
+# 一阶段：同时提取节点和边（速度快）
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="one_stage")
+
+# 二阶段：先提取节点，再提取边（精度高）
+template = MyGraph(llm_client=..., embedder=..., extraction_mode="two_stage")
 ```
