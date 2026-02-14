@@ -49,19 +49,13 @@ class ControlMeasure(BaseModel):
     source: str = Field(description="生物学危害名称。")
     target: str = Field(description="CCP 名称。")
     critical_limit: str = Field(
-        description='定义安全/不安全分界线的关键限值，例如">=72°C 持续 >=15 秒"、"pH < 4.6"等。'
+        description='定义安全/不安全分界线的关键限值（如">=72°C 持续 >=15 秒"）。'
     )
-    monitoring_procedure: str = Field(
-        description='如何监测 CCP，例如"每批次温度计读数"、"每天 pH 计测量"等。'
+    monitoring: str = Field(
+        description="监测程序与频率（如何监测以及多久监测一次）。"
     )
-    monitoring_frequency: str = Field(
-        description='监测频率，例如"每 2 小时"、"每批次"、"每天"等。'
-    )
-    corrective_action: str = Field(
-        description='如果不达到关键限值的行动，例如"销毁产品"、"重新加工"、"警报 QA"等。'
-    )
-    verification: Optional[str] = Field(
-        None, description='验证有效性的方法，例如"每月进行培养测试"等。'
+    details: Optional[str] = Field(
+        None, description="纠偏行动及验证有效性的方法。"
     )
 
 
@@ -70,33 +64,29 @@ class ControlMeasure(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "你是食品安全专家，熟悉 HACCP 原则。从 HACCP 计划和食品安全文件中提取危害、关键控制点及其控制措施。\n\n"
+    "你是食品安全专家。提取危害、关键控制点（CCP）及其控制措施。\n\n"
     "规则:\n"
-    "- 识别与产品和工序相关的生物学危害。\n"
-    "- 识别可以消除或控制危害的 CCP。\n"
-    "- 提取关键限值、监测程序和纠偏行动。\n"
-    "- 确保每个 CCP 链接到它控制的具体危害。"
+    "- 识别所有提及的危害与 CCP。\n"
+    "- 将危害连接到对应的 CCP。\n"
+    "- 提取 **关键限值 (critical_limit)** 与 **监测 (monitoring)** 指标。\n"
+    "- 将纠偏行动与验证方法归入 **详情 (details)**。"
 )
 
 _NODE_PROMPT = (
-    "你是食品安全专家。从 HACCP 文件中提取所有危害和 CCP（节点）。\n\n"
+    "你是食品安全专家。从文件中提取危害和 CCP（节点）。\n\n"
     "提取规则:\n"
-    "- 识别所有提及的生物学危害（病原体、过敏原如适用）。\n"
-    "- 识别所有 CCP（烹饪、冷却、金属检测阶段）。\n"
-    "- 按类型对每个危害进行分类（细菌、病毒、真菌、寄生虫）。\n"
-    "- 按生产阶段对每个 CCP 进行分类。\n"
-    "- 此阶段不建立控制关系。"
+    "- 识别生物学危害并分类。\n"
+    "- 识别 CCP 及其生产阶段。\n"
 )
 
 _EDGE_PROMPT = (
-    "你是食品安全专家。在获得危害和 CCP 清单的基础上，提取控制关系（边）。\n\n"
+    "你是食品安全专家。提取控制措施（边）。\n\n"
     "提取规则:\n"
-    "- 将每个危害连接到控制它的 CCP。\n"
-    "- 提取具有精确阈值和单位的关键限值。\n"
-    "- 从 HACCP 文件中提取监测程序和频率。\n"
-    "- 提取超过限值时应采取的纠偏行动。\n"
-    "- 在有文件记录时包括验证方法。\n"
-    "- 仅在提供的列表中存在的危害和 CCP 之间创建边。"
+    "- 将危害连接到 CCP。\n"
+    "- **critical_limit**: 安全分界线。\n"
+    "- **monitoring**: 如何及何时监测。\n"
+    "- **details**: 纠偏行动及验证方法。\n"
+    "- 仅连接存在的节点。"
 )
 
 # ==============================================================================

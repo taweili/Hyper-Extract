@@ -14,18 +14,25 @@ from hyperextract.types import AutoSet
 # Schema 定义
 # ==============================================================================
 
+
 class GameCharacterSchema(BaseModel):
     """游戏角色百科中单个角色的数据结构。"""
 
     character_name: str = Field(..., description="角色的标准名称，如'亚索'")
-    character_class: str = Field(..., description="角色职业/角色定位：'剑士'、'法师'、'射手'、'坦克'、'辅助'等")
-    background_story: Optional[str] = Field(None, description="角色的背景故事、起源和身世")
-    signature_abilities: Optional[str] = Field(None, description="该角色拥有的主要技能和招牌能力清单")
-    base_stats: Optional[str] = Field(None, description="基础属性：生命值、魔法值、攻击力、防御力、速度等数值")
-    recommended_playstyle: Optional[str] = Field(None, description="如何有效地使用该角色：位置、连击、装备搭配等")
-    origin_region: Optional[str] = Field(None, description="该角色来自的游戏世界区域")
-    faction_affiliation: Optional[str] = Field(None, description="该角色所属的阵营、队伍或组织")
-    voice_actor: Optional[str] = Field(None, description="该角色的官方配音演员信息")
+    class_role: str = Field(
+        ...,
+        description="角色职业/定位（如'战士'、'法师'）及玩法风格简述。",
+    )
+    affiliation: Optional[str] = Field(
+        None, description="所属阵营、团队或出身地区。"
+    )
+    abilities: Optional[str] = Field(
+        None,
+        description="招牌技能、终极技能及核心基础数值属性。",
+    )
+    lore: Optional[str] = Field(
+        None, description="背景故事、性格特质、配音演员等设定信息。"
+    )
 
 
 # ==============================================================================
@@ -37,14 +44,10 @@ _PROMPT = """你是一位游戏背景设定专家和角色指南作者。
 
 对于文本中提到的每个角色，提取：
 1. **character_name**：角色的官方名称
-2. **character_class**：角色的职业/定位
-3. **background_story**：角色的起源故事和背景
-4. **signature_abilities**：该角色拥有的主要和特殊能力/技能
-5. **base_stats**：核心数值属性：生命值、魔法值、攻击力、防御力等
-6. **recommended_playstyle**：战略指导，如何有效地使用该角色
-7. **origin_region**：角色来自的区域或世界地区
-8. **faction_affiliation**：角色所属的队伍、组织或阵营
-9. **voice_actor**：官方配音演员的名字（如提及）
+2. **class_role**：角色的职业定位与玩法概述
+3. **affiliation**：角色所属的组织、阵营或家乡
+4. **abilities**：角色的核心技能、大招说明及关键数值
+5. **lore**：角色的背景故事、身世细节、配音等设定
 
 仅提取文本中明确说明的信息。如果某个字段未提及，空置即可。
 全面捕捉所有角色详情，即使它们分散在文本中。
@@ -56,6 +59,7 @@ _PROMPT = """你是一位游戏背景设定专家和角色指南作者。
 # ==============================================================================
 # 模板类
 # ==============================================================================
+
 
 class GameCharacterCompendium(AutoSet[GameCharacterSchema]):
     """适用于：角色背景故事、技能指南、官方角色资料、策略指南
@@ -135,7 +139,7 @@ class GameCharacterCompendium(AutoSet[GameCharacterSchema]):
 
         def character_label_extractor(item: GameCharacterSchema) -> str:
             """提取展示标签：角色名称带职业"""
-            class_label = f" ({item.character_class})" if item.character_class else ""
+            class_label = f" ({item.class_role})" if item.class_role else ""
             return f"{item.character_name}{class_label}"
 
         super().show(

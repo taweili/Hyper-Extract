@@ -17,25 +17,9 @@ class MarketDriver(BaseModel):
     name: str = Field(
         description='驱动因素名称，例如"AI 需求"、"降息预期"、"监管明确化"等。'
     )
-    driver_type: str = Field(
-        description='类型："宏观"、"行业"、"公司特定"、"催化剂"。'
-    )
+    driver_type: str = Field(description='类型："宏观"、"行业"、"公司特定"、"催化剂"。')
     description: Optional[str] = Field(
         None, description="为什么这个驱动因素重要的详细解释。"
-    )
-
-
-class MarketTarget(BaseModel):
-    """
-    受市场驱动因素影响的交易资产或财务指标。
-    """
-
-    ticker: str = Field(description='股票代码，例如"AAPL"、"AI 指数"。')
-    asset_type: str = Field(
-        description='类型："股票"、"指数"、"债券"、"商品"、"货币"。'
-    )
-    metric: Optional[str] = Field(
-        None, description='具体指标（如适用），例如"EPS"、"P/E 比率"。'
     )
 
 
@@ -46,21 +30,15 @@ class AnalystInfluence(BaseModel):
 
     source: str = Field(description="市场驱动因素名称。")
     target: str = Field(description="受影响资产/指标的股票代码。")
-    sentiment: str = Field(
-        description='情绪方向："正面"、"负面"、"中性"。'
-    )
-    strength: str = Field(
-        description='影响力强度："强"、"中等"、"弱"。'
-    )
+    sentiment: str = Field(description='情绪方向："正面"、"负面"、"中性"。')
+    strength: str = Field(description='影响力强度："强"、"中等"、"弱"。')
     analyst_view: str = Field(
         description='分析师建议或目标调整，例如"升级为买入"、"将目标价上调至 150 美元"等。'
     )
     time_horizon: Optional[str] = Field(
         None, description='预期时间框架，例如"FY24"、"6-12 个月"、"长期"。'
     )
-    source_firm: Optional[str] = Field(
-        None, description="研究机构或分析师来源的名称。"
-    )
+    source_firm: Optional[str] = Field(None, description="研究机构或分析师来源的名称。")
 
 
 # ==============================================================================

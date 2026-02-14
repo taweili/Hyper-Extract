@@ -13,37 +13,20 @@ from hyperextract.types import AutoSet
 
 class ArtifactSchema(BaseModel):
     artifact_name: str = Field(..., description="Official name of the artifact")
-    material: Optional[str] = Field(None, description="Primary material composition")
-    excavation_year: Optional[str] = Field(
-        None, description="Year the artifact was discovered"
-    )
-    excavation_location: Optional[str] = Field(
-        None, description="Geographic location of excavation"
-    )
-    current_museum: Optional[str] = Field(
-        None, description="Current museum or collection location"
-    )
-    dimensions: Optional[str] = Field(
-        None, description="Size and weight specifications"
-    )
-    symbolic_meaning: Optional[str] = Field(
-        None, description="Cultural or religious significance"
-    )
-    historical_period: Optional[str] = Field(
-        None, description="Civilization or historical era"
-    )
+    period: Optional[str] = Field(None, description="Historical era, dynasty, or date")
+    location: Optional[str] = Field(None, description="Excavation site and current museum location")
+    physical_traits: Optional[str] = Field(None, description="Material, dimensions, and craftsmanship")
+    significance: Optional[str] = Field(None, description="Cultural meaning, usage, and historical value")
 
 
-_PROMPT = """You are a professional archaeologist and museum curator.
-Extract comprehensive artifact information from the text:
-1. artifact_name: Official artifact name
-2. material: Material composition
-3. excavation_year: Discovery year
-4. excavation_location: Excavation site
-5. current_museum: Current location/museum
-6. dimensions: Physical measurements
-7. symbolic_meaning: Cultural significance
-8. historical_period: Historical era/dynasty
+_PROMPT = """You are an archaeologist. Extract artifact information from text.
+
+Field Guide:
+1. **artifact_name**: Name of the artifact
+2. **period**: Historical era
+3. **location**: Combine excavation site and current location
+4. **physical_traits**: Describe material, size, and craft
+5. **significance**: Explain functionality and cultural meaning
 
 Extract only explicitly mentioned information.
 
@@ -79,7 +62,7 @@ class CulturalArtifactRegistry(AutoSet[ArtifactSchema]):
 
     def show(self, *, top_k_for_search: int = 3, top_k_for_chat: int = 3) -> None:
         def label_extractor(item: ArtifactSchema) -> str:
-            period = f" ({item.historical_period})" if item.historical_period else ""
+            period = f" ({item.period})" if item.period else ""
             return f"{item.artifact_name}{period}"
 
         super().show(

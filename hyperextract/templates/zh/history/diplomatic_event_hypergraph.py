@@ -17,20 +17,19 @@ class DiplomaticEventSchema(BaseModel):
     hyperedge_id: str = Field(..., description="唯一标识符")
     event_type: str = Field(..., description="'条约'、'会议'、'联盟'等")
     event_name: str = Field(..., description="事件名称，如'凡尔赛条约'")
-    signing_date: Optional[str] = Field(None, description="事件日期")
     member_countries: List[str] = Field(default_factory=list, description="所有参与国")
-    key_terms: Optional[str] = Field(None, description="关键条款摘要")
-    leading_country: Optional[str] = Field(None, description="主导或发起国")
+    agreement_details: Optional[str] = Field(None, description="签署日期及协议关键条款摘要。")
+    outcome: Optional[str] = Field(None, description="该外交事件导致的操作、结果或主导国。")
 
 _PROMPT = """从文本中提取节点（国家）和超边（外交事件）。
-超边连接参与单一事件的多个国家。
+规则：将日期、条款合并至 **agreement_details**，将影响、结果及发起国合并至 **outcome**。
 
 ### 源文本：
 """
 
 _NODE_PROMPT = """提取文本中提到的所有国家/民族名称。"""
 
-_EDGE_PROMPT = """提取涉及多个国家的外交事件。为每个事件在member_countries字段列出所有参与国。"""
+_EDGE_PROMPT = """提取外交事件及其详细背景（日期、条款、结果）。仅连接存在的国家。"""
 
 class DiplomaticEventHypergraph(AutoHypergraph[CountrySchema, DiplomaticEventSchema]):
     """适用于：条约、国际会议记录、外交史

@@ -25,20 +25,6 @@ class MarketDriver(BaseModel):
     )
 
 
-class MarketTarget(BaseModel):
-    """
-    A trading asset or financial metric that is influenced by market drivers.
-    """
-
-    ticker: str = Field(description="Ticker symbol (e.g., 'AAPL', 'AI Index').")
-    asset_type: str = Field(
-        description="Type: 'Equity', 'Index', 'Bond', 'Commodity', 'Currency'."
-    )
-    metric: Optional[str] = Field(
-        None, description="Specific metric if applicable (e.g., 'EPS', 'P/E Ratio')."
-    )
-
-
 class AnalystInfluence(BaseModel):
     """
     Represents how a market driver influences an asset's outlook.

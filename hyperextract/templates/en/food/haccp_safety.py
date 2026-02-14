@@ -49,19 +49,13 @@ class ControlMeasure(BaseModel):
     source: str = Field(description="The biological hazard name.")
     target: str = Field(description="The CCP name.")
     critical_limit: str = Field(
-        description="Critical limit defining the boundary between safe/unsafe (e.g., '>=72°C for >=15 seconds', 'pH < 4.6')."
+        description="Boundary between safe/unsafe (e.g. '>72C')."
     )
-    monitoring_procedure: str = Field(
-        description="How the CCP is monitored (e.g., 'Thermometer reading every batch', 'pH meter daily')."
+    monitoring: str = Field(
+        description="Procedure and frequency of monitoring."
     )
-    monitoring_frequency: str = Field(
-        description="How often monitoring occurs (e.g., 'Every 2 hours', 'Per batch', 'Daily')."
-    )
-    corrective_action: str = Field(
-        description="Action if critical limit is not met (e.g., 'Discard product', 'Reprocess', 'Alert QA')."
-    )
-    verification: Optional[str] = Field(
-        None, description="Verification method to confirm effectiveness (e.g., 'Culture tests monthly')."
+    details: Optional[str] = Field(
+        None, description="Corrective actions and verification methods."
     )
 
 
@@ -70,34 +64,29 @@ class ControlMeasure(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "You are a food safety specialist trained in HACCP principles. Extract hazards, critical control points, "
-    "and their control measures from HACCP plans and food safety documentation.\n\n"
+    "You are a food safety specialist. Extract hazards, CCPs, and controls.\n\n"
     "Rules:\n"
-    "- Identify biological hazards relevant to the product and process.\n"
-    "- Identify CCPs where hazards can be eliminated or controlled.\n"
-    "- Extract critical limits, monitoring procedures, and corrective actions.\n"
-    "- Ensure each CCP is linked to specific hazard(s) it controls."
+    "- Identify hazards and CCPs.\n"
+    "- Link hazards to CCPs via control measures.\n"
+    "- Extract **critical_limit** and **monitoring** details.\n"
+    "- Capture corrective actions in **details**."
 )
 
 _NODE_PROMPT = (
-    "You are a food safety specialist. Extract all hazards and CCPs (Nodes) from the HACCP documentation.\n\n"
-    "Extraction Rules:\n"
-    "- Identify all biological hazards mentioned (pathogens, allergens if applicable).\n"
-    "- Identify all CCPs (cooking, cooling, metal detection stages).\n"
-    "- Classify each hazard by type (Bacterial, Viral, Fungal, Parasitic).\n"
-    "- Classify each CCP by production stage.\n"
-    "- DO NOT establish control relationships at this stage."
+    "You are a food safety specialist. Extract hazards and CCPs (Nodes).\n\n"
+    "Rules:\n"
+    "- Identify biological hazards and classify type.\n"
+    "- Identify CCPs and production stage.\n"
 )
 
 _EDGE_PROMPT = (
-    "You are a food safety specialist. Given the list of hazards and CCPs, extract the control relationships (Edges).\n\n"
-    "Extraction Rules:\n"
-    "- Connect each hazard to the CCP(s) that control it.\n"
-    "- Extract critical limits with precise thresholds and units.\n"
-    "- Extract monitoring procedures and frequency from the HACCP document.\n"
-    "- Extract corrective actions to be taken if limits are violated.\n"
-    "- Include verification methods when documented.\n"
-    "- Only create edges between hazards and CCPs that exist in the provided lists."
+    "You are a food safety specialist. Extract control measures (Edges).\n\n"
+    "Rules:\n"
+    "- Connect hazard to CCP.\n"
+    "- **critical_limit**: Safety boundary.\n"
+    "- **monitoring**: How and when to check.\n"
+    "- **details**: Corrective actions and verification.\n"
+    "- Only connect existing nodes."
 )
 
 # ==============================================================================

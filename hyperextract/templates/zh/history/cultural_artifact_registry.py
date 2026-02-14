@@ -11,26 +11,21 @@ from hyperextract.types import AutoSet
 
 class ArtifactSchema(BaseModel):
     artifact_name: str = Field(..., description="文物的官方名称")
-    material: Optional[str] = Field(None, description="主要材料成分")
-    excavation_year: Optional[str] = Field(None, description="发现年份")
-    excavation_location: Optional[str] = Field(None, description="出土地点")
-    current_museum: Optional[str] = Field(None, description="当前收藏地/博物馆")
-    dimensions: Optional[str] = Field(None, description="尺寸和重量规格")
-    symbolic_meaning: Optional[str] = Field(None, description="文化或宗教意义")
-    historical_period: Optional[str] = Field(None, description="历史时期/朝代")
+    period: Optional[str] = Field(None, description="历史时期、朝代或大概年份")
+    location: Optional[str] = Field(None, description="出土地点、发现处及当前所属博物馆")
+    physical_traits: Optional[str] = Field(None, description="材质、尺寸、重量及工艺特征")
+    significance: Optional[str] = Field(None, description="文化意义、用途描述及象征价值")
 
-_PROMPT = """你是一位专业的考古学家和博物馆策展人。
-从文本中提取全面的文物信息：
-1. artifact_name：文物官方名称
-2. material：材料成分
-3. excavation_year：发现年份
-4. excavation_location：出土地点
-5. current_museum：当前位置/博物馆
-6. dimensions：物理尺寸
-7. symbolic_meaning：文化意义
-8. historical_period：历史时期/朝代
+_PROMPT = """你是一位专业的考古学家。从文本中提取文物信息。
 
-仅提取文本中明确提及的信息。
+字段指南：
+1. **artifact_name**：文物名称
+2. **period**：所属的历史时期
+3. **location**：合并出土地点和目前馆藏地
+4. **physical_traits**：描述材质、大小和制作工艺
+5. **significance**：描述文物的历史价值、用途和象征意义
+
+仅提取明确提及的信息。
 
 ### 源文本：
 """
@@ -62,7 +57,7 @@ class CulturalArtifactRegistry(AutoSet[ArtifactSchema]):
 
     def show(self, *, top_k_for_search: int = 3, top_k_for_chat: int = 3) -> None:
         def label_extractor(item: ArtifactSchema) -> str:
-            period = f" ({item.historical_period})" if item.historical_period else ""
+            period = f" ({item.period})" if item.period else ""
             return f"{item.artifact_name}{period}"
         super().show(
             item_label_extractor=label_extractor,

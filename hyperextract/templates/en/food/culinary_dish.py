@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -15,36 +15,21 @@ class CulinaryDish(BaseModel):
     """
 
     name: str = Field(
-        description="Standardized dish name (e.g., 'Kung Pao Chicken', 'Mapo Tofu', 'Risotto')."
+        description="Standardized dish name (e.g., 'Kung Pao Chicken')."
     )
-    cuisine: str = Field(
-        description="Cuisine origin (e.g., 'Sichuan', 'Italian', 'French', 'Indian', 'Thai')."
+    origin: Optional[str] = Field(
+        None, description="Cuisine type, geographic origin, and seasonal relevance."
     )
-    region: Optional[str] = Field(
-        None, description="Specific geographic region or city of origin if applicable."
+    ingredients: Optional[str] = Field(
+        None, description="Core ingredients, proteins, and key spices."
     )
-    primary_ingredients: List[str] = Field(
-        default_factory=list, description="Core ingredients defining the dish (e.g., ['Chicken', 'Peanuts', 'Dried Chilies'])."
-    )
-    protein_type: Optional[str] = Field(
+    profile: Optional[str] = Field(
         None,
-        description="Main protein: 'Chicken', 'Beef', 'Pork', 'Seafood', 'Plant-based', 'No protein'.",
+        description="Flavor characteristics, texture notes, and cooking techniques."
     )
-    flavor_profile: str = Field(
-        description="Predominant taste characteristics (e.g., 'Spicy & Numbing', 'Sweet & Sour', 'Umami-rich')."
-    )
-    cooking_method: Optional[str] = Field(
-        None, description="Primary cooking technique (e.g., 'Stir-fry', 'Braised', 'Steamed', 'Grilled')."
-    )
-    dietary_attributes: List[str] = Field(
-        default_factory=list,
-        description="Dietary tags (e.g., 'Contains Nuts', 'Gluten-Free', 'Vegetarian', 'Dairy-Free').",
-    )
-    serving_suggestion: Optional[str] = Field(
-        None, description="Typical serving context (e.g., 'Appetizer', 'Main course', 'Side dish')."
-    )
-    seasonal_note: Optional[str] = Field(
-        None, description="Seasonal availability or association (e.g., 'Summer dish', 'Winter comfort food')."
+    description: Optional[str] = Field(
+        None,
+        description="General description including dietary info, serving suggestions, and history.",
     )
 
 
@@ -53,15 +38,13 @@ class CulinaryDish(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "You are a culinary expert and food historian. Your task is to extract and standardize "
-    "representative culinary dishes from menus, cookbooks, recipe collections, and food reviews.\n\n"
+    "You are a culinary expert. Extract representative culinary dishes from text.\n\n"
     "Extraction Rules:\n"
-    "- Standardize dish names to their most recognized form (e.g., 'Kung Pao Chicken' vs. 'Gong Bao Ji Ding').\n"
-    "- Identify the cuisine origin and specific geographic region.\n"
-    "- Extract core ingredients that define the dish.\n"
-    "- Capture the predominant flavor profile using precise descriptors.\n"
-    "- Note dietary attributes and allergenic ingredients.\n"
-    "- Deduplicate: If the same dish appears with slight variations, merge into one entry.\n"
+    "- Standardize dish names.\n"
+    "- **origin**: Combine cuisine, region, and seasonality.\n"
+    "- **ingredients**: List main proteins and vegetables/spices.\n"
+    "- **profile**: Describe flavor, texture, and method (e.g. 'Spicy, Stir-fried').\n"
+    "- **description**: Capture dietary notes, serving context, and any cultural backstory.\n"
 )
 
 # ==============================================================================
@@ -71,23 +54,9 @@ _PROMPT = (
 
 class CulinaryDishSet(AutoSet[CulinaryDish]):
     """
-    Applicable to: Restaurant Menus, Cookbooks, Food Encyclopedias, Recipe Websites,
-    Food Blogs, Culinary Magazine Articles, Restaurant Review Databases, Dining Guides.
+    Applicable to: Restaurant Menus, Cookbooks, Food Encyclopedias.
 
     Template for building a standardized culinary foundation through **key-based information accumulation**.
-    Automatically merges information about the same dish (identified by standardized dish name) from
-    multiple sources into a single enriched entry, capturing ingredients, preparation, origin, and characteristics.
-
-    Example Usage:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
-        >>> embedder = OpenAIEmbeddings()
-        >>> dishes = CulinaryDishSet(llm_client=llm, embedder=embedder)
-        >>> # Source 1: Extract basic info (name, cuisine, region)
-        >>> dishes.feed_text("Kung Pao Chicken is a famous dish from Sichuan province with peanuts and dried chilies.")
-        >>> # Source 2: Extract complementary details (ingredients, flavor, technique)
-        >>> dishes.feed_text("Kung Pao Chicken features rapid stir-frying of chicken with roasted peanuts, creating a sweet and spicy taste.")
-        >>> dishes.show()  # Shows merged 'Kung Pao Chicken' entry with accumulated details from both sources
     """
 
     def __init__(
@@ -101,18 +70,6 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
         verbose: bool = False,
         **kwargs: Any,
     ):
-        """
-        Initialize the Culinary Dish Set template.
-
-        Args:
-            llm_client (BaseChatModel): The LLM for dish extraction and standardization.
-            embedder (Embeddings): Embedding model for semantic retrieval and knowledge graph visualization.
-            chunk_size (int): Size of text chunks for processing.
-            chunk_overlap (int): Overlap between chunks.
-            max_workers (int): Parallel processing workers.
-            verbose (bool): Enable progress logging.
-            **kwargs: Additional parameters for AutoSet.
-        """
         super().__init__(
             item_schema=CulinaryDish,
             key_extractor=lambda x: x.name.strip().lower(),
@@ -132,16 +89,11 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
         top_k_for_search: int = 3,
         top_k_for_chat: int = 3,
     ) -> None:
-        """
-        Display the culinary dish collection using OntoSight.
-
-        Args:
-            top_k_for_search (int): Number of dishes to retrieve for search context. Default 3.
-            top_k_for_chat (int): Number of dishes to retrieve for chat context. Default 3.
-        """
-
-        def item_label_extractor(dish: CulinaryDish) -> str:
-            return f"{dish.name} ({dish.cuisine})"
+        def item_label_extractor(item: CulinaryDish) -> str:
+            parts = [item.name]
+            if item.origin:
+                parts.append(f"({item.origin})")
+            return " ".join(parts)
 
         super().show(
             item_label_extractor=item_label_extractor,

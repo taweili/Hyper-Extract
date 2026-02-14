@@ -20,38 +20,20 @@ class GameMonsterSchema(BaseModel):
     monster_name: str = Field(
         ..., description="The standard name of the monster, e.g., 'Goblin Warrior'"
     )
-    monster_type: str = Field(
+    type: str = Field(
         ...,
-        description="Monster species/racial classification: 'Goblin', 'Dragon', 'Undead', 'Beast', etc.",
-    )
-    rarity_tier: Optional[str] = Field(
-        None,
-        description="Rarity level of the monster: 'Common', 'Elite', 'Boss', 'Legendary', etc.",
+        description="Monster species and rarity classification (e.g., 'Undead / Boss', 'Beast / Common')",
     )
     habitat: Optional[str] = Field(
         None, description="Map areas or regions where this monster typically appears"
     )
-    combat_stats: Optional[str] = Field(
+    abilities: Optional[str] = Field(
         None,
-        description="Combat attributes with numerical values: HP, attack, defense, magic resist, etc.",
+        description="Combat stats (HP/ATK), special skills, weaknesses, and encounter difficulty",
     )
-    special_abilities: Optional[str] = Field(
+    loot_and_lore: Optional[str] = Field(
         None,
-        description="Unique skills or special attacks this monster can perform",
-    )
-    elemental_weakness: Optional[str] = Field(
-        None,
-        description="Element types this monster is weak to: Fire, Ice, Wind, Holy, Dark, etc.",
-    )
-    drop_table: Optional[str] = Field(
-        None,
-        description="Items dropped when defeated, including drop probability and item names",
-    )
-    respawn_timer: Optional[str] = Field(
-        None, description="How long it takes for this monster to respawn after defeat"
-    )
-    encounter_difficulty: Optional[str] = Field(
-        None, description="Recommended player level or difficulty assessment for encountering this monster"
+        description="Items dropped, respawn mechanics, and background lore/flavor text",
     )
 
 
@@ -62,20 +44,21 @@ class GameMonsterSchema(BaseModel):
 _PROMPT = """You are an expert game bestiary and monster guide author.
 Your task is to extract structured information about game monsters from the provided text.
 
-For each monster mentioned, extract:
+For each monster mentioned, extract these consolidated fields:
 1. **monster_name**: The official name of the monster
-2. **monster_type**: The species or racial type of the monster
-3. **rarity_tier**: How rare or powerful this monster is
-4. **habitat**: Locations where this monster can be found
-5. **combat_stats**: Numerical combat attributes (HP, ATK, DEF, etc.)
-6. **special_abilities**: Unique or dangerous abilities this monster has
-7. **elemental_weakness**: Element types that deal extra damage to this monster
-8. **drop_table**: What items this monster drops and with what probability
-9. **respawn_timer**: How long after defeat before the monster respawns
-10. **encounter_difficulty**: Recommended player level or challenge rating
+2. **type**: The species/race combined with rarity tier (e.g., Dragon/Legendary)
+3. **habitat**: Locations where found
+4. **abilities**: 
+   - Combat stats (HP/ATK)
+   - Unique skills or attacks
+   - Elemental weaknesses
+   - Strategy or difficulty rating
+5. **loot_and_lore**:
+   - Dropped items and probabilities
+   - Respawn timers or mechanics
+   - Background lore and description
 
-Extract only information explicitly mentioned. If a field is not described, leave it empty.
-Be comprehensive in capturing all monster details, even if scattered throughout the text.
+Extract only information explicitly mentioned. Keep descriptions concise but complete.
 
 ### Source Text:
 """
@@ -169,7 +152,7 @@ class GameMonsterCompendium(AutoSet[GameMonsterSchema]):
 
         def monster_label_extractor(item: GameMonsterSchema) -> str:
             """Extract display label: name with type."""
-            type_label = f" ({item.monster_type})" if item.monster_type else ""
+            type_label = f" ({item.type})" if item.type else ""
             return f"{item.monster_name}{type_label}"
 
         super().show(

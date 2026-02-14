@@ -24,28 +24,18 @@ class GameItemSchema(BaseModel):
     """Schema for individual game items in the compendium."""
 
     item_name: str = Field(
-        ..., description="The standard English or localized name of the item"
+        ..., description="The standard name of the item"
     )
     category: str = Field(
         ...,
-        description="Item classification: 'Weapon', 'Armor', 'Consumable', 'Accessory', 'Material', etc.",
+        description="Item classification (Weapon, Potion, Material, etc.)",
     )
-    stat_bonuses: Optional[str] = Field(
+    item_data: Optional[str] = Field(
         None,
-        description="Attribute bonuses provided by this item, e.g., '+50 attack, +100 HP'",
+        description="Stat bonuses, special effects, and crafting recipe information.",
     )
-    crafting_recipe: Optional[str] = Field(
-        None, description="How to craft this item from other materials or items"
-    )
-    drop_sources: Optional[str] = Field(
-        None,
-        description="Where to obtain this item: which monsters drop it, NPCs who sell it, quest rewards, etc.",
-    )
-    suitable_heroes: Optional[str] = Field(
-        None, description="Which character classes or heroes benefit most from this item"
-    )
-    lore_background: Optional[str] = Field(
-        None, description="The gameplay lore or in-world story of this item"
+    description: Optional[str] = Field(
+        None, description="Acquisition info, suitable heroes, and lore background.",
     )
 
 
@@ -59,14 +49,10 @@ Your task is to extract structured information about game items from the provide
 For each item mentioned in the text, extract:
 1. **item_name**: The official or standard name of the item
 2. **category**: The type/class of item (weapon, armor, consumable, etc.)
-3. **stat_bonuses**: Any attribute, damage, defense, or status effect bonuses this item provides
-4. **crafting_recipe**: How players can craft or combine items to create this item
-5. **drop_sources**: Where/who drops this item, shops that sell it, quest rewards, etc.
-6. **suitable_heroes**: Which character classes or heroes are recommended to use this item
-7. **lore_background**: Any in-game story, legend, or lore associated with this item
+3. **item_data**: Stat bonuses, effects, and crafting recipes
+4. **description**: Where to find it, recommended heroes, and background lore
 
-Extract only information explicitly mentioned in the text. If a field is not described, leave it empty.
-Focus on being comprehensive and capturing all items mentioned, even if only briefly.
+Extract only information explicitly mentioned.
 
 ### Source Text:
 """

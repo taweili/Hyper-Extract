@@ -22,15 +22,11 @@ class DiplomaticEventSchema(BaseModel):
     event_name: str = Field(
         ..., description="Name of the event (e.g., 'Treaty of Versailles')"
     )
-    signing_date: Optional[str] = Field(None, description="Date of the event")
     member_countries: List[str] = Field(
         default_factory=list, description="All participating countries"
     )
-    key_terms: Optional[str] = Field(
-        None, description="Summary of key terms or outcomes"
-    )
-    leading_country: Optional[str] = Field(
-        None, description="Leading or initiating country"
+    details: Optional[str] = Field(
+        None, description="Signing date, key terms, leading countries, and outcomes."
     )
 
 
@@ -43,7 +39,8 @@ A hyperedge connects multiple countries participating in a single event.
 _NODE_PROMPT = """Extract all country/nation names mentioned in the text."""
 
 _EDGE_PROMPT = """Extract diplomatic events involving multiple countries.
-For each event, list all participating countries in the member_countries field."""
+For each event, list all participating countries in member_countries.
+Combine key terms, signing date, and outcomes into the 'details' field."""
 
 
 class DiplomaticEventHypergraph(AutoHypergraph[CountrySchema, DiplomaticEventSchema]):

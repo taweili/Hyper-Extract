@@ -18,11 +18,8 @@ class SupplyEntity(BaseModel):
     entity_type: str = Field(
         description="Type: 'Customer', 'Supplier', 'Strategic Partner', 'Distributor', 'Our Company'."
     )
-    jurisdiction: Optional[str] = Field(
-        None, description="Geographic location or headquarters region."
-    )
-    notes: Optional[str] = Field(
-        None, description="Additional details (e.g., 'Certified Organic', 'ISO Compliant')."
+    details: Optional[str] = Field(
+        None, description="Jurisdiction, certifications, and compliance notes."
     )
 
 
@@ -33,24 +30,15 @@ class SupplyTransaction(BaseModel):
 
     source: str = Field(description="The supplier or upstream entity.")
     target: str = Field(description="The buyer or downstream entity.")
-    transaction_type: str = Field(
+    relationship_type: str = Field(
         description="Type: 'Supply', 'Purchase', 'Distribution', 'Strategic Partnership'."
     )
     product_service: str = Field(
         description="What is being supplied or transacted (e.g., 'Lithium Chips', 'Logistics Services')."
     )
-    dependency: str = Field(
-        description="Dependency level: 'Critical', 'High', 'Moderate', 'Low'."
-    )
-    volume_percentage: Optional[str] = Field(
-        None, description="Percentage of total supply/revenue if disclosed (e.g., '80%')."
-    )
-    geographic_origin: Optional[str] = Field(
-        None, description="Source region or geopolitical consideration."
-    )
-    risks: Optional[str] = Field(
+    risk_assessment: Optional[str] = Field(
         None,
-        description="Any disclosed risks or vulnerabilities (e.g., 'Single-source supplier', 'Tariff exposure').",
+        description="Combined assessment of dependency level, volume percentage, geographic origins, and risks.",
     )
 
 
@@ -59,32 +47,26 @@ class SupplyTransaction(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "You are a supply chain analyst. Extract supply chain entities and their relationships "
-    "from corporate filings and supply chain audits.\n\n"
+    "You are a supply chain analyst. Extract supply chain entities and relationships.\n\n"
     "Rules:\n"
-    "- Identify key suppliers, customers, and strategic partners mentioned.\n"
-    "- Extract transaction types and product/service descriptions.\n"
-    "- Assess dependency levels based on disclosed volume or importance.\n"
-    "- Document any geopolitical or regulatory risks."
+    "- Identify suppliers, customers, and partners.\n"
+    "- Extract transaction types and products.\n"
+    "- Summarize dependency, volume, and geopolitical risks in **risk_assessment**."
 )
 
 _NODE_PROMPT = (
-    "You are a supply chain analyst. Extract all supply chain participants (Nodes) from the text.\n\n"
-    "Extraction Rules:\n"
-    "- Identify companies, suppliers, customers, and distribution partners.\n"
-    "- Classify each entity's role in the supply chain.\n"
-    "- Note jurisdiction and any certifications or compliance notes.\n"
-    "- DO NOT establish transaction relationships at this stage."
+    "You are a supply chain analyst. Extract supply chain participants/entities (Nodes).\n\n"
+    "Rules:\n"
+    "- Identify companies and partners.\n"
+    "- Classify entity roles.\n"
+    "- Capture location and certifications in **details**."
 )
 
 _EDGE_PROMPT = (
-    "You are a supply chain analyst. Given the list of supply chain entities, extract the "
-    "transaction relationships (Edges).\n\n"
-    "Extraction Rules:\n"
-    "- Connect supplier to buyer with the specific product/service being transacted.\n"
-    "- Assess dependency level based on disclosed volume percentages or importance keywords.\n"
-    "- Extract geographic origin and any disclosed risks (tariffs, single-source).\n"
-    "- Only connect entities that exist in the provided list."
+    "You are a supply chain analyst. Extract transaction relationships (Edges).\n\n"
+    "Rules:\n"
+    "- Connect entities via product/service flows.\n"
+    "- **risk_assessment**: Combine dependency level, volume info, and risks (tariffs, single-source)."
 )
 
 # ==============================================================================
@@ -178,8 +160,8 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: SupplyTransaction) -> str:
-            vol = f" {edge.volume_percentage}" if edge.volume_percentage else ""
-            return f"{edge.product_service}{vol} [{edge.dependency}]"
+            risk = f" [{edge.risk_assessment}]" if edge.risk_assessment else ""
+            return f"{edge.product_service}{risk}"
 
         super().show(
             node_label_extractor=node_label_extractor,

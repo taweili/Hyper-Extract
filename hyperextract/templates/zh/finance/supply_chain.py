@@ -18,11 +18,8 @@ class SupplyEntity(BaseModel):
     entity_type: str = Field(
         description='类型："客户"、"供应商"、"战略伙伴"、"分销商"、"本公司"。'
     )
-    jurisdiction: Optional[str] = Field(
-        None, description="地理位置或总部所在地。"
-    )
-    notes: Optional[str] = Field(
-        None, description='其他详情，例如"有机认证"、"ISO 合规"等。'
+    details: Optional[str] = Field(
+        None, description="地理管辖区、认证信息及合规说明。"
     )
 
 
@@ -33,24 +30,15 @@ class SupplyTransaction(BaseModel):
 
     source: str = Field(description="上游供应商或提供方。")
     target: str = Field(description="下游买方或需求方。")
-    transaction_type: str = Field(
+    relationship_type: str = Field(
         description='类型："供应"、"采购"、"分销"、"战略合作"。'
     )
     product_service: str = Field(
         description='被供应或交易的内容，例如"锂芯片"、"物流服务"等。'
     )
-    dependency: str = Field(
-        description='依赖程度："关键"、"高"、"中等"、"低"。'
-    )
-    volume_percentage: Optional[str] = Field(
-        None, description='如有披露，总供应或收入的百分比，例如"80%"。'
-    )
-    geographic_origin: Optional[str] = Field(
-        None, description="来源地区或地缘政治考量。"
-    )
-    risks: Optional[str] = Field(
+    risk_assessment: Optional[str] = Field(
         None,
-        description='披露的风险或脆弱性，例如"单一来源供应商"、"关税暴露"。'
+        description="依赖程度、交易量占比、地理来源风险及地缘政治因素的综合评估。",
     )
 
 
@@ -59,30 +47,26 @@ class SupplyTransaction(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "你是供应链分析师。从企业财报和供应链审计中提取供应链实体及其关系。\n\n"
+    "你是供应链分析师。提取供应链实体及其关系。\n\n"
     "规则:\n"
-    "- 识别提及的关键供应商、客户和战略伙伴。\n"
-    "- 提取交易类型和产品/服务描述。\n"
-    "- 根据披露的数量或重要性评估依赖程度。\n"
-    "- 记录任何地缘政治或监管风险。"
+    "- 识别供应商、客户和伙伴。\n"
+    "- 提取交易类型及产品。\n"
+    "- 将依赖度、交易量及地缘政治风险汇总至 **risk_assessment**。"
 )
 
 _NODE_PROMPT = (
-    "你是供应链分析师。从文本中提取所有供应链参与者（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别公司、供应商、客户和分销合作伙伴。\n"
-    "- 对每个实体在供应链中的角色进行分类。\n"
-    "- 记录司法管辖区和任何认证或合规说明。\n"
-    "- 此阶段不建立交易关系。"
+    "你是供应链分析师。提取供应链参与者（节点）。\n\n"
+    "规则:\n"
+    "- 识别公司及和伙伴。\n"
+    "- 分类角色。\n"
+    "- 记录地区及认证至 **details**。"
 )
 
 _EDGE_PROMPT = (
-    "你是供应链分析师。在获得供应链实体清单的基础上，提取交易关系（边）。\n\n"
-    "提取规则:\n"
-    "- 将供应商连接到买方，说明具体的产品/服务。\n"
-    "- 根据披露的数量百分比或重要性关键词评估依赖程度。\n"
-    "- 提取地理来源和任何披露的风险（关税、单一来源）。\n"
-    "- 仅连接提供列表中存在的实体。"
+    "你是供应链分析师。提取交易关系（边）。\n\n"
+    "规则:\n"
+    "- 通过产品/服务连接实体。\n"
+    "- **risk_assessment**: 综合评估依赖度、交易量及风险（关税、单一来源）。"
 )
 
 # ==============================================================================
@@ -174,8 +158,8 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: SupplyTransaction) -> str:
-            vol = f" {edge.volume_percentage}" if edge.volume_percentage else ""
-            return f"{edge.product_service}{vol} [{edge.dependency}]"
+            risk = f" [{edge.risk_assessment}]" if edge.risk_assessment else ""
+            return f"{edge.product_service}{risk}"
 
         super().show(
             node_label_extractor=node_label_extractor,

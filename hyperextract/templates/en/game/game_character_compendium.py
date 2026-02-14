@@ -21,34 +21,19 @@ class GameCharacterSchema(BaseModel):
     character_name: str = Field(
         ..., description="The standard name of the character, e.g., 'Yasuo'"
     )
-    character_class: str = Field(
+    class_role: str = Field(
         ...,
-        description="Character class/role: 'Swordsman', 'Mage', 'Archer', 'Tank', 'Support', etc.",
+        description="Character class/role (e.g., 'Mage', 'Tank') and playstyle summary.",
     )
-    background_story: Optional[str] = Field(
-        None, description="Character lore, origin story, and background"
+    affiliation: Optional[str] = Field(
+        None, description="Faction, team, or origin region."
     )
-    signature_abilities: Optional[str] = Field(
+    abilities: Optional[str] = Field(
         None,
-        description="List of main/signature skills and abilities this character possesses",
+        description="Signature skills, ultimate ability, and key base stats.",
     )
-    base_stats: Optional[str] = Field(
-        None,
-        description="Base attributes: HP, mana, attack, defense, speed, etc. with numerical values",
-    )
-    recommended_playstyle: Optional[str] = Field(
-        None,
-        description="How to effectively play this character: positioning, combos, item builds, etc.",
-    )
-    origin_region: Optional[str] = Field(
-        None, description="The region/world area this character comes from"
-    )
-    faction_affiliation: Optional[str] = Field(
-        None, description="Which faction, team, or organization this character belongs to"
-    )
-    voice_actor: Optional[str] = Field(
-        None,
-        description="Official voice actor name(s) for this character in different languages",
+    lore: Optional[str] = Field(
+        None, description="Background story, personality, and voice actor info."
     )
 
 

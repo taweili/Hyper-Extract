@@ -6,12 +6,10 @@
 
 from .haccp_safety import FoodSafetyHACCPGraph
 from .recipe_process import RecipeProcessGraph
-from .flavor_pairing import FlavorPairingGraph
 from .culinary_dish import CulinaryDishSet
 
 __all__ = [
     "FoodSafetyHACCPGraph",
     "RecipeProcessGraph",
-    "FlavorPairingGraph",
     "CulinaryDishSet",
 ]

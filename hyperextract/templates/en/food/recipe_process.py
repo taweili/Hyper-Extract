@@ -36,21 +36,8 @@ class ProcessingStep(BaseModel):
     action: str = Field(
         description="The processing action (e.g., 'Blend', 'Heat', 'Cool', 'Rest', 'Knead', 'Ferment')."
     )
-    duration: str = Field(
-        description="How long the action takes (e.g., '10 mins', '2 hours', 'Overnight', '15s')."
-    )
-    temperature: Optional[str] = Field(
-        None, description="Temperature setting if applicable (e.g., '175°C', 'Room temperature', '4°C')."
-    )
-    equipment: Optional[str] = Field(
-        None, description="Equipment used (e.g., 'Stand Mixer', 'Oven', 'Water Bath', 'Thermometer')."
-    )
-    parameters: Optional[str] = Field(
-        None,
-        description="Additional parameters (speed, pressure, etc., e.g., 'Medium speed', '200 PSI').",
-    )
-    notes: Optional[str] = Field(
-        None, description="Special instructions or observations (e.g., 'A light cream should form')."
+    process_conditions: Optional[str] = Field(
+        None, description="Combine duration, temp, equipment, and parameters."
     )
 
 
@@ -59,35 +46,29 @@ class ProcessingStep(BaseModel):
 # ==============================================================================
 
 _PROMPT = (
-    "You are a professional chef and food scientist. Extract the step-by-step recipe or industrial "
-    "food production process from formulation sheets and SOPs.\n\n"
+    "You are a food scientist. Extract recipe process steps.\n\n"
     "Rules:\n"
-    "- Identify each distinct processing action and transformation.\n"
-    "- Extract ingredient states before and after each step.\n"
-    "- Capture timing, temperature, and equipment precisely.\n"
-    "- Maintain strict sequence order (Step 1 -> Step 2, etc.).\n"
-    "- Include any notes on texture, appearance, or sensory cues."
+    "- Identify processing actions and transformations.\n"
+    "- Extract ingredient states pre/post step.\n"
+    "- Capture **process_conditions** (time, temp, equipment).\n"
+    "- Maintain sequence order."
 )
 
 _NODE_PROMPT = (
-    "You are a professional chef and food scientist. Extract all ingredient states (Nodes) from the recipe.\n\n"
-    "Extraction Rules:\n"
-    "- Identify distinct states/stages in the recipe (raw, mixed, heated, cooled, rested).\n"
-    "- Describe what ingredients are present at each state.\n"
-    "- Note the physical form (liquid, solid, dough, etc.).\n"
-    "- Maintain exact names and descriptions from the source.\n"
-    "- DO NOT describe the actions or transitions between states at this stage."
+    "You are a food scientist. Extract ingredient states (Nodes).\n\n"
+    "Rules:\n"
+    "- Identify distinct states (raw, mixed, cooked).\n"
+    "- List ingredients present.\n"
+    "- Note physical form."
 )
 
 _EDGE_PROMPT = (
-    "You are a professional chef. Given the list of ingredient states, extract the processing "
-    "steps that transform one state into another (Edges).\n\n"
-    "Extraction Rules:\n"
-    "- Connect each source state to its target state with the specific action.\n"
-    "- Extract duration, temperature, and equipment for each step.\n"
-    "- Extract any special parameters (speed, pressure) or sensory cues.\n"
-    "- Maintain strict step ordering (Step 1, Step 2, etc.).\n"
-    "- Only connect states that exist in the provided list."
+    "You are a food scientist. Extract processing steps (Edges).\n\n"
+    "Rules:\n"
+    "- Connect source to target state via action.\n"
+    "- **process_conditions**: Time, temperature, equipment.\n"
+    "- Maintain exact step order.\n"
+    "- Only connect existing nodes."
 )
 
 # ==============================================================================
@@ -184,8 +165,8 @@ class RecipeProcessGraph(AutoTemporalGraph[IngredientState, ProcessingStep]):
             return f"{node.name} ({node.physical_state if node.physical_state else 'Unknown'})"
 
         def edge_label_extractor(edge: ProcessingStep) -> str:
-            temp = f" {edge.temperature}" if edge.temperature else ""
-            return f"{edge.action} ({edge.duration}){temp}"
+            temp = f" ({edge.process_conditions})" if edge.process_conditions else ""
+            return f"{edge.action}{temp}"
 
         super().show(
             node_label_extractor=node_label_extractor,
