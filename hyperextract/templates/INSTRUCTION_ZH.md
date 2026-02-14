@@ -195,9 +195,10 @@ template = MyTemplate(llm_client=..., embedder=...)
 template.feed_text('你的输入文本...')
 
 # 2. 框架自动处理！无需显式调用 extract()
-# - 文本自动分块
-# - Schema 自动抽取
-# - 去重/关系建立自动完成
+
+ - 文本自动分块
+ - Schema 自动抽取
+ - 去重/关系建立自动完成
 
 # 3. 直接查看结果或可视化
 print(template.items)  # 查看提取的项目
@@ -214,10 +215,10 @@ template.show()         # 可视化知识图谱
 对于 AutoGraph 系列模板，可在初始化时选择提取策略：
 
 \\python
-# 一阶段：同时提取节点和边（速度快）
+- 一阶段：同时提取节点和边（速度快）
 template = MyGraph(llm_client=..., embedder=..., extraction_mode='one_stage')
 
-# 二阶段：先提取节点，再提取边（精度高）
+- 二阶段：先提取节点，再提取边（精度高）
 template = MyGraph(llm_client=..., embedder=..., extraction_mode='two_stage')
 \
 
