@@ -80,12 +80,12 @@ class EndangeredSpeciesList(AutoSet[SpeciesStatus]):
 
         Args:
             llm_client (BaseChatModel)：用于提取物种和威胁信息的语言模型客户端。
-            embedder (Embeddings)：用于物种去重和威胁描述索引的嵌入模型。
+            embedder (Embeddings)：用于语义检索和知识图谱可视化的嵌入模型。注意：物种信息累加基于精确的物种名称匹配，而非语义相似度。
             chunk_size (int, optional)：每个文本块的最大字符数。默认为 2048。
             chunk_overlap (int, optional)：块之间的重叠字符数，用于保持上下文连贯性。默认为 256。
             max_workers (int, optional)：并发提取的最大工作进程数。默认为 10。
-            verbose (bool, optional)：如果为 True，则打印详细的提取和去重进度日志。默认为 False。
-            **kwargs：传递给 AutoSet 基类的参数，用于控制去重行为。
+            verbose (bool, optional)：如果为 True，则打印详细的提取和累加进度日志。默认为 False。
+            **kwargs：传递给 AutoSet 基类的参数。
         """
         super().__init__(
             item_schema=SpeciesStatus,

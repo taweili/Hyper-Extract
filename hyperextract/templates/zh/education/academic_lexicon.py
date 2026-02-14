@@ -47,14 +47,14 @@ _PROMPT = (
 
 class AcademicLexiconSet(AutoSet[AcademicTerm]):
     """
-    用于构建去重且合成的学术名词百科集的教育模版。
-    利用 AutoSet 的合并策略，将来自不同教材或文献的定义融合成唯一的、信息最全的条目。
+    用于构建学术名词百科集的教育模板，通过**精确的术语键值进行信息累加**。
+    自动将来自多个文本源的同一术语信息合并为一条完整条目，从各源中丰富定义内容。
 
     用法示例：
         >>> lexicon = AcademicLexiconSet(llm_client, embedder)
-        >>> lexicon.feed_text("来源A：光合作用是植物利用光能...")
-        >>> lexicon.feed_text("来源B：光合作用涉及叶绿素吸收光子...")
-        >>> lexicon.extract() # 自动通过“项合并”功能将关于“光合作用”的不同侧重定义合并
+        >>> lexicon.feed_text("来源A：光合作用是植物利用太阳能进行的生化反应...")  # 提取：term='光合作用', definition=...
+        >>> lexicon.feed_text("来源B：光合作用在叶绿体中进行，包含光反应和暗反应...")  # 自动合并到已有的'光合作用'条目中
+        >>> lexicon.show()  # 显示合并后的学术术语集
     """
 
     def __init__(
@@ -74,13 +74,13 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
 
         参数描述:
             llm_client (BaseChatModel): 用于提取的语言模型客户端。
-            embedder (Embeddings): 用于实体合并和去重的嵌入模型（AutoSet 的核心）。
+            embedder (Embeddings): 用于语义检索和知识图谱可视化的嵌入模型。注意：信息累加基于术语名称（key），而非嵌入向量。
             extraction_mode (str): 提取模式策略。
             chunk_size (int): 文本分片大小。
             chunk_overlap (int): 分片重叠大小。
             max_workers (int): 并行处理进程数。
             verbose (bool): 是否开启详细日志。
-            **kwargs: 透传给 AutoSet 基类的其他参数（如自定义 merge_strategy）。
+            **kwargs: 透传给 AutoSet 基类的其他参数。
         """
         super().__init__(
             item_schema=AcademicTerm,

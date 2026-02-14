@@ -70,16 +70,19 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
     """
     适用文档: 餐厅菜单、美食博客、烹饪书籍、食材供应商列表、菜肴数据库、美食指南、社交媒体。
 
-    模板用于从多个来源提取和去重菜肴条目。在菜肴名称的变体（例如"宫保鸡丁"与"宫爆鸡丁"）中自动融合相同的菜肴。支持菜单标准化、美食知识积累和跨文化菜肴对应。
+    模板用于构建标准化的菜肴知识库，通过**精确的菜肴名称为键进行信息累加**。
+    自动将来自多个文本源的同一菜肴信息合并为一条完整条目，从各源中积累食材、烹饪方法、地域特征和风味描述。
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
         >>> embedder = OpenAIEmbeddings()
         >>> dishes = CulinaryDishSet(llm_client=llm, embedder=embedder)
-        >>> menu = "1. Kung Pao Chicken - 宫保鸡丁。2. 宫爆鸡丁(四川焦糖鸡丁)"
-        >>> dishes.feed_text(menu)
-        >>> dishes.show()
+        >>> # 来源 1：提取基本信息（名称、菜系、地域）
+        >>> dishes.feed_text("宫保鸡丁是来源于四川的著名菜肴，主要食材有鸡肉、花生、干辣椒。")
+        >>> # 来源 2：提取补充信息（风味、烹饪手法）
+        >>> dishes.feed_text("宫保鸡丁采用大火快速炒制，花生要烘烤，整体风味是甜辣鲜香。")
+        >>> dishes.show()  # 显示合并后包含两个来源信息的"宫保鸡丁"条目
     """
 
     def __init__(
@@ -98,7 +101,7 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
 
         Args:
             llm_client (BaseChatModel): 用于提取的 LLM。
-            embedder (Embeddings): 用于检索和可视化的嵌入模型。
+            embedder (Embeddings): 用于语义检索和知识图谱可视化的嵌入模型。
             chunk_size (int): 每个分块的最大字符数。
             chunk_overlap (int): 分块之间的重叠。
             max_workers (int): 并行处理工作线程数。

@@ -51,16 +51,17 @@ _PROMPT = (
 
 class AcademicLexiconSet(AutoSet[AcademicTerm]):
     """
-    Educational template for building a deduplicated, synthesized dictionary of academic terms.
-    Leverages AutoSet to merge conflicting or complementary definitions from multiple text sources.
+    Educational template for building a synthesized dictionary of academic terms through key-based information accumulation.
+    Automatically merges information from multiple text sources about the same term (identified by term name)
+    into a single comprehensive entry, enriching definitions with context from all sources.
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> from hyperextract.templates.en.education.academic_lexicon import AcademicLexiconSet
         >>> lexicon = AcademicLexiconSet(llm_client, embedder)
-        >>> lexicon.feed_text("Source 1: Photosynthesis is a process used by plants...")
-        >>> lexicon.feed_text("Source 2: Photosynthesis converts light energy into chemical energy...")
-        >>> lexicon.extract() # Will merge definitions of "Photosynthesis"
+        >>> lexicon.feed_text("Source 1: Photosynthesis is a process used by plants to convert light energy...")  # Extract: term='photosynthesis', definition=...
+        >>> lexicon.feed_text("Source 2: Photosynthesis occurs in chloroplasts and involves electron transport...")  # Auto-merge into existing 'photosynthesis' entry
+        >>> lexicon.show()  # Display merged academic terms
     """
 
     def __init__(
@@ -80,7 +81,7 @@ class AcademicLexiconSet(AutoSet[AcademicTerm]):
 
         Args:
             llm_client (BaseChatModel): The LLM used for extraction.
-            embedder (Embeddings): The embedding model for entity deduplication and merging.
+            embedder (Embeddings): The embedding model for semantic retrieval and knowledge graph visualization. Note: Key-based accumulation uses the term name, not embeddings for merging.
             extraction_mode (str): Mode of extraction.
             chunk_size (int): Size of text chunks for processing large documents.
             chunk_overlap (int): Overlap between chunks.

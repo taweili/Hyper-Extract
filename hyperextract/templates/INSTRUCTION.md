@@ -39,6 +39,50 @@ Before designing a Schema, ask yourself:
 
 ---
 
+## 1.1 Special Guidance: AutoSet (Key-Based Accumulation)
+
+The `AutoSet` base class is designed for building **deduplicated, enriched knowledge collections** through **exact key matching**. 
+It is fundamentally different from `AutoList` (which has no deduplication) and from semantic clustering/embedding-based merging.
+
+### How AutoSet Works
+
+**Core Mechanism**: 
+- Defines a `key_extractor` function that maps each item to a unique identifier (e.g., `key_extractor=lambda x: x.name.strip().lower()`).
+- When `feed_text()` is called, the framework extracts items and groups them by their keys.
+- **All items with the same key are automatically merged into one comprehensive entry**.
+- The **`embedder` parameter is NOT used for merging logic**; it is only used for semantic search and knowledge graph visualization.
+
+**Example Scenario**:
+```python
+from hyperextract.templates.food.culinary_dish import CulinaryDishSet
+
+dishes = CulinaryDishSet(llm_client=..., embedder=...)
+
+# Text 1: Extract basic dish info
+dishes.feed_text("Kung Pao Chicken is a Sichuan dish with peanuts and chilies.")  
+# Result: {name: "kung pao chicken", cuisine: "Sichuan", primary_ingredients: "peanuts, chilies"}
+
+# Text 2: Add complementary details about the same dish
+dishes.feed_text("Kung Pao Chicken is stir-fried rapidly, creating a sweet and spicy flavor.")  
+# Auto-merged: {name: "kung pao chicken", cuisine: "Sichuan", primary_ingredients: "peanuts, chilies", flavor_profile: "sweet and spicy"}
+
+dishes.show()  # Shows the merged, enriched entry
+```
+
+**Key Design Principles**:
+1. **Exact Key Matching**: The `key_extractor` defines what makes items "the same". Only items with identical keys are merged.
+2. **Information Accumulation**: Merging combines and enriches all attributes from multiple mentions of the same item.
+3. **No Semantic Similarity**: Unlike clustering, AutoSet does NOT group similar-but-different items (e.g., "Kung Pao Chicken" and "Gong Bao Chicken" with different keys remain separate).
+4. **LLM Responsibility**: The LLM's extraction prompt should normalize/standardize names to ensure correct grouping by key.
+
+**Embedder Role**:
+- **NOT used for deduplication**. The `embedder` is used for:
+  - Semantic retrieval during chat/search queries
+  - Visualizing relationships in the knowledge graph
+  - Future question-answering capabilities
+
+---
+
 ## 2. Implementation Rules
 
 ### A. Prompt Definition

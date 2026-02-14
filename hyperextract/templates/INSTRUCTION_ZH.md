@@ -39,6 +39,50 @@
 
 ---
 
+## 1.1 特别说明：AutoSet（基于键值的信息累加）
+
+`AutoSet` 基类专为构建**去重、富集的知识库**而设计，采用**精确键值匹配**机制。
+它**完全不同于** `AutoList`（无去重）和基于语义聚类/嵌入相似度的合并方式。
+
+### AutoSet 工作原理
+
+**核心机制**：
+- 定义一个 `key_extractor` 函数将每个条目映射到唯一标识符（如 `key_extractor=lambda x: x.name.strip().lower()`）。
+- 调用 `feed_text()` 时，框架提取条目**并按键值分组**。
+- **所有键值相同的条目自动合并为一条综合条目**。
+- `embedder` 参数**不用于合并逻辑**，仅用于语义检索和知识图谱可视化。
+
+**场景示例**：
+```python
+from hyperextract.templates.food.culinary_dish import CulinaryDishSet
+
+dishes = CulinaryDishSet(llm_client=..., embedder=...)
+
+# 文本 1：提取菜肴基础信息
+dishes.feed_text("宫保鸡丁是四川菜，用花生和干辣椒制作。")  
+# 结果：{name: "宫保鸡丁", cuisine: "四川", primary_ingredients: "花生，干辣椒"}
+
+# 文本 2：添加关于同一菜肴的补充信息
+dishes.feed_text("宫保鸡丁是大火快速炒制，整体风味是甜辣鲜香。")  
+# 自动合并：{name: "宫保鸡丁", cuisine: "四川", primary_ingredients: "花生，干辣椒", flavor_profile: "甜辣鲜香"}
+
+dishes.show()  # 显示合并后的富集条目
+```
+
+**关键设计原则**：
+1. **精确键值匹配**：`key_extractor` 定义什么是"同一个条目"。**只有**键值完全相同的条目才会合并。
+2. **信息累加**：合并时**融合并丰富**来自多个信息源的所有属性。
+3. **非语义相似性**：不同于聚类，AutoSet **不会**将语义相近但键值不同的条目分组（如"宫保鸡丁"和"宫爆鸡丁"如果被标准化为不同名称，会保持分离）。
+4. **LLM 责任**：提取 Prompt 应确保名称标准化，以便 LLM 正确归组到同一键值下。
+
+**Embedder 的角色**：
+- **不用于去重逻辑**，`embedder` 用于：
+  - 聊天/搜索查询时的语义检索
+  - 知识图谱中关系的可视化展示
+  - 未来的问答能力
+
+---
+
 ## 2. 实现规范 (Implementation Rules)
 
 ### A. Prompt 定义

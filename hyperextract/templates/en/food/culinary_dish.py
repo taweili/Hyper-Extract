@@ -74,19 +74,20 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
     Applicable to: Restaurant Menus, Cookbooks, Food Encyclopedias, Recipe Websites,
     Food Blogs, Culinary Magazine Articles, Restaurant Review Databases, Dining Guides.
 
-    Template for building a deduplicated collection of canonical culinary dishes. 
-    Standardizes dish names across cultural and linguistic variations, capturing their 
-    defining characteristics. Useful for culinary reference systems, recipe discovery, 
-    and food journalism.
+    Template for building a standardized culinary foundation through **key-based information accumulation**.
+    Automatically merges information about the same dish (identified by standardized dish name) from
+    multiple sources into a single enriched entry, capturing ingredients, preparation, origin, and characteristics.
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
         >>> llm = ChatOpenAI(model="gpt-4o")
         >>> embedder = OpenAIEmbeddings()
         >>> dishes = CulinaryDishSet(llm_client=llm, embedder=embedder)
-        >>> menu_text = "Our menu features Gong Bao Chicken, Kung Pao Chicken, and authentic Sichuan peanut chicken..."
-        >>> dishes.feed_text(menu_text)
-        >>> dishes.show()  # Automatically accumulates information for identical dish keys (e.g. 'Kung Pao Chicken')
+        >>> # Source 1: Extract basic info (name, cuisine, region)
+        >>> dishes.feed_text("Kung Pao Chicken is a famous dish from Sichuan province with peanuts and dried chilies.")
+        >>> # Source 2: Extract complementary details (ingredients, flavor, technique)
+        >>> dishes.feed_text("Kung Pao Chicken features rapid stir-frying of chicken with roasted peanuts, creating a sweet and spicy taste.")
+        >>> dishes.show()  # Shows merged 'Kung Pao Chicken' entry with accumulated details from both sources
     """
 
     def __init__(
@@ -105,7 +106,7 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
 
         Args:
             llm_client (BaseChatModel): The LLM for dish extraction and standardization.
-            embedder (Embeddings): Embedding model for retrieval and visualization.
+            embedder (Embeddings): Embedding model for semantic retrieval and knowledge graph visualization.
             chunk_size (int): Size of text chunks for processing.
             chunk_overlap (int): Overlap between chunks.
             max_workers (int): Parallel processing workers.

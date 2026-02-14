@@ -81,12 +81,12 @@ class EndangeredSpeciesList(AutoSet[SpeciesStatus]):
 
         Args:
             llm_client (BaseChatModel): Language model client for extracting species and threat information.
-            embedder (Embeddings): Embedding model for deduplicating species entries and indexing threat descriptions.
+            embedder (Embeddings): Embedding model for semantic search and knowledge graph visualization. Note: Species accumulation is based on exact species name matching, not semantic similarity.
             chunk_size (int, optional): Maximum characters per text chunk. Defaults to 2048.
             chunk_overlap (int, optional): Overlapping characters between chunks for context preservation. Defaults to 256.
             max_workers (int, optional): Maximum concurrent extraction workers. Defaults to 10.
-            verbose (bool, optional): If True, prints detailed extraction and deduplication progress logs. Defaults to False.
-            **kwargs: Additional arguments passed to the AutoSet base class for deduplication control.
+            verbose (bool, optional): If True, prints detailed extraction and accumulation progress logs. Defaults to False.
+            **kwargs: Additional arguments passed to the AutoSet base class.
         """
         super().__init__(
             item_schema=SpeciesStatus,
