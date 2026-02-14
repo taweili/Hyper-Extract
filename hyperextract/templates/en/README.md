@@ -26,7 +26,7 @@ Welcome to the **Hyper-Extract Domain Templates** library. This directory contai
 | **`medicine`** | Western and clinical medicine. | Diagnosis, symptom mapping, pharma. |
 | **`movie`** | Film, TV, and scripts. | Screenplay beats, cast & crew networks. |
 | **`news`** | Media and trending topics. | Investigative boards, causality analysis. |
-| **`physics`** | Particle physics, astronomy, and circuits. | Celestial systems, circuit paths. |
+
 
 ## Usage
 Simply import the template you need:
