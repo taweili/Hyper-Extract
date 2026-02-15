@@ -13,9 +13,7 @@ Welcome to the **Hyper-Extract Domain Templates** library. This directory contai
 | :--- | :--- | :--- |
 | **`agriculture`** | Farming, livestock, and crop management. | Crop rotation, irrigation systems. |
 | **`biology`** | Life sciences, genetics, and taxonomy. | Protein interactions, species classification. |
-| **`chemistry`** | Molecular structures and reactions. | Chemical compounds, lab experiments. |
 | **`education`** | Knowledge points and curriculum. | Course prerequisites, learning paths. |
-| **`environment`** | Climate, ecology, and sustainability. | Weather patterns, carbon footprint tracking. |
 | **`finance`** | Banking, stocks, and investments. | Earnings reports, stock analysis. |
 | **`food`** | Culinary, recipes, and nutrition. | Menu planning, recipe breakdown. |
 | **`game`** | Game lore, mechanics, and quests. | NPC relations, quest trees, item crafting. |
