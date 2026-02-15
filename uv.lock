@@ -725,7 +725,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=1.1.7" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "ontomem", specifier = ">=0.2.0" },
-    { name = "ontosight", specifier = ">=0.1.1" },
+    { name = "ontosight", specifier = ">=0.1.2" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "semhash", specifier = ">=0.3.2" },
 ]
@@ -1560,16 +1560,16 @@ wheels = [
 
 [[package]]
 name = "ontosight"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple" }
 dependencies = [
     { name = "fastapi" },
     { name = "pydantic" },
     { name = "uvicorn", extra = ["standard"] },
 ]
-sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/71/69/825c5e9cff4f35497ec0d22b24d39315d296c438dfd1198fdc35612eb54d/ontosight-0.1.1.tar.gz", hash = "sha256:7b6800f595946cfce5366008d7f048d46b433e05f2aef362489a7ce51dbc308e", size = 2867770, upload-time = "2026-02-06T08:56:51.907Z" }
+sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/2c/03/de75d30d032c147f0769f28fe5f2963ea91d3d04cbfde13d11a7b4f35053/ontosight-0.1.2.tar.gz", hash = "sha256:e099edce488d0da83468b61f2ee383db8d2866f1d270b3932d5175fff4c8cda0", size = 2866929, upload-time = "2026-02-14T15:17:41.111Z" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/1c/5a/38812bdeded540d5a367a279347d88985c2e4198d125a45f369cb1f2bb80/ontosight-0.1.1-py3-none-any.whl", hash = "sha256:470d6ca92dd107fc3beabb1cf254389028e46b0d1fb91b0a7bd45f1fb37ea8c1", size = 2913898, upload-time = "2026-02-06T08:57:07.53Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/05/2d/55446a12cfabc6462c641a9a576749dd71a535d78d0c7ecd5592586c1ef1/ontosight-0.1.2-py3-none-any.whl", hash = "sha256:b587a327c57f30cb2ac3798a574f67225ef64dc23a8a2a2de9fd8bc677629554", size = 2913214, upload-time = "2026-02-14T15:17:39.209Z" },
 ]
 
 [[package]]
