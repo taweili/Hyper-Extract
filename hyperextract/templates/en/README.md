@@ -13,17 +13,15 @@ Welcome to the **Hyper-Extract Domain Templates** library. This directory contai
 | :--- | :--- | :--- |
 | **`agriculture`** | Farming, livestock, and crop management. | Crop rotation, irrigation systems. |
 | **`biology`** | Life sciences, genetics, and taxonomy. | Protein interactions, species classification. |
-| **`education`** | Knowledge points and curriculum. | Course prerequisites, learning paths. |
 | **`finance`** | Banking, stocks, and investments. | Earnings reports, stock analysis. |
 | **`food`** | Culinary, recipes, and nutrition. | Menu planning, recipe breakdown. |
-| **`game`** | Game lore, mechanics, and quests. | NPC relations, quest trees, item crafting. |
 | **`general`** | Basic encyclopedic knowledge. | General Person/Org/Event extraction. |
 | **`history`** | Events, timelines, and figures. | War campaigns, historical biographies. |
 | **`legal`** | Law, contracts, and compliance. | Contract obligations, court rulings. |
 | **`literature`** | Fiction, poetry, and character arcs. | Character maps, literary themes. |
 | **`medicine`** | Western and clinical medicine. | Diagnosis, symptom mapping, pharma. |
-| **`movie`** | Film, TV, and scripts. | Screenplay beats, cast & crew networks. |
 | **`news`** | Media and trending topics. | Investigative boards, causality analysis. |
+| **`travel`** | Geography, tourism, and locations. | Travel guides, spatial relationships, tourism routes. |
 
 
 ## Usage
