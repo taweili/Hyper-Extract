@@ -18,7 +18,7 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.vectorstores import FAISS
-from ontosight import view_graph
+from ontosight import view_nodes
 
 from .base import BaseAutoType
 from hyperextract.utils.logging import logger
@@ -336,13 +336,13 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
 
             def search_callback(query: str) -> None:
                 related_items = self.search(query, top_k=top_k_for_search)
-                return related_items, []
+                return related_items
 
             def chat_callback(question: str) -> None:
                 response = self.chat(question, top_k=top_k_for_chat)
                 content = response.content
                 retrieved_items = response.additional_kwargs.get("retrieved_items", [])
-                return content, (retrieved_items, [])
+                return content, retrieved_items
         else:
             logger.info(
                 "Visualizing list without search and chat capabilities (no indices detected)."
@@ -355,17 +355,17 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
         def item_id_extractor(item: ItemSchema) -> str:
             return md5(str(item.model_dump()).encode()).hexdigest()[:8]
 
-        view_graph(
+        view_nodes(
             node_list=self.items,
-            edge_list=[],
             node_schema=self.item_schema,
-            edge_schema=None,
             node_id_extractor=item_id_extractor,
-            node_ids_in_edge_extractor=None,
             node_label_extractor=item_label_extractor,
-            edge_label_extractor=None,
             on_search=search_callback,
             on_chat=chat_callback,
+            context={
+                "title": f"{self.item_schema.__name__} List",
+                "description": f"Visualizing {len(self.items)} items in AutoList"
+            }
         )
 
     # ==================== Pythonic Sequence Operations ====================

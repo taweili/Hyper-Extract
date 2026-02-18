@@ -21,7 +21,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from ontomem import OMem
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
-from ontosight import view_graph
+from ontosight import view_nodes
 
 from .base import BaseAutoType
 from hyperextract.utils.logging import logger
@@ -384,13 +384,13 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
 
             def search_callback(query: str) -> None:
                 related_items = self.search(query, top_k=top_k_for_search)
-                return related_items, []
+                return related_items
 
             def chat_callback(question: str) -> None:
                 response = self.chat(question, top_k=top_k_for_chat)
                 content = response.content
                 retrieved_items = response.additional_kwargs.get("retrieved_items", [])
-                return content, (retrieved_items, [])
+                return content, retrieved_items
         else:
             logger.info(
                 "Visualizing set without search and chat capabilities (no indices detected)."
@@ -398,17 +398,17 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
             search_callback = None
             chat_callback = None
 
-        view_graph(
+        view_nodes(
             node_list=self.items,
-            edge_list=[],
             node_schema=self.item_schema,
-            edge_schema=None,
             node_id_extractor=self.key_extractor,
-            node_ids_in_edge_extractor=None,
             node_label_extractor=item_label_extractor,
-            edge_label_extractor=None,
             on_search=search_callback,
             on_chat=chat_callback,
+            context={
+                "title": f"{self.item_schema.__name__} Set",
+                "description": f"Visualizing {len(self.items)} unique items in AutoSet"
+            }
         )
 
     # ==================== Set Interface Methods ====================
