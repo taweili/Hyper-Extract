@@ -8,7 +8,7 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 
 | Domain | Description | Key Focus |
 | :--- | :--- | :--- |
-| **`general`** | General Purpose | Encyclopedias, Biographies, Webpages |
+| **`general`** | General Purpose | Arbitrary Text, Encyclopedias, Biographies |
 | **`finance`** | Finance & Investment | Reports, Filings, Transcripts |
 | **`medicine`** | Medicine & Health | Clinical Records, Guidelines, Drug Info |
 | **`tcm`** | Traditional Chinese Medicine | Case Records, Herbology, Acupuncture |
@@ -28,6 +28,7 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 
 ### 1. `general` (General Purpose)
 The default choice for unstructured text that doesn't fit a specific industry.
+*   **Arbitrary Text (Universal Extraction)**: Any type of text (e.g., web content, notes, blogs) for direct entity and relationship extraction without specific domain constraints.
 *   **Wikipedia Articles / Encyclopedias**: Comprehensive descriptions of entities with structured infobox-like attributes.
 *   **Biographies & Memoirs**: Life stories of individuals, focusing on key life events and relationships.
 *   **Non-fiction Books (Popular Science)**: Books that cover broad topics (e.g., "Sapiens", "Thinking, Fast and Slow") with cross-domain concepts and arguments.
