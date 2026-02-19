@@ -98,69 +98,298 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 
 ### 3. `medicine` (Medicine)
 Focuses on causality, standardized terminology (UMLS mappings), and precise relationships.
-*   **Medical Textbooks & Monographs**: Systematized knowledge of anatomy, pathology, and treatment protocols (e.g., "Principles of Neural Science").
-*   **Clinical Practice Guidelines**: Standardized procedures for treating diseases, defining "Symptom -> Diagnosis -> Treatment" decision trees.
-*   **Discharge Summaries**: Narrative records of a patient's hospital stay, including admission reason, hospital course, and discharge instructions.
-*   **Pathology Reports**: Microscopic descriptions of tissue samples, detailing tumor grades, invasion depths, and histological features.
-*   **Drug Package Inserts**: Legal documents listing indications, contraindications, dosage, and adverse reactions.
+
+*   **Medical Textbooks & Monographs**: Systematized knowledge of anatomy, pathology, and treatment protocols.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`PathologyHypergraph`** | `AutoHypergraph` | **Pathology Mechanism**. Models complex "Gene + Env + Trigger -> Disease" logic. | Research, clinical knowledge base |
+| **`MedicalConceptNet`** | `AutoGraph` | **Medical Concept Net**. Extracts terminology and semantic relations (Is-A, Defined-As). | Taxonomy building, semantic search |
+| **`PharmacologyGraph`** | `AutoGraph` | **Pharmacology Action**. Maps interactions between drugs, receptors, and physiological responses. | Drug mechanism analysis |
+| **`AnatomyHierarchy`** | `AutoGraph` | **Anatomy Tree**. Builds hierarchical positions (Part-Of) and connectivity. | Anatomy atlases, surgical planning |
+| **`SymptomDifferential`** | `AutoSet` | **Differential Table**. Summarizes symptoms and their corresponding differentiator diseases. | Diagnostic support, education |
+
+*   **Clinical Practice Guidelines**: Standardized procedures for treating diseases, defining decision trees.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`TreatmentRegimenMap`** | `AutoHypergraph` | **Therapy Regimen**. Extracts multi-modal treatments comprising Drugs, Therapy, and Lifestyle. | Oncology protocols, chronic care |
+| **`ClinicalPathway`** | `AutoGraph` | **Decision Pathway**. Extracts "If-Then-Else" structures for clinical decision trees. | Pathway management, standardization |
+| **`LevelOfEvidence`** | `AutoList` | **Evidence Grading**. Extracts recommendations with associated Grade/Level of Evidence. | Clinical QA, research citations |
+
+*   **Discharge Summaries**: Narrative records of a patient's hospital stay.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SurgicalEventGraph`** | `AutoHypergraph` | **Surgical Event**. Models surgery as a complex event involving {Surgeon, Site, Procedure, Tools}. | Quality control, performance audit |
+| **`HospitalCourseTimeline`** | `AutoTemporalGraph` | **Hospital Timeline**. Chronologically extracts admission, tests, procedures, and outcomes. | Case review, dispute tracing |
+| **`DischargeInstruction`** | `AutoModel` | **Discharge Summary**. Extracts medications, follow-ups, and rehabilitation guidance. | Patient follow-up, management |
+
+*   **Pathology Reports**: Microscopic descriptions of tissue samples.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`TumorStagingItem`** | `AutoModel` | **TNM Staging**. Extracts Tumor size (T), Node (N), Metastasis (M), and Stage. | Tumor registry, prognosis |
+| **`MicroscopicFeatureSet`** | `AutoSet` | **Biomarker Registry**. Extracts immunohistochemistry (IHC) results and mutations. | Targeted therapy, research screening |
+
+*   **Drug Package Inserts**: Legal documents listing indications, contraindications, and interactions.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ComplexInteractionNet`** | `AutoHypergraph` | **Conditional Interaction**. Models high-order "Drug A + B + condition -> Reaction" logic. | CDSS, clinical safety |
+| **`ContraindicationList`** | `AutoList` | **Contraindications**. Explicitly lists absolute contraindications (Pregnancy, etc.). | Prescription blocking |
+| **`AdverseReactionStats`** | `AutoList` | **Adverse Reaction Stats**. Extracts reactions by system with frequency descriptions. | Pharmacovigilance |
 
 ### 4. `tcm` (Traditional Chinese Medicine)
 Specialized for the unique logic of syndrome differentiation (`Bian Zheng`) and herbal compatibility.
+
 *   **Medical Case Records (Yi An)**: Clinical records from famous practitioners detailing symptoms, pattern differentiation logic, and the reasoning behind prescribed formulas.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SyndromeReasoningGraph`** | `AutoHypergraph` | **Reasoning Logic Graph**. Models the chain of `{Symptoms} -> Syndrome -> Principle -> {Formula}`. | Mining clinical experience, inheritance of TCM experts |
+| **`PrescriptionModification`** | `AutoGraph` | **Formula Modification Logic**. Extracts additions/subtractions to a base formula based on specific symptoms. | Analysis of clinical medication rules |
+| **`PulseTongueRecord`** | `AutoList` | **Pulse & Tongue Features**. Structured extraction of tongue body/coating and pulse characteristics. | Objectification of TCM diagnosis |
+
 *   **Herbal Compendiums (Ben Cao)**: Encyclopedic entries for single herbs describing their nature (Qi), flavor, meridian tropism, and functions.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`HerbPropertyModel`** | `AutoModel` | **Herb Properties**. Extracts the Four Natures, Five Flavors, Meridian Tropism, and Toxicity. | TCM Basic Database Construction |
+| **`CompatibilityNet`** | `AutoGraph` | **Compatibility Network**. Extracts "Seven Emotions" (Reinforcement, Counteraction, Incompatibility, etc.). | Contraindication warning, formula network analysis |
+| **`ProcessingMethod`** | `AutoList` | **Processing Methods (Pao Zhi)**. Lists different processing methods (e.g., Honey-fried) and their effects. | TCM processing standards |
+
 *   **Prescription Formularies (Fang Zhu)**: Documents defining herbal formulas, including the role of each ingredient (Monarch, Minister, Assistant, Envoy).
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`FormulaComposition`** | `AutoHypergraph` | **Structural Composition**. Models the formula as a hierarchy of roles: `{Monarch, Minister, Assistant, Envoy}`. | Formula structure analysis |
+| **`FunctionIndicationMap`** | `AutoGraph` | **Function-Indication Map**. Links Formula -> Functions -> Indicated Syndromes/Symptoms. | Formula recommendation systems |
+
 *   **Meridian & Acupoint Treatises**: Texts defining the anatomical location of acupoints and their specific therapeutic effects.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`AcupointLocationMap`** | `AutoGraph` | **Acupoint Spatial Map**. Extracts relative locations based on anatomical landmarks (e.g., "2 cun lateral to navel"). | Acupuncture teaching, Acupoint Atlases |
+| **`MeridianFlowGraph`** | `AutoGraph` | **Meridian Flow Graph**. Extracts the pathway and flow sequence of the twelve meridians. | Meridian theory education |
 
 ### 5. `industry` (Industry)
 Focuses on unstructured operational data in manufacturing, energy, and power sectors.
+
 *   **Maintenance Logs & Work Orders**: Field records of equipment failures, repair actions taken, and parts replaced. often containing jargon and abbreviations.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **Failure Hypergraph**. Models `{Structure, RootCause, Component, Solution}` multi-dimensional relations. | Diagnostic expert systems |
+| **`MaintenaceOperationMap`** | `AutoHypergraph` | **Maintenance Operation Map**. Models the operation as a complex event: `{Operator, Tool, Object, Duration}`. | SOP standardization, Man-hour analysis |
+| **`PartReplacementList`** | `AutoList` | **Spare Parts List**. Extracts replaced part numbers, quantities, and reasons. | Inventory prediction |
+
 *   **HSE Incident Reports**: Investigations into safety incidents, detailing the sequence of events, root causes, and corrective actions.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | **Incident Causality**. Models the coupling of `{Hazard, Trigger, Violation, Consequence}`. | Risk prevention, Accident simulation |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | **Incident Timeline**. Reconstructs the sequence of alarms, actions, and responses. | Accident review, Drill planning |
+
 *   **Shift Handover Logs**: Summaries written by operators regarding equipment status changes, anomalies, and ongoing issues.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`OpenIssueRegistry`** | `AutoSet` | **Open Issue Registry**. Deduplicated list of unresolved hazards or pending tasks. | Handover management |
+| **`AbnormalParameterList`** | `AutoList` | **Abnormal Parameters**. Extracts mentions of abnormal values or alarms (e.g., "High Temp on T-101"). | Trend analysis |
+
 *   **Technical Specifications / Datasheets**: Semi-structured text describing equipment parameters, design standards, and performance curves.
 
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **Compatibility Hypergraph**. Extracts `{Device, Condition, Constraint}` relationships for different environments. | Selection assistance, Design compliance |
+| **`SpecParameterTable`** | `AutoModel` | **Key Specs Table**. Extracts rated power, material classes, and dimensional tolerances. | Digital asset delivery |
+
 ### 6. `history` (History)
-Heavily focused on long-span timelines and social networks.
-*   **Historical Monographs**: Academic books analyzing specific eras, events, or figures with rich causal analysis and citations.
-*   **Chronicles & Annals**: Year-by-year records of events, focusing on temporal sequencing and regime changes.
-*   **Oral History Transcripts**: First-person narratives, often non-linear and focused on personal experiences within historical events.
-*   **Archival Correspondence**: Personal exchanges revealing social networks, hidden intents, and dates of specific interactions.
+Focuses on long-span timelines and social network reconstruction.
+
+*   **Historical Monographs**: Academic books analyzing specific periods, events, or figures with causal depth.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`HistoricalKnowledgeGraph`** | `AutoGraph` | **General History Graph**. Extracts basic relationships (Kinship, Minister-Ruler) and causality. | Historical Social Network Analysis |
+| **`MultiParticipantEventMap`** | `AutoHypergraph` | **Multi-Participant Event Map**. Models events as hyperedges connecting all participants (e.g., "Feast at Hong Gate"). | Complex event reconstruction |
+
+*   **Chronicles**: Strictly chronological records focusing on temporal evolution.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ChronologicalEventChain`** | `AutoTemporalGraph` | **Event Chain**. Extracts atomic events with precise timestamps. | Timeline generation |
+| **`HistoricalContextGraph`** | `AutoGraph` | **Historical Context Graph**. Extracts static relationships (kinship, alliances) underlying the events. | Background mining |
+| **`PoliticalStruggleHypergraph`** | `AutoHypergraph` | **Political Struggle Hypergraph**. Models `{Attacker, Defender, Planner, Traitor}` in battles or coups. | Faction analysis, Battle review |
+
+*   **Oral History**: First-person memoirs containing non-linear narratives and personal details.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`PersonalTrajectoryHypergraph`** | `AutoHypergraph` | **Personal Trajectory Hypergraph**. Models life stages as hyperedges: `{Period, Location, Peers, Experience}`. | Biography writing, Life course research |
+| **`NarrativeRelationGraph`** | `AutoGraph` | **Narrative Relation Graph**. Extracts interpersonal interactions and evaluations from the narrator's perspective. | Oral history social network analysis |
+| **`MemoryFlashbackList`** | `AutoList` | **Memory Flashbacks**. Extracts specific anecdotes, feelings, or side descriptions of historical moments. | Historical detail supplementation |
+
+*   **Archival Correspondence**: Letters between historical figures revealing hidden social networks.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`EpistolaryKnowledgeGraph`** | `AutoGraph` | **Epistolary Content Graph**. Extracts entities and relations mentioned *within* the letter text, rather than just sender/receiver metadata. | Historical material mining |
 
 ### 7. `biology` (Biology)
 Goes beyond genomics to include proteomics, metabolism, and ecology.
+
 *   **Biological Monographs**: Specialized books detailing species taxonomy, evolutionary history, or complex biological systems.
-*   **Protein Structure Summaries (PDB Headers)**: Descriptions of protein crystal structures, ligand binding sites, and post-translational modifications.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SpeciesInteractionWeb`** | `AutoGraph` | **Species Interaction Network**. Extracts predation, parasitism, competition, and symbiosis relations. | Food web analysis, Ecosystem modeling |
+| **`TaxonomicTree`** | `AutoGraph` | **Taxonomic Tree**. Builds hierarchical relationships (Kingdom -> Phylum -> ... -> Species). | Biological taxonomy database |
+
+*   **Protein Structure Summaries**: Descriptions of protein crystal structures, ligand binding sites, and post-translational modifications.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ProteinComplexMap`** | `AutoHypergraph` | **Protein Complex Hypergraph**. Models multi-subunit assemblies: `{SubunitA, SubunitB, Cofactor}` forming one functional complex. | Complex databases, Structural research |
+| **`BindingSiteModel`** | `AutoModel` | **Binding Site Profile**. Extracts active site residues, binding pocket chemistry, and functional annotations. | Drug design, Mutation analysis |
+
 *   **Metabolic Pathway Descriptions**: Texts explaining biochemical cascades, detailing enzymes, substrates, products, and regulation mechanisms.
-*   **Ecological Survey Reports**: Documents recording species distribution, abundance, and habitat characteristics in specific geographic areas.
-*   **Taxonomic Descriptions**: Detailed physical characterizations of organisms used for classification and identification.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`BiochemicalReactionHypergraph`** | `AutoHypergraph` | **Reaction Hypergraph**. Precisely models multi-input/output reactions: `{Enzyme + SubstrateA + SubstrateB -> ProductC + ProductD}`. | Pathway mapping, Metabolic engineering |
+| **`RegulatoryNetwork`** | `AutoGraph` | **Gene Regulatory Network**. Extracts transcription factor -> promoter -> gene expression relationships (activation, inhibition, cooperation). | Gene regulation analysis, Systems biology |
+
+*   **Ecological Surveys**: Detailed physical characterizations and systematic relationships of organisms, as well as species distribution and habitat characteristics from field surveys.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`PhylogeneticRelationGraph`** | `AutoGraph` | **Phylogenetic Relations**. Extracts evolutionary relationships, divergence distances, and branching patterns. | Molecular systematics, Evolutionary tree building |
+| **`BiodiversityRegistry`** | `AutoSet` | **Species Registry**. Deduplicates and consolidates observed species and population information from survey reports. | Biodiversity assessment, Conservation prioritization |
 
 ### 8. `legal` (Legal)
 Handles precise logical conditions, obligations, and citations.
+
 *   **Legal Treatises / Commentaries**: Scholarly books analyzing legal principles, statutes, and case law logic.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`LegalConceptOntology`** | `AutoGraph` | **Legal Concept Ontology**. Extracts definitions, hierarchical relationships (Is-A), and statutory interpretations from academic texts. | Legal research, Educational systems |
+| **`CaseLawCitationNet`** | `AutoGraph` | **Citation Network**. Maps how cases cite, distinguish, or overrule previous precedents. | Precedent analysis, Legal history map |
+
 *   **Master Service Agreements (MSA)**: Contracts defining long-term business relationships, liability limits, and intellectual property rights.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ContractObligationHypergraph`** | `AutoHypergraph` | **Obligation Hypergraph**. Models complex conditional obligations: `{Party, Duty, Trigger Condition, Exception, Penalty}`. | Contract review, Compliance automation |
+| **`DefinedTermRegistry`** | `AutoSet` | **Defined Terms Registry**. Deduplicates definitions of capitalized terms (e.g., "Confidential Information") across the document. | Contract consistency check |
+| **`LiabilityClauseList`** | `AutoList` | **Liability Clauses**. Extracts specific clauses regarding indemnification, limitations of liability, and warranties. | Risk assessment, Deal comparison |
+
 *   **Court Judgments**: Final rulings by judges, containing fact-finding sections, legal reasoning, and citations of precedents.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`CaseFactTimeline`** | `AutoTemporalGraph` | **Fact Timeline**. Reconstructs the chronological sequence of events leading to the dispute from the "Findings of Fact" section. | Case analysis, Evidence marshalling |
+| **`AdjudicationLogic`** | `AutoHypergraph` | **Reasoning Hypergraph**. Models the judicial logic: `{Proven Fact + Applicable Law -> Legal Conclusion}`. | Judgment prediction, Legal reasoning Support |
+| **`LitigationParticipantMap`** | `AutoGraph` | **Participant Map**. Maps relationships between plaintiffs, defendants, counsel, and witnesses. | Conflict of interest check |
+
 *   **Regulatory Compliance Filings**: Detailed reports submitted to government bodies regarding data privacy, anti-money laundering, or environmental impact.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ComplianceRequirementList`** | `AutoList` | **Requirement Checklist**. Extracts specific affirmative duties or negative covenants mandated by the filing. | Regulatory gap analysis |
+| **`BeneficialOwnershipGraph`** | `AutoGraph` | **Ownership Structure**. Traces complex corporate ownership layers to identify Ultimate Beneficial Owners (UBO). | AML/KYC screening, Sanctions check |
 
 ### 9. `literature` (Literature & Fiction)
 Focuses on narrative structure, character interactions, and world-building.
+
 *   **Screenplays / Scripts**: Highly structured texts (Scene Heading, Action, Dialogue) ideal for extracting character interaction graphs.
-*   **Character Bibles**: Internal documents describing character backstories, personality traits, and relationships.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SceneEventHypergraph`** | `AutoHypergraph` | **Scene Event Hypergraph**. Models a scene as a hyperedge connecting `{Characters, Location, Props, Key Actions}`. | Scene complexity analysis, Shooting schedule planning |
+| **`CharacterArcTimeline`** | `AutoTemporalGraph` | **Character Arc Timeline**. Tracks a character's location, emotional state, or key actions chronologically through the script. | Character development analysis, Continuity check |
+
+*   **Novels**: Texts with complex plots, numerous characters, and interwoven relationships.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ComplexCharacterRelation`** | `AutoHypergraph` | **Complex Character Relation**. Models multi-party social structures (e.g., Love Triangles, Alliances, Factions) beyond simple pairwise links. | Ensemble analysis, Fan wiki consistency |
+| **`StoryEntityGraph`** | `AutoGraph` | **Story Entity Graph**. Focuses on key items, locations, and their ownership/location, distinct from character relations. | World-building database, Licensed game adaptation |
+| **`NarrativeEventChain`** | `AutoTemporalGraph` | **Narrative Event Chain**. Extracts key plot points strictly following the story's internal timeline. | Synopsis generation, Timeline reconstruction |
+
 *   **Literary Criticism**: Analytical texts exploring themes, motifs, and intertextuality.
 
-### 10. `travel` (Travel)
-Focuses on spatial relationships and temporal sequences.
-*   **Travel Itineraries**: Sequential plans including times, locations (POIs), transport modes, and accommodation.
-*   **Destination Guides**: Comprehensive descriptions of places, including top logical relations (Next To, Inside) and cultural tips.
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`MotifAssociationNet`** | `AutoGraph` | **Motif Association Net**. Links recurring symbols and motifs (nodes are all "Motifs") based on co-occurrence. | Systematic text analysis, Semiotics |
+| **`CritiqueArgumentHypergraph`** | `AutoHypergraph` | **Argument Hypergraph**. Models complex argumentation: `{Evidence1, Evidence2, Quoted Text} -> Core Thesis`. | Academic paper analysis, Thesis extraction |
+| **`NarrativeStructureTree`** | `AutoGraph` | **Narrative Structure Tree**. Maps the hierarchical structure of the narrative (e.g., Frame Story -> Main Plot -> Subplot). | Narratology, Structure analysis |
 
-### 11. `news` (News)
-Focuses on the "5Ws" (Who, What, Where, When, Why) and causality.
-*   **Investigative Features**: Long-form reporting revealing complex causal chains and multi-party stakeholder relationships.
+### 10. `news` (News & Journalism)
+Focuses on the "5Ws" (Who, What, Where, When, Why), event causality, and viewpoint analysis.
+
+*   **Investigative Journalism**: Long-form reporting revealing complex societal relationships or hidden truths.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`InvestigativeContextGraph`** | `AutoGraph` | **Investigation Context Graph**. Extracts baseline static relationships (employment, kinship, location) between all entities mentioned in the report. | Entity mapping, Stakeholder identification |
+| **`ComplexRelationNet`** | `AutoHypergraph` | **Complex Relationship Network**. Models multi-party social connections (e.g., family ties, political alliances, business partnerships) involving three or more entities. | Political analysis, feature stories |
+| **`KeyEventSequence`** | `AutoTemporalGraph` | **Investigative Timeline**. Traces the chronological sequence of critical events discovered during an investigation. | Retrospective reports, backgrounders |
+
 *   **Breaking News Wires**: Short, factual updates focusing on immediate events and entities.
 
-### 12. `agriculture` (Agriculture)
-*   **Agricultural Manuals**: Technical guides on crop management, planting standards, and pest control techniques.
-*   **Crop Scouting Reports**: Observations of crop growth stages, pest identification, and disease severity.
-*   **Soil Analysis Reports**: Textual descriptions of soil chemical properties and corresponding fertilizer recommendations.
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`NewsEntityGraph`** | `AutoGraph` | **Core Entity Graph**. Quickly extracts key subjects (who) and their direct actions (what) or relations. | News feeds, entity linking |
+| **`NewsSummaryModel`** | `AutoModel` | **Structured Summary**. Standardized extraction of 5W1H elements (Who, What, When, Where, Why, How). | News aggregation, Ticker generation |
+| **`LiveUpdateTimeline`** | `AutoTemporalGraph` | **Live Event Timeline**. Extracts minute-by-minute updates of an unfolding situation (e.g., press conferences, emergencies). | Live blog summary, Crisis monitoring |
 
-### 13. `food` (Food)
-*   **Standardized Recipes**: Step-by-step instructions including ingredients, preparation methods, and critical control points.
-*   **Menu Engineering Reports**: Analysis of dishes involving flavor profiles, ingredients, and customer preferences.
+*   **Policy Analysis & Editorials**: Analytical pieces focusing on opinions, arguments, and future impacts.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ViewpointStructure`** | `AutoHypergraph` | **Argument Structure**. Models the logical structure of an editorial: `{Claim, Premises/Evidence, Conclusion}`. | Opinion mining, editorial analysis |
+| **`ImpactChain`** | `AutoGraph` | **Policy Impact Chain**. Extracts causal chains predicting how a policy or event affects specific groups or sectors. | Policy reviews, trend analysis |
+
+### 11. `agriculture` (Agriculture)
+Focuses on crop lifecycle management, field monitoring, and soil health data.
+
+*   **Agricultural Manuals**: Technical guides on crop planting standards, field management practices, and pest/disease control techniques.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`CropGrowthCycle`** | `AutoTemporalGraph` | **Crop Growth Cycle Timeline**. Extracts key farming operations and environmental conditions required at each growth stage (seeding, tillering, maturation, etc.). | Planting calendar generation, Task scheduling |
+| **`PestControlHypergraph`** | `AutoHypergraph` | **Pest Control Logic**. Models complex intervention rules: `{Crop, Growth Stage, Adverse Factor} -> {Target Disease/Pest, Recommended Agent, Dosage, Safe Interval}`. | Smart crop protection systems, Pesticide recommendation |
+
+*   **Crop Scouting Reports**: Field observation records of crop growth stages and pest/disease conditions.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`FieldObservationList`** | `AutoList` | **Field Observation Log**. Structured extraction of scouting records: `{Field ID, Crop, Growth Stage, Observed Issue (Weed/Pest), Severity, Recommendation}`. | Scouting digitization, Pest/disease early warning |
+
+*   **Soil Analysis Reports**: Reports describing soil chemical composition and corresponding fertilization recommendations.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SoilNutrientModel`** | `AutoModel` | **Soil Nutrient Profile**. Extracts core physicochemical indicators (pH, Organic Matter, N-P-K, micronutrients). | Soil-testing-based fertilizer prescription, Soil fertility grading |
+| **`AmendmentPlan`** | `AutoGraph` | **Soil Amendment Plan**. Maps the logic: `{Test Result -> Limiting Factor -> Amendment Method -> Target Outcome}`. | Precision agriculture prescription generation |
+
+### 12. `food` (Food)
+Focuses on recipe standardization, ingredient pairing logic, and food review data.
+
+*   **Standardized Recipes**: Structured texts containing ingredient lists, cooking steps, and critical control points.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`RecipeCollection`** | `AutoSet` | **Recipe Catalog**. Deduplicates and extracts all unique dish entities and basic classifications from text. | Menu digitization, dish index construction |
+| **`StandardRecipeCard`** | `AutoModel` | **Standard Recipe Card**. Extracts complete ingredient list, step-by-step instructions, and key TIPS for a single dish. | Kitchen SOP cards, cooking instruction |
+| **`IngredientCompositionHypergraph`** | `AutoHypergraph` | **Ingredient Pairing Hypergraph**. Models the complex combination of `{Dish, Main Ingredient, Accessory, Seasoning}`. | Cost calculation, allergen management, R&D |
+
+*   **Food Reviews**: Detailed evaluation records by professional food critics or R&D teams.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`DishReviewSummary`** | `AutoList` | **Dish Review Summary**. Extracts core review points, recommendation level, and price perception by dish. | Structured exploration notes, must-try lists |
+| **`SensoryEvaluationGraph`** | `AutoGraph` | **Sensory Evaluation Graph**. Extracts `{Dish} -[has feature]-> {Taste/Texture} -[attributed to]-> {Ingredient/Technique}` evaluation logic. | Flavor attribution analysis, R&D feedback |
