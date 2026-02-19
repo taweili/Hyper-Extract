@@ -30,13 +30,15 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 The default choice for unstructured text that doesn't fit a specific industry.
 
 *   **Arbitrary Text (Universal Extraction)**: Any type of text (e.g., web content, notes, blogs) for direct entity and relationship extraction.
+
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
-| **`KnowledgeGraph`** | `AutoGraph` | **General Knowledge Graph**. Extracts entities and SPO relations using a broad, universal schema. | Open-domain text, web pages |
+| **`KnowledgeGraph`** | `AutoGraph` | **General Knowledge Graph**. Extracts entities and relations using a broad, universal schema. | Open-domain text, web pages |
 | **`EntityRegistry`** | `AutoSet` | **Entity Registry**. Deduplicates and compiles a list of unique entities (People, Organizations). | Entity collection, NER tasks |
 | **`KeywordList`** | `AutoList` | **Keyword List**. Extracts core concepts, main topics, or tags from the text. | Content indexing, tagging |
 
 *   **Wikipedia Articles / Encyclopedias**: Comprehensive descriptions of entities with structured infobox-like attributes.
+
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
 | **`EncyclopediaItem`** | `AutoModel` | **Encyclopedia Profile**. Extracts a structured profile for a single main entity (infobox style). | Wiki pages, dictionary entries |
@@ -44,6 +46,7 @@ The default choice for unstructured text that doesn't fit a specific industry.
 | **`CrossReferenceNet`** | `AutoGraph` | **Cross-Reference Net**. Maps hyperlinks and citations between different concepts. | Inter-article navigation maps |
 
 *   **Biographies & Memoirs**: Life stories of individuals, focusing on key life events and relationships.
+
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
 | **`LifeEventTimeline`** | `AutoTemporalGraph` | **Life Timeline**. Extracts life events with timestamps, sorted chronologically. | Biographies, annals, diaries |
@@ -51,6 +54,7 @@ The default choice for unstructured text that doesn't fit a specific industry.
 | **`PersonalProfile`** | `AutoModel` | **Personal Bio**. Aggregates static personal attributes (birth, education, career tags). | Profiles, CVs, obituary summaries |
 
 *   **Non-fiction Books (Popular Science)**: Books covering broad topics with cross-domain concepts and arguments.
+
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
 | **`ArgumentMap`** | `AutoHypergraph` | **Logical Argument Map**. Models complex logic: multiple premises supporting a conclusion. | Philosophical/Scientific books |
@@ -58,10 +62,39 @@ The default choice for unstructured text that doesn't fit a specific industry.
 
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
-*   **Equity Research Reports**: Detailed analysis by analysts containing ratings (Buy/Sell), target prices, valuation logic, and risk factors.
-*   **Earnings Call Transcripts**: Dialogue between management and analysts, rich in non-structured performance attribution and strategic outlook.
-*   **Prospectuses / IPO Filings (S-1)**: Comprehensive disclosures of company history, shareholder structure, and use of proceeds prior to listing.
+
+*   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and valuation logic.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ResearchNoteSummary`** | `AutoModel` | **Research Core**. Extracts ratings (Buy/Sell), target price, and top-level investment logic. | Report database, screening |
+| **`FinancialForecast`** | `AutoList` | **Financial Estimates**. Extracts projected data (Revenue, EPS, PE) for future years. | Consensus analysis, modeling |
+| **`ValuationLogicMap`** | `AutoGraph` | **Valuation Logic**. Maps causal chains driving stock performance (e.g., New Market -> Growth). | Investment strategy mapping |
+| **`RiskFactorList`** | `AutoList` | **Risk Registry**. Lists specific downside risks (Regulatory, FX, Supply Chain). | Risk monitoring, negatives scan |
+
+*   **Earnings Call Transcripts**: Dialogue between management and analysts, rich in performance attribution and strategic outlook.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`QAExtraction`** | `AutoList` | **Q&A Pairs**. Structures unstructured dialogue into Question-Answer-Speaker sets. | Meeting summaries, sentiment |
+| **`GuidanceTracker`** | `AutoModel` | **Outlook Guidance**. Specifically targets quantitative forward-looking guidance (Revenue/Capex). | Expectation management |
+| **`PerformanceAttribution`** | `AutoGraph` | **Performance Attribution**. Maps reasons for past performance (e.g., Inflation -> Margin Squeeze). | Attribution analysis |
+
+*   **Prospectuses / IPO Filings (S-1)**: Comprehensive disclosures of company history, shareholder structure, and use of proceeds.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ShareholderStructure`** | `AutoGraph` | **Ownership Graph**. Extracts percentages, controlling paths, and parent-subsidiary relations. | Ultimate controller analysis |
+| **`ProceedsUsage`** | `AutoList` | **Fund Usage**. Details project names, allocated amounts, and estimated timelines for proceeds. | Post-IPO monitoring |
+| **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | **Corporate Milestones**. Chronological extraction of founding, funding rounds, and major pivots. | Due diligence, history mapping |
+
 *   **M&A Due Diligence Reports**: Documents detailing legal risks, business synergies, and financial health of target companies.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`SynergyMap`** | `AutoGraph` | **Synergy Network**. Analyzes complementary relationships between Acquirer and Target. | Value creation assessment |
+| **`LegalRiskRegistry`** | `AutoSet` | **Legal Encumbrances**. Deduplicates and lists pending litigations, compliance gaps, and IP disputes. | Risk clearing, valuation haircut |
+| **`KeyPersonnelProfile`** | `AutoModel` | **Management Profiles**. Extracts backgrounds, non-competes, and retention plans of target leadership. | Human capital assessment |
 
 ### 3. `medicine` (Medicine)
 Focuses on causality, standardized terminology (UMLS mappings), and precise relationships.
