@@ -28,10 +28,33 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 
 ### 1. `general` (General Purpose)
 The default choice for unstructured text that doesn't fit a specific industry.
-*   **Arbitrary Text (Universal Extraction)**: Any type of text (e.g., web content, notes, blogs) for direct entity and relationship extraction without specific domain constraints.
+
+*   **Arbitrary Text (Universal Extraction)**: Any type of text (e.g., web content, notes, blogs) for direct entity and relationship extraction.
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`KnowledgeGraph`** | `AutoGraph` | **General Knowledge Graph**. Extracts entities and SPO relations using a broad, universal schema. | Open-domain text, web pages |
+| **`EntityRegistry`** | `AutoSet` | **Entity Registry**. Deduplicates and compiles a list of unique entities (People, Organizations). | Entity collection, NER tasks |
+| **`KeywordList`** | `AutoList` | **Keyword List**. Extracts core concepts, main topics, or tags from the text. | Content indexing, tagging |
+
 *   **Wikipedia Articles / Encyclopedias**: Comprehensive descriptions of entities with structured infobox-like attributes.
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`EncyclopediaItem`** | `AutoModel` | **Encyclopedia Profile**. Extracts a structured profile for a single main entity (infobox style). | Wiki pages, dictionary entries |
+| **`ConceptHierarchy`** | `AutoGraph` | **Concept Hierarchy**. Builds a taxonomy graph (Subclass-Of, Part-Of relations). | Scientific wikis, textbook units |
+| **`CrossReferenceNet`** | `AutoGraph` | **Cross-Reference Net**. Maps hyperlinks and citations between different concepts. | Inter-article navigation maps |
+
 *   **Biographies & Memoirs**: Life stories of individuals, focusing on key life events and relationships.
-*   **Non-fiction Books (Popular Science)**: Books that cover broad topics (e.g., "Sapiens", "Thinking, Fast and Slow") with cross-domain concepts and arguments.
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`LifeEventTimeline`** | `AutoTemporalGraph` | **Life Timeline**. Extracts life events with timestamps, sorted chronologically. | Biographies, annals, diaries |
+| **`SocialNetwork`** | `AutoGraph` | **Social Network**. Specifically captures interpersonal relationships and interactions. | Character studies, memoirs |
+| **`PersonalProfile`** | `AutoModel` | **Personal Bio**. Aggregates static personal attributes (birth, education, career tags). | Profiles, CVs, obituary summaries |
+
+*   **Non-fiction Books (Popular Science)**: Books covering broad topics with cross-domain concepts and arguments.
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ArgumentMap`** | `AutoHypergraph` | **Logical Argument Map**. Models complex logic: multiple premises supporting a conclusion. | Philosophical/Scientific books |
+| **`ConceptEvolution`** | `AutoTemporalGraph` | **Conceptual History**. Tracks how a specific idea or term evolves throughout a text. | History of ideas, evolving concepts |
 
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
