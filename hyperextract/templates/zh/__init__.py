@@ -13,7 +13,7 @@ from .tcm import (
     PrescriptionManualSet,
     HerbInteractionHypergraph,
 )
-from .wuxia import CultivationSystemMap, SectRelationGraph, ArtifactRegistry
+from .fantasy import CultivationSystemMap, SectRelationGraph, ArtifactRegistry
 
 __all__ = [
     "KnowledgeGraph",
