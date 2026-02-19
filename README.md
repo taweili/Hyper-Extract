@@ -1,82 +1,76 @@
-# Hyper-Extract: From Text to Actionable Knowledge Structures 🚀
+# Hyper-Extract: The Knowledge Engine for Vertical AI Agents 🧠🚀
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 
-**Hyper-Extract** is a next-generation knowledge extraction framework designed to transform unstructured text into **searchable, queryable, and actionable** structured knowledge.
+**Hyper-Extract** is a next-generation framework designed to transform massive, unstructured domain documents into **searchable, queryable, and actionable** knowledge structures. 
 
-Unlike traditional extraction tools that only output static data, Hyper-Extract automatically converts extracted structures (Lists, Graphs, Hypergraphs) into an interactive knowledge base. You can directly chat with the structure, perform precise semantic searches, and realize "Extraction as an Application."
+Stop treating your documents as dead text chunks. With Hyper-Extract, every PDF, report, and manual becomes a live, structured brain for your AI Agents.
 
-[中文版自述文件 (README_ZH.md)](README_ZH.md)
-
----
-
-## 🌟 Key Highlights
-
-- **📂 Universal Structure Support**:
-  - **Foundational**: List, Set, General Knowledge Graph.
-  - **Dynamics**: Temporal Graph (time-series events), Spatial Graph (geographical topology), Spatio-Temporal Graph.
-  - **Complex Relations**: Hypergraph (N-ary relations), perfect for modeling group interactions and holistic context.
-- **💬 Actionable Knowledge (RAG 2.0)**:
-  - Extraction is just the beginning. Hyper-Extract automatically builds vector indices for every extracted entity and relationship.
-  - **Chat with Structure**: Query your graph or list directly to get answers backed by structured logic.
-- **🛠️ Production-Ready SOTA Algorithms**:
-  - Built-in implementations of cutting-edge extraction and RAG paradigms: `Auto-Gen`, `Hyper-RAG`, `Light-RAG`, `GraphRAG`, `CogRAG`, and more.
-- **🎭 Massive Domain Templates**:
-  - 20+ out-of-the-box templates covering: Finance, Medicine, Law, Gaming, Agriculture, Cybersecurity, Physics, Literature, etc.
+[中文版 (README_ZH.md)](README_ZH.md) | [Domain Samples](examples/)
 
 ---
 
-## 🚀 Quick Start
+## 🌟 Why Hyper-Extract?
 
-### Installation
+Traditional RAG often fails in professional domains because it loses the **logical structure** of knowledge. Hyper-Extract solves this by providing a unique **3-Layer Architecture**:
 
-```bash
-pip install hyperextract
-```
+### 🧱 Layer 1: Knowledge Primitives (`hyperextract.types`)
+The "DNA" of knowledge. We provide specialized "AutoType" structures categorized into four levels of complexity:
 
-### Build an "Intelligent Knowledge Graph" in 3 Steps
+| Level | Primitives | Core Logic | Best For |
+| :--- | :--- | :--- | :--- |
+| **Scalar & Doc** | `AutoModel` | Many chunks -> **One** consistent object | Research reports, Infoboxes, Summaries |
+| **Collections** | `AutoList`, `AutoSet` | Many independent or unique items | Entity registries, Event logs, Glossaries |
+| **Graphs** | `AutoGraph`, `AutoHypergraph` | Pairwise or N-ary (Hyper-edge) relations | Knowledge Graphs, Complex causality reasoning |
+| **Context-Aware** | `AutoTemporalGraph`, `AutoSpatialGraph`, `AutoSpatioTemporalGraph` | Resolves relative time/space context | Timelines, History, IoT |
 
-Hyper-Extract makes complex extraction and interaction dead simple:
+### ⚙️ Layer 2: Extraction Engines (`hyperextract.methods`)
+The "Brain" of the framework. Built-in SOTA algorithms that turn primitives into power:
+- **Light-RAG / GraphRAG**: High-efficiency retrieval over graph structures.
+- **Hyper-RAG**: Reasoning via complex hyper-relations.
+- **CogRAG**: Cognition-driven hierarchical extraction.
+
+### 🧠 Layer 3: 12+ Domain Expert Templates (`hyperextract.templates`)
+The "Expertise" you need. Out-of-the-box schemas and prompts for vertical industries:
+- **Finance, Medicine, Law, TCM, Industry, History, Biology, Literature, Travel, News, Agriculture, Food.**
+
+---
+
+## 🎭 Transform Your Domain in Minutes
+
+"From static files to an intelligent agent engine."
+
+| Your Domain | From Static Docs ... | To Actionable Agents 🤖 |
+| :--- | :--- | :--- |
+| **💰 Finance** | Annual reports, prospectuses | **Investment Analyst Agent** (Reasoning over valuation logic) |
+| **🏥 Medicine** | Clinical guidelines, patient records | **Diagnostic Assistant Agent** (Mapping symptoms to pathways) |
+| **⚖️ Legal** | Contracts, court rulings | **Compliance Auditor Agent** (Extracting obligations & risks) |
+| **🔧 Industry** | Maintenance logs, specs | **Ops Expert Agent** (Connecting failure modes to root causes) |
+| **📜 History** | Chronicles, biographies | **Historian Agent** (Reconstructing event timelines) |
+
+---
+
+## 🚀 Quick Start: Build an "Askable" Knowledge Base
 
 ```python
-from pydantic import BaseModel, Field
 from hyperextract.types import AutoGraph
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from hyperextract.templates.en.finance import ResearchNoteSummary
+from langchain_openai import ChatOpenAI
 
-# 1. Define your world view (Schema)
-class entity(BaseModel):
-    name: str = Field(description="Name of the entity")
-    type: str = Field(description="Category, e.g., Person, Company, Location")
-
-class edge(BaseModel):
-    source: str = Field(description="Source entity name")
-    target: str = Field(description="Target entity name")
-    relation: str = Field(description="The relationship between them")
-
-# 2. Initialize and Build from Text
+# 1. Load an industry-expert template
 llm = ChatOpenAI(model="gpt-4o")
-embedder = OpenAIEmbeddings()
+kb = AutoGraph.from_template(ResearchNoteSummary, llm_client=llm)
 
-graph_kb = AutoGraph(
-    node_schema=entity,
-    edge_schema=edge,
-    # Unique key extractors for deduplication and linking
-    node_key_extractor=lambda x: x.name,
-    edge_key_extractor=lambda x: f"{x.source}_{x.relation}_{x.target}",
-    nodes_in_edge_extractor=lambda x: (x.source, x.target),
-    llm_client=llm, 
-    embedder=embedder
-)
+# 2. Feed your domain text (Extraction happens automatically!)
+text = "Apple's valuation is driven by its services growth and iPhone 16 cycle..."
+kb.feed_text(text)
 
-text = "Apple Inc. was founded by Steve Jobs in California, and it is the maker of the iPhone."
-graph_kb.feed_text(text) # Extract knowledge
-graph_kb.build_index() # Build vector index for Q&A
-
-# 3. Chat with the Structure (Actionable!)
-answer = graph_kb.chat("What is the relationship between Jobs and Apple?")
+# 3. Chat with the Structure (Actionable Insight)
+answer = kb.chat("What are the core drivers of Apple's valuation?")
 print(answer.content)
 ```
+
 
 ---
 

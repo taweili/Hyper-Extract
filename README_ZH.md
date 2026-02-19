@@ -1,82 +1,76 @@
-# Hyper-Extract: 从文本到可交互的知识结构 🚀
+# Hyper-Extract: 垂直领域 AI Agent 的知识引擎 🧠🚀
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 
-**Hyper-Extract** 是一个下一代知识提取框架，旨在将非结构化文本转化为**可搜索、可查询、可问答**的结构化知识。
+**Hyper-Extract** 是一个下一代知识提取框架，旨在将海量、非结构化的领域文档转化为**可搜索、可查询、可推理**的知识结构。
 
-区别于传统的只负责“提取”的工具，Hyper-Extract 将提取出的结构（如列表、图谱、超图）自动转化为可交互的知识库。你可以直接与提取出的结构进行对话，进行精确的语义搜索，实现“提取即应用”。
+不要再把你的文档当作死气沉沉的文本切片。通过 Hyper-Extract，每一份 PDF、研报、说明书都能转化为 AI Agent 动态调用的“活体大脑”。
 
-[English README](README.md)
-
----
-
-## 🌟 核心特性
-
-- **📂 全模态结构支持**:
-  - **基础结构**: List (列表), Set (集合), Graph (通用图谱)。
-  - **时空动力学**: Temporal Graph (时序图), Spatial Graph (地理图), Spatio-Temporal Graph (时空图)。
-  - **复杂关联**: Hypergraph (超图/多元图)，支持多对多复杂关系建模。
-- **💬 结构化知识问答 (RAG 2.0)**:
-  - 提取不仅仅是终点。Hyper-Extract 自动为提取出的实体和关系建立向量索引。
-  - **Chat with Structure**: 直接针对图谱或集合进行问答，获得具有结构化逻辑支撑的答案。
-- **🛠️ 工业级算法复现**:
-  - 内置了多种 SOTA 提取与检索算法的复现，包括 `Auto-Gen`, `Hyper-RAG`, `Light-RAG`, `GraphRAG`, `CogRAG` 等。
-- **🎭 领域专家模版库**:
-  - 提供了 20+ 个领域的开箱即用模版，涵盖：金融、医疗、法律、游戏、农业、网络安全、物理、文学等。
+[English (README.md)](README.md) | [示例代码](examples/)
 
 ---
 
-## 🚀 快速上手
+## 🌟 为什么选择 Hyper-Extract?
 
-### 安装
+传统的 RAG 模型在垂直和专业领域往往因为丢失知识的**逻辑结构**而失效。Hyper-Extract 通过独特的**三层分级架构**解决这一痛点：
 
-```bash
-pip install hyperextract
-```
+### 🧱 第一级：知识基础原语 (`hyperextract.types`)
+知识的 "DNA"。我们根据信息复杂度的不同，将 "AutoType" 结构分为四个层级：
 
-### 3步实现“对话知识图谱”
+| 层级 | 基础原语 | 核心逻辑 | 适用场景 |
+| :--- | :--- | :--- | :--- |
+| **标量与文档型** | `AutoModel` | 多个切片 -> **一个**一致性的对象 | 研报摘要、百科条目、元数据提取 |
+| **集合型** | `AutoList`, `AutoSet` | 独立项或唯一实体的去重集合 | 实体清单、术语表、RPG 手册 |
+| **图谱型** | `AutoGraph`, `AutoHypergraph` | 二元 (Pairwise) 或多元 (N-ary) 关系 | 知识图谱、多因素复杂因果推理 |
+| **时空感知型** | `AutoTemporalGraph`, `AutoSpatialGraph`, `AutoSpatioTemporalGraph` | 解析相对的时间/空间上下文 | 编年史、时政新闻、拓扑描述 |
 
-Hyper-Extract 让复杂结构的提取和使用变得异常简单：
+### ⚙️ 第二级：核心提取引擎 (`hyperextract.methods`)
+系统的 "大脑"。内置 SOTA 算法，让数据结构产生生产力：
+- **Light-RAG / GraphRAG**: 在图谱结构上进行高效率的全局检索。
+- **Hyper-RAG / CogRAG**: 基于复杂超图和认知层级的推理问答引擎。
+- **Typical Methods**: 支持 iText2KG, KG-Gen 等经典提取逻辑。
+
+### 🧠 第三级：12+ 行业领域专家模板 (`hyperextract.templates`)
+你的专业 "灵魂"。开箱即用的行业 Schema 和 Prompt：
+- **金融、医疗、法律、中医、工业、历史、生物、文学、旅游、新闻、农业、美食。**
+
+---
+
+## 🎭 瞬间转化：从静态文档到行业专家 Agent 🤖
+
+"让每一行文本都具有交互性。"
+
+| 领域 | 原始文档输入 | 转化后的 Agent 能力 |
+| :--- | :--- | :--- |
+| **💰 金融** | 研报、公告、招股书 | **投研助手 Agent** (推理各公司估值逻辑与驱动因素) |
+| **🏥 医疗** | 临床指南、病案、说明书 | **诊疗分析 Agent** (从症状推演鉴别诊断路径) |
+| **⚖️ 法律** | 合同协议、判决文书 | **合规风控 Agent** (一分钟内提取复杂责任与违约关系) |
+| **🔧 工业** | 运维日志、技术规格书 | **排故专家 Agent** (关联故障现象与其根本原因) |
+| **📜 历史** | 编年史、信札、传记 | **文史学家 Agent** (还原复杂的历史事件因果链条) |
+
+---
+
+## 🚀 快速上手：构建一个“可对话”的领域知识库
 
 ```python
-from pydantic import BaseModel, Field
 from hyperextract.types import AutoGraph
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from hyperextract.templates.zh.finance import ResearchNoteSummary
+from langchain_openai import ChatOpenAI
 
-# 1. 定义你想要提取的结构 (Schema)
-class entity(BaseModel):
-    name: str = Field(description="实体名称")
-    type: str = Field(description="类别，如：人、公司、地点")
-
-class edge(BaseModel):
-    source: str = Field(description="源实体")
-    target: str = Field(description="目标实体")
-    relation: str = Field(description="它们之间的关系")
-
-# 2. 初始化提取器并从文本构建图谱
+# 1. 加载一个行业模板 (例如: 金融研报摘要)
 llm = ChatOpenAI(model="gpt-4o")
-embedder = OpenAIEmbeddings()
+kb = AutoGraph.from_template(ResearchNoteSummary, llm_client=llm)
 
-graph_kb = AutoGraph(
-    node_schema=entity,
-    edge_schema=edge,
-    # 唯一键提取规则，用于去重和关联
-    node_key_extractor=lambda x: x.name,
-    edge_key_extractor=lambda x: f"{x.source}_{x.relation}_{x.target}",
-    nodes_in_edge_extractor=lambda x: (x.source, x.target),
-    llm_client=llm, 
-    embedder=embedder
-)
+# 2. “喂入” 领域文本 (自动完成知识提取与建模)
+text = "苹果公司的估值核心逻辑在于其服务收入的增长以及 iPhone 16 的换机周期..."
+kb.feed_text(text)
 
-text = "苹果公司由史蒂夫·乔布斯在加利福尼亚州创立，它是著名的iPhone制造商。"
-graph_kb.feed_text(text) # 提取知识
-graph_kb.build_index() # 构建向量索引 (用于后续问答)
-
-# 3. 针对提取出的结构进行问答 (Actionable!)
-answer = graph_kb.chat("乔布斯和苹果公司是什么关系？")
+# 3. 针对结构化知识直接对话 (具有逻辑支撑的答案)
+answer = kb.chat("苹果公司的估值驱动因素有哪些？")
 print(answer.content)
 ```
+
 
 ---
 

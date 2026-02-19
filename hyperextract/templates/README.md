@@ -63,22 +63,15 @@ The default choice for unstructured text that doesn't fit a specific industry.
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
 
-*   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and valuation logic.
+*   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and investment logic.
 
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
 | **`ResearchNoteSummary`** | `AutoModel` | **Research Core**. Extracts ratings (Buy/Sell), target price, and top-level investment logic. | Report database, screening |
 | **`FinancialForecast`** | `AutoList` | **Financial Estimates**. Extracts projected data (Revenue, EPS, PE) for future years. | Consensus analysis, modeling |
 | **`ValuationLogicMap`** | `AutoGraph` | **Valuation Logic**. Maps causal chains driving stock performance (e.g., New Market -> Growth). | Investment strategy mapping |
+| **`FactorInfluenceHypergraph`** | `AutoHypergraph` | **Multi-factor Analysis**. Models complex relationships between macro factors, industry trends, and company metrics. | Quantamental strategy, factor attribution |
 | **`RiskFactorList`** | `AutoList` | **Risk Registry**. Lists specific downside risks (Regulatory, FX, Supply Chain). | Risk monitoring, negatives scan |
-
-*   **Earnings Call Transcripts**: Dialogue between management and analysts, rich in performance attribution and strategic outlook.
-
-| Template Name | Primitive | Description | Typical Use Case |
-| :--- | :--- | :--- | :--- |
-| **`QAExtraction`** | `AutoList` | **Q&A Pairs**. Structures unstructured dialogue into Question-Answer-Speaker sets. | Meeting summaries, sentiment |
-| **`GuidanceTracker`** | `AutoModel` | **Outlook Guidance**. Specifically targets quantitative forward-looking guidance (Revenue/Capex). | Expectation management |
-| **`PerformanceAttribution`** | `AutoGraph` | **Performance Attribution**. Maps reasons for past performance (e.g., Inflation -> Margin Squeeze). | Attribution analysis |
 
 *   **Prospectuses / IPO Filings (S-1)**: Comprehensive disclosures of company history, shareholder structure, and use of proceeds.
 
