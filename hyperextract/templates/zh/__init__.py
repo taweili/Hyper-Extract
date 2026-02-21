@@ -1,7 +1,6 @@
 from .general import KnowledgeGraph, ConceptMap, LogicGraph
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
 from .biology import TaxonomyGraph, BiologicalNetwork, MetabolicHypergraph
-from .chemistry import MolecularStructureGraph, ChemicalReactionHyper, LabProtocolTemporal
 from .finance import (
     RiskAssessmentGraph,
     MarketSentimentGraph,
@@ -30,7 +29,6 @@ from .finance import (
 )
 from .literature import CharacterRelationshipGraph, NarrativeTimeline, SymbolismSet
 from .medicine import DrugInteractionGraph, ClinicalTreatmentTimeline, DiagnosticCriteriaSet
-from .movie import ScriptSceneGraph, CharacterArcTracker, CinematicTriviaSet
 from .news import BreakingEventGraph, TopicTimeline, OpinionSet
 from .tcm import (
     PrescriptionCompositionGraph,
@@ -39,7 +37,6 @@ from .tcm import (
     PrescriptionManualSet,
     HerbInteractionHypergraph,
 )
-from .fantasy import CultivationSystemMap, SectRelationGraph, ArtifactRegistry
 
 __all__ = [
     "KnowledgeGraph",
