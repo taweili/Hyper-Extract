@@ -16,6 +16,7 @@ from .mda_narrative_graph import MDANarrativeGraph
 from .filing_risk_factor_set import FilingRiskFactorSet
 from .material_event_timeline import MaterialEventTimeline
 from .segment_performance_list import SegmentPerformanceList
+from .financial_data_temporal_graph import FinancialDataTemporalGraph
 
 # Equity Research Reports
 from .research_note_summary import ResearchNoteSummary
@@ -52,6 +53,7 @@ __all__ = [
     "FilingRiskFactorSet",
     "MaterialEventTimeline",
     "SegmentPerformanceList",
+    "FinancialDataTemporalGraph",
     # Equity Research
     "ResearchNoteSummary",
     "FinancialForecast",

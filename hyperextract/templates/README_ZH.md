@@ -72,6 +72,7 @@
 | **`FilingRiskFactorSet`** | `AutoSet` | **风险因素登记册**。去重汇总 Item 1A 中披露的所有风险因素，跟踪各报告期的新增与删除变化。 | 风险演变监控、跨公司风险对标 |
 | **`MaterialEventTimeline`** | `AutoTemporalGraph` | **重大事件时间轴**。按时间顺序提取 8-K 当期报告中的重大事件（高管变动、并购公告、财务重述等）。 | 事件驱动分析、合规监控 |
 | **`SegmentPerformanceList`** | `AutoList` | **分部业绩明细**。按业务分部或地理区域提取营收、经营利润等关键指标。 | 分部估值、区域风险敞口分析 |
+| **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | **财务数据时序图谱**。构建跨报告期的财务指标时序图谱，追踪营收、利润率、分部贡献及关键比率随时间的演变。 | 多期趋势分析、跨期对比、财务数据溯源 |
 
 *   **股票研究报告 (Equity Research)**：分析师撰写的深度报告，包含评级、目标价及投资逻辑相关内容。
 

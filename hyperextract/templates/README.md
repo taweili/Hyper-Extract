@@ -72,6 +72,7 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | **`FilingRiskFactorSet`** | `AutoSet` | **Risk Factor Registry**. Deduplicates and catalogs all risk factors disclosed across Item 1A, tracking additions and removals between filing periods. | Risk evolution monitoring, cross-company risk comparison |
 | **`MaterialEventTimeline`** | `AutoTemporalGraph` | **8-K Event Timeline**. Chronologically extracts material events (executive changes, M&A announcements, restatements) from current reports. | Event-driven analysis, regulatory monitoring |
 | **`SegmentPerformanceList`** | `AutoList` | **Segment Breakdown**. Extracts revenue, operating income, and key metrics by business segment or geographic region. | Segment-level valuation, geographic exposure analysis |
+| **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | **Financial Data Timeline**. Builds a temporal graph of financial metrics across reporting periods, tracking how revenue, margins, segment contributions, and key ratios evolve over time. | Multi-period trend analysis, cross-period comparison, financial data lineage |
 
 *   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and investment logic.
 
