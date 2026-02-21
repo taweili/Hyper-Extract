@@ -8,7 +8,7 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 
 | Domain | Description | Key Focus |
 | :--- | :--- | :--- |
-| **`general`** | General Purpose | Arbitrary Text, Encyclopedias, Biographies |
+| **`general`** | General Purpose | Arbitrary Text, Encyclopedias, Biographies, Regulations |
 | **`finance`** | Finance & Investment | Reports, Filings, Transcripts, Earnings Calls, Market News |
 | **`medicine`** | Medicine & Health | Clinical Records, Guidelines, Drug Info |
 | **`tcm`** | Traditional Chinese Medicine | Case Records, Herbology, Acupuncture |
@@ -59,6 +59,17 @@ The default choice for unstructured text that doesn't fit a specific industry.
 | :--- | :--- | :--- | :--- |
 | **`ArgumentMap`** | `AutoHypergraph` | **Logical Argument Map**. Models complex logic: multiple premises supporting a conclusion. | Philosophical/Scientific books |
 | **`ConceptEvolution`** | `AutoTemporalGraph` | **Conceptual History**. Tracks how a specific idea or term evolves throughout a text. | History of ideas, evolving concepts |
+
+*   **Regulations & Compliance**: Internal policies, administrative regulations, SOPs, and compliance guidelines.
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`RegulationProfile`** | `AutoModel` | **Policy Snapshot**. Extracts policy name, version, scope, effective date, and core purpose. | Policy overview, version control |
+| **`ComplianceLogic`** | `AutoHypergraph` | **Compliance Logic Map**. Models complex "Who, Under what conditions, Must/Must not do What" logic. | Compliance auditing, risk identification |
+| **`PenaltyRegistry`** | `AutoSet` | **Violation-Penalty Registry**. Aggregates unique violations and their specific consequences into a ledger. | Risk management, compliance check |
+| **`OperationalProcedure`** | `AutoGraph` | **Operational Workflow**. Extracts sequential steps for applications, approvals, or operational procedures. | SOP visualization, process guides |
+| **`PenaltyMapping`** | `AutoGraph` | **Enforcement Chain**. Describes the path from violation trigger to handling process and final consequences. | Root cause analysis, penalty logic |
+| **`ClauseList`** | `AutoList` | **Atomic Clause List**. Dissects the regulation into individual atomic clauses for quick indexing. | Clause retrieval, document comparison |
 
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
