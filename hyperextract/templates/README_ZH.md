@@ -91,7 +91,7 @@
 | **`ProceedsUsage`** | `AutoList` | **募资投向**。详细提取募投项目的名称、计划金额分配及预计时间表。 | 投后管理、资金使用合规 |
 | **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | **公司大事记**。按时间轴提取公司成立以来的融资、并购、管理层变更等里程碑。 | 投研尽调、企业图鉴 |
 
-*   **财报电话会议 (Earnings Call Transcripts)**：管理层按季度发布的业绩说明会实录，包含财务数据解读、前瞻性指引及分析师问答，蕴含丰富的情感信号与预期信息。 *(参考: [HybridRAG, Sarmah et al. 2024](https://arxiv.org/abs/2408.04948))*
+*   **财报电话会议 (Earnings Call Transcripts)**：管理层按季度发布的业绩说明会实录，包含财务数据解读、前瞻性指引及分析师问答，蕴含丰富的情感信号与预期信息。
 
 | 模板名称 | 底层原语 | 描述 | 典型应用场景 |
 | :--- | :--- | :--- | :--- |
@@ -100,7 +100,7 @@
 | **`AnalystQAGraph`** | `AutoGraph` | **问答互动图谱**。映射分析师提问与管理层回答的对应关系，捕捉被关注的焦点问题及管理层承诺。 | 分析师关注点分析、承诺追踪 |
 | **`CallSentimentHypergraph`** | `AutoHypergraph` | **话题-情感分析超图**。建模多维情感信号：`{话题(营收/利润率/指引), 发言人, 情感倾向, 驱动因素}` 的复杂关联。 | 情感驱动交易信号、基调变化检测 |
 
-*   **金融新闻与市场评论 (Financial News & Market Commentary)**：传递市场情绪、事件影响及前瞻性观点的新闻报道、分析师评论及社交媒体帖子。 *(参考: [Survey of LLMs for Financial Applications, Nie et al. 2024](https://arxiv.org/abs/2406.11903))*
+*   **金融新闻与市场评论 (Financial News & Market Commentary)**：传递市场情绪、事件影响及前瞻性观点的新闻报道、分析师评论及社交媒体帖子。 
 
 | 模板名称 | 底层原语 | 描述 | 典型应用场景 |
 | :--- | :--- | :--- | :--- |

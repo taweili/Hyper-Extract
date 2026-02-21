@@ -63,7 +63,7 @@ The default choice for unstructured text that doesn't fit a specific industry.
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
 
-*   **SEC Filings (10-K / 10-Q / 8-K)**: Standardized regulatory filings containing financial statements, management discussion, risk factors, and material event disclosures with complex document structures (tables, narratives, exhibits). *(Ref: [Financial Report Chunking for RAG, Yepes et al. 2024](https://arxiv.org/abs/2402.05131))*
+*   **SEC Filings (10-K / 10-Q / 8-K)**: Standardized regulatory filings containing financial statements, management discussion, risk factors, and material event disclosures with complex document structures (tables, narratives, exhibits).
 
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
@@ -91,7 +91,7 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | **`ProceedsUsage`** | `AutoList` | **Fund Usage**. Details project names, allocated amounts, and estimated timelines for proceeds. | Post-IPO monitoring |
 | **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | **Corporate Milestones**. Chronological extraction of founding, funding rounds, and major pivots. | Due diligence, history mapping |
 
-*   **Earnings Call Transcripts**: Quarterly conference calls where management presents financial results and answers analyst questions, containing forward-looking guidance and sentiment signals. *(Ref: [HybridRAG, Sarmah et al. 2024](https://arxiv.org/abs/2408.04948))*
+*   **Earnings Call Transcripts**: Quarterly conference calls where management presents financial results and answers analyst questions, containing forward-looking guidance and sentiment signals. 
 
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
@@ -100,7 +100,7 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | **`AnalystQAGraph`** | `AutoGraph` | **Q&A Interaction Map**. Maps analyst questions to management responses, capturing concerns raised and commitments made. | Analyst focus analysis, commitment tracking |
 | **`CallSentimentHypergraph`** | `AutoHypergraph` | **Topic-Sentiment Analysis**. Models multi-dimensional sentiment: `{Topic (Revenue/Margin/Guidance), Speaker, Sentiment, Driving Factor}` across the call. | Sentiment-driven trading signals, tone shift detection |
 
-*   **Financial News & Market Commentary**: News articles, analyst commentaries, and social media posts conveying market sentiment, event impact, and forward-looking opinions about financial instruments or markets. *(Ref: [Survey of LLMs for Financial Applications, Nie et al. 2024](https://arxiv.org/abs/2406.11903))*
+*   **Financial News & Market Commentary**: News articles, analyst commentaries, and social media posts conveying market sentiment, event impact, and forward-looking opinions about financial instruments or markets. 
 
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
