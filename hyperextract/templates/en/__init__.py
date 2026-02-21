@@ -1,7 +1,33 @@
-﻿from .general import KnowledgeGraph, ConceptMap, LogicGraph
+from .general import KnowledgeGraph, ConceptMap, LogicGraph
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
 from .biology import TaxonomyGraph, BiologicalNetwork, MetabolicHypergraph
 from .chemistry import MolecularStructureGraph, ChemicalReactionHyper, LabProtocolTemporal
+from .finance import (
+    RiskAssessmentGraph,
+    MarketSentimentGraph,
+    SupplyChainGraph,
+    FilingFinancialSnapshot,
+    MDANarrativeGraph,
+    FilingRiskFactorSet,
+    MaterialEventTimeline,
+    SegmentPerformanceList,
+    ResearchNoteSummary,
+    FinancialForecast,
+    ValuationLogicMap,
+    FactorInfluenceHypergraph,
+    RiskFactorList,
+    ShareholderStructure,
+    ProceedsUsage,
+    CompanyHistoryTimeline,
+    EarningsCallSummary,
+    ManagementGuidanceList,
+    AnalystQAGraph,
+    CallSentimentHypergraph,
+    MarketSentimentModel,
+    FinancialEventCausalGraph,
+    MultiSourceSentimentHypergraph,
+    MarketNarrativeTimeline,
+)
 from .literature import CharacterRelationshipGraph, NarrativeTimeline, SymbolismSet
 from .medicine import DrugInteractionGraph, ClinicalTreatmentTimeline, DiagnosticCriteriaSet
 from .movie import ScriptSceneGraph, CharacterArcTracker, CinematicTriviaSet
@@ -20,6 +46,32 @@ __all__ = [
     "MolecularStructureGraph",
     "ChemicalReactionHyper",
     "LabProtocolTemporal",
+    # Finance
+    "RiskAssessmentGraph",
+    "MarketSentimentGraph",
+    "SupplyChainGraph",
+    "FilingFinancialSnapshot",
+    "MDANarrativeGraph",
+    "FilingRiskFactorSet",
+    "MaterialEventTimeline",
+    "SegmentPerformanceList",
+    "ResearchNoteSummary",
+    "FinancialForecast",
+    "ValuationLogicMap",
+    "FactorInfluenceHypergraph",
+    "RiskFactorList",
+    "ShareholderStructure",
+    "ProceedsUsage",
+    "CompanyHistoryTimeline",
+    "EarningsCallSummary",
+    "ManagementGuidanceList",
+    "AnalystQAGraph",
+    "CallSentimentHypergraph",
+    "MarketSentimentModel",
+    "FinancialEventCausalGraph",
+    "MultiSourceSentimentHypergraph",
+    "MarketNarrativeTimeline",
+    # Literature
     "CharacterRelationshipGraph",
     "NarrativeTimeline",
     "SymbolismSet",

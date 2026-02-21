@@ -9,7 +9,7 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 | Domain | Description | Key Focus |
 | :--- | :--- | :--- |
 | **`general`** | General Purpose | Arbitrary Text, Encyclopedias, Biographies |
-| **`finance`** | Finance & Investment | Reports, Filings, Transcripts |
+| **`finance`** | Finance & Investment | Reports, Filings, Transcripts, Earnings Calls, Market News |
 | **`medicine`** | Medicine & Health | Clinical Records, Guidelines, Drug Info |
 | **`tcm`** | Traditional Chinese Medicine | Case Records, Herbology, Acupuncture |
 | **`industry`** | Industry | Maintenance, Safety, Operations |
@@ -63,6 +63,17 @@ The default choice for unstructured text that doesn't fit a specific industry.
 ### 2. `finance` (Finance)
 Optimized for complex financial relationships, market sentiment, and temporal events.
 
+*   **SEC Filings (10-K / 10-Q / 8-K)**: Standardized regulatory filings containing financial statements, management discussion, risk factors, and material event disclosures with complex document structures (tables, narratives, exhibits).
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`FilingFinancialSnapshot`** | `AutoModel` | **Financial Data Extraction**. Extracts key figures from income statements, balance sheets, and cash flow statements embedded in filings. | Fundamental screening, financial database population |
+| **`MDANarrativeGraph`** | `AutoGraph` | **MD&A Causal Map**. Extracts causal relationships from Management Discussion & Analysis (e.g., "Supply chain disruption -> Revenue decline -> Margin compression"). | Narrative analytics, driver attribution |
+| **`FilingRiskFactorSet`** | `AutoSet` | **Risk Factor Registry**. Deduplicates and catalogs all risk factors disclosed across Item 1A, tracking additions and removals between filing periods. | Risk evolution monitoring, cross-company risk comparison |
+| **`MaterialEventTimeline`** | `AutoTemporalGraph` | **8-K Event Timeline**. Chronologically extracts material events (executive changes, M&A announcements, restatements) from current reports. | Event-driven analysis, regulatory monitoring |
+| **`SegmentPerformanceList`** | `AutoList` | **Segment Breakdown**. Extracts revenue, operating income, and key metrics by business segment or geographic region. | Segment-level valuation, geographic exposure analysis |
+| **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | **Financial Data Timeline**. Builds a temporal graph of financial metrics across reporting periods, tracking how revenue, margins, segment contributions, and key ratios evolve over time. | Multi-period trend analysis, cross-period comparison, financial data lineage |
+
 *   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and investment logic.
 
 | Template Name | Primitive | Description | Typical Use Case |
@@ -81,13 +92,23 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | **`ProceedsUsage`** | `AutoList` | **Fund Usage**. Details project names, allocated amounts, and estimated timelines for proceeds. | Post-IPO monitoring |
 | **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | **Corporate Milestones**. Chronological extraction of founding, funding rounds, and major pivots. | Due diligence, history mapping |
 
-*   **M&A Due Diligence Reports**: Documents detailing legal risks, business synergies, and financial health of target companies.
+*   **Earnings Call Transcripts**: Quarterly conference calls where management presents financial results and answers analyst questions, containing forward-looking guidance and sentiment signals. 
 
 | Template Name | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
-| **`SynergyMap`** | `AutoGraph` | **Synergy Network**. Analyzes complementary relationships between Acquirer and Target. | Value creation assessment |
-| **`LegalRiskRegistry`** | `AutoSet` | **Legal Encumbrances**. Deduplicates and lists pending litigations, compliance gaps, and IP disputes. | Risk clearing, valuation haircut |
-| **`KeyPersonnelProfile`** | `AutoModel` | **Management Profiles**. Extracts backgrounds, non-competes, and retention plans of target leadership. | Human capital assessment |
+| **`EarningsCallSummary`** | `AutoModel` | **Call Overview**. Extracts reported metrics (Revenue, EPS), management guidance, and overall call tone (positive/cautious/negative). | Quarterly review dashboards, consensus tracking |
+| **`ManagementGuidanceList`** | `AutoList` | **Forward Guidance**. Extracts forward-looking statements: projected figures, strategic priorities, and qualitative outlook. | Guidance tracking, expectation management |
+| **`AnalystQAGraph`** | `AutoGraph` | **Q&A Interaction Map**. Maps analyst questions to management responses, capturing concerns raised and commitments made. | Analyst focus analysis, commitment tracking |
+| **`CallSentimentHypergraph`** | `AutoHypergraph` | **Topic-Sentiment Analysis**. Models multi-dimensional sentiment: `{Topic (Revenue/Margin/Guidance), Speaker, Sentiment, Driving Factor}` across the call. | Sentiment-driven trading signals, tone shift detection |
+
+*   **Financial News & Market Commentary**: News articles, analyst commentaries, and social media posts conveying market sentiment, event impact, and forward-looking opinions about financial instruments or markets. 
+
+| Template Name | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`MarketSentimentModel`** | `AutoModel` | **Sentiment Snapshot**. Extracts sentiment polarity (Bullish/Bearish/Neutral), mentioned entities (tickers, sectors), and expected price impact. | Real-time sentiment feeds, trading signal generation |
+| **`FinancialEventCausalGraph`** | `AutoGraph` | **Event Impact Graph**. Maps financial events to affected entities and downstream market reactions (e.g., "Fed rate hike -> Bank sector rally -> Bond yield rise"). | Event-driven strategy, macro impact analysis |
+| **`MultiSourceSentimentHypergraph`** | `AutoHypergraph` | **Cross-Source Sentiment Fusion**. Integrates sentiment signals from multiple sources: `{News Article, Social Media Post, Analyst Note} -> Aggregated Sentiment -> Affected Entity`. | Ensemble sentiment scoring, fake signal filtering |
+| **`MarketNarrativeTimeline`** | `AutoTemporalGraph` | **Narrative Evolution Timeline**. Tracks how market narratives and dominant themes evolve over time (e.g., shift from "inflation fear" to "soft landing hope"). | Thematic investing, regime detection |
 
 ### 3. `medicine` (Medicine)
 Focuses on causality, standardized terminology (UMLS mappings), and precise relationships.
