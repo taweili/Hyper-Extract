@@ -1,30 +1,29 @@
-﻿# Hyper-Extract 模板开发与 Master Prompt 协议
+﻿# Hyper-Extract 知识模板定义手册
 
 本文档定义了在 `Hyper-Extract` 框架中实现特定领域知识抽取模板的标准工作流。
 
-## 0. 核心协议：阅读源码 (Source-First Protocol)
+---
+
+## 0. 核心协议：阅读源码
 
 在编写任何代码之前，你**必须**：
-1.  **明确基类**：根据需求从下表中选择合适的基类。
-2.  **强制读码**：使用工具读取 `hyperextract/types/` 目录中对应基类的 Python 源码文件。
-    *   *原因*：具体的 `__init__` 参数、`show` 方法签名和泛型约束以源码为准。
+1. **明确基类**：根据需求从下表中选择合适的基类。
+2. **强制读码**：使用工具读取 `hyperextract/types/` 目录中对应基类的 Python 源码文件。
 
-## 1. 设计阶段：可行性与选型
+---
 
-### 文档源优先 (Document-First Protocol)
+## 1. 设计阶段
+
+### 1.1 文档源优先
+
 在设计任何模板前，你**必须**明确回答以下问题：
-*   **目标文档是什么？**：该模板是为该领域的哪类核心文档而设计？（如年报、SOP 手册、法律判决书、食品安全计划书）。
-*   **文本逻辑是否原生？**：该结构是否在原始文档中自然存在，而非人为设计？（拒绝为"想当然的知识"设计结构）。
+*   **目标文档是什么？**：该模板是为该领域的哪类核心文档而设计？（如年报、SOP 手册、法律判决书）。
+*   **文本逻辑是否原生？**：该结构是否在原始文档中自然存在，而非人为设计？
 *   **提取证据清晰吗？**：文本中是否有显式的线索让 LLM 能够准确提取？
 
 绝不设计为空中楼阁的知识图谱。模板必须映射真实文本的**已有逻辑结构**。
 
-### 可提取性原则 (Extractability)
-在设计 Schema 前自问：
-*   **证据可用性**：输入文本是否显式包含该字段的证据？（拒绝为外部数据库才有的动态数据设计字段）。
-*   **结构适配**：数据最自然的存在形式是什么？是无序重复、唯一集合还是复杂的多元关系？
-
-### 选型映射表 (Mapping Table)
+### 1.2 AutoType 选型映射表
 
 | 数据特性 | 推荐基类 | 核心源码位置 | 关键约束 |
 | :--- | :--- | :--- | :--- |
@@ -32,134 +31,364 @@
 | **模式集合** (重复提取) | `AutoList` | `hyperextract/types/list.py` | 不去重。提取文本中出现的所有模式实例 |
 | **键值累加器** (术语/清单) | `AutoSet` | `hyperextract/types/set.py` | 按精确键累加信息，需定义 `key_extractor` |
 | **标准图谱** (实体-关系) | `AutoGraph` | `hyperextract/types/graph.py` | 标准二元关系 |
-| **时序图谱** (含时间戳) | `AutoTemporalGraph` | `hyperextract/types/temporal_graph.py` | 边必须包含时间字段 |
-| **空间关系图谱** | `AutoSpatialGraph` | `hyperextract/types/spatial_graph.py` | 节点/边需包含位置坐标信息 |
-| **时空演变图谱** | `AutoSpatioTemporalGraph` | `hyperextract/types/spatio_temporal_graph.py` | 同时描述空间移动与时间演变 |
-| **多元/复杂事件** | `AutoHypergraph` | `hyperextract/types/hypergraph.py` | 超边连接 N 个节点 |
+| **时序图谱** (含时间) | `AutoTemporalGraph` | `hyperextract/types/temporal_graph.py` | 边支持灵活时间格式 |
+| **空间关系图谱** | `AutoSpatialGraph` | `hyperextract/types/spatial_graph.py` | 边支持灵活位置格式 |
+| **时空演变图谱** | `AutoSpatioTemporalGraph` | `hyperextract/types/spatio_temporal_graph.py` | 同时支持灵活时间和位置 |
+| **多元/复杂事件** | `AutoHypergraph` | `hyperextract/types/hypergraph.py` | 建模多个实体间的复杂关联关系 |
+
+### 1.3 AutoHypergraph 应用场景说明
+
+#### 核心定义
+超边用于建模多个实体间的复杂关联关系，突破传统二元关系的限制，通过单一超边连接多个相关实体。
+
+#### 核心价值
+- 描述多个实体共同参与的事件或故事
+- 保持事件的完整性，避免拆分成多个二元关系造成信息丢失
+- 更符合人类认知中的"事件"概念（多参与者、多要素）
+
+#### 典型应用场景
+- **会议场景**：连接参会者、议题、地点、时间、决策结果
+- **交易场景**：连接买方、卖方、产品、金额、时间、地点
+- **案件场景**：连接嫌疑人、受害者、证人、时间、地点、证据
+- **赛事场景**：连接参赛队伍、选手、比赛项目、时间、地点、结果
 
 ---
 
-## 1.1 特别说明：AutoSet（基于键值的信息累加）
+## 2. Schema 设计规范
 
-`AutoSet` 基类专为构建**去重、富集的知识库**而设计，采用**精确键值匹配**机制。
-它**完全不同于** `AutoList`（无去重）和基于语义聚类/嵌入相似度的合并方式。
+### 2.1 核心原则
+- **字段数量控制**：不超过 10 个核心字段
+- **所有字段必须有 `description`**
+- **代码标识符全英文**：类名、变量名、方法名必须使用英文
+- **描述全中文**：对于 `zh` 目录下的模板，所有字段描述、注释、Prompt 必须使用中文
 
-### AutoSet 工作原理
+### 2.2 命名规范
+- 类名：`PascalCase`（如 `FinancialReportGraph`）
+- 变量/方法名：`camelCase`（如 `nodeLabelExtractor`）
 
-**核心机制**：
-- 定义一个 `key_extractor` 函数将每个条目映射到唯一标识符（如 `key_extractor=lambda x: x.name.strip().lower()`）。
-- 调用 `feed_text()` 时，框架提取条目**并按键值分组**。
-- **所有键值相同的条目自动合并为一条综合条目**。
-- `embedder` 参数**不用于合并逻辑**，仅用于语义检索和知识图谱可视化。
-
-**场景示例**：
+### 2.3 示例
 ```python
-from hyperextract.templates.food.culinary_dish import CulinaryDishSet
+class FinancialEntity(BaseModel):
+    """财务实体节点"""
+    name: str = Field(description="实体名称，如公司名、产品名、部门名")
+    category: str = Field(description="实体类型：公司、产品、部门")
+    description: str = Field(description="简要描述", default="")
 
-dishes = CulinaryDishSet(llm_client=..., embedder=...)
-
-# 文本 1：提取菜肴基础信息
-dishes.feed_text("宫保鸡丁是四川菜，用花生和干辣椒制作。")  
-# 结果：{name: "宫保鸡丁", cuisine: "四川", primary_ingredients: "花生，干辣椒"}
-
-# 文本 2：添加关于同一菜肴的补充信息
-dishes.feed_text("宫保鸡丁是大火快速炒制，整体风味是甜辣鲜香。")  
-# 自动合并：{name: "宫保鸡丁", cuisine: "四川", primary_ingredients: "花生，干辣椒", flavor_profile: "甜辣鲜香"}
-
-dishes.show()  # 显示合并后的富集条目
+class FinancialRelation(BaseModel):
+    """财务关系边"""
+    source: str = Field(description="源实体")
+    target: str = Field(description="目标实体")
+    relationType: str = Field(description="关系类型：投资、收购、合作、竞争")
+    timeInfo: Optional[str] = Field(
+        description="时间信息，统一格式为年-月-日（如 2023-06-15）",
+        default=None
+    )
 ```
 
-**关键设计原则**：
-1. **精确键值匹配**：`key_extractor` 定义什么是"同一个条目"。**只有**键值完全相同的条目才会合并。
-2. **信息累加**：合并时**融合并丰富**来自多个信息源的所有属性。
-3. **非语义相似性**：不同于聚类，AutoSet **不会**将语义相近但键值不同的条目分组（如"宫保鸡丁"和"宫爆鸡丁"如果被标准化为不同名称，会保持分离）。
-4. **LLM 责任**：提取 Prompt 应确保名称标准化，以便 LLM 正确归组到同一键值下。
+### 2.4 时空格式一致性原则
 
-**Embedder 的角色**：
-- **不用于去重逻辑**，`embedder` 用于：
-  - 聊天/搜索查询时的语义检索
-  - 知识图谱中关系的可视化展示
-  - 未来的问答能力
+#### 单个模板内：严格一致
+在同一个知识模板内部，时间格式和空间格式必须保持严格一致。所有提取出的时空信息应在信息提取阶段即完成标准化统一处理，确保数据的规范性和一致性，避免大模型处理时产生混乱。
 
----
+**重要说明**：在 Prompt 中必须明确指定该模板采用的标准格式，要求 LLM 将所有时间/空间信息统一转换为该标准格式输出，而非保留原文的多种表达。
 
-## 2. 实现规范 (Implementation Rules)
+#### 不同模板间：灵活适配
+不同知识模板之间的时间和空间格式可以根据具体领域需求灵活定义，但每个模板内部必须统一一种标准格式。以下是一些常见领域的格式建议（仅供参考）：
+- **历史领域**：建议格式为年份（如 "2023"）或朝代（如 "清朝"）
+- **金融领域**：建议格式为年-月-日（如 "2023-06-15"）
+- **食谱领域**：建议格式为分:秒（如 "30:00"）
+- **地理领域**：建议格式为省-市-区（如 "北京-朝阳"）
 
-### A. Prompt 定义
-*   **强制常数**：必须在类外部定义 `_PROMPT`（多行字符串）。
-*   **内容要求**：明确定义专家角色、提取逻辑。如果某些字段有特定的提取格式要求，请在 Prompt 中强调。
-*   **图谱/超图双阶段支持**：如果模板继承自 `AutoGraph`、`AutoHypergraph`、`AutoTemporalGraph`、`AutoSpatialGraph` 或 `AutoSpatioTemporalGraph`，你**必须定义三个独立的 Prompt** 以支持所有提取模式：
-    1.  `_PROMPT`: 用于 "one_stage"（同时提取节点和边，速度快）。
-    2.  `_NODE_PROMPT`: 用于 "two_stage" 第一步（仅提取节点，打基础）。
-    3.  `_EDGE_PROMPT`: 用于 "two_stage" 第二步（基于已有节点提取边/超边，更精准）。
-    
-    在 `super().__init__` 中分别传递：
-    ```python
-    super().__init__(
-        ...,
-        prompt=_PROMPT,
-        prompt_for_node_extraction=_NODE_PROMPT,
-        prompt_for_edge_extraction=_EDGE_PROMPT,
-        ...
-    )
-    ```
-
-### B. 类结构
-*   **Schema**：所有 Pydantic 字段必须包含 `description` 属性，这是 LLM 理解抽取目标的关键。
-*   **文档注释 (Documentation)**：
-    *   **类文档字符串 (Class Docstring)**：
-        *   **强制声明（第一行）**：在类文档字符串的**最开头**，你**必须**用下列格式声明该模板的**适用文档类型**：
-            ```
-            Applicable to: [List specific document types, e.g., "SEC 10-K Item 1A, Prospectus Filings"]
-            ```
-        *   高层功能描述。
-        *   一个展示如何初始化和使用的 **示例 (Example)**。
-    *   **方法文档字符串 (Method Docstring)**：`__init__` 和 `show` 方法必须包含标准的 Google 风格文档字符串，详细说明每个参数 (`Args`)。
-*   **参数准确性 (Parameter Accuracy)**：确保 `__init__` 中的每一个参数都在基类中存在。常见错误：`extraction_mode` 仅存在于 `AutoGraph` 系列中，**不存在**于 `AutoSet` 或 `AutoList` 中。
-*   **初始化 (`__init__`)**：显式列参数（`llm_client`, `embedder` 等），并正确调用 `super().__init__(..., prompt=_TEMPLATE_PROMPT, ...)`。
-*   **可视化 (`show`)**：必须覆盖 `show` 方法。
-    *   **参数约束**：**禁止**在模板类的 `show` 方法签名中包含 `label_extractor` 参数。
-    *   **实现要求**：你应该在 `show` 内部定义最适合该 Schema 的 **前端展示标签** 的提取函数，然后传给 `super().show(...)`。这样用户只需调用 `template.show()` 即可获得最佳效果。
+**注意**：格式的选择应基于目标文档的实际信息密度和领域惯例，而非过度设计。
 
 ---
 
-## 3. 标准示例骨架 (Example Skeleton)
+## 3. 各 AutoType 特殊规范
+
+### 3.1 AutoTemporalGraph（时序图谱）
+
+#### 必须定义的提取器
+- `node_key_extractor`: 实体唯一标识（如 `lambda x: x.name`）
+- `edge_key_extractor`: 关系核心标识（不包含时间）
+- `time_in_edge_extractor`: 从 Edge 中提取时间的函数
+- `nodes_in_edge_extractor`: 从 Edge 中提取源/目标节点
+
+#### Observation Time 参数
+- 用户可指定，或自动默认当前日期
+- 用于解析相对时间表达
+
+#### Prompt 必须包含时间解析规则
+```
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+   - "本季度" → {observation_time} 所在季度
+   - "近期" → {observation_time} 最近 3 个月
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+```
+
+---
+
+### 3.2 AutoSpatialGraph（空间图谱）
+
+#### 必须定义的提取器
+- `node_key_extractor`, `edge_key_extractor`
+- `location_in_edge_extractor`: 从 Edge 中提取位置
+- `nodes_in_edge_extractor`
+
+#### Prompt 必须包含位置解析规则
+```
+### 位置解析规则
+当前观察位置: {observation_location}
+
+1. 相对位置解析（基于观察位置）:
+   - "这里"、"本地" → {observation_location}
+   - "附近"、"相邻" → {observation_location} 周边
+   - "北边" → {observation_location} 北方
+
+2. 精确位置 → 保持原样
+3. 位置缺失 → 留空
+```
+
+---
+
+### 3.3 AutoSet（键值累加器）
+
+- 必须定义 `key_extractor`（精确键值匹配，非语义相似）
+- Embedder 仅用于语义检索，不用于合并逻辑
+
+---
+
+## 4. Prompt 构建规范
+
+### 4.1 完全预定义
+- 用户无需编写任何 Prompt
+- 所有 Prompt 预先定义并封装
+
+### 4.2 图类型需定义 3 个 Prompt
+| Prompt | 用途 |
+|-------|------|
+| `_PROMPT` | one_stage 模式：同时提取节点和边 |
+| `_NODE_PROMPT` | two_stage 第一步：仅提取节点 |
+| `_EDGE_PROMPT` | two_stage 第二步：基于已知节点提取边 |
+
+---
+
+## 5. 参数管理规范
+
+### 5.1 标准暴露参数
+| 参数 | 类型 | 必填 | 说明 |
+|-----|------|------|------|
+| `llm_client` | `BaseChatModel` | ✓ | LLM 客户端 |
+| `embedder` | `Embeddings` | ✓ | 嵌入模型 |
+| `extraction_mode` | `str` | ✗ | 提取模式（仅图类型），默认 `"two_stage"` |
+| `verbose` | `bool` | ✗ | 详细日志，默认 `False` |
+
+### 5.2 可选特定类参数
+| 参数 | 适用类型 | 说明 |
+|-----|---------|------|
+| `observation_time` | `AutoTemporalGraph`, `AutoSpatioTemporalGraph` | 观察时间，未指定时默认当前日期 |
+| `observation_location` | `AutoSpatialGraph`, `AutoSpatioTemporalGraph` | 观察位置 |
+| `max_workers` | 所有类型 | 最大工作线程数 |
+
+### 5.3 隐藏参数（通过 **kwargs 传递）
+- `chunk_size`, `chunk_overlap`
+- `node_strategy_or_merger`, `edge_strategy_or_merger`
+- 等其他技术参数
+
+---
+
+## 6. Show 函数设计规范
 
 ```python
-from typing import Any, Callable
+def show(
+    self,
+    *,
+    top_k_for_search: int = 3,
+    top_k_for_chat: int = 3,
+):
+    """
+    展示知识图谱。
+    
+    Args:
+        top_k_for_search: 语义检索返回的节点/边数量，默认为 3
+        top_k_for_chat: 问答使用的节点/边数量，默认为 3
+    """
+    def nodeLabelExtractor(node: MyNode) -> str:
+        return node.name  # 简明 label，非唯一标识，展示友好
+    
+    def edgeLabelExtractor(edge: MyEdge) -> str:
+        return edge.relationType
+    
+    super().show(
+        node_label_extractor=nodeLabelExtractor,
+        edge_label_extractor=edgeLabelExtractor,
+        top_k_for_search=top_k_for_search,
+        top_k_for_chat=top_k_for_chat,
+    )
+```
+
+---
+
+## 7. 标准示例骨架
+
+```python
+from typing import Any, Callable, Optional
+from datetime import datetime
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from pydantic import BaseModel, Field
-from hyperextract.types import ... # 导入对应基类
+from hyperextract.types import AutoTemporalGraph
 
-# 1. 定义 Schema
-class ItemSchema(BaseModel):
-    name: str = Field(..., description="实体的名称")
-    ...
+# ==============================================================================
+# 1. Schema (英文标识符，≤ 10 个字段，全中文描述)
+# ==============================================================================
 
-# 2. 定义 Prompt
-_PROMPT = """
-你是一位[领域]专家。你的任务是从文本中提取[结构化知识]...
+class FinancialEntity(BaseModel):
+    """财务实体节点"""
+    name: str = Field(description="实体名称，如公司名、产品名、部门名")
+    category: str = Field(description="实体类型：公司、产品、部门")
+    description: str = Field(description="简要描述", default="")
+
+class FinancialRelation(BaseModel):
+    """财务关系边"""
+    source: str = Field(description="源实体")
+    target: str = Field(description="目标实体")
+    relationType: str = Field(description="关系类型：投资、收购、合作、竞争")
+    timeInfo: Optional[str] = Field(
+        description="时间信息，统一格式为年-月-日（如 2023-06-15）",
+        default=None
+    )
+    details: str = Field(description="详细描述", default="")
+
+# ==============================================================================
+# 2. 预定义 Prompt（全中文）
+# ==============================================================================
+
+_NODE_PROMPT = """
+你是一位专业的财报分析专家。请从文本中提取所有关键实体作为节点。
+
+### 提取规则
+1. 提取所有公司、产品、部门等实体
+2. 为每个实体指定类型：公司、产品、部门
+3. 保持实体名称与原文一致
+4. **禁止将时间或地点作为独立节点提取**
+
+### 源文本:
 """
 
-# 3. 定义模板类
-class MyTemplate(AutoType[ItemSchema]): # 替换为 AutoList, AutoSet 等
-    """Google Style 类文档字符串。"""
+_EDGE_PROMPT = """
+你是一位专业的财报分析专家。请从给定实体列表中提取实体之间的关系。
+
+### 时间格式要求
+所有时间信息必须统一转换为「年-月-日」格式（如 2023-06-15）。
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年，格式化为 YYYY-01-01
+   - "上月" → {observation_time} 的前一个月，格式化为 YYYY-MM-01
+   - "2023年6月" → 2023-06-15
+
+2. 精确时间 → 转换为年-月-日格式
+3. 时间缺失 → 留空
+
+### 约束条件
+1. 仅从下方已知实体列表中提取边
+2. 不要创建未列出的实体
+
+### 已知实体列表:
+"""
+
+_PROMPT = """
+你是一位专业的财报分析专家。请从文本中提取实体和它们之间的关系。
+
+### 节点提取规则
+1. 提取所有公司、产品、部门等实体
+2. **禁止将时间或地点作为独立节点提取**
+
+### 关系提取规则
+当前观察日期: {observation_time}
+
+### 时间格式要求
+所有时间信息必须统一转换为「年-月-日」格式（如 2023-06-15）。
+
+1. 解析相对时间并转换为标准格式
+2. 精确时间转换为年-月-日格式
+3. 时间缺失时留空
+
+### 源文本:
+"""
+
+# ==============================================================================
+# 3. 模板类
+# ==============================================================================
+
+class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]):
+    """
+    适用文档: SEC 10-K/10-Q 财报、年报、季度报告
+    
+    功能介绍:
+    从财报文档中提取公司、产品、部门等实体，以及它们之间的投资、收购、合作等关系，
+    支持灵活的时间格式。
+    
+    Example:
+        >>> template = FinancialReportGraph(llm_client=llm, embedder=embedder)
+        >>> template.feed_text("...")
+        >>> template.show()
+    """
 
     def __init__(
-        self, 
-        llm_client: BaseChatModel, 
-        embedder: Embeddings, 
-        chunk_size: int = 2048,
-        **kwargs: Any
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        extraction_mode: str = "two_stage",
+        observation_time: str | None = None,
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any,
     ):
+        """
+        初始化财报知识图谱模板。
+        
+        Args:
+            llm_client: LLM 客户端，用于知识提取
+            embedder: 嵌入模型，用于语义检索
+            extraction_mode: 提取模式，可选 "one_stage"（同时提取节点和边）
+                或 "two_stage"（先提取节点，再提取边），默认为 "two_stage"
+            observation_time: 观察时间，用于解析相对时间表达，
+                如未指定则使用当前日期
+            max_workers: 最大工作线程数，默认为 10
+            verbose: 是否输出详细日志，默认为 False
+            **kwargs: 其他技术参数，传递给基类
+        """
+        if observation_time is None:
+            observation_time = datetime.now().strftime("%Y-%m-%d")
+        
         super().__init__(
-            item_schema=ItemSchema,
+            node_schema=FinancialEntity,
+            edge_schema=FinancialRelation,
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.source}|{x.relationType}|{x.target}",
+            time_in_edge_extractor=lambda x: x.timeInfo or "",
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
+            observation_time=observation_time,
+            extraction_mode=extraction_mode,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=_PROMPT,
-            chunk_size=chunk_size,
-            **kwargs
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
+            **kwargs,
         )
 
     def show(
@@ -167,99 +396,40 @@ class MyTemplate(AutoType[ItemSchema]): # 替换为 AutoList, AutoSet 等
         *,
         top_k_for_search: int = 3,
         top_k_for_chat: int = 3,
-    ): 
-        # 在内部定义展示逻辑
-        def my_label_extractor(item: ItemSchema) -> str:
-            return item.name
-
+    ):
+        """
+        展示知识图谱。
+        
+        Args:
+            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
+            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+        """
+        def nodeLabelExtractor(node: FinancialEntity) -> str:
+            return node.name
+        
+        def edgeLabelExtractor(edge: FinancialRelation) -> str:
+            return edge.relationType
+        
         super().show(
-            item_label_extractor=my_label_extractor, # 传给基类
+            node_label_extractor=nodeLabelExtractor,
+            edge_label_extractor=edgeLabelExtractor,
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )
 ```
 
-
 ---
 
-## 4. 运行时行为与使用说明 (Runtime Behavior & Usage)
+## 8. 运行时行为说明
 
-### 自动提取 (Automatic Extraction)
-
-调用 feed_text() 方法后，Hyper-Extract 框架会**自动并立即**处理文本并执行知识抽取：
-
-\\python
-template = MyTemplate(llm_client=..., embedder=...)
-
-# 1. 输入文本
-template.feed_text('你的输入文本...')
-
-# 2. 框架自动处理！无需显式调用 extract()
-
- - 文本自动分块
- - Schema 自动抽取
- - 去重/关系建立自动完成
-
-# 3. 直接查看结果或可视化
-print(template.items)  # 查看提取的项目
-template.show()         # 可视化知识图谱
-\
-**关键点**：
-- feed_text() 动作会自动触发完整的提取流水线
-- **不需要调用 extract() 方法**（这是内部实现细节）
-- 支持链式调用：template.feed_text(...).show()
-- 支持累积：多次调用 feed_text() 会累加知识
-
-### 自定义提取模式 (Custom Extraction Mode)
-
-对于 AutoGraph 系列模板，可在初始化时选择提取策略：
-
-\\python
-- 一阶段：同时提取节点和边（速度快）
-template = MyGraph(llm_client=..., embedder=..., extraction_mode='one_stage')
-
-- 二阶段：先提取节点，再提取边（精度高）
-template = MyGraph(llm_client=..., embedder=..., extraction_mode='two_stage')
-\
-
----
-
-## 4. 运行时行为与使用说明 (Runtime Behavior & Usage)
-
-### 自动提取 (Automatic Extraction)
-
-调用 `feed_text()` 方法后，Hyper-Extract 框架会**自动并立即**处理文本并执行知识抽取：
-
+调用 `feed_text()` 后，框架会自动处理文本并执行知识抽取：
 ```python
 template = MyTemplate(llm_client=..., embedder=...)
-
-# 1. 输入文本
-template.feed_text("你的输入文本...")
-
-# 2. 框架自动处理！无需显式调用 extract()
-# - 文本自动分块
-# - Schema 自动抽取
-# - 去重/关系建立自动完成
-
-# 3. 直接查看结果或可视化
-print(template.items)  # 查看提取的项目
-template.show()         # 可视化知识图谱
+template.feed_text("...")  # 自动触发提取
+template.show()               # 可视化
 ```
 
-**关键点**：
-- `feed_text()` 动作会自动触发完整的提取流水线
-- **不需要调用 `extract()` 方法**（这是内部实现细节）
+关键点：
+- `feed_text()` 自动触发完整流水线，无需调用 `extract()`
 - 支持链式调用：`template.feed_text(...).show()`
-- 支持累积：多次调用 `feed_text()` 会累加知识
-
-### 自定义提取模式 (Custom Extraction Mode)
-
-对于 `AutoGraph` 系列模板，可在初始化时选择提取策略：
-
-```python
-# 一阶段：同时提取节点和边（速度快）
-template = MyGraph(llm_client=..., embedder=..., extraction_mode="one_stage")
-
-# 二阶段：先提取节点，再提取边（精度高）
-template = MyGraph(llm_client=..., embedder=..., extraction_mode="two_stage")
-```
+- 支持累积：多次调用 `feed_text()` 累加知识
