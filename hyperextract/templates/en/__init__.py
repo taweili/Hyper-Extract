@@ -1,4 +1,35 @@
-# from .general import KnowledgeGraph, ConceptMap, LogicGraph
+from .general import (
+    # Knowledge Graph
+    KnowledgeGraph,
+    # Entity Registry
+    EntityRegistry,
+    # Keyword List
+    KeywordList,
+    # Encyclopedia Item
+    EncyclopediaItem,
+    # Concept Hierarchy
+    ConceptHierarchy,
+    # Cross Reference Network
+    CrossReferenceNet,
+    # Personal Profile
+    PersonalProfile,
+    # Social Network
+    SocialNetwork,
+    # Life Event Timeline
+    LifeEventTimeline,
+    # Regulation Profile
+    RegulationProfile,
+    # Clause List
+    ClauseList,
+    # Penalty Registry
+    PenaltyRegistry,
+    # Operational Procedure
+    OperationalProcedure,
+    # Penalty Mapping
+    PenaltyMapping,
+    # Compliance Logic
+    ComplianceLogic,
+)
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
 from .biology import TaxonomyGraph, BiologicalNetwork, MetabolicHypergraph
 from .finance import (
@@ -31,18 +62,37 @@ from .medicine import DrugInteractionGraph, ClinicalTreatmentTimeline, Diagnosti
 from .news import BreakingEventGraph, TopicTimeline, OpinionSet
 
 __all__ = [
+    # general
+    ## Knowledge Graph
     "KnowledgeGraph",
-    "ConceptMap",
-    "LogicGraph",
-    "CropCycleGraph",
-    "LivestockGraph",
-    "AgriPestControl",
-    "TaxonomyGraph",
-    "BiologicalNetwork",
-    "MetabolicHypergraph",
-    "MolecularStructureGraph",
-    "ChemicalReactionHyper",
-    "LabProtocolTemporal",
+    ## Entity Registry
+    "EntityRegistry",
+    ## Keyword List
+    "KeywordList",
+    ## Encyclopedia Item
+    "EncyclopediaItem",
+    ## Concept Hierarchy
+    "ConceptHierarchy",
+    ## Cross Reference Network
+    "CrossReferenceNet",
+    ## Personal Profile
+    "PersonalProfile",
+    ## Social Network
+    "SocialNetwork",
+    ## Life Event Timeline
+    "LifeEventTimeline",
+    ## Regulation Profile
+    "RegulationProfile",
+    ## Clause List
+    "ClauseList",
+    ## Penalty Registry
+    "PenaltyRegistry",
+    ## Operational Procedure
+    "OperationalProcedure",
+    ## Penalty Mapping
+    "PenaltyMapping",
+    ## Compliance Logic
+    "ComplianceLogic",
     # Finance
     "RiskAssessmentGraph",
     "MarketSentimentGraph",
@@ -81,4 +131,15 @@ __all__ = [
     "BreakingEventGraph",
     "TopicTimeline",
     "OpinionSet",
+    # Agriculture
+    "CropCycleGraph",
+    "LivestockGraph",
+    "AgriPestControl",
+    # Biology
+    "TaxonomyGraph",
+    "BiologicalNetwork",
+    "MetabolicHypergraph",
+    "MolecularStructureGraph",
+    "ChemicalReactionHyper",
+    "LabProtocolTemporal",
 ]

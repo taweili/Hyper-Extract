@@ -1,0 +1,230 @@
+"""Life Event Timeline - Extract timestamped events and arrange them chronologically.
+
+Suitable for biographies, chronologies, memoirs, etc.
+"""
+
+from typing import Any, Optional
+from pydantic import BaseModel, Field
+from langchain_core.language_models import BaseChatModel
+from langchain_core.embeddings import Embeddings
+from hyperextract.types import AutoTemporalGraph
+
+
+class LifeEntity(BaseModel):
+    """Life entity node"""
+    name: str = Field(description="Entity name")
+    type: str = Field(description="Entity type: Person, Location, Organization, Item, Concept, Other")
+    description: str = Field(description="Brief description", default="")
+
+
+class LifeEvent(BaseModel):
+    """Life event edge (with optional timestamp)"""
+    source: str = Field(description="Event subject/related entity")
+    target: str = Field(description="Event object/related entity")
+    eventType: str = Field(description="Event type: Birth, Death, Education, Work, Achievement, Interaction, Travel, Other")
+    eventDate: Optional[str] = Field(description="Event date, format: YYYY-MM-DD or YYYY, optional", default=None)
+    details: str = Field(description="Detailed event description", default="")
+
+
+_PROMPT = """You are a professional biography chronology expert. Please extract entities such as people, locations, organizations, etc., and life events from the text to build a life event timeline.
+
+### Node Extraction Rules
+1. Extract all related entities: Person, Location, Organization, Item, Concept, etc.
+2. Assign a type to each entity: Person, Location, Organization, Item, Concept, Other
+3. Add a brief description for each entity
+
+### Event Extraction Rules
+1. Only create event edges from extracted entities
+2. Event types include:
+   - Birth: Birth events
+   - Death: Death events
+   - Education: Learning, education events
+   - Work: Work, career events
+   - Achievement: Achievement, honor events
+   - Interaction: Interpersonal interaction, social activity events
+   - Travel: Travel, relocation events
+   - Other: Other events
+3. Event date is optional, only extract when explicitly mentioned in the text
+4. Date format: YYYY-MM-DD (e.g., 429-01-01) or year only (e.g., 429)
+5. Each edge must connect extracted nodes
+
+### English Time Calculation Rules
+Current observation date: {observation_time}
+
+1. **Relative Time Parsing**: Must parse relative time expressions based on observation date
+   - "last year" → Calculate as {observation_time} minus one year
+   - "this year" → The year of {observation_time}
+   - "next year" → {observation_time} plus one year
+   - "yesterday" → {observation_time} minus one day
+   - "today" → {observation_time}
+   - "tomorrow" → {observation_time} plus one day
+   - "last month" → First day of the month before {observation_time}
+   - "this month" → First day of the month of {observation_time}
+   - "next month" → First day of the month after {observation_time}
+   - "ten years ago" → {observation_time} minus ten years
+   - "five years later" → {observation_time} plus five years
+   - "beginning of year" → January 1st of the current year
+   - "end of year" → December 31st of the current year
+   - "beginning of century" → The 1st year of the century (e.g., 2000)
+   - "end of century" → The last year of the century (e.g., 2099)
+
+2. **Explicit Dates**: Keep explicit date formats from the original text unchanged
+   - Year only (e.g., 429, 2023) → 429, 2023
+   - Year-month (e.g., March 429) → 429-03
+   - Year-month-day (e.g., March 14, 429) → 429-03-14
+
+3. **Missing Time**: If there is no time information in the text, leave eventDate blank (None), do not fabricate dates
+
+### Constraints
+- Do not create entities or events not mentioned in the text
+- Maintain objectivity and accuracy, do not add information not in the text
+
+### Source text:
+"""
+
+_NODE_PROMPT = """You are a professional entity recognition expert. Please extract all related entities as nodes from the text.
+
+### Extraction Rules
+1. Extract all related entities: Person, Location, Organization, Item, Concept, etc.
+2. Assign a type to each entity: Person, Location, Organization, Item, Concept, Other
+3. Add a brief description for each entity
+
+### Source text:
+"""
+
+_EDGE_PROMPT = """You are a professional life event extraction expert. Please extract life events from the given entity list.
+
+### Event Type Explanation
+- Birth: Birth events
+- Death: Death events
+- Education: Learning, education events
+- Work: Work, career events
+- Achievement: Achievement, honor events
+- Interaction: Interpersonal interaction, social activity events
+- Travel: Travel, relocation events
+- Other: Other events
+
+### English Time Calculation Rules
+Current observation date: {observation_time}
+
+1. **Relative Time Parsing**: Must parse relative time expressions based on observation date
+   - "last year" → Calculate as {observation_time} minus one year
+   - "this year" → The year of {observation_time}
+   - "next year" → {observation_time} plus one year
+   - "yesterday" → {observation_time} minus one day
+   - "today" → {observation_time}
+   - "tomorrow" → {observation_time} plus one day
+   - "last month" → First day of the month before {observation_time}
+   - "this month" → First day of the month of {observation_time}
+   - "next month" → First day of the month after {observation_time}
+   - "ten years ago" → {observation_time} minus ten years
+   - "five years later" → {observation_time} plus five years
+   - "beginning of year" → January 1st of the current year
+   - "end of year" → December 31st of the current year
+   - "beginning of century" → The 1st year of the century (e.g., 2000)
+   - "end of century" → The last year of the century (e.g., 2099)
+
+2. **Explicit Dates**: Keep explicit date formats from the original text unchanged
+   - Year only (e.g., 429, 2023) → 429, 2023
+   - Year-month (e.g., March 429) → 429-03
+   - Year-month-day (e.g., March 14, 429) → 429-03-14
+
+3. **Missing Time**: If there is no time information in the text, leave eventDate blank (None), do not fabricate dates
+
+### Date Format Requirements
+- All date information should be converted to "YYYY-MM-DD" format (e.g., 429-01-01) or year only (e.g., 429)
+- Time information is optional, only extract when explicitly mentioned in the text
+
+### Constraints
+1. Only extract events from the known entity list below
+2. Do not create unlisted entities
+3. Time information is optional, only extract when explicitly mentioned in the text
+
+"""
+
+
+class LifeEventTimeline(AutoTemporalGraph[LifeEntity, LifeEvent]):
+    """
+    Applicable documents: Biographies, chronologies, memoirs, autobiographies
+
+    Function introduction:
+    Extract timestamped events and arrange them chronologically. Suitable for biographies, chronologies, memoirs, etc.
+
+    Example:
+        >>> template = LifeEventTimeline(llm_client=llm, embedder=embedder)
+        >>> template.feed_text("Zu Chongzhi (429-500), courtesy name Wenyuan, was from Qiuxian, Fanyang...")
+        >>> template.show()
+    """
+
+    def __init__(
+        self,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        *,
+        observation_time: str | None = None,
+        extraction_mode: str = "two_stage",
+        max_workers: int = 10,
+        verbose: bool = False,
+        **kwargs: Any,
+    ):
+        """
+        Initialize life event timeline template.
+        
+        Args:
+            llm_client: LLM client for knowledge extraction
+            embedder: Embedding model for semantic search
+            observation_time: Observation date, used for parsing relative time expressions, default: today
+            extraction_mode: Extraction mode, either "one_stage" (extract nodes and edges simultaneously)
+                or "two_stage" (extract nodes first, then edges), default: "two_stage"
+            max_workers: Maximum number of worker threads, default: 10
+            verbose: Whether to output detailed logs, default: False
+            **kwargs: Other technical parameters, passed to base class
+        """
+        super().__init__(
+            node_schema=LifeEntity,
+            edge_schema=LifeEvent,
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.source}|{x.eventType}|{x.target}",
+            time_in_edge_extractor=lambda x: x.eventDate,
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
+            llm_client=llm_client,
+            embedder=embedder,
+            observation_time=observation_time,
+            extraction_mode=extraction_mode,
+            max_workers=max_workers,
+            verbose=verbose,
+            prompt=_PROMPT,
+            prompt_for_node_extraction=_NODE_PROMPT,
+            prompt_for_edge_extraction=_EDGE_PROMPT,
+            **kwargs,
+        )
+
+    def show(
+        self,
+        *,
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ):
+        """
+        Display life event timeline.
+        
+        Args:
+            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
+            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+        """
+        def node_label_extractor(node: LifeEntity) -> str:
+            return f"{node.name} ({node.type})"
+        
+        def edge_label_extractor(edge: LifeEvent) -> str:
+            if edge.eventDate:
+                return f"{edge.eventType} ({edge.eventDate})"
+            return edge.eventType
+        
+        super().show(
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            top_k_nodes_for_search=top_k_for_search,
+            top_k_edges_for_search=top_k_for_search,
+            top_k_nodes_for_chat=top_k_for_chat,
+            top_k_edges_for_chat=top_k_for_chat,
+        )
