@@ -85,3 +85,22 @@ class EncyclopediaItem(AutoModel[EncyclopediaInfo]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示百科条目。
+        
+        Args:
+            top_k: 问答使用的条目数量，默认为 3
+        """
+        def label_extractor(item: EncyclopediaInfo) -> str:
+            return f"{item.title} ({item.entityType})"
+        
+        super().show(
+            label_extractor=label_extractor,
+            top_k=top_k,
+        )

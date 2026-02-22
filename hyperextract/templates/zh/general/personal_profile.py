@@ -91,3 +91,24 @@ class PersonalProfile(AutoModel[PersonalInfo]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示个人档案。
+        
+        Args:
+            top_k: 问答使用的条目数量，默认为 3
+        """
+        def label_extractor(item: PersonalInfo) -> str:
+            if item.birthDate and item.deathDate:
+                return f"{item.name} ({item.birthDate}-{item.deathDate})"
+            return item.name
+        
+        super().show(
+            label_extractor=label_extractor,
+            top_k=top_k,
+        )

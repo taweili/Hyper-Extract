@@ -2,12 +2,13 @@
 
 from pathlib import Path
 from datetime import datetime
-from typing import List, Any, Type
+from typing import List, Any, Type, Callable
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+from ontosight import view_nodes
 
 from .base import BaseAutoType, T
 from hyperextract.utils.logging import logger
@@ -294,6 +295,52 @@ class AutoModel(BaseAutoType[T]):
             raise ValueError(f"Folder does not exist: {folder_path}")
         self._index = FAISS.load_local(
             str(folder), self.embedder, allow_dangerous_deserialization=True
+        )
+
+    def show(
+        self,
+        label_extractor: Callable[[T], str],
+        *,
+        top_k: int = 3,
+    ) -> None:
+        """Visualize the model using OntoSight.
+
+        Args:
+            label_extractor: A function that takes a model instance and returns a string label for visualization.
+            top_k: Number of items to retrieve for chat callback (default: 3).
+        """
+
+        if self._index is not None:
+            logger.info(
+                "Visualizing model with search and chat capabilities (indices detected)."
+            )
+
+            def chat_callback(question: str) -> None:
+                response = self.chat(question, top_k=top_k)
+                content = response.content
+                retrieved_items = [self.data]
+                return content, retrieved_items
+        else:
+            logger.info(
+                "Visualizing list without search and chat capabilities (no indices detected)."
+            )
+            chat_callback = None
+
+        from hashlib import md5
+
+        def item_id_extractor(item: T) -> str:
+            return md5(str(item.model_dump()).encode()).hexdigest()[:8]
+
+        view_nodes(
+            node_list=[self.data],
+            node_schema=self._data_schema,
+            node_id_extractor=item_id_extractor,
+            node_label_extractor=label_extractor,
+            on_chat=chat_callback,
+            context={
+                "title": f"{self._data_schema.__name__} Model",
+                "description": f"Visualizing {len(self._data_schema.model_fields)} fields in AutoModel",
+            },
         )
 
     # ==================== Operators ====================

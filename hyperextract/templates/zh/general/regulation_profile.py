@@ -89,3 +89,24 @@ class RegulationProfile(AutoModel[RegulationInfo]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示规章元数据快照。
+        
+        Args:
+            top_k: 问答使用的条目数量，默认为 3
+        """
+        def label_extractor(item: RegulationInfo) -> str:
+            if item.version:
+                return f"{item.title} (v{item.version})"
+            return item.title
+        
+        super().show(
+            label_extractor=label_extractor,
+            top_k=top_k,
+        )

@@ -129,15 +129,15 @@ class PenaltyMapping(AutoGraph[PenaltyNode, PenaltyPath]):
             top_k_for_search: 语义检索返回的节点/边数量，默认为 3
             top_k_for_chat: 问答使用的节点/边数量，默认为 3
         """
-        def nodeLabelExtractor(node: PenaltyNode) -> str:
+        def node_label_extractor(node: PenaltyNode) -> str:
             return f"{node.name} ({node.type})"
         
-        def edgeLabelExtractor(edge: PenaltyPath) -> str:
+        def edge_label_extractor(edge: PenaltyPath) -> str:
             return edge.relation
         
         super().show(
-            node_label_extractor=nodeLabelExtractor,
-            edge_label_extractor=edgeLabelExtractor,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
             top_k_nodes_for_search=top_k_for_search,
             top_k_edges_for_search=top_k_for_search,
             top_k_nodes_for_chat=top_k_for_chat,

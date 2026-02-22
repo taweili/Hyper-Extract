@@ -253,6 +253,8 @@ def main():
         except Exception as e:
             print(f"⚠️ 回答失败: {e}\n")
 
+    a_document_model.show(label_extractor=lambda x: x.title)
+
     print("\n" + "=" * 80)
     print("示例运行完成!")
     print("=" * 80)
