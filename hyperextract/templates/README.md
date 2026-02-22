@@ -17,7 +17,6 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 | **`biology`** | Biological Science | Genomics, Proteomics, Ecology |
 | **`legal`** | Legal & Compliance | Contracts, Judgments, Regulations |
 | **`literature`** | Literature & Fiction | Scripts, Novels, World Building |
-| **`travel`** | Travel & Geography | Itineraries, Guides, Spatial Maps |
 | **`news`** | News & Media | Investigative Reports, Breaking News |
 | **`agriculture`** | Agriculture | Crop Management, Soil Analysis |
 | **`food`** | Food & Culinary | Recipes, Menu Engineering |
@@ -53,13 +52,6 @@ The default choice for unstructured text that doesn't fit a specific industry.
 | **`SocialNetwork`** | `AutoGraph` | **Social Network**. Specifically captures interpersonal relationships and interactions. | Character studies, memoirs |
 | **`PersonalProfile`** | `AutoModel` | **Personal Bio**. Aggregates static personal attributes (birth, education, career tags). | Profiles, CVs, obituary summaries |
 
-*   **Non-fiction Books (Popular Science)**: Books covering broad topics with cross-domain concepts and arguments.
-
-| Template Name | Primitive | Description | Typical Use Case |
-| :--- | :--- | :--- | :--- |
-| **`ArgumentMap`** | `AutoHypergraph` | **Logical Argument Map**. Models complex logic: multiple premises supporting a conclusion. | Philosophical/Scientific books |
-| **`ConceptEvolution`** | `AutoTemporalGraph` | **Conceptual History**. Tracks how a specific idea or term evolves throughout a text. | History of ideas, evolving concepts |
-
 *   **Regulations & Compliance**: Internal policies, administrative regulations, SOPs, and compliance guidelines.
 
 | Template Name | Primitive | Description | Typical Use Case |
@@ -84,6 +76,8 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | **`MaterialEventTimeline`** | `AutoTemporalGraph` | **8-K Event Timeline**. Chronologically extracts material events (executive changes, M&A announcements, restatements) from current reports. | Event-driven analysis, regulatory monitoring |
 | **`SegmentPerformanceList`** | `AutoList` | **Segment Breakdown**. Extracts revenue, operating income, and key metrics by business segment or geographic region. | Segment-level valuation, geographic exposure analysis |
 | **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | **Financial Data Timeline**. Builds a temporal graph of financial metrics across reporting periods, tracking how revenue, margins, segment contributions, and key ratios evolve over time. | Multi-period trend analysis, cross-period comparison, financial data lineage |
+| **`RiskAssessmentGraph`** | `AutoGraph` | **Risk Assessment Graph**. Systematically extracts transmission paths from risk factors to financial impacts, including likelihood, severity, and mitigation strategies. | Risk monitoring, cross-filing comparative analysis |
+| **`SupplyChainGraph`** | `AutoGraph` | **Supply Chain Graph**. Extracts supply chain entities, transaction relationships, and risk assessments to identify critical suppliers and geopolitical risks. | Supply chain resilience analysis, ESG report analysis |
 
 *   **Equity Research Reports**: Detailed analysis by analysts containing ratings, target prices, and investment logic.
 

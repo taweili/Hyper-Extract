@@ -2,13 +2,8 @@
 Finance domain templates for extracting structured knowledge from financial documents.
 
 Includes templates for SEC filings, equity research, prospectuses, earnings calls,
-financial news, risk assessment, market sentiment, and supply chain analysis.
+financial news, risk assessment, and supply chain analysis.
 """
-
-# Existing templates
-from .risk_assessment import RiskAssessmentGraph
-from .market_sentiment import MarketSentimentGraph
-from .supply_chain import SupplyChainGraph
 
 # SEC Filings (10-K / 10-Q / 8-K)
 from .filing_financial_snapshot import FilingFinancialSnapshot
@@ -17,6 +12,8 @@ from .filing_risk_factor_set import FilingRiskFactorSet
 from .material_event_timeline import MaterialEventTimeline
 from .segment_performance_list import SegmentPerformanceList
 from .financial_data_temporal_graph import FinancialDataTemporalGraph
+from .risk_assessment import RiskAssessmentGraph
+from .supply_chain import SupplyChainGraph
 
 # Equity Research Reports
 from .research_note_summary import ResearchNoteSummary
@@ -43,10 +40,6 @@ from .multi_source_sentiment_hypergraph import MultiSourceSentimentHypergraph
 from .market_narrative_timeline import MarketNarrativeTimeline
 
 __all__ = [
-    # Existing templates
-    "RiskAssessmentGraph",
-    "MarketSentimentGraph",
-    "SupplyChainGraph",
     # SEC Filings
     "FilingFinancialSnapshot",
     "MDANarrativeGraph",
@@ -54,6 +47,8 @@ __all__ = [
     "MaterialEventTimeline",
     "SegmentPerformanceList",
     "FinancialDataTemporalGraph",
+    "RiskAssessmentGraph",
+    "SupplyChainGraph",
     # Equity Research
     "ResearchNoteSummary",
     "FinancialForecast",

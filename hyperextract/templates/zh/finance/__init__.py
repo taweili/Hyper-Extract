@@ -2,13 +2,8 @@
 金融领域模板，用于从财务文档中提取结构化知识。
 
 包含 SEC 文件、股票研究报告、招股说明书、财报电话会议、
-金融新闻、风险评估、市场观点和供应链分析等模板。
+金融新闻、风险评估和供应链分析等模板。
 """
-
-# 已有模板
-from .risk_assessment import RiskAssessmentGraph
-from .market_sentiment import MarketSentimentGraph
-from .supply_chain import SupplyChainGraph
 
 # SEC 文件 (10-K / 10-Q / 8-K)
 from .filing_financial_snapshot import FilingFinancialSnapshot
@@ -17,6 +12,8 @@ from .filing_risk_factor_set import FilingRiskFactorSet
 from .material_event_timeline import MaterialEventTimeline
 from .segment_performance_list import SegmentPerformanceList
 from .financial_data_temporal_graph import FinancialDataTemporalGraph
+from .risk_assessment import RiskAssessmentGraph
+from .supply_chain import SupplyChainGraph
 
 # 股票研究报告
 from .research_note_summary import ResearchNoteSummary
@@ -43,10 +40,6 @@ from .multi_source_sentiment_hypergraph import MultiSourceSentimentHypergraph
 from .market_narrative_timeline import MarketNarrativeTimeline
 
 __all__ = [
-    # 已有模板
-    "RiskAssessmentGraph",
-    "MarketSentimentGraph",
-    "SupplyChainGraph",
     # SEC 文件
     "FilingFinancialSnapshot",
     "MDANarrativeGraph",
@@ -54,6 +47,8 @@ __all__ = [
     "MaterialEventTimeline",
     "SegmentPerformanceList",
     "FinancialDataTemporalGraph",
+    "RiskAssessmentGraph",
+    "SupplyChainGraph",
     # 股票研究报告
     "ResearchNoteSummary",
     "FinancialForecast",
