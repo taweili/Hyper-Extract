@@ -64,7 +64,7 @@
 
 ### 2.2 命名规范
 - 类名：`PascalCase`（如 `FinancialReportGraph`）
-- 变量/方法名：`camelCase`（如 `nodeLabelExtractor`）
+- 变量/方法名：`camelCase`（如 `node_label_extractor`）
 
 ### 2.3 示例
 ```python
@@ -219,15 +219,15 @@ def show(
         top_k_for_search: 语义检索返回的节点/边数量，默认为 3
         top_k_for_chat: 问答使用的节点/边数量，默认为 3
     """
-    def nodeLabelExtractor(node: MyNode) -> str:
+    def node_label_extractor(node: MyNode) -> str:
         return node.name  # 简明 label，非唯一标识，展示友好
     
-    def edgeLabelExtractor(edge: MyEdge) -> str:
+    def edge_label_extractor(edge: MyEdge) -> str:
         return edge.relationType
     
     super().show(
-        node_label_extractor=nodeLabelExtractor,
-        edge_label_extractor=edgeLabelExtractor,
+        node_label_extractor=node_label_extractor,
+        edge_label_extractor=edge_label_extractor,
         top_k_for_search=top_k_for_search,
         top_k_for_chat=top_k_for_chat,
     )
@@ -303,7 +303,6 @@ _EDGE_PROMPT = """
 1. 仅从下方已知实体列表中提取边
 2. 不要创建未列出的实体
 
-### 已知实体列表:
 """
 
 _PROMPT = """
@@ -404,15 +403,15 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
             top_k_for_search: 语义检索返回的节点/边数量，默认为 3
             top_k_for_chat: 问答使用的节点/边数量，默认为 3
         """
-        def nodeLabelExtractor(node: FinancialEntity) -> str:
+        def node_label_extractor(node: FinancialEntity) -> str:
             return node.name
         
-        def edgeLabelExtractor(edge: FinancialRelation) -> str:
+        def edge_label_extractor(edge: FinancialRelation) -> str:
             return edge.relationType
         
         super().show(
-            node_label_extractor=nodeLabelExtractor,
-            edge_label_extractor=edgeLabelExtractor,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )

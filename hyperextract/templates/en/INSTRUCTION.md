@@ -64,7 +64,7 @@ Hyperedges are used to model complex relationships among multiple entities, brea
 
 ### 2.2 Naming Conventions
 - Class names: `PascalCase` (e.g., `FinancialReportGraph`)
-- Variable/Method names: `camelCase` (e.g., `nodeLabelExtractor`)
+- Variable/Method names: `camelCase` (e.g., `node_label_extractor`)
 
 ### 2.3 Example
 ```python
@@ -221,15 +221,15 @@ def show(
         top_k_for_search: Number of nodes/edges returned for semantic search, default is 3
         top_k_for_chat: Number of nodes/edges used for Q&A, default is 3
     """
-    def nodeLabelExtractor(node: MyNode) -> str:
+    def node_label_extractor(node: MyNode) -> str:
         return node.name  # Simple label, not unique identifier, friendly for display
     
-    def edgeLabelExtractor(edge: MyEdge) -> str:
+    def edge_label_extractor(edge: MyEdge) -> str:
         return edge.relationType
     
     super().show(
-        node_label_extractor=nodeLabelExtractor,
-        edge_label_extractor=edgeLabelExtractor,
+        node_label_extractor=node_label_extractor,
+        edge_label_extractor=edge_label_extractor,
         top_k_for_search=top_k_for_search,
         top_k_for_chat=top_k_for_chat,
     )
@@ -305,7 +305,6 @@ Current Observation Date: {observation_time}
 1. Only extract edges from the known entity list below
 2. Do NOT create entities not listed
 
-### Known Entity List:
 """
 
 _PROMPT = """
@@ -406,15 +405,15 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
             top_k_for_search: Number of nodes/edges returned for semantic search, default is 3
             top_k_for_chat: Number of nodes/edges used for Q&A, default is 3
         """
-        def nodeLabelExtractor(node: FinancialEntity) -> str:
+        def node_label_extractor(node: FinancialEntity) -> str:
             return node.name
         
-        def edgeLabelExtractor(edge: FinancialRelation) -> str:
+        def edge_label_extractor(edge: FinancialRelation) -> str:
             return edge.relationType
         
         super().show(
-            node_label_extractor=nodeLabelExtractor,
-            edge_label_extractor=edgeLabelExtractor,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )

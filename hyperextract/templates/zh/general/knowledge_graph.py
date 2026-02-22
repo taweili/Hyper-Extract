@@ -1,148 +1,147 @@
-from typing import List, Optional, Any
+"""通用知识图谱 - 从任意文本中提取实体与关系。
+
+适用于任意文本、网页抓取内容等非结构化文档，提取通用实体及其关系。
+"""
+
+from typing import Any, Optional, Tuple
 from pydantic import BaseModel, Field
-from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoGraph
 
-# ==============================================================================
-# 1. Schema 定义 (Schema Definitions)
-# ==============================================================================
 
-class Entity(BaseModel):
-    """通用实体，代表人物、组织、地点、物体或核心概念。"""
-    name: str = Field(description="实体的名称。")
-    category: str = Field(
-        description="实体的类别（例如：人物、组织、地理位置、概念、事件、物体）。"
-    )
-    description: Optional[str] = Field(
-        description="该实体的简要描述及其在文本中的作用。"
-    )
+class GeneralEntity(BaseModel):
+    """通用实体节点"""
+    name: str = Field(description="实体名称，如人名、机构名、产品名")
+    category: str = Field(description="实体类型：人物、机构、地点、产品、概念、其他")
+    description: str = Field(description="简要描述", default="")
 
-class Relation(BaseModel):
-    """两个实体之间的事实关系。"""
-    source: str = Field(description="源实体的名。")
-    target: str = Field(description="目标实体的名称。")
-    relation: str = Field(description="关系类型（例如：任职于、位于、创立、收购）。")
-    details: Optional[str] = Field(description="关于该关系的额外上下文或详细描述。")
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+class GeneralRelation(BaseModel):
+    """通用关系边"""
+    source: str = Field(description="源实体")
+    target: str = Field(description="目标实体")
+    relationType: str = Field(description="关系类型：属于、位于、合作、竞争、发明、创建、相关等")
+    details: str = Field(description="详细描述", default="")
 
-_PROMPT = (
-    "你是一个专业的知识提取专家。你的任务是从提供的文本中提取一个事实知识图谱。"
-    "重点识别关键实体（人物、组织、地理位置、重要物体）以及它们之间明确的关系。\n\n"
-    "提取指南：\n"
-    "- 准确性：从文本中提取明确的实体及其事实属性。\n"
-    "- 关系映射：描述实体之间如何互动或连接。\n"
-    "- 简洁性：使用清晰、简洁的语言进行描述和关系定义。"
-)
 
-_NODE_PROMPT = (
-    "请从文本中提取所有关键实体。重点识别人物、组织、地理位置以及重要的物体。"
-    "为每个实体提供名称、类别以及简明扼要的描述。"
-)
+_PROMPT = """你是一位专业的知识图谱提取专家。请从文本中提取所有实体（节点）和它们之间的关系（边）。
 
-_EDGE_PROMPT = (
-    "基于文本识别以下已知实体之间的事实关系。重点关注如“任职于”、“位于”、“创立”或“收购”等互动。"
-    "请勿虚构不在列表中的实体。"
-)
+### 节点提取规则
+1. 提取所有实体：人物、机构、地点、产品、概念等
+2. 为每个实体指定类型：人物、机构、地点、产品、概念、其他
+3. 保持实体名称与原文一致
+4. 为每个实体添加简要描述
 
-# ==============================================================================
-# 3. 模板类 (Template Class)
-# ==============================================================================
+### 关系提取规则
+1. 仅从提取的实体中创建边
+2. 关系类型包括：属于、位于、合作、竞争、发明、创建、相关等
 
-class KnowledgeGraph(AutoGraph[Entity, Relation]):
+### 约束条件
+- 每条边必须连接已提取的节点
+- 不要创建未在文本中提及的实体或关系
+- 保持客观准确，不添加文本中没有的信息
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """你是一位专业的实体识别专家。请从文本中提取所有关键实体作为节点。
+
+### 提取规则
+1. 提取所有实体：人物、机构、地点、产品、概念等
+2. 为每个实体指定类型：人物、机构、地点、产品、概念、其他
+3. 保持实体名称与原文一致
+4. 为每个实体添加简要描述
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """你是一位专业的关系提取专家。请从给定实体列表中提取实体之间的关系。
+
+### 约束条件
+1. 仅从下方已知实体列表中提取边
+2. 不要创建未列出的实体
+3. 关系类型包括：属于、位于、合作、竞争、发明、创建、相关等
+
+"""
+
+
+class KnowledgeGraph(AutoGraph[GeneralEntity, GeneralRelation]):
     """
-    用于事实提取的基础知识图谱模板。
-    
-    该模板经过优化，适用于从新闻文章、传记和百科文本中提取实体（人物、地点、组织）及其事实交互。
-    
-    示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
-        >>> embedder = OpenAIEmbeddings()
-        >>> # 初始化模板
-        >>> kg = KnowledgeGraph(llm_client=llm, embedder=embedder)
-        >>> # 从文本中提取知识
-        >>> text = "苏轼出生于眉州眉山，是北宋著名的文学家。"
-        >>> kg.feed_text(text)
-        >>> print(kg.nodes)  # 输出: [Entity(name='苏轼', ...), Entity(name='眉州眉山', ...)]
+    适用文档: 任意文本、网页抓取内容、博客文章、新闻报道
+
+    功能介绍:
+    从任意文本中提取通用实体及其关系，构建知识图谱。支持人物、机构、地点、产品、概念等多种实体类型。
+
+    Example:
+        >>> template = KnowledgeGraph(llm_client=llm, embedder=embedder)
+        >>> template.feed_text("银河星际宣布神舟-50首飞成功...")
+        >>> template.show()
     """
+
     def __init__(
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        extraction_mode: str = "one_stage",
-        chunk_size: int = 2048,
-        chunk_overlap: int = 256,
+        extraction_mode: str = "two_stage",
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
-        初始化 KnowledgeGraph 模板。
-
+        初始化通用知识图谱模板。
+        
         Args:
-            llm_client: 用于提取的语言模型客户端。
-            embedder: 用于实体去重和索引的嵌入模型。
-            extraction_mode: 提取策略：
-                - "one_stage": 同时提取节点和边（速度更快）。
-                - "two_stage": 先提取节点，再提取边（准确度更高）。
-            chunk_size: 每个文本块的最大字符数。
-            chunk_overlap: 文本块之间的重叠字符数。
-            max_workers: 并行处理的最大线程数。
-            verbose: 如果为 True，则打印详细的进度日志。
-            **kwargs: 传给 AutoGraph 构造函数的其他参数。
+            llm_client: LLM 客户端，用于知识提取
+            embedder: 嵌入模型，用于语义检索
+            extraction_mode: 提取模式，可选 "one_stage"（同时提取节点和边）
+                或 "two_stage"（先提取节点，再提取边），默认为 "two_stage"
+            max_workers: 最大工作线程数，默认为 10
+            verbose: 是否输出详细日志，默认为 False
+            **kwargs: 其他技术参数，传递给基类
         """
         super().__init__(
-            node_schema=Entity,
-            edge_schema=Relation,
-            node_key_extractor=lambda x: x.name.strip(),
-            edge_key_extractor=lambda x: f"{x.source.strip()}--[{x.relation.lower()}]-->{x.target.strip()}",
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            node_schema=GeneralEntity,
+            edge_schema=GeneralRelation,
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.source}|{x.relationType}|{x.target}",
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
             prompt=_PROMPT,
             prompt_for_node_extraction=_NODE_PROMPT,
             prompt_for_edge_extraction=_EDGE_PROMPT,
-            **kwargs
+            **kwargs,
         )
+
     def show(
         self,
         *,
-        top_k_nodes_for_search: int = 3,
-        top_k_edges_for_search: int = 3,
-        top_k_nodes_for_chat: int = 3,
-        top_k_edges_for_chat: int = 3,
-    ) -> None:
+        top_k_for_search: int = 3,
+        top_k_for_chat: int = 3,
+    ):
         """
-        Visualize the graph using OntoSight.
-    
+        展示知识图谱。
+        
         Args:
-            top_k_nodes_for_search (int): Number of nodes to retrieve for search context. Default 3.
-            top_k_edges_for_search (int): Number of edges to retrieve for search context. Default 3.
-            top_k_nodes_for_chat (int): Number of nodes to retrieve for chat context. Default 3.
-            top_k_edges_for_chat (int): Number of edges to retrieve for chat context. Default 3.
+            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
+            top_k_for_chat: 问答使用的节点/边数量，默认为 3
         """
-        def node_label_extractor(node: Entity) -> str:
-            info = f" ({node.category})" if getattr(node, "category", None) else ""
-            return f"{node.name}{info}"
-    
-        def edge_label_extractor(edge: Relation) -> str:
-            return f"{edge.relation}"
-    
+        def node_label_extractor(node: GeneralEntity) -> str:
+            return f"{node.name} ({node.category})"
+        
+        def edge_label_extractor(edge: GeneralRelation) -> str:
+            return edge.relationType
+        
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_nodes_for_search,
-            top_k_edges_for_search=top_k_edges_for_search,
-            top_k_nodes_for_chat=top_k_nodes_for_chat,
-            top_k_edges_for_chat=top_k_edges_for_chat,
+            top_k_nodes_for_search=top_k_for_search,
+            top_k_edges_for_search=top_k_for_search,
+            top_k_nodes_for_chat=top_k_for_chat,
+            top_k_edges_for_chat=top_k_for_chat,
         )
