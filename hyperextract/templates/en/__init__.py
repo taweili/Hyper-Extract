@@ -1,33 +1,22 @@
 from .general import (
-    # Knowledge Graph
+    # Arbitrary Text
     KnowledgeGraph,
-    # Entity Registry
     EntityRegistry,
-    # Keyword List
     KeywordList,
-    # Encyclopedia Item
+    # Wikipedia/Baidu Baike Entries
     EncyclopediaItem,
-    # Concept Hierarchy
     ConceptHierarchy,
-    # Cross Reference Network
     CrossReferenceNet,
-    # Personal Profile
+    # Biographies and Memoirs
     PersonalProfile,
-    # Social Network
     SocialNetwork,
-    # Life Event Timeline
     LifeEventTimeline,
-    # Regulation Profile
+    # Rules and Compliance Documents
     RegulationProfile,
-    # Clause List
     ClauseList,
-    # Penalty Registry
     PenaltyRegistry,
-    # Operational Procedure
     OperationalProcedure,
-    # Penalty Mapping
     PenaltyMapping,
-    # Compliance Logic
     ComplianceLogic,
 )
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
@@ -58,44 +47,28 @@ from .finance import (
     MarketNarrativeTimeline,
 )
 from .literature import CharacterRelationshipGraph, NarrativeTimeline, SymbolismSet
-from .medicine import DrugInteractionGraph, ClinicalTreatmentTimeline, DiagnosticCriteriaSet
+# from .medicine import DrugInteractionGraph, ClinicalTreatmentTimeline, DiagnosticCriteriaSet
 from .news import BreakingEventGraph, TopicTimeline, OpinionSet
 
 __all__ = [
     # general
-    ## Knowledge Graph
     "KnowledgeGraph",
-    ## Entity Registry
     "EntityRegistry",
-    ## Keyword List
     "KeywordList",
-    ## Encyclopedia Item
     "EncyclopediaItem",
-    ## Concept Hierarchy
     "ConceptHierarchy",
-    ## Cross Reference Network
     "CrossReferenceNet",
-    ## Personal Profile
     "PersonalProfile",
-    ## Social Network
     "SocialNetwork",
-    ## Life Event Timeline
     "LifeEventTimeline",
-    ## Regulation Profile
     "RegulationProfile",
-    ## Clause List
     "ClauseList",
-    ## Penalty Registry
     "PenaltyRegistry",
-    ## Operational Procedure
     "OperationalProcedure",
-    ## Penalty Mapping
     "PenaltyMapping",
-    ## Compliance Logic
     "ComplianceLogic",
     # Finance
     "RiskAssessmentGraph",
-    "MarketSentimentGraph",
     "SupplyChainGraph",
     "FilingFinancialSnapshot",
     "MDANarrativeGraph",
@@ -122,12 +95,6 @@ __all__ = [
     "CharacterRelationshipGraph",
     "NarrativeTimeline",
     "SymbolismSet",
-    "DrugInteractionGraph",
-    "ClinicalTreatmentTimeline",
-    "DiagnosticCriteriaSet",
-    "ScriptSceneGraph",
-    "CharacterArcTracker",
-    "CinematicTriviaSet",
     "BreakingEventGraph",
     "TopicTimeline",
     "OpinionSet",
@@ -139,7 +106,4 @@ __all__ = [
     "TaxonomyGraph",
     "BiologicalNetwork",
     "MetabolicHypergraph",
-    "MolecularStructureGraph",
-    "ChemicalReactionHyper",
-    "LabProtocolTemporal",
 ]

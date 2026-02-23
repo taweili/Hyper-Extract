@@ -1,33 +1,22 @@
 from .general import (
-    # 知识图谱
+    # 任意文本
     KnowledgeGraph,
-    # 实体集合
     EntityRegistry,
-    # 关键词列表
     KeywordList,
-    # 百科条目
+    # 维基百科/百度百科条目
     EncyclopediaItem,
-    # 概念层级图
     ConceptHierarchy,
-    # 引用网络
     CrossReferenceNet,
-    # 个人档案
+    # 人物传记与回忆录
     PersonalProfile,
-    # 社会网络
     SocialNetwork,
-    # 生平时序图
     LifeEventTimeline,
-    # 规章元数据快照
+    # 规章制度与合规文档
     RegulationProfile,
-    # 规章条文清单
     ClauseList,
-    # 违规处罚对照表
     PenaltyRegistry,
-    # 执行程序流程图
     OperationalProcedure,
-    # 违规处罚因果链
     PenaltyMapping,
-    # 合规行为超图
     ComplianceLogic,
 )
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
@@ -59,50 +48,64 @@ from .finance import (
 )
 from .literature import CharacterRelationshipGraph, NarrativeTimeline, SymbolismSet
 from .medicine import (
-    DrugInteractionGraph,
-    ClinicalTreatmentTimeline,
-    DiagnosticCriteriaSet,
+    # 医学教科书与专著
+    PathologyHypergraph,
+    MedicalConceptNet,
+    PharmacologyGraph,
+    AnatomyHierarchy,
+    SymptomDifferential,
+    # 临床诊疗指南
+    TreatmentRegimenMap,
+    ClinicalPathway,
+    LevelOfEvidence,
+    # 出院小结
+    SurgicalEventGraph,
+    HospitalCourseTimeline,
+    DischargeInstruction,
+    # 病理报告
+    TumorStagingItem,
+    MicroscopicFeatureSet,
+    # 药品说明书
+    ComplexInteractionNet,
+    ContraindicationList,
+    AdverseReactionStats,
 )
+
 from .news import BreakingEventGraph, TopicTimeline, OpinionSet
+
 from .tcm import (
-    PrescriptionCompositionGraph,
-    SyndromeTreatmentLoop,
-    MeridianAcupointSpatial,
-    PrescriptionManualSet,
-    HerbInteractionHypergraph,
+    # 本草典籍
+    HerbPropertyModel,
+    ProcessingMethod,
+    CompatibilityNet,
+    # 方剂规范
+    FormulaComposition,
+    FunctionIndicationMap,
+    # 经络腧穴专著
+    MeridianFlowGraph,
+    AcupointLocationMap,
+    # 名医医案
+    SyndromeReasoningGraph,
+    PrescriptionModification,
+    PulseTongueRecord,
 )
 
 __all__ = [
-    # general
-    ## 知识图谱
+    # General
     "KnowledgeGraph",
-    ## 实体集合
     "EntityRegistry",
-    ## 关键词列表
     "KeywordList",
-    ## 百科条目
     "EncyclopediaItem",
-    ## 概念层级图
     "ConceptHierarchy",
-    ## 引用网络
     "CrossReferenceNet",
-    ## 个人档案
     "PersonalProfile",
-    ## 社会网络
     "SocialNetwork",
-    ## 生平时序图
     "LifeEventTimeline",
-    ## 规章元数据快照
     "RegulationProfile",
-    ## 规章条文清单
     "ClauseList",
-    ## 违规处罚对照表
     "PenaltyRegistry",
-    ## 执行程序流程图
     "OperationalProcedure",
-    ## 违规处罚因果链
     "PenaltyMapping",
-    ## 合规行为超图
     "ComplianceLogic",
     # Finance
     "RiskAssessmentGraph",
@@ -133,23 +136,40 @@ __all__ = [
     "CharacterRelationshipGraph",
     "NarrativeTimeline",
     "SymbolismSet",
-    "DrugInteractionGraph",
-    "ClinicalTreatmentTimeline",
-    "DiagnosticCriteriaSet",
+    # Medicine
+    "PathologyHypergraph",
+    "MedicalConceptNet",
+    "PharmacologyGraph",
+    "AnatomyHierarchy",
+    "SymptomDifferential",
+    "TreatmentRegimenMap",
+    "ClinicalPathway",
+    "LevelOfEvidence",
+    "SurgicalEventGraph",
+    "HospitalCourseTimeline",
+    "DischargeInstruction",
+    "TumorStagingItem",
+    "MicroscopicFeatureSet",
+    "ComplexInteractionNet",
+    "ContraindicationList",
+    "AdverseReactionStats",
     "ScriptSceneGraph",
     "CharacterArcTracker",
     "CinematicTriviaSet",
     "BreakingEventGraph",
     "TopicTimeline",
     "OpinionSet",
-    "PrescriptionCompositionGraph",
-    "SyndromeTreatmentLoop",
-    "MeridianAcupointSpatial",
-    "PrescriptionManualSet",
-    "HerbInteractionHypergraph",
-    "CultivationSystemMap",
-    "SectRelationGraph",
-    "ArtifactRegistry",
+    # TCM
+    "HerbPropertyModel",
+    "ProcessingMethod",
+    "CompatibilityNet",
+    "FormulaComposition",
+    "FunctionIndicationMap",
+    "MeridianFlowGraph",
+    "AcupointLocationMap",
+    "SyndromeReasoningGraph",
+    "PrescriptionModification",
+    "PulseTongueRecord",
     # Agriculture
     "CropCycleGraph",
     "LivestockGraph",

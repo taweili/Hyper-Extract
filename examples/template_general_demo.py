@@ -140,19 +140,18 @@ def main():
         return
 
     # 读取输入文件内容
-    print(f"\n📖 读取文件内容...")
+    print("\n📖 读取文件内容...")
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         content = f.read()
     print(f"✅ 读取成功，共 {len(content)} 字符")
 
     # 初始化模板并进行知识提取
-    print(f"\n🧠 开始知识提取...")
+    print("\n🧠 开始知识提取...")
     try:
         # 初始化模板
         template = TEMPLATE(
             llm_client=llm,
             embedder=embedder,
-            extraction_mode="two_stage",
             verbose=True,
         )
 
