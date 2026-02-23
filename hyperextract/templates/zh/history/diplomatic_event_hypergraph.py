@@ -65,7 +65,7 @@ class DiplomaticEventHypergraph(AutoHypergraph[CountrySchema, DiplomaticEventSch
             **kwargs,
         )
 
-    def show(self, *, top_k_for_search: int = 5, top_k_for_chat: int = 5) -> None:
+    def show(self, *, top_k_nodes_for_search: int = 3, top_k_edges_for_search: int = 3, top_k_nodes_for_chat: int = 3, top_k_edges_for_chat: int = 3) -> None:
         def node_label(node: CountrySchema) -> str:
             return f"🏛️ {node.country_name}"
         def edge_label(edge: DiplomaticEventSchema) -> str:
@@ -73,6 +73,5 @@ class DiplomaticEventHypergraph(AutoHypergraph[CountrySchema, DiplomaticEventSch
         super().show(
             node_label_extractor=node_label,
             edge_label_extractor=edge_label,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search, top_k_edges_for_search=top_k_edges_for_search, top_k_nodes_for_chat=top_k_nodes_for_chat, top_k_edges_for_chat=top_k_edges_for_chat,
         )

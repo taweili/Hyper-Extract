@@ -12,6 +12,7 @@ from hyperextract.types import AutoHypergraph
 
 class ComplianceElement(BaseModel):
     """合规要素 - 节点"""
+
     name: str = Field(description="要素名称，文本中出现的精确名称")
     category: str = Field(description="要素类型：主体、操作、条件、其他")
     description: str = Field(description="简要描述", default="")
@@ -19,8 +20,11 @@ class ComplianceElement(BaseModel):
 
 class ComplianceRule(BaseModel):
     """合规规则 - 超边"""
+
     ruleType: str = Field(description="规则类型：必须、禁止、允许、其他")
-    participants: List[str] = Field(description="参与要素名称列表，必须使用已提取节点的 name")
+    participants: List[str] = Field(
+        description="参与要素名称列表，必须使用已提取节点的 name"
+    )
     action: str = Field(description="要求执行或禁止的操作内容")
     condition: str = Field(description="适用条件/前置要求", default="")
     consequence: str = Field(description="违规后果/奖励措施", default="")
@@ -143,7 +147,9 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             node_schema=ComplianceElement,
             edge_schema=ComplianceRule,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.ruleType}_{x.action}",
+            edge_key_extractor=lambda x: (
+                f"{sorted(x.participants)}_{x.ruleType}_{x.action}"
+            ),
             nodes_in_edge_extractor=lambda x: tuple(x.participants),
             llm_client=llm_client,
             embedder=embedder,
@@ -159,16 +165,21 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示合规行为超图。
 
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: ComplianceElement) -> str:
             return f"{node.name} ({node.category})"
 
@@ -178,8 +189,8 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

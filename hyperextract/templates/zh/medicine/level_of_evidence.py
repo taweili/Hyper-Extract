@@ -12,6 +12,7 @@ from hyperextract.types import AutoList
 
 class EvidenceItem(BaseModel):
     """证据条目"""
+
     recommendation: str = Field(description="推荐意见")
     evidenceLevel: str = Field(description="证据等级，如A、B、C、1a、1b等")
     recommendationLevel: str = Field(description="推荐级别，如强推荐、弱推荐等")
@@ -62,7 +63,7 @@ class LevelOfEvidence(AutoList[EvidenceItem]):
     ):
         """
         初始化证据评级表模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -88,14 +89,15 @@ class LevelOfEvidence(AutoList[EvidenceItem]):
     ):
         """
         展示证据评级表。
-        
+
         Args:
             top_k_for_search: 语义检索返回的条目数量，默认为 3
             top_k_for_chat: 问答使用的条目数量，默认为 3
         """
+
         def item_label_extractor(item: EvidenceItem) -> str:
             return f"{item.recommendationLevel} (证据等级: {item.evidenceLevel})"
-        
+
         super().show(
             item_label_extractor=item_label_extractor,
             top_k_items_for_search=top_k_for_search,

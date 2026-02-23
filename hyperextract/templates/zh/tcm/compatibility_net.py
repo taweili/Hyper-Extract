@@ -12,15 +12,19 @@ from hyperextract.types import AutoGraph
 
 class HerbEntity(BaseModel):
     """药物实体节点"""
+
     name: str = Field(description="药物名称")
     description: str = Field(description="简要描述", default="")
 
 
 class CompatibilityRelation(BaseModel):
     """配伍关系边"""
+
     source: str = Field(description="源药物")
     target: str = Field(description="目标药物")
-    relationType: str = Field(description="配伍关系类型：相须、相使、相畏、相杀、相恶、相反、十八反、十九畏")
+    relationType: str = Field(
+        description="配伍关系类型：相须、相使、相畏、相杀、相恶、相反、十八反、十九畏"
+    )
     effect: str = Field(description="配伍效果描述", default="")
 
 
@@ -45,6 +49,12 @@ _PROMPT = """## 角色与任务
 - 每条边必须连接已提取的节点
 - 不要创建未在文本中提及的实体或关系
 - 保持客观准确，符合中药配伍专业术语规范
+
+### 术语标准化指导
+- **药物名称标准化**：同一药物的不同名称需统一使用规范正名
+- **配伍关系统一**：确保关系类型使用标准术语：相须、相使、相畏、相杀、相恶、相反、十八反、十九畏
+- **禁忌表述识别**：准确识别"反"、"畏"、"恶"等配伍禁忌表述
+- **双向关系处理**：配伍关系通常是双向的，但按原文表述顺序提取即可
 
 ### 源文本:
 """
@@ -81,10 +91,10 @@ _EDGE_PROMPT = """## 角色与任务
 class CompatibilityNet(AutoGraph[HerbEntity, CompatibilityRelation]):
     """
     适用文档: 本草典籍、中药配伍指南、方剂学教材等
-    
+
     功能介绍:
     提取药物间的相须、相使、相畏、相杀、十八反十九畏关系，适用于配伍禁忌预警、方剂组网分析。
-    
+
     Example:
         >>> template = CompatibilityNet(llm_client=llm, embedder=embedder)
         >>> template.feed_text("甘草反大戟、芫花、甘遂、海藻...")
@@ -103,7 +113,7 @@ class CompatibilityNet(AutoGraph[HerbEntity, CompatibilityRelation]):
     ):
         """
         初始化七情配伍网络模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -132,28 +142,33 @@ class CompatibilityNet(AutoGraph[HerbEntity, CompatibilityRelation]):
 
     def show(
         self,
-        *, 
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示七情配伍网络。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: HerbEntity) -> str:
             return node.name
-        
+
         def edge_label_extractor(edge: CompatibilityRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

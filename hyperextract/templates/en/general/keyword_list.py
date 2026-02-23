@@ -20,9 +20,6 @@ class Keyword(BaseModel):
 _PROMPT = """## Role and Task
 You are a professional keyword extraction expert. Please extract all keywords from the text with category and description information.
 
-## Core Concept Definitions
-- **Item**: In this template, "Item" refers to a single keyword entry, a semantic tag unit that includes fields such as keyword term, category, and description.
-
 ## Extraction Rules
 1. Extract all keywords and core phrases from the text
 2. Assign a category to each keyword: CoreConcept, Term, PersonName, OrganizationName, Other

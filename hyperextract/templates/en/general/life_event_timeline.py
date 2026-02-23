@@ -12,17 +12,25 @@ from hyperextract.types import AutoTemporalGraph
 
 class LifeEntity(BaseModel):
     """Life entity node"""
+
     name: str = Field(description="Entity name")
-    type: str = Field(description="Entity type: Person, Location, Organization, Item, Concept, Other")
+    type: str = Field(
+        description="Entity type: Person, Location, Organization, Item, Concept, Other"
+    )
     description: str = Field(description="Brief description", default="")
 
 
 class LifeEvent(BaseModel):
     """Life event edge (with optional timestamp)"""
+
     source: str = Field(description="Event subject/related entity")
     target: str = Field(description="Event object/related entity")
-    eventType: str = Field(description="Event type: Birth, Death, Education, Work, Achievement, Interaction, Travel, Other")
-    eventDate: Optional[str] = Field(description="Event date, format: YYYY-MM-DD or YYYY, optional", default=None)
+    eventType: str = Field(
+        description="Event type: Birth, Death, Education, Work, Achievement, Interaction, Travel, Other"
+    )
+    eventDate: Optional[str] = Field(
+        description="Event date, format: YYYY-MM-DD or YYYY, optional", default=None
+    )
     details: str = Field(description="Detailed event description", default="")
 
 
@@ -187,7 +195,7 @@ class LifeEventTimeline(AutoTemporalGraph[LifeEntity, LifeEvent]):
     ):
         """
         Initialize life event timeline template.
-        
+
         Args:
             llm_client: LLM client for knowledge extraction
             embedder: Embedding model for semantic search
@@ -220,29 +228,34 @@ class LifeEventTimeline(AutoTemporalGraph[LifeEntity, LifeEvent]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display life event timeline.
-        
+
         Args:
-            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
-            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes to retrieve for search callback (default: 3)
+            top_k_edges_for_search: Number of edges to retrieve for search callback (default: 3)
+            top_k_nodes_for_chat: Number of nodes to retrieve for chat callback (default: 3)
+            top_k_edges_for_chat: Number of edges to retrieve for chat callback (default: 3)
         """
+
         def node_label_extractor(node: LifeEntity) -> str:
             return f"{node.name} ({node.type})"
-        
+
         def edge_label_extractor(edge: LifeEvent) -> str:
             if edge.eventDate:
                 return f"{edge.eventType} ({edge.eventDate})"
             return edge.eventType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

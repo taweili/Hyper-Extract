@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class ProcedureStep(BaseModel):
     """流程步骤节点"""
+
     stepId: str = Field(description="步骤编号，如步骤1、步骤2")
     name: str = Field(description="步骤名称")
     description: str = Field(description="步骤详细描述")
@@ -22,6 +23,7 @@ class ProcedureStep(BaseModel):
 
 class ProcedureTransition(BaseModel):
     """流程转换边"""
+
     source: str = Field(description="源步骤编号")
     target: str = Field(description="目标步骤编号")
     condition: str = Field(description="转换条件", default="")
@@ -114,7 +116,7 @@ class OperationalProcedure(AutoGraph[ProcedureStep, ProcedureTransition]):
     ):
         """
         初始化执行程序流程图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -144,29 +146,34 @@ class OperationalProcedure(AutoGraph[ProcedureStep, ProcedureTransition]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示执行程序流程图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: ProcedureStep) -> str:
             return f"{node.stepId}: {node.name}"
-        
+
         def edge_label_extractor(edge: ProcedureTransition) -> str:
             if edge.condition:
                 return edge.condition
             return "→"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

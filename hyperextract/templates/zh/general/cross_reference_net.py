@@ -3,7 +3,7 @@
 适用于百科内链、跨词条关联图等。
 """
 
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class ReferenceNode(BaseModel):
     """引用节点"""
+
     name: str = Field(description="概念/条目名称")
     type: str = Field(description="节点类型：条目、章节、概念、人物、地点、其他")
     description: str = Field(description="简要描述", default="")
@@ -19,9 +20,12 @@ class ReferenceNode(BaseModel):
 
 class ReferenceRelation(BaseModel):
     """引用关系边"""
+
     source: str = Field(description="源条目/概念")
     target: str = Field(description="被引用条目/概念")
-    relationType: str = Field(description="关系类型：Hyperlink（超链接）、Reference（引用）、SeeAlso（参见）、Related（相关）、Other（其他）")
+    relationType: str = Field(
+        description="关系类型：Hyperlink（超链接）、Reference（引用）、SeeAlso（参见）、Related（相关）、Other（其他）"
+    )
     context: str = Field(description="引用上下文描述", default="")
 
 
@@ -117,7 +121,7 @@ class CrossReferenceNet(AutoGraph[ReferenceNode, ReferenceRelation]):
     ):
         """
         初始化交叉引用网络模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -147,27 +151,32 @@ class CrossReferenceNet(AutoGraph[ReferenceNode, ReferenceRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示交叉引用网络。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: ReferenceNode) -> str:
             return f"{node.name} ({node.type})"
-        
+
         def edge_label_extractor(edge: ReferenceRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

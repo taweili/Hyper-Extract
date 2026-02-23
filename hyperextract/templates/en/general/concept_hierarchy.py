@@ -12,16 +12,22 @@ from hyperextract.types import AutoGraph
 
 class ConceptNode(BaseModel):
     """Concept node"""
+
     name: str = Field(description="Concept name")
-    category: str = Field(description="Concept type: CoreConcept, Subconcept, Attribute, Instance, Other")
+    category: str = Field(
+        description="Concept type: CoreConcept, Subconcept, Attribute, Instance, Other"
+    )
     description: str = Field(description="Brief concept description", default="")
 
 
 class HierarchyRelation(BaseModel):
     """Hierarchy relationship edge"""
+
     source: str = Field(description="Parent concept/whole concept")
     target: str = Field(description="Subconcept/part concept")
-    relationType: str = Field(description="Relationship type: Subclass-Of (taxonomy), Part-Of (composition), Instance-Of (instance), Other")
+    relationType: str = Field(
+        description="Relationship type: Subclass-Of (taxonomy), Part-Of (composition), Instance-Of (instance), Other"
+    )
     details: str = Field(description="Detailed relationship explanation", default="")
 
 
@@ -116,7 +122,7 @@ class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
     ):
         """
         Initialize concept hierarchy graph template.
-        
+
         Args:
             llm_client: LLM client for knowledge extraction
             embedder: Embedding model for semantic search
@@ -146,27 +152,32 @@ class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display concept hierarchy graph.
-        
+
         Args:
-            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
-            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
+            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
+            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
+            top_k_edges_for_chat: Number of edges to use for chat, default: 3
         """
+
         def node_label_extractor(node: ConceptNode) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: HierarchyRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

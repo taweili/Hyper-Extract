@@ -12,6 +12,7 @@ from hyperextract.types import AutoHypergraph
 
 class HerbNode(BaseModel):
     """药物节点"""
+
     name: str = Field(description="药物名称")
     role: str = Field(description="药物角色：君药、臣药、佐药、使药")
     dosage: str = Field(description="药物剂量", default="")
@@ -20,6 +21,7 @@ class HerbNode(BaseModel):
 
 class FormulaHyperedge(BaseModel):
     """方剂超边"""
+
     formulaName: str = Field(description="方剂名称")
     junHerbs: List[str] = Field(description="君药列表")
     chenHerbs: List[str] = Field(description="臣药列表")
@@ -48,6 +50,12 @@ _PROMPT = """## 角色与任务
 2. 提取君药、臣药、佐药、使药列表
 3. 提取方剂功能和主治证候
 4. 提取煎服法
+
+### 术语标准化指导
+- **药物名称标准化**：同一药物的不同名称需统一使用规范正名（如"国老"→"甘草"，"仙灵脾"→"淫羊藿"）
+- **角色术语统一**：君、臣、佐、使的不同表述需统一为"君药"、"臣药"、"佐药"、"使药"
+- **剂量单位保留**：古代剂量单位（两、钱、分、匕、枚等）可保留原文，无需转换
+- **同义词处理**：同一概念的不同表述（如"主治"与"主疗"，"功效"与"功用"）应统一提取
 
 ### 约束条件
 - 每条边必须包含方剂名称和至少一种角色的药物列表
@@ -95,10 +103,10 @@ _EDGE_PROMPT = """## 角色与任务
 class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
     """
     适用文档: 方剂规范、伤寒论、金匮要略、方剂学教材等
-    
+
     功能介绍:
     将方剂建模为 {君药, 臣药, 佐药, 使药} 的层级化超边结构，适用于方剂结构解析、组方规律研究。
-    
+
     Example:
         >>> template = FormulaComposition(llm_client=llm, embedder=embedder)
         >>> template.feed_text("桂枝汤：桂枝三两，芍药三两，甘草二两，生姜三两，大枣十二枚...")
@@ -117,7 +125,7 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
     ):
         """
         初始化君臣佐使结构图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -132,7 +140,14 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
             edge_schema=FormulaHyperedge,
             node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: x.formulaName,
-            nodes_in_edge_extractor=lambda x: (x.junHerbs, x.chenHerbs, x.zuoHerbs, x.shiHerbs),
+            nodes_in_edge_extractor=lambda x: set(
+                [
+                    *x.junHerbs,
+                    *x.chenHerbs,
+                    *x.zuoHerbs,
+                    *x.shiHerbs,
+                ]
+            ),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -146,28 +161,33 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
 
     def show(
         self,
-        *, 
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示君臣佐使结构图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: HerbNode) -> str:
             return f"{node.name} ({node.role})"
-        
+
         def edge_label_extractor(edge: FormulaHyperedge) -> str:
             return edge.formulaName
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

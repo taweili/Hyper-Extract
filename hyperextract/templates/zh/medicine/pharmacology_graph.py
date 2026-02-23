@@ -12,16 +12,22 @@ from hyperextract.types import AutoGraph
 
 class PharmacologyEntity(BaseModel):
     """药理实体节点"""
+
     name: str = Field(description="实体名称，如药物、受体、靶点、生理反应等")
-    category: str = Field(description="实体类型：药物、受体、靶点、生理反应、信号通路等")
+    category: str = Field(
+        description="实体类型：药物、受体、靶点、生理反应、信号通路等"
+    )
     description: str = Field(description="简要描述", default="")
 
 
 class PharmacologyRelation(BaseModel):
     """药理机制关系边"""
+
     source: str = Field(description="源实体")
     target: str = Field(description="目标实体")
-    relationType: str = Field(description="关系类型：结合、激活、抑制、调节、诱导、抑制等")
+    relationType: str = Field(
+        description="关系类型：结合、激活、抑制、调节、诱导、抑制等"
+    )
     details: str = Field(description="详细描述，如具体的作用机制")
 
 
@@ -109,7 +115,7 @@ class PharmacologyGraph(AutoGraph[PharmacologyEntity, PharmacologyRelation]):
     ):
         """
         初始化药理机制图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -139,27 +145,32 @@ class PharmacologyGraph(AutoGraph[PharmacologyEntity, PharmacologyRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示药理机制图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: PharmacologyEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: PharmacologyRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

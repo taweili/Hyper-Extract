@@ -3,7 +3,7 @@
 适用于维基百科、专业词典词条等。
 """
 
-from typing import Any, Optional, List
+from typing import Any, List
 from pydantic import BaseModel, Field
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -24,9 +24,6 @@ class EncyclopediaInfo(BaseModel):
 
 _PROMPT = """## 角色与任务
 你是一位专业的百科全书编辑，请从文本中提取单一主体的结构化属性信息，构建百科条目信息框。
-
-## 核心概念定义
-- **对象 (Object)**：本模板中的"对象"指单一百科条目主体，包含标题、实体类型、别名、分类、摘要、属性、重要事件等多个字段的结构化信息。
 
 ## 提取规则
 1. 识别文本的核心主体（人物、地点、组织、事件、概念等）

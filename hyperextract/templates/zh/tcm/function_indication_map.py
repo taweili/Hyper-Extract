@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class GeneralEntity(BaseModel):
     """通用实体节点"""
+
     name: str = Field(description="实体名称")
     category: str = Field(description="实体类型：方剂、功能、主治证候")
     description: str = Field(description="简要描述", default="")
@@ -19,6 +20,7 @@ class GeneralEntity(BaseModel):
 
 class GeneralRelation(BaseModel):
     """通用关系边"""
+
     source: str = Field(description="源实体")
     target: str = Field(description="目标实体")
     relationType: str = Field(description="关系类型：具有功能、主治")
@@ -38,6 +40,10 @@ _PROMPT = """## 角色与任务
 2. 为每个实体指定类型：方剂、功能、主治证候
 3. 保持实体名称与原文一致
 4. 为每个实体添加简要描述
+5. **关键原子化要求**：如果文本中出现逗号、顿号、及、与、和等分隔的多个实体，必须将每个实体单独提取为一个独立节点，不要合并在一起。例如：
+   - 原文"清热解毒、凉血止血"→拆分为"清热解毒"和"凉血止血"两个节点
+   - 原文"头痛、发热、咳嗽"→拆分为"头痛"、"发热"、"咳嗽"三个节点
+   - 原文"太阳病及阳明病"→拆分为"太阳病"和"阳明病"两个节点
 
 ### 关系提取规则
 1. 提取方剂与功能之间的关系（具有功能）
@@ -63,6 +69,10 @@ _NODE_PROMPT = """## 角色与任务
 2. 为每个实体指定类型：方剂、功能、主治证候
 3. 保持实体名称与原文一致
 4. 为每个实体添加简要描述
+5. **关键原子化要求**：如果文本中出现逗号、顿号、及、与、和等分隔的多个实体，必须将每个实体单独提取为一个独立节点，不要合并在一起。例如：
+   - 原文"清热解毒、凉血止血"→拆分为"清热解毒"和"凉血止血"两个节点
+   - 原文"头痛、发热、咳嗽"→拆分为"头痛"、"发热"、"咳嗽"三个节点
+   - 原文"太阳病及阳明病"→拆分为"太阳病"和"阳明病"两个节点
 
 ### 源文本:
 """
@@ -90,10 +100,10 @@ _EDGE_PROMPT = """## 角色与任务
 class FunctionIndicationMap(AutoGraph[GeneralEntity, GeneralRelation]):
     """
     适用文档: 方剂规范、伤寒论、金匮要略、方剂学教材等
-    
+
     功能介绍:
     关联 方剂 -> 功能（如清热解毒） -> 主治证候，适用于方剂推荐系统。
-    
+
     Example:
         >>> template = FunctionIndicationMap(llm_client=llm, embedder=embedder)
         >>> template.feed_text("桂枝汤：解肌发表，调和营卫。主治太阳中风...")
@@ -104,7 +114,7 @@ class FunctionIndicationMap(AutoGraph[GeneralEntity, GeneralRelation]):
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        *, 
+        *,
         extraction_mode: str = "two_stage",
         max_workers: int = 10,
         verbose: bool = False,
@@ -112,7 +122,7 @@ class FunctionIndicationMap(AutoGraph[GeneralEntity, GeneralRelation]):
     ):
         """
         初始化主治功效映射模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -141,28 +151,33 @@ class FunctionIndicationMap(AutoGraph[GeneralEntity, GeneralRelation]):
 
     def show(
         self,
-        *, 
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示主治功效映射。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: GeneralEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: GeneralRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

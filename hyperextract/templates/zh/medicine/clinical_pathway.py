@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class ClinicalNode(BaseModel):
     """临床节点"""
+
     name: str = Field(description="节点名称，如症状、检查、治疗等")
     category: str = Field(description="节点类型：症状、检查、治疗、诊断、决策点等")
     description: str = Field(description="简要描述", default="")
@@ -19,6 +20,7 @@ class ClinicalNode(BaseModel):
 
 class ClinicalEdge(BaseModel):
     """临床路径边"""
+
     source: str = Field(description="源节点")
     target: str = Field(description="目标节点")
     condition: str = Field(description="条件描述，如If 症状A Then")
@@ -109,7 +111,7 @@ class ClinicalPathway(AutoGraph[ClinicalNode, ClinicalEdge]):
     ):
         """
         初始化临床路径图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -139,27 +141,32 @@ class ClinicalPathway(AutoGraph[ClinicalNode, ClinicalEdge]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示临床路径图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: ClinicalNode) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: ClinicalEdge) -> str:
             return edge.condition
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

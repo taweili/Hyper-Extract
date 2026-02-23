@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class ProcedureStep(BaseModel):
     """Procedure step node"""
+
     stepId: str = Field(description="Step ID, e.g., Step 1, Step 2")
     name: str = Field(description="Step name")
     description: str = Field(description="Detailed step description")
@@ -22,6 +23,7 @@ class ProcedureStep(BaseModel):
 
 class ProcedureTransition(BaseModel):
     """Procedure transition edge"""
+
     source: str = Field(description="Source step ID")
     target: str = Field(description="Target step ID")
     condition: str = Field(description="Transition condition", default="")
@@ -114,7 +116,7 @@ class OperationalProcedure(AutoGraph[ProcedureStep, ProcedureTransition]):
     ):
         """
         Initialize operational procedure template.
-        
+
         Args:
             llm_client: LLM client for knowledge extraction
             embedder: Embedding model for semantic search
@@ -144,29 +146,34 @@ class OperationalProcedure(AutoGraph[ProcedureStep, ProcedureTransition]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display operational procedure flowchart.
-        
+
         Args:
-            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
-            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
+            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
+            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
+            top_k_edges_for_chat: Number of edges to use for chat, default: 3
         """
+
         def node_label_extractor(node: ProcedureStep) -> str:
             return f"{node.stepId}: {node.name}"
-        
+
         def edge_label_extractor(edge: ProcedureTransition) -> str:
             if edge.condition:
                 return edge.condition
             return "→"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

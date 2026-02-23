@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class PersonNode(BaseModel):
     """Person/organization node"""
+
     name: str = Field(description="Name")
     type: str = Field(description="Node type: Person, Organization, Institution, Other")
     description: str = Field(description="Brief description", default="")
@@ -20,9 +21,12 @@ class PersonNode(BaseModel):
 
 class SocialRelation(BaseModel):
     """Social relationship edge"""
+
     source: str = Field(description="Source node")
     target: str = Field(description="Target node")
-    relationType: str = Field(description="Relationship type: Family, Friend, Colleague, TeacherStudent, SupervisorSubordinate, Collaboration, Competition, Affiliation, Other")
+    relationType: str = Field(
+        description="Relationship type: Family, Friend, Colleague, TeacherStudent, SupervisorSubordinate, Collaboration, Competition, Affiliation, Other"
+    )
     details: str = Field(description="Detailed relationship explanation", default="")
 
 
@@ -127,7 +131,7 @@ class SocialNetwork(AutoGraph[PersonNode, SocialRelation]):
     ):
         """
         Initialize social network graph template.
-        
+
         Args:
             llm_client: LLM client for knowledge extraction
             embedder: Embedding model for semantic search
@@ -157,29 +161,34 @@ class SocialNetwork(AutoGraph[PersonNode, SocialRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display social network graph.
-        
+
         Args:
-            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
-            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
+            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
+            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
+            top_k_edges_for_chat: Number of edges to use for chat, default: 3
         """
+
         def node_label_extractor(node: PersonNode) -> str:
             if node.role:
                 return f"{node.name} ({node.role})"
             return f"{node.name} ({node.type})"
-        
+
         def edge_label_extractor(edge: SocialRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

@@ -179,9 +179,9 @@ Current Observation Location: {observation_location}
 | `_NODE_PROMPT` | two_stage step 1: extract nodes only |
 | `_EDGE_PROMPT` | two_stage step 2: extract edges based on known nodes |
 
-### 4.3 Prompt Pre-Structure Specifications (Mandatory)
+### 4.3 Prompt Pre-Structure Specifications (Mandatory for Graph Types)
 
-**All Prompts MUST follow the following pre-structure, no exceptions**:
+**Graph types (AutoGraph/AutoHypergraph etc.) must follow the following pre-structure**:
 
 ```
 ## Role and Task
@@ -199,6 +199,11 @@ You are a professional xxx expert, please extract xxx from the text...
 - Let the LLM understand "what" to extract first, before telling it "how" to extract
 - Different AutoTypes have different core concepts that must be clearly defined
 - Concept definitions must be placed at the beginning of the Prompt
+
+**Non-graph types do not require Core Concept Definitions**:
+- **AutoModel**: Directly extract structured objects, object definitions are already clear in Pydantic Schema
+- **AutoList**: Directly extract item lists, item definitions are already clear in Pydantic Schema
+- **AutoSet**: Directly extract element collections, element definitions are already clear in Pydantic Schema
 
 ### 4.4 Core Concept Definition Templates for Each AutoType
 
@@ -276,15 +281,19 @@ In addition to node and edge definitions, time/location definitions must also be
 def show(
     self,
     *,
-    top_k_for_search: int = 3,
-    top_k_for_chat: int = 3,
+    top_k_nodes_for_search: int = 3,
+    top_k_edges_for_search: int = 3,
+    top_k_nodes_for_chat: int = 3,
+    top_k_edges_for_chat: int = 3,
 ):
     """
     Display the knowledge graph.
     
     Args:
-        top_k_for_search: Number of nodes/edges returned for semantic search, default is 3
-        top_k_for_chat: Number of nodes/edges used for Q&A, default is 3
+        top_k_nodes_for_search: Number of nodes returned for semantic search, default is 3
+        top_k_edges_for_search: Number of edges returned for semantic search, default is 3
+        top_k_nodes_for_chat: Number of nodes used for Q&A, default is 3
+        top_k_edges_for_chat: Number of edges used for Q&A, default is 3
     """
     def node_label_extractor(node: MyNode) -> str:
         return node.name  # Simple label, not unique identifier, friendly for display
@@ -295,8 +304,10 @@ def show(
     super().show(
         node_label_extractor=node_label_extractor,
         edge_label_extractor=edge_label_extractor,
-        top_k_for_search=top_k_for_search,
-        top_k_for_chat=top_k_for_chat,
+        top_k_nodes_for_search=top_k_nodes_for_search,
+        top_k_edges_for_search=top_k_edges_for_search,
+        top_k_nodes_for_chat=top_k_nodes_for_chat,
+        top_k_edges_for_chat=top_k_edges_for_chat,
     )
 ```
 
@@ -477,15 +488,19 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display the knowledge graph.
         
         Args:
-            top_k_for_search: Number of nodes/edges returned for semantic search, default is 3
-            top_k_for_chat: Number of nodes/edges used for Q&A, default is 3
+            top_k_nodes_for_search: Number of nodes returned for semantic search, default is 3
+            top_k_edges_for_search: Number of edges returned for semantic search, default is 3
+            top_k_nodes_for_chat: Number of nodes used for Q&A, default is 3
+            top_k_edges_for_chat: Number of edges used for Q&A, default is 3
         """
         def node_label_extractor(node: FinancialEntity) -> str:
             return node.name
@@ -496,8 +511,10 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )
 ```
 

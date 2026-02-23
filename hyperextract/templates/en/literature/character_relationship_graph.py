@@ -8,20 +8,43 @@ from hyperextract.types import AutoGraph
 # 1. Schema Definitions
 # ==============================================================================
 
+
 class Character(BaseModel):
     """A character entity in a literary work."""
+
     name: str = Field(description="The full or most common name of the character.")
-    aliases: List[str] = Field(default_factory=list, description="Other names, titles, or nicknames used for the character.")
-    traits: List[str] = Field(default_factory=list, description="Core personality traits, skills, or physical attributes.")
-    description: Optional[str] = Field(description="A brief description of the character's role and significance in the story.")
+    aliases: List[str] = Field(
+        default_factory=list,
+        description="Other names, titles, or nicknames used for the character.",
+    )
+    traits: List[str] = Field(
+        default_factory=list,
+        description="Core personality traits, skills, or physical attributes.",
+    )
+    description: Optional[str] = Field(
+        description="A brief description of the character's role and significance in the story."
+    )
+
 
 class Relationship(BaseModel):
     """Social or emotional interaction between characters."""
-    source: str = Field(description="The name of the character initiating or participating in the relationship.")
-    target: str = Field(description="The name of the second character in the relationship.")
-    relation_type: str = Field(description="The nature of the relationship (e.g., Kinship, Romance, Rivalry, Mentorship).")
-    sentiment: str = Field(description="The emotional tone (e.g., Positive, Negative, Ambivalent, Intense).")
-    evidence: str = Field(description="Brief textual evidence or plot point supporting this relationship.")
+
+    source: str = Field(
+        description="The name of the character initiating or participating in the relationship."
+    )
+    target: str = Field(
+        description="The name of the second character in the relationship."
+    )
+    relation_type: str = Field(
+        description="The nature of the relationship (e.g., Kinship, Romance, Rivalry, Mentorship)."
+    )
+    sentiment: str = Field(
+        description="The emotional tone (e.g., Positive, Negative, Ambivalent, Intense)."
+    )
+    evidence: str = Field(
+        description="Brief textual evidence or plot point supporting this relationship."
+    )
+
 
 # ==============================================================================
 # 2. Prompts
@@ -38,9 +61,7 @@ _PROMPT = (
     "- Ensure every edge connects two nodes that are explicitly listed in the character nodes."
 )
 
-_NODE_PROMPT = (
-    "As a literary expert, extract all key characters. For each character, provide their name, any known aliases, core personality tags, and a brief description of their role/status."
-)
+_NODE_PROMPT = "As a literary expert, extract all key characters. For each character, provide their name, any known aliases, core personality tags, and a brief description of their role/status."
 
 _EDGE_PROMPT = (
     "Based on the extracted characters, identify the social and emotional relationships between them. "
@@ -51,13 +72,14 @@ _EDGE_PROMPT = (
 # 3. Template Class
 # ==============================================================================
 
+
 class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
     """
     Applicable to: [Novels, Screenplays, Biographies, Dramas]
 
     Knowledge pattern for extracting character networks and social structures in literature.
 
-    This template captures dynamic interactions, emotional tones, and structured connections, 
+    This template captures dynamic interactions, emotional tones, and structured connections,
     supporting two-stage extraction for higher precision in complex narrative webs.
 
     Example:
@@ -82,7 +104,7 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initialize CharacterRelationshipGraph template.
@@ -113,22 +135,27 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
 
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ) -> None:
         """
         Visualize the character relationship graph.
 
         Args:
-            top_k_for_search: Number of nodes/edges to retrieve for search context.
-            top_k_for_chat: Number of nodes/edges to retrieve for chat context.
+            top_k_nodes_for_search: Number of nodes to retrieve for search context.
+            top_k_edges_for_search: Number of edges to retrieve for search context.
+            top_k_nodes_for_chat: Number of nodes to retrieve for chat context.
+            top_k_edges_for_chat: Number of edges to retrieve for chat context.
         """
+
         def node_label_extractor(node: Character) -> str:
             return node.name
 
@@ -138,8 +165,8 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

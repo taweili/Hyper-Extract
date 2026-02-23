@@ -8,19 +8,28 @@ from hyperextract.types import AutoTemporalGraph
 # 1. Schema 定义 (Schema Definitions)
 # ==============================================================================
 
+
 class NarrativePoint(BaseModel):
     """叙事流中的核心情节节点。"""
+
     name: str = Field(description="情节或事件的短标题（如‘鸿门宴’、‘初遇’）。")
     location: Optional[str] = Field(description="事件发生的地点。")
-    characters_involved: List[str] = Field(default_factory=list, description="参与该事件的人物名单。")
+    characters_involved: List[str] = Field(
+        default_factory=list, description="参与该事件的人物名单。"
+    )
     description: str = Field(description="对情节内容的具体描述，包括核心动作和转折。")
+
 
 class TimeTransition(BaseModel):
     """情节节点之间的时间演变与逻辑关联。"""
+
     source: str = Field(description="起始情节名称。")
     target: str = Field(description="后续情节名称。")
-    time: str = Field(description="事实发生的时间。你必须结合上下文和观察日期，将相对时间（如‘三天后’、‘次日’）解析并转换为绝对日期（如‘2024-01-15’）或具体年份。")
+    time: str = Field(
+        description="事实发生的时间。你必须结合上下文和观察日期，将相对时间（如‘三天后’、‘次日’）解析并转换为绝对日期（如‘2024-01-15’）或具体年份。"
+    )
     logic: str = Field(description="事件间的逻辑关系（如：因果、递进、意外转折）。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -35,17 +44,14 @@ _PROMPT = (
     "注意：时间必须提取在边（Transition）上，不要作为独立的节点。"
 )
 
-_NODE_PROMPT = (
-    "请识别并提取文本中所有的关键情节节点（Plot Points）。为每个节点命名，并提供地点描述及涉及的人物。"
-)
+_NODE_PROMPT = "请识别并提取文本中所有的关键情节节点（Plot Points）。为每个节点命名，并提供地点描述及涉及的人物。"
 
-_EDGE_PROMPT = (
-    "在给定的情节节点之间建立联系。请精确提取文本中提及的时间线索，并描述这些事件是如何在叙事逻辑上相互连接的。"
-)
+_EDGE_PROMPT = "在给定的情节节点之间建立联系。请精确提取文本中提及的时间线索，并描述这些事件是如何在叙事逻辑上相互连接的。"
 
 # ==============================================================================
 # 3. 模板类 (Template Class)
 # ==============================================================================
+
 
 class NarrativeTimeline(AutoTemporalGraph[NarrativePoint, TimeTransition]):
     """
@@ -78,7 +84,7 @@ class NarrativeTimeline(AutoTemporalGraph[NarrativePoint, TimeTransition]):
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化 NarrativeTimeline 模板。
@@ -112,22 +118,27 @@ class NarrativeTimeline(AutoTemporalGraph[NarrativePoint, TimeTransition]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
 
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ) -> None:
         """
         可视化叙事时间线。
 
         Args:
-            top_k_for_search: 搜索时找回的相关节点/边数量。
-            top_k_for_chat: 聊天时找回的相关节点/边数量。
+            top_k_nodes_for_search: 搜索时找回的相关节点数量。
+            top_k_edges_for_search: 搜索时找回的相关边数量。
+            top_k_nodes_for_chat: 聊天时找回的相关节点数量。
+            top_k_edges_for_chat: 聊天时找回的相关边数量。
         """
+
         def node_label_extractor(node: NarrativePoint) -> str:
             return node.name
 
@@ -137,8 +148,8 @@ class NarrativeTimeline(AutoTemporalGraph[NarrativePoint, TimeTransition]):
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

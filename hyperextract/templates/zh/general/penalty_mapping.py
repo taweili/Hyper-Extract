@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class PenaltyNode(BaseModel):
     """处罚因果节点"""
+
     name: str = Field(description="节点名称")
     type: str = Field(description="节点类型：违规行为、处理程序、处罚结果、其他")
     description: str = Field(description="详细描述")
@@ -19,6 +20,7 @@ class PenaltyNode(BaseModel):
 
 class PenaltyPath(BaseModel):
     """处罚因果路径边"""
+
     source: str = Field(description="源节点名称")
     target: str = Field(description="目标节点名称")
     relation: str = Field(description="关系类型：导致、触发、执行、产生、其他")
@@ -105,7 +107,7 @@ class PenaltyMapping(AutoGraph[PenaltyNode, PenaltyPath]):
     ):
         """
         初始化违规处罚因果链模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -135,27 +137,32 @@ class PenaltyMapping(AutoGraph[PenaltyNode, PenaltyPath]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示违规处罚因果链。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: PenaltyNode) -> str:
             return f"{node.name} ({node.type})"
-        
+
         def edge_label_extractor(edge: PenaltyPath) -> str:
             return edge.relation
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

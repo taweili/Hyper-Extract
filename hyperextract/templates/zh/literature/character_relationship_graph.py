@@ -8,20 +8,33 @@ from hyperextract.types import AutoGraph
 # 1. Schema 定义 (Schema Definitions)
 # ==============================================================================
 
+
 class Character(BaseModel):
     """文学作品中的人物实体。"""
+
     name: str = Field(description="人物的正式姓名或最常用称呼。")
-    aliases: List[str] = Field(default_factory=list, description="人物的其他称呼、头衔或绰号。")
-    traits: List[str] = Field(default_factory=list, description="人物的核心性格、能力或生理特征。")
-    description: Optional[str] = Field(description="关于人物在作品中地位及核心情节的简要描述。")
+    aliases: List[str] = Field(
+        default_factory=list, description="人物的其他称呼、头衔或绰号。"
+    )
+    traits: List[str] = Field(
+        default_factory=list, description="人物的核心性格、能力或生理特征。"
+    )
+    description: Optional[str] = Field(
+        description="关于人物在作品中地位及核心情节的简要描述。"
+    )
+
 
 class Relationship(BaseModel):
     """人物之间的互动与联系。"""
+
     source: str = Field(description="发起关系的或关系的第一个人物名称。")
     target: str = Field(description="关系指向的或关系的第二个人物名称。")
-    relation_type: str = Field(description="关系的性质（如：亲属、爱慕、仇恨、师徒、盟友）。")
+    relation_type: str = Field(
+        description="关系的性质（如：亲属、爱慕、仇恨、师徒、盟友）。"
+    )
     sentiment: str = Field(description="关系的情感倾向（如：正面、负面、中立、复杂）。")
     evidence: str = Field(description="支持该关系的文本证据或关键情节简述。")
+
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
@@ -36,17 +49,14 @@ _PROMPT = (
     "- 确保边连接的两个人物都已在节点列表中列出。"
 )
 
-_NODE_PROMPT = (
-    "作为文学分析专家，请从文本中提取所有关键人物。记录其姓名、所有已知的别称、核心性格标签以及简要的生平或地位描述。"
-)
+_NODE_PROMPT = "作为文学分析专家，请从文本中提取所有关键人物。记录其姓名、所有已知的别称、核心性格标签以及简要的生平或地位描述。"
 
-_EDGE_PROMPT = (
-    "基于已提取的人物列表，识别他们之间的社交与情感关系。请说明关系的类型（如‘宿敌’）、情感色彩（如‘强烈恨意’）并提供证据。"
-)
+_EDGE_PROMPT = "基于已提取的人物列表，识别他们之间的社交与情感关系。请说明关系的类型（如‘宿敌’）、情感色彩（如‘强烈恨意’）并提供证据。"
 
 # ==============================================================================
 # 3. 模板类 (Template Class)
 # ==============================================================================
+
 
 class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
     """
@@ -73,12 +83,12 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        extraction_mode: str = "one_stage",
+        extraction_mode: str = "two_stage",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         初始化 CharacterRelationshipGraph 模板。
@@ -109,22 +119,27 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
 
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ) -> None:
         """
         可视化人物关系图谱。
 
         Args:
-            top_k_for_search: 搜索时找回的相关节点/边数量。
-            top_k_for_chat: 聊天时找回的相关节点/边数量。
+            top_k_nodes_for_search: 搜索时找回的相关节点数量。
+            top_k_edges_for_search: 搜索时找回的相关边数量。
+            top_k_nodes_for_chat: 聊天时找回的相关节点数量。
+            top_k_edges_for_chat: 聊天时找回的相关边数量。
         """
+
         def node_label_extractor(node: Character) -> str:
             return node.name
 
@@ -134,8 +149,8 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

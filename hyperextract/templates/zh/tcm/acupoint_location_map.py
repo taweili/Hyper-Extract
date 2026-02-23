@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class AcupointNode(BaseModel):
     """穴位节点"""
+
     name: str = Field(description="穴位名称：如合谷、足三里、三阴交等")
     meridian: str = Field(description="所属经脉", default="")
     location: str = Field(description="位置描述：如脐旁2寸、腕横纹上3寸等")
@@ -20,6 +21,7 @@ class AcupointNode(BaseModel):
 
 class LocationRelation(BaseModel):
     """位置关系边"""
+
     source: str = Field(description="源穴位或解剖标志名称")
     target: str = Field(description="目标穴位名称")
     relationType: str = Field(description="关系类型：位于")
@@ -49,6 +51,11 @@ _PROMPT = """## 角色与任务
 - 每条边必须连接已提取的节点
 - 不要创建未在文本中提及的实体或关系
 - 保持客观准确，符合针灸学专业术语规范
+
+### 术语标准化指导
+- **穴位名称统一**：确保使用标准穴位名称
+- **位置描述保留**：文言中位置描述（如"寸"、"分"、"旁"、"上"、"下"等）保持原文
+- **解剖标志识别**：准确识别文言中提到的解剖标志
 
 ### 源文本:
 """
@@ -91,10 +98,10 @@ _EDGE_PROMPT = """## 角色与任务
 class AcupointLocationMap(AutoGraph[AcupointNode, LocationRelation]):
     """
     适用文档: 针灸学教材、穴位图谱、黄帝内经等
-    
+
     功能介绍:
     基于人体解剖标志提取穴位的相对位置关系（如"脐旁2寸"），适用于针灸教学可视化、穴位图谱。
-    
+
     Example:
         >>> template = AcupointLocationMap(llm_client=llm, embedder=embedder)
         >>> template.feed_text("合谷穴：在手背，第1、2掌骨间，当第2掌骨桡侧的中点处...")
@@ -105,7 +112,7 @@ class AcupointLocationMap(AutoGraph[AcupointNode, LocationRelation]):
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        *, 
+        *,
         extraction_mode: str = "two_stage",
         max_workers: int = 10,
         verbose: bool = False,
@@ -113,7 +120,7 @@ class AcupointLocationMap(AutoGraph[AcupointNode, LocationRelation]):
     ):
         """
         初始化腧穴空间定位模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -142,28 +149,33 @@ class AcupointLocationMap(AutoGraph[AcupointNode, LocationRelation]):
 
     def show(
         self,
-        *, 
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示腧穴空间定位图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: AcupointNode) -> str:
             return f"{node.name} ({node.meridian})"
-        
+
         def edge_label_extractor(edge: LocationRelation) -> str:
             return edge.relativePosition
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

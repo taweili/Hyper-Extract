@@ -12,6 +12,7 @@ from hyperextract.types import AutoHypergraph
 
 class SurgicalEntity(BaseModel):
     """手术实体节点"""
+
     name: str = Field(description="实体名称，如医生、部位、术式、器械等")
     category: str = Field(description="实体类型：医生、部位、术式、器械、麻醉方式等")
     description: str = Field(description="简要描述", default="")
@@ -19,6 +20,7 @@ class SurgicalEntity(BaseModel):
 
 class SurgicalHyperedge(BaseModel):
     """手术事件超边"""
+
     name: str = Field(description="超边名称，如手术名称")
     nodes: List[str] = Field(description="参与超边的节点列表")
     date: str = Field(description="手术日期")
@@ -114,7 +116,7 @@ class SurgicalEventGraph(AutoHypergraph[SurgicalEntity, SurgicalHyperedge]):
     ):
         """
         初始化手术事件超图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -144,27 +146,32 @@ class SurgicalEventGraph(AutoHypergraph[SurgicalEntity, SurgicalHyperedge]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示手术事件超图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: SurgicalEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: SurgicalHyperedge) -> str:
             return f"{edge.name} ({edge.date})"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

@@ -1,4 +1,4 @@
-﻿# Hyper-Extract 知识模板定义手册
+# Hyper-Extract 知识模板定义手册
 
 本文档定义了在 `Hyper-Extract` 框架中实现特定领域知识抽取模板的标准工作流。
 
@@ -177,9 +177,9 @@ class FinancialRelation(BaseModel):
 | `_NODE_PROMPT` | two_stage 第一步：仅提取节点 |
 | `_EDGE_PROMPT` | two_stage 第二步：基于已知节点提取边 |
 
-### 4.3 Prompt 前置结构规范（强制要求）
+### 4.3 Prompt 前置结构规范（图类型强制要求）
 
-**所有 Prompt 必须遵循以下前置结构，缺一不可**：
+**图类型（AutoGraph/AutoHypergraph 等）必须遵循以下前置结构**：
 
 ```
 ## 角色与任务
@@ -197,6 +197,11 @@ class FinancialRelation(BaseModel):
 - 让大模型先理解要提取的"是什么"，再告诉它"怎么提取"
 - 不同的 AutoType 有不同的核心概念，必须明确定义
 - 概念定义必须放在 Prompt 的开头部分
+
+**非图类型不需要核心概念定义**：
+- **AutoModel**：直接提取结构化对象，对象定义已在 Pydantic Schema 中明确
+- **AutoList**：直接提取条目列表，条目定义已在 Pydantic Schema 中明确
+- **AutoSet**：直接提取元素集合，元素定义已在 Pydantic Schema 中明确
 
 ### 4.4 各 AutoType 的核心概念定义模板
 
@@ -274,15 +279,19 @@ class FinancialRelation(BaseModel):
 def show(
     self,
     *,
-    top_k_for_search: int = 3,
-    top_k_for_chat: int = 3,
+    top_k_nodes_for_search: int = 3,
+    top_k_edges_for_search: int = 3,
+    top_k_nodes_for_chat: int = 3,
+    top_k_edges_for_chat: int = 3,
 ):
     """
     展示知识图谱。
     
     Args:
-        top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-        top_k_for_chat: 问答使用的节点/边数量，默认为 3
+        top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+        top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+        top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+        top_k_edges_for_chat: 问答使用的边数量，默认为 3
     """
     def node_label_extractor(node: MyNode) -> str:
         return node.name  # 简明 label，非唯一标识，展示友好
@@ -293,8 +302,10 @@ def show(
     super().show(
         node_label_extractor=node_label_extractor,
         edge_label_extractor=edge_label_extractor,
-        top_k_for_search=top_k_for_search,
-        top_k_for_chat=top_k_for_chat,
+        top_k_nodes_for_search=top_k_nodes_for_search,
+        top_k_edges_for_search=top_k_edges_for_search,
+        top_k_nodes_for_chat=top_k_nodes_for_chat,
+        top_k_edges_for_chat=top_k_edges_for_chat,
     )
 ```
 
@@ -475,15 +486,19 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示知识图谱。
         
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
         def node_label_extractor(node: FinancialEntity) -> str:
             return node.name
@@ -494,8 +509,10 @@ class FinancialReportGraph(AutoTemporalGraph[FinancialEntity, FinancialRelation]
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )
 ```
 

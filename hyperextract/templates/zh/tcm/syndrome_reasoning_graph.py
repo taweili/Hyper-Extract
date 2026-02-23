@@ -9,18 +9,25 @@ from langchain_core.embeddings import Embeddings
 from pydantic import BaseModel, Field
 from hyperextract.types import AutoHypergraph
 
+
 class TCMEntity(BaseModel):
     """中医实体节点"""
+
     name: str = Field(description="实体名称，如症状、证型、治则、药物等")
     category: str = Field(description="实体类型：症状、证型、治则、药物")
     description: str = Field(description="简要描述", default="")
 
+
 class SyndromeReasoningEdge(BaseModel):
     """辨证论治逻辑边"""
-    nodes: List[str] = Field(description="参与推理的节点列表，按推理顺序排列：[症状1, 症状2, ..., 证型, 治则, 药物1, 药物2, ...]")
+
+    nodes: List[str] = Field(
+        description="参与推理的节点列表，按推理顺序排列：[症状1, 症状2, ..., 证型, 治则, 药物1, 药物2, ...]"
+    )
     reasoningType: str = Field(description="推理类型：辨证论治、随证加减")
     reasoningProcess: str = Field(description="推理过程描述", default="")
     source: str = Field(description="推理来源，如医案名称、章节等", default="")
+
 
 _NODE_PROMPT = """## 角色与任务
 你是一位专业的中医辨证论治专家，请从文本中提取所有关键实体作为节点。
@@ -78,6 +85,12 @@ _PROMPT = """## 角色与任务
 4. reasoningType 应为"辨证论治"或"随证加减"
 5. reasoningProcess 应详细描述推理过程
 
+### 文言文特殊处理指导
+- **症状表述解析**：文言症状常采用简洁表述，需完整理解其含义（如"恶寒发热"指怕冷和发热两个症状）
+- **证型术语理解**：文言中证型表述需准确识别（如"太阳中风证"、"阳明腑实证"）
+- **省略句式处理**：文言常省略主语或连接词，需根据上下文补充理解
+- **医案结构识别**：医案通常有"症状→辨证→治法→方药"的结构，需按此顺序提取
+
 ### 源文本:
 """
 
@@ -85,14 +98,15 @@ _PROMPT = """## 角色与任务
 # 3. 模板类
 # ==============================================================================
 
+
 class SyndromeReasoningGraph(AutoHypergraph[TCMEntity, SyndromeReasoningEdge]):
     """
     适用文档: 中医医案、名医临床实录
-    
+
     功能介绍:
     从中医医案中提取辨证论治的完整推理链条，建模 {症状群} -> 证型 -> 治则 -> {处方} 的逻辑关系，
     支持复杂的多实体关联关系。
-    
+
     Example:
         >>> template = SyndromeReasoningGraph(llm_client=llm, embedder=embedder)
         >>> template.feed_text("...")
@@ -111,7 +125,7 @@ class SyndromeReasoningGraph(AutoHypergraph[TCMEntity, SyndromeReasoningEdge]):
     ):
         """
         初始化辨证论治逻辑图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -141,25 +155,32 @@ class SyndromeReasoningGraph(AutoHypergraph[TCMEntity, SyndromeReasoningEdge]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示辨证论治逻辑图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: TCMEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: SyndromeReasoningEdge) -> str:
             return edge.reasoningType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

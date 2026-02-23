@@ -12,6 +12,7 @@ from hyperextract.types import AutoHypergraph
 
 class TreatmentEntity(BaseModel):
     """治疗实体节点"""
+
     name: str = Field(description="实体名称，如药物、理疗方法、生活干预等")
     category: str = Field(description="实体类型：药物、理疗、生活干预、检查、手术等")
     description: str = Field(description="简要描述", default="")
@@ -19,6 +20,7 @@ class TreatmentEntity(BaseModel):
 
 class TreatmentHyperedge(BaseModel):
     """治疗方案超边"""
+
     name: str = Field(description="超边名称，如治疗方案、康复计划等")
     nodes: List[str] = Field(description="参与超边的节点列表")
     disease: str = Field(description="针对的疾病")
@@ -111,7 +113,7 @@ class TreatmentRegimenMap(AutoHypergraph[TreatmentEntity, TreatmentHyperedge]):
     ):
         """
         初始化综合治疗方案图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -141,27 +143,32 @@ class TreatmentRegimenMap(AutoHypergraph[TreatmentEntity, TreatmentHyperedge]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示综合治疗方案图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: TreatmentEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: TreatmentHyperedge) -> str:
             return f"{edge.name} - {edge.disease}"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

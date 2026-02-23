@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class MeridianNode(BaseModel):
     """经脉节点"""
+
     name: str = Field(description="经脉名称：如手太阴肺经、手阳明大肠经等")
     category: str = Field(description="经脉类别：阴经、阳经")
     associatedOrgan: str = Field(description="关联脏腑", default="")
@@ -20,6 +21,7 @@ class MeridianNode(BaseModel):
 
 class MeridianFlowRelation(BaseModel):
     """经络流注关系边"""
+
     source: str = Field(description="源经脉名称")
     target: str = Field(description="目标经脉名称")
     relationType: str = Field(description="关系类型：流注")
@@ -51,6 +53,11 @@ _PROMPT = """## 角色与任务
 - 每条边必须连接已提取的节点
 - 不要创建未在文本中提及的实体或关系
 - 保持客观准确，符合经络学专业术语规范
+
+### 术语标准化指导
+- **经脉名称统一**：确保使用标准经脉名称（如"手太阴肺经"而非简称）
+- **流注次序确认**：十二经脉流注有固定次序，可参考标准次序辅助确认
+- **循行路线保留**：文言中循行路线描述保持原文，无需改写
 
 ### 源文本:
 """
@@ -94,10 +101,10 @@ _EDGE_PROMPT = """## 角色与任务
 class MeridianFlowGraph(AutoGraph[MeridianNode, MeridianFlowRelation]):
     """
     适用文档: 黄帝内经、经络学教材、针灸学教材等
-    
+
     功能介绍:
     提取十二经脉的循行路线及经气流注次序，适用于经络理论教学。
-    
+
     Example:
         >>> template = MeridianFlowGraph(llm_client=llm, embedder=embedder)
         >>> template.feed_text("手太阴肺经起于中焦，下络大肠...")
@@ -108,7 +115,7 @@ class MeridianFlowGraph(AutoGraph[MeridianNode, MeridianFlowRelation]):
         self,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        *, 
+        *,
         extraction_mode: str = "two_stage",
         max_workers: int = 10,
         verbose: bool = False,
@@ -116,7 +123,7 @@ class MeridianFlowGraph(AutoGraph[MeridianNode, MeridianFlowRelation]):
     ):
         """
         初始化经络流注图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -145,28 +152,33 @@ class MeridianFlowGraph(AutoGraph[MeridianNode, MeridianFlowRelation]):
 
     def show(
         self,
-        *, 
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        *,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示经络流注图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: MeridianNode) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: MeridianFlowRelation) -> str:
             return f"流注 #{edge.flowOrder}"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

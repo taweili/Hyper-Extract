@@ -12,13 +12,17 @@ from hyperextract.types import AutoHypergraph
 
 class PathologyEntity(BaseModel):
     """病理实体节点"""
+
     name: str = Field(description="实体名称，如基因、环境因素、诱因、疾病等")
-    category: str = Field(description="实体类型：基因、环境因素、诱因、疾病、病理过程、症状等")
+    category: str = Field(
+        description="实体类型：基因、环境因素、诱因、疾病、病理过程、症状等"
+    )
     description: str = Field(description="简要描述", default="")
 
 
 class PathologyHyperedge(BaseModel):
     """病理机制超边"""
+
     name: str = Field(description="超边名称，如致病机制、发病过程等")
     nodes: List[str] = Field(description="参与超边的节点列表")
     relationType: str = Field(description="关系类型：致病、诱发、促进、抑制等")
@@ -111,7 +115,7 @@ class PathologyHypergraph(AutoHypergraph[PathologyEntity, PathologyHyperedge]):
     ):
         """
         初始化多因素病理机制图模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -141,27 +145,32 @@ class PathologyHypergraph(AutoHypergraph[PathologyEntity, PathologyHyperedge]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示多因素病理机制图。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: PathologyEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: PathologyHyperedge) -> str:
             return f"{edge.name}: {edge.relationType}"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

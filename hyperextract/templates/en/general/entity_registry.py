@@ -20,9 +20,6 @@ class RegistryEntry(BaseModel):
 _PROMPT = """## Role and Task
 You are a professional entity recognition expert. Please extract all unique entities from the text to form an entity registry.
 
-## Core Concept Definitions
-- **Element**: In this template, "Element" refers to a single entity registry entry, a unique knowledge unit that includes fields such as entity name, type, and description, and is deduplicated by name.
-
 ## Extraction Rules
 1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
 2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other

@@ -12,6 +12,7 @@ from hyperextract.types import AutoGraph
 
 class GeneralEntity(BaseModel):
     """通用实体节点"""
+
     name: str = Field(description="实体名称，如人名、机构名、产品名")
     category: str = Field(description="实体类型：人物、机构、地点、产品、概念、其他")
     description: str = Field(description="简要描述", default="")
@@ -19,9 +20,12 @@ class GeneralEntity(BaseModel):
 
 class GeneralRelation(BaseModel):
     """通用关系边"""
+
     source: str = Field(description="源实体")
     target: str = Field(description="目标实体")
-    relationType: str = Field(description="关系类型：属于、位于、合作、竞争、发明、创建、相关等")
+    relationType: str = Field(
+        description="关系类型：属于、位于、合作、竞争、发明、创建、相关等"
+    )
     details: str = Field(description="详细描述", default="")
 
 
@@ -107,7 +111,7 @@ class KnowledgeGraph(AutoGraph[GeneralEntity, GeneralRelation]):
     ):
         """
         初始化通用知识图谱模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -137,27 +141,32 @@ class KnowledgeGraph(AutoGraph[GeneralEntity, GeneralRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示知识图谱。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: GeneralEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: GeneralRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

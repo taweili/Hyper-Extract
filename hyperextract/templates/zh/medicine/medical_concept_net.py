@@ -12,16 +12,22 @@ from hyperextract.types import AutoGraph
 
 class MedicalConcept(BaseModel):
     """医学概念节点"""
+
     name: str = Field(description="概念名称，如医学术语、疾病名称、解剖部位等")
-    category: str = Field(description="概念类型：疾病、解剖部位、生理过程、药物、症状、体征等")
+    category: str = Field(
+        description="概念类型：疾病、解剖部位、生理过程、药物、症状、体征等"
+    )
     definition: str = Field(description="概念定义", default="")
 
 
 class MedicalRelation(BaseModel):
     """医学概念关系边"""
+
     source: str = Field(description="源概念")
     target: str = Field(description="目标概念")
-    relationType: str = Field(description="关系类型：属于、定义为、包含、组成、位于、导致、治疗等")
+    relationType: str = Field(
+        description="关系类型：属于、定义为、包含、组成、位于、导致、治疗等"
+    )
     details: str = Field(description="详细描述", default="")
 
 
@@ -109,7 +115,7 @@ class MedicalConceptNet(AutoGraph[MedicalConcept, MedicalRelation]):
     ):
         """
         初始化医学概念网络模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -139,27 +145,32 @@ class MedicalConceptNet(AutoGraph[MedicalConcept, MedicalRelation]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示医学概念网络。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: MedicalConcept) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: MedicalRelation) -> str:
             return edge.relationType
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

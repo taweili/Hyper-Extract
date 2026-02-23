@@ -21,9 +21,6 @@ class Clause(BaseModel):
 _PROMPT = """## Role and Task
 You are a professional regulation clause breakdown expert. Please break down the text into atomic clauses.
 
-## Core Concept Definitions
-- **Item**: In this template, "Item" refers to a single regulation clause, an atomic rule unit that includes fields such as clause ID, title, content, and category.
-
 ## Extraction Rules
 1. Break down the regulation into independent clauses according to its natural structure
 2. Assign an ID to each clause (e.g., Article 1, Section 2.1, etc.)

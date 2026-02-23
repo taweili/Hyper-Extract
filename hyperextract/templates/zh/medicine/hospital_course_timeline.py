@@ -12,6 +12,7 @@ from hyperextract.types import AutoTemporalGraph
 
 class HospitalEntity(BaseModel):
     """住院实体节点"""
+
     name: str = Field(description="节点名称，如入院、检查、治疗、转归等")
     category: str = Field(description="节点类型：入院、检查、治疗、手术、转归、其他等")
     description: str = Field(description="简要描述", default="")
@@ -19,6 +20,7 @@ class HospitalEntity(BaseModel):
 
 class HospitalEvent(BaseModel):
     """住院事件边"""
+
     source: str = Field(description="源节点")
     target: str = Field(description="目标节点")
     eventType: str = Field(description="事件类型：入院、检查、治疗、手术、转归等")
@@ -142,7 +144,7 @@ class HospitalCourseTimeline(AutoTemporalGraph[HospitalEntity, HospitalEvent]):
     ):
         """
         初始化住院病程时间轴模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -175,27 +177,32 @@ class HospitalCourseTimeline(AutoTemporalGraph[HospitalEntity, HospitalEvent]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示住院病程时间轴。
-        
+
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
+
         def node_label_extractor(node: HospitalEntity) -> str:
             return f"{node.name} ({node.category})"
-        
+
         def edge_label_extractor(edge: HospitalEvent) -> str:
             return f"{edge.eventType} ({edge.eventDate})"
-        
+
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

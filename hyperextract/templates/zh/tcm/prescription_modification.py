@@ -83,6 +83,12 @@ _PROMPT = """## 角色与任务
 6. 提取加减的原因和剂量信息
 7. 提取基础方剂名称
 
+### 术语标准化指导
+- **药物名称标准化**：同一药物的不同名称需统一使用规范正名
+- **加减术语统一**："加"、"添"、"增"统一为"加"；"减"、"去"、"除"统一为"减"；"易"、"换"统一为"替换"
+- **症状表述规范化**：文言症状表述需转换为规范中医术语
+- **方剂名称保留**：基础方剂名称保持原文表述
+
 ### 源文本:
 """
 
@@ -146,15 +152,19 @@ class PrescriptionModification(AutoGraph[PrescriptionEntity, ModificationRelatio
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         展示处方加减逻辑图。
         
         Args:
-            top_k_for_search: 语义检索返回的节点/边数量，默认为 3
-            top_k_for_chat: 问答使用的节点/边数量，默认为 3
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
         def node_label_extractor(node: PrescriptionEntity) -> str:
             return f"{node.name} ({node.category})"
@@ -165,6 +175,8 @@ class PrescriptionModification(AutoGraph[PrescriptionEntity, ModificationRelatio
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

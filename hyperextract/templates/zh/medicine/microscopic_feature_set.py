@@ -12,6 +12,7 @@ from hyperextract.types import AutoSet
 
 class MicroscopicFeatureItem(BaseModel):
     """微观特征条目"""
+
     featureName: str = Field(description="特征名称，如免疫组化指标、基因突变等")
     featureType: str = Field(description="特征类型：免疫组化、基因突变、其他等")
     value: str = Field(description="特征值，如阳性、阴性、百分比等")
@@ -63,7 +64,7 @@ class MicroscopicFeatureSet(AutoSet[MicroscopicFeatureItem]):
     ):
         """
         初始化微观特征集模板。
-        
+
         Args:
             llm_client: LLM 客户端，用于知识提取
             embedder: 嵌入模型，用于语义检索
@@ -90,14 +91,15 @@ class MicroscopicFeatureSet(AutoSet[MicroscopicFeatureItem]):
     ):
         """
         展示微观特征集。
-        
+
         Args:
             top_k_for_search: 语义检索返回的条目数量，默认为 3
             top_k_for_chat: 问答使用的条目数量，默认为 3
         """
+
         def label_extractor(item: MicroscopicFeatureItem) -> str:
             return f"{item.featureName} ({item.featureType}): {item.value}"
-        
+
         super().show(
             label_extractor=label_extractor,
             top_k_items_for_search=top_k_for_search,

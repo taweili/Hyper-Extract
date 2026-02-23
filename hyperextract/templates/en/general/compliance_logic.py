@@ -12,18 +12,28 @@ from hyperextract.types import AutoHypergraph
 
 class ComplianceElement(BaseModel):
     """Compliance Element - Node"""
+
     name: str = Field(description="Element name, exact name from text")
-    category: str = Field(description="Element category: Subject, Action, Condition, Other")
+    category: str = Field(
+        description="Element category: Subject, Action, Condition, Other"
+    )
     description: str = Field(description="Brief description", default="")
 
 
 class ComplianceRule(BaseModel):
     """Compliance Rule - Hyperedge"""
+
     ruleType: str = Field(description="Rule type: Must, MustNot, May, Other")
-    participants: List[str] = Field(description="List of participating element names, must use names from extracted nodes")
+    participants: List[str] = Field(
+        description="List of participating element names, must use names from extracted nodes"
+    )
     action: str = Field(description="Required or prohibited action content")
-    condition: str = Field(description="Applicable conditions/prerequisites", default="")
-    consequence: str = Field(description="Violation consequences/incentives", default="")
+    condition: str = Field(
+        description="Applicable conditions/prerequisites", default=""
+    )
+    consequence: str = Field(
+        description="Violation consequences/incentives", default=""
+    )
     sourceClause: str = Field(description="Source clause of the rule", default="")
 
 
@@ -119,7 +129,7 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
     ):
         """
         Initialize compliance logic hypergraph template.
-        
+
         Args:
             llm_client: LLM client for knowledge extraction
             embedder: Embedding model for semantic search
@@ -133,7 +143,9 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             node_schema=ComplianceElement,
             edge_schema=ComplianceRule,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.ruleType}_{x.action}",
+            edge_key_extractor=lambda x: (
+                f"{sorted(x.participants)}_{x.ruleType}_{x.action}"
+            ),
             nodes_in_edge_extractor=lambda x: tuple(x.participants),
             llm_client=llm_client,
             embedder=embedder,
@@ -149,16 +161,21 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
     def show(
         self,
         *,
-        top_k_for_search: int = 3,
-        top_k_for_chat: int = 3,
+        top_k_nodes_for_search: int = 3,
+        top_k_edges_for_search: int = 3,
+        top_k_nodes_for_chat: int = 3,
+        top_k_edges_for_chat: int = 3,
     ):
         """
         Display compliance logic hypergraph.
-        
+
         Args:
-            top_k_for_search: Number of nodes/edges to return for semantic search, default: 3
-            top_k_for_chat: Number of nodes/edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
+            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
+            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
+            top_k_edges_for_chat: Number of edges to use for chat, default: 3
         """
+
         def node_label_extractor(node: ComplianceElement) -> str:
             return f"{node.name} ({node.category})"
 
@@ -168,8 +185,8 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
         super().show(
             node_label_extractor=node_label_extractor,
             edge_label_extractor=edge_label_extractor,
-            top_k_nodes_for_search=top_k_for_search,
-            top_k_edges_for_search=top_k_for_search,
-            top_k_nodes_for_chat=top_k_for_chat,
-            top_k_edges_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search,
+            top_k_edges_for_search=top_k_edges_for_search,
+            top_k_nodes_for_chat=top_k_nodes_for_chat,
+            top_k_edges_for_chat=top_k_edges_for_chat,
         )

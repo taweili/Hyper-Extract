@@ -62,7 +62,7 @@ class CorporateEquityGraph(AutoGraph[EntitySchema, EquityRelationshipSchema]):
             **kwargs,
         )
 
-    def show(self, *, top_k_for_search: int = 5, top_k_for_chat: int = 5) -> None:
+    def show(self, *, top_k_nodes_for_search: int = 3, top_k_edges_for_search: int = 3, top_k_nodes_for_chat: int = 3, top_k_edges_for_chat: int = 3) -> None:
         def node_label(node: EntitySchema) -> str:
             type_icon = {"公司": "🏢", "个人": "👤", "基金": "💼"}
             icon = type_icon.get(node.entity_type, "●")
@@ -73,6 +73,5 @@ class CorporateEquityGraph(AutoGraph[EntitySchema, EquityRelationshipSchema]):
         super().show(
             node_label_extractor=node_label,
             edge_label_extractor=edge_label,
-            top_k_for_search=top_k_for_search,
-            top_k_for_chat=top_k_for_chat,
+            top_k_nodes_for_search=top_k_nodes_for_search, top_k_edges_for_search=top_k_edges_for_search, top_k_nodes_for_chat=top_k_nodes_for_chat, top_k_edges_for_chat=top_k_edges_for_chat,
         )

@@ -76,10 +76,10 @@ TEMPLATE_TO_INPUT = {
 
 # 方剂规范
 # TEMPLATE = FormulaComposition  # 君臣佐使结构图
-TEMPLATE = FunctionIndicationMap  # 主治功效映射
+# TEMPLATE = FunctionIndicationMap  # 主治功效映射
 
 # 经络腧穴专著
-# TEMPLATE = MeridianFlowGraph  # 经络流注图
+TEMPLATE = MeridianFlowGraph  # 经络流注图
 # TEMPLATE = AcupointLocationMap  # 腧穴空间定位
 
 # 名医医案
