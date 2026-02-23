@@ -25,8 +25,14 @@ class HierarchyRelation(BaseModel):
     details: str = Field(description="Detailed relationship explanation", default="")
 
 
-_PROMPT = """You are a professional concept structure analysis expert. Please extract concepts and their hierarchical relationships from the text to build a concept hierarchy graph.
+_PROMPT = """## Role and Task
+You are a professional concept structure analysis expert. Please extract concepts and their hierarchical relationships from the text to build a concept hierarchy graph.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept unit, categorized into types such as CoreConcept, Subconcept, Attribute, and Instance, used to represent basic concepts in a knowledge system.
+- **Edge**: In this template, "Edge" refers to a hierarchical relationship between concepts, including binary relationships such as Subclass-Of (taxonomy), Part-Of (composition), and Instance-Of (instance).
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all concepts: CoreConcept, Subconcept, Attribute, Instance, etc.
 2. Assign a type to each concept: CoreConcept, Subconcept, Attribute, Instance, Other
@@ -49,9 +55,13 @@ _PROMPT = """You are a professional concept structure analysis expert. Please ex
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional concept recognition expert. Please extract all concepts as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional concept recognition expert. Please extract all concepts as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept unit, categorized into types such as CoreConcept, Subconcept, Attribute, and Instance, used to represent basic concepts in a knowledge system.
+
+## Extraction Rules
 1. Extract all concepts: CoreConcept, Subconcept, Attribute, Instance, etc.
 2. Assign a type to each concept: CoreConcept, Subconcept, Attribute, Instance, Other
 3. Add a brief description for each concept
@@ -59,8 +69,14 @@ _NODE_PROMPT = """You are a professional concept recognition expert. Please extr
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional hierarchical relationship extraction expert. Please extract hierarchical relationships between concepts (nodes) from the given concept list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional hierarchical relationship extraction expert. Please extract hierarchical relationships between concepts (nodes) from the given concept list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept unit, as participants in hierarchical relationships.
+- **Edge**: In this template, "Edge" refers to a hierarchical relationship between concepts, including binary relationships such as Subclass-Of (taxonomy), Part-Of (composition), and Instance-Of (instance).
+
+## Extraction Rules
 ### Relationship Type Explanation
 - Subclass-Of: Taxonomy relationship (subclass and superclass)
 - Part-Of: Composition relationship (part and whole)

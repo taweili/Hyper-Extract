@@ -26,8 +26,14 @@ class SocialRelation(BaseModel):
     details: str = Field(description="Detailed relationship explanation", default="")
 
 
-_PROMPT = """You are a professional social relationship analysis expert. Please extract people, organizations, and their mutual relationships from the text to build a social network graph.
+_PROMPT = """## Role and Task
+You are a professional social relationship analysis expert. Please extract people, organizations, and their mutual relationships from the text to build a social network graph.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a person or organization unit, including types such as Person, Organization, Institution, etc., used to represent entities in a social network.
+- **Edge**: In this template, "Edge" refers to a social relationship between people/organizations, including binary relationships such as Family, Friend, Colleague, TeacherStudent, SupervisorSubordinate, Collaboration, Competition, and Affiliation.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all people, organizations, institutions, etc.
 2. Assign a type to each node: Person, Organization, Institution, Other
@@ -55,9 +61,13 @@ _PROMPT = """You are a professional social relationship analysis expert. Please 
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional person and organization recognition expert. Please extract all people and organizations as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional person and organization recognition expert. Please extract all people and organizations as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a person or organization unit, including types such as Person, Organization, Institution, etc., used to represent entities in a social network.
+
+## Extraction Rules
 1. Extract all people, organizations, institutions, etc.
 2. Assign a type to each node: Person, Organization, Institution, Other
 3. Add a brief description for each node
@@ -66,8 +76,14 @@ _NODE_PROMPT = """You are a professional person and organization recognition exp
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional social relationship extraction expert. Please extract mutual relationships between nodes from the given node list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional social relationship extraction expert. Please extract mutual relationships between nodes from the given node list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a person or organization unit, as participants in social relationships.
+- **Edge**: In this template, "Edge" refers to a social relationship between people/organizations, including binary relationships such as Family, Friend, Colleague, TeacherStudent, SupervisorSubordinate, Collaboration, Competition, and Affiliation.
+
+## Extraction Rules
 ### Relationship Type Explanation
 - Family: Family relationships (parents, children, spouse, siblings, etc.)
 - Friend: Friend relationships

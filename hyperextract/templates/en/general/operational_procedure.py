@@ -28,8 +28,14 @@ class ProcedureTransition(BaseModel):
     details: str = Field(description="Detailed explanation", default="")
 
 
-_PROMPT = """You are a professional process analysis expert. Please extract the specific sequential steps for declaration, approval, or operations specified in regulations from the text to build an operational procedure flowchart.
+_PROMPT = """## Role and Task
+You are a professional process analysis expert. Please extract the specific sequential steps for declaration, approval, or operations specified in regulations from the text to build an operational procedure flowchart.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a process step unit, an operational unit that includes fields such as step ID, name, description, executor role, inputs, and outputs.
+- **Edge**: In this template, "Edge" refers to a transition relationship between process steps, a binary relationship that records the sequential order and transition conditions between steps.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all process steps
 2. Assign an ID to each step (e.g., Step 1, Step 2)
@@ -51,9 +57,13 @@ _PROMPT = """You are a professional process analysis expert. Please extract the 
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional process step recognition expert. Please extract all process steps as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional process step recognition expert. Please extract all process steps as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a process step unit, an operational unit that includes fields such as step ID, name, description, executor role, inputs, and outputs.
+
+## Extraction Rules
 1. Extract all process steps
 2. Assign an ID to each step (e.g., Step 1, Step 2)
 3. Add a name and detailed description to each step
@@ -64,8 +74,14 @@ _NODE_PROMPT = """You are a professional process step recognition expert. Please
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional process transition recognition expert. Please extract the sequential relationship between steps from the given step list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional process transition recognition expert. Please extract the sequential relationship between steps from the given step list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a process step unit, as participants in process transitions.
+- **Edge**: In this template, "Edge" refers to a transition relationship between process steps, a binary relationship that records the sequential order and transition conditions between steps.
+
+## Extraction Rules
 ### Constraints
 1. Only extract edges from the known step list below
 2. Do not create unlisted steps

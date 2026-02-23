@@ -12,65 +12,84 @@ from hyperextract.types import AutoHypergraph
 
 class ComplianceElement(BaseModel):
     """Compliance Element - Node"""
-    name: str = Field(description="Element name")
-    type: str = Field(description="Element type: Subject, Action, Condition, Other")
+    name: str = Field(description="Element name, exact name from text")
+    category: str = Field(description="Element category: Subject, Action, Condition, Other")
     description: str = Field(description="Brief description", default="")
 
 
 class ComplianceRule(BaseModel):
     """Compliance Rule - Hyperedge"""
-    rule_type: str = Field(description="Rule type: Must, MustNot, May, Other")
+    ruleType: str = Field(description="Rule type: Must, MustNot, May, Other")
+    participants: List[str] = Field(description="List of participating element names, must use names from extracted nodes")
     action: str = Field(description="Required or prohibited action content")
     condition: str = Field(description="Applicable conditions/prerequisites", default="")
-    penalty: str = Field(description="Violation consequences/penalties", default="")
-    source_clause: str = Field(description="Source clause of the rule", default="")
-    notes: str = Field(description="Additional notes", default="")
-    participants: List[str] = Field(description="List of participating element names")
+    consequence: str = Field(description="Violation consequences/incentives", default="")
+    sourceClause: str = Field(description="Source clause of the rule", default="")
 
 
-_PROMPT = """You are a professional compliance analysis expert. Please extract compliance elements and rules from the text, modeling the logic of "under what conditions, which subjects must/may not perform which actions" to build a compliance behavior hypergraph.
+_PROMPT = """## Role and Task
+You are a professional compliance assessor, skilled in extracting compliance elements and analyzing rule logic from documents. Please extract compliance elements and rules from the text to build a compliance behavior hypergraph.
 
-### Node Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to basic elements that make up rules, divided into four categories:
+  - **Subject**: Entities that perform actions (individuals, departments, organizations, roles, etc.)
+  - **Action**: Specific actions or behaviors (submit, approve, execute, prohibit, etc.)
+  - **Condition**: Prerequisites or scenarios where the rule applies (time, location, status, quantity, etc.)
+  - **Other**: Elements that don't fall into the above categories (documents, files, status, results, etc.)
+- **Hyperedge（Edge）**: In this template, "Hyperedge" is also known as "rule", connects multiple nodes and expresses the logic of "under what conditions, which subjects must/may not perform which actions".
+
+## Extraction Rules
+### Node Extraction
 1. Extract elements involved in rules as nodes
-2. Assign type to each element: Subject, Action, Condition, Other
+2. Assign category to each element: Subject, Action, Condition, Other
 3. Add brief description for each element
 
-### Hyperedge Extraction Rules
-1. Only create compliance rule hyperedges from extracted elements
-2. Assign rule type: Must, MustNot, May, Other
-3. Fill in required or prohibited action content (required)
-4. Extract applicable conditions/prerequisites (if available)
-5. Extract violation consequences/penalties (if available)
-6. Extract source clause (if available)
-7. Add additional notes (if available)
-8. List all participating element names (required)
-
-### Constraints
-- Ensure rule logic accuracy
-- Maintain objectivity and accuracy, do not add information not in the text
-- Each hyperedge must contain rule_type, action, and participants
-- Try to fill other fields, use empty string for missing fields
+### Hyperedge Extraction
+1. Only create rules from extracted nodes
+2. Rule type: Must, MustNot, May, Other
+3. Must contain ruleType, participants, and action
+4. participants must strictly use names from extracted nodes
+5. Try to fill other fields, use empty string for missing fields
 
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional compliance element recognition expert. Please extract all compliance-related elements as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional compliance element recognition expert, skilled in accurately identifying core compliance-related elements from documents. Please extract all compliance-related elements as nodes from the text.
 
-### Extraction Rules
-1. Extract elements involved in rules
-2. Assign type to each element: Subject, Action, Condition, Other
-3. Add brief description for each element
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to basic elements that make up rules, divided into four categories:
+  - **Subject**: Entities that perform actions (individuals, departments, organizations, roles, etc.)
+  - **Action**: Specific actions or behaviors (submit, approve, execute, prohibit, etc.)
+  - **Condition**: Prerequisites or scenarios where the rule applies (time, location, status, quantity, etc.)
+  - **Other**: Elements that don't fall into the above categories (documents, files, status, results, etc.)
+
+## Extraction Rules
+1. Extract concrete, atomic elements, not abstract "processes" or "comparison tables"
+2. Use exact nouns or verbs from the text as element names
+3. Assign correct category to each element
+4. Add brief description (1-2 sentences) for each element
 
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional compliance rule extraction expert. Please extract compliance rule hyperedges from the given node (element) list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional compliance rule analyst, skilled in building clear compliance rule relationships from given elements. Please extract compliance rule hyperedges from the given node list.
 
-### Constraints
-1. Only extract rules (hyperedges) from the known element list below
-2. Do not create unlisted elements
-3. Each rule must contain rule_type, action, and participants
-4. Try to fill other fields, use empty string for missing fields
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to basic elements that make up rules, serving as participants in hyperedges.
+- **Hyperedge(Edge)**: In this template, "Hyperedge" is also known as "rule", connects multiple nodes and expresses the logic of "under what conditions, which subjects must/may not perform which actions".
+
+## Extraction Rules
+1. **participants must strictly use names from the "Known Elements List" below**, do not create new names
+2. Rules must contain ruleType, participants, and action
+3. participants should include: involved subjects, executed actions, and related other elements
+
+### Rule Types
+- **Must**: Mandatory actions to perform
+- **MustNot**: Prohibited actions
+- **May**: Permissible actions
+- **Other**: Rules that don't fall into the above categories
 
 """
 
@@ -84,7 +103,7 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
 
     Example:
         >>> template = ComplianceLogic(llm_client=llm, embedder=embedder)
-        >>> template.feed_text("Universe First Slacker Company Compliance Manual...")
+        >>> template.feed_text("Company Compliance Manual...")
         >>> template.show()
     """
 
@@ -114,7 +133,7 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             node_schema=ComplianceElement,
             edge_schema=ComplianceRule,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.rule_type}_{x.action}",
+            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.ruleType}_{x.action}",
             nodes_in_edge_extractor=lambda x: tuple(x.participants),
             llm_client=llm_client,
             embedder=embedder,
@@ -141,10 +160,10 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             top_k_for_chat: Number of nodes/edges to use for chat, default: 3
         """
         def node_label_extractor(node: ComplianceElement) -> str:
-            return f"{node.name} ({node.type})"
+            return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: ComplianceRule) -> str:
-            return f"[{edge.rule_type}] {edge.action}"
+            return f"[{edge.ruleType}] {edge.action}"
 
         super().show(
             node_label_extractor=node_label_extractor,

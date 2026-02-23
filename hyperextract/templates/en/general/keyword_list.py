@@ -17,9 +17,13 @@ class Keyword(BaseModel):
     description: str = Field(description="Brief description or context explanation of the keyword", default="")
 
 
-_PROMPT = """You are a professional keyword extraction expert. Please extract all keywords from the text with category and description information.
+_PROMPT = """## Role and Task
+You are a professional keyword extraction expert. Please extract all keywords from the text with category and description information.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Item**: In this template, "Item" refers to a single keyword entry, a semantic tag unit that includes fields such as keyword term, category, and description.
+
+## Extraction Rules
 1. Extract all keywords and core phrases from the text
 2. Assign a category to each keyword: CoreConcept, Term, PersonName, OrganizationName, Other
 3. Add a brief description for each keyword, explaining its meaning or context in the text

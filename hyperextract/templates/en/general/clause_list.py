@@ -18,9 +18,13 @@ class Clause(BaseModel):
     category: str = Field(description="Clause category: GeneralProvisions, RightsAndObligations, Procedures, Penalties, SupplementaryProvisions, Other", default="Other")
 
 
-_PROMPT = """You are a professional regulation clause breakdown expert. Please break down the text into atomic clauses.
+_PROMPT = """## Role and Task
+You are a professional regulation clause breakdown expert. Please break down the text into atomic clauses.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Item**: In this template, "Item" refers to a single regulation clause, an atomic rule unit that includes fields such as clause ID, title, content, and category.
+
+## Extraction Rules
 1. Break down the regulation into independent clauses according to its natural structure
 2. Assign an ID to each clause (e.g., Article 1, Section 2.1, etc.)
 3. Extract the content of each clause

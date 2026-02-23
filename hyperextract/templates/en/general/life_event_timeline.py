@@ -26,8 +26,15 @@ class LifeEvent(BaseModel):
     details: str = Field(description="Detailed event description", default="")
 
 
-_PROMPT = """You are a professional biography chronology expert. Please extract entities such as people, locations, organizations, etc., and life events from the text to build a life event timeline.
+_PROMPT = """## Role and Task
+You are a professional biography chronology expert. Please extract entities such as people, locations, organizations, etc., and life events from the text to build a life event timeline.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a life entity, including types such as Person, Location, Organization, Item, and Concept, used to represent entities in a life timeline.
+- **Edge**: In this template, "Edge" refers to a life event, connecting multiple entities to record binary relationships of life experiences such as birth, education, work, and achievements.
+- **Time**: In this template, "Time" refers to the temporal information of when events occur, used to arrange life events in chronological order, supporting relative time parsing.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all related entities: Person, Location, Organization, Item, Concept, etc.
 2. Assign a type to each entity: Person, Location, Organization, Item, Concept, Other
@@ -82,9 +89,13 @@ Current observation date: {observation_time}
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional entity recognition expert. Please extract all related entities as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional entity recognition expert. Please extract all related entities as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a life entity, including types such as Person, Location, Organization, Item, and Concept, used to represent entities in a life timeline.
+
+## Extraction Rules
 1. Extract all related entities: Person, Location, Organization, Item, Concept, etc.
 2. Assign a type to each entity: Person, Location, Organization, Item, Concept, Other
 3. Add a brief description for each entity
@@ -92,8 +103,15 @@ _NODE_PROMPT = """You are a professional entity recognition expert. Please extra
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional life event extraction expert. Please extract life events from the given entity list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional life event extraction expert. Please extract life events from the given entity list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a life entity, as participants in life events.
+- **Edge**: In this template, "Edge" refers to a life event, connecting multiple entities to record binary relationships of life experiences such as birth, education, work, and achievements.
+- **Time**: In this template, "Time" refers to the temporal information of when events occur, used to arrange life events in chronological order, supporting relative time parsing.
+
+## Extraction Rules
 ### Event Type Explanation
 - Birth: Birth events
 - Death: Death events

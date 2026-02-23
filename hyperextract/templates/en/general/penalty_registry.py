@@ -19,9 +19,13 @@ class PenaltyEntry(BaseModel):
     notes: str = Field(description="Notes", default="")
 
 
-_PROMPT = """You are a professional compliance analysis expert. Please extract all violations and their corresponding penalty measures from the text to form a violation penalty registry.
+_PROMPT = """## Role and Task
+You are a professional compliance analysis expert. Please extract all violations and their corresponding penalty measures from the text to form a violation penalty registry.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Element**: In this template, "Element" refers to a single violation penalty entry, a unique knowledge unit that includes fields such as violation description, severity, penalty measure, applicable clause, and notes, and is deduplicated by the combination of violation and penalty measure.
+
+## Extraction Rules
 1. Extract all violations and their corresponding penalty measures
 2. Assign a severity level to each violation: Minor, Moderate, Serious, VerySerious
 3. Maintain the accuracy of violations and penalty measures

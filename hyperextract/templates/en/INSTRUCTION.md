@@ -1,4 +1,4 @@
-﻿# Hyper-Extract Knowledge Template Definition Manual
+# Hyper-Extract Knowledge Template Definition Manual
 
 This document defines the standard-specific knowledge extraction templates workflow for implementing domain in the `Hyper-Extract` framework.
 
@@ -179,6 +179,71 @@ Current Observation Location: {observation_location}
 | `_NODE_PROMPT` | two_stage step 1: extract nodes only |
 | `_EDGE_PROMPT` | two_stage step 2: extract edges based on known nodes |
 
+### 4.3 Prompt Pre-Structure Specifications (Mandatory)
+
+**All Prompts MUST follow the following pre-structure, no exceptions**:
+
+```
+## Role and Task
+You are a professional xxx expert, please extract xxx from the text...
+
+## Core Concept Definitions (varies by AutoType)
+- **Concept 1**: xxx
+- **Concept 2**: xxx
+
+## Extraction Rules
+...
+```
+
+**Why concept definitions are needed?**
+- Let the LLM understand "what" to extract first, before telling it "how" to extract
+- Different AutoTypes have different core concepts that must be clearly defined
+- Concept definitions must be placed at the beginning of the Prompt
+
+### 4.4 Core Concept Definition Templates for Each AutoType
+
+#### AutoModel
+```
+## Core Concept Definitions
+- **Object**: A single structured object extracted from the text, containing multiple fields
+```
+
+#### AutoList
+```
+## Core Concept Definitions
+- **Item**: Repeating pattern instances extracted from the text
+```
+
+#### AutoSet
+```
+## Core Concept Definitions
+- **Element**: Knowledge units with unique keys, used for accumulating information
+```
+
+#### AutoGraph
+```
+## Core Concept Definitions
+- **Node**: Entities in the graph
+- **Edge**: Binary relationships between nodes
+```
+
+#### AutoHypergraph
+```
+## Core Concept Definitions
+- **Node**: Basic elements that make up hyperedges (edges), serving as participants in hyperedges
+- **Edge**: Connects multiple nodes and expresses complex relationships among multiple entities
+```
+
+#### AutoTemporalGraph / AutoSpatialGraph / AutoSpatioTemporalGraph
+In addition to node and edge definitions, time/location definitions must also be added:
+```
+## Core Concept Definitions
+- **Node**: Entities in the graph
+- **Edge**: Binary relationships between nodes
+- **Time**: xxx (define according to actual needs)
+- **Location**: xxx (define according to actual needs)
+```
+
 ---
 
 ## 5. Parameter Management Specifications
@@ -272,10 +337,14 @@ class FinancialRelation(BaseModel):
 # 2. Predefined Prompts (All in English)
 # ==============================================================================
 
-_NODE_PROMPT = """
-You are a professional financial analyst. Extract all key entities as nodes.
+_NODE_PROMPT = """## Role and Task
+You are a professional financial analyst, extract all key entities as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: Entities in the graph
+- **Edge**: Binary relationships between nodes
+
+## Extraction Rules
 1. Extract all entities such as companies, products, departments
 2. Assign type for each entity: company, product, department
 3. Keep entity names consistent with the source text
@@ -284,9 +353,15 @@ You are a professional financial analyst. Extract all key entities as nodes.
 ### Source Text:
 """
 
-_EDGE_PROMPT = """
-You are a professional financial analyst. Extract relationships between given entities.
+_EDGE_PROMPT = """## Role and Task
+You are a professional financial analyst, extract relationships between given entities.
 
+## Core Concept Definitions
+- **Node**: Entities in the graph
+- **Edge**: Binary relationships between nodes
+- **Time**: Records time information when relationships occur
+
+## Extraction Rules
 ### Time Format Requirements
 All time information must be unified to "YYYY-MM-DD" format (e.g., 2023-06-15).
 
@@ -304,12 +379,19 @@ Current Observation Date: {observation_time}
 ### Constraints
 1. Only extract edges from the known entity list below
 2. Do NOT create entities not listed
+3. Each edge must contain source, target, relationType
 
 """
 
-_PROMPT = """
-You are a professional financial analyst. Extract entities and their relationships from text.
+_PROMPT = """## Role and Task
+You are a professional financial analyst, extract entities and their relationships from text.
 
+## Core Concept Definitions
+- **Node**: Entities in the graph
+- **Edge**: Binary relationships between nodes
+- **Time**: Records time information when relationships occur
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all entities such as companies, products, departments
 2. **NEVER extract time or location as independent nodes**

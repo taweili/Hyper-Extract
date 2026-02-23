@@ -25,8 +25,14 @@ class ReferenceRelation(BaseModel):
     context: str = Field(description="Reference context description", default="")
 
 
-_PROMPT = """You are a professional knowledge network analysis expert. Please extract concepts/entries and their mutual reference relationships from the text to build a cross-reference network.
+_PROMPT = """## Role and Task
+You are a professional knowledge network analysis expert. Please extract concepts/entries and their mutual reference relationships from the text to build a cross-reference network.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept or entry unit, including types such as Entry, Section, Concept, Person, Location, etc., used to represent entities in a knowledge network.
+- **Edge**: In this template, "Edge" refers to a reference relationship between concepts/entries, including binary relationships such as Hyperlink, Reference, SeeAlso, and Related.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all mentioned concepts or entries
 2. Assign a type to each node: Entry, Section, Concept, Person, Location, Other
@@ -50,9 +56,13 @@ _PROMPT = """You are a professional knowledge network analysis expert. Please ex
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional entry recognition expert. Please extract all concepts or entries as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional entry recognition expert. Please extract all concepts or entries as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept or entry unit, including types such as Entry, Section, Concept, Person, Location, etc., used to represent entities in a knowledge network.
+
+## Extraction Rules
 1. Extract all mentioned concepts or entries
 2. Assign a type to each node: Entry, Section, Concept, Person, Location, Other
 3. Add a brief description for each node
@@ -60,8 +70,14 @@ _NODE_PROMPT = """You are a professional entry recognition expert. Please extrac
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional reference relationship extraction expert. Please extract mutual reference relationships between nodes from the given node list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional reference relationship extraction expert. Please extract mutual reference relationships between nodes from the given node list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a concept or entry unit, as participants in reference relationships.
+- **Edge**: In this template, "Edge" refers to a reference relationship between concepts/entries, including binary relationships such as Hyperlink, Reference, SeeAlso, and Related.
+
+## Extraction Rules
 ### Relationship Type Explanation
 - Hyperlink: Hyperlink relationship
 - Reference: Reference relationship

@@ -26,9 +26,13 @@ class PersonalInfo(BaseModel):
     summary: str = Field(description="Personal introduction", default="")
 
 
-_PROMPT = """You are a professional personal profile editor. Please extract static attribute information of this person from the text to build a personal profile.
+_PROMPT = """## Role and Task
+You are a professional personal profile editor. Please extract static attribute information of this person from the text to build a personal profile.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Object**: In this template, "Object" refers to personal profile information, which is a structured person information unit containing multiple fields such as name, gender, birth/death dates, nationality, education background, occupations, core identity, major achievements, affiliations, summary, etc.
+
+## Extraction Rules
 1. Extract basic information: name, gender, date of birth, date of death, nationality, place of birth, etc.
 2. Extract education background
 3. Extract occupation or identity information

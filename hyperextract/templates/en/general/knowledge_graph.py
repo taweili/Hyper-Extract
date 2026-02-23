@@ -25,8 +25,14 @@ class GeneralRelation(BaseModel):
     details: str = Field(description="Detailed description", default="")
 
 
-_PROMPT = """You are a professional knowledge graph extraction expert. Please extract all entities (nodes) and their relationships (edges) from the text.
+_PROMPT = """## Role and Task
+You are a professional knowledge graph extraction expert. Please extract all entities (nodes) and their relationships (edges) from the text.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a general entity, including types such as Person, Organization, Location, Product, Concept, etc., used to represent basic entities in a knowledge graph.
+- **Edge**: In this template, "Edge" refers to a binary relationship between entities, including relationship types such as BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, and RelatedTo.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
 2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other
@@ -45,9 +51,13 @@ _PROMPT = """You are a professional knowledge graph extraction expert. Please ex
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional entity recognition expert. Please extract all key entities as nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional entity recognition expert. Please extract all key entities as nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a general entity, including types such as Person, Organization, Location, Product, Concept, etc., used to represent basic entities in a knowledge graph.
+
+## Extraction Rules
 1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
 2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other
 3. Keep entity names consistent with the original text
@@ -56,8 +66,14 @@ _NODE_PROMPT = """You are a professional entity recognition expert. Please extra
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional relationship extraction expert. Please extract relationships between entities from the given entity list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional relationship extraction expert. Please extract relationships between entities from the given entity list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a general entity, as participants in relationships.
+- **Edge**: In this template, "Edge" refers to a binary relationship between entities, including relationship types such as BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, and RelatedTo.
+
+## Extraction Rules
 ### Constraints
 1. Only extract edges from the known entity list below
 2. Do not create unlisted entities

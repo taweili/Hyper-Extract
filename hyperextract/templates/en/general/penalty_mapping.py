@@ -25,8 +25,14 @@ class PenaltyPath(BaseModel):
     details: str = Field(description="Detailed explanation", default="")
 
 
-_PROMPT = """You are a professional penalty logic analysis expert. Please extract the evolution path from "violation behavior" to "handling procedure" to "final result" from the text to build a penalty mapping.
+_PROMPT = """## Role and Task
+You are a professional penalty logic analysis expert. Please extract the evolution path from "violation behavior" to "handling procedure" to "final result" from the text to build a penalty mapping.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a key unit in the penalty causal chain, including types such as Violation, HandlingProcedure, and PenaltyResult, used to represent key links in the penalty process.
+- **Edge**: In this template, "Edge" refers to a causal relationship between nodes, including binary relationships such as Causes, Triggers, Executes, and Produces, used to represent the evolution path from violation to penalty.
+
+## Extraction Rules
 ### Node Extraction Rules
 1. Extract all key nodes: Violation, HandlingProcedure, PenaltyResult, etc.
 2. Assign a type to each node: Violation, HandlingProcedure, PenaltyResult, Other
@@ -45,9 +51,13 @@ _PROMPT = """You are a professional penalty logic analysis expert. Please extrac
 ### Source text:
 """
 
-_NODE_PROMPT = """You are a professional penalty node recognition expert. Please extract all key nodes from the text.
+_NODE_PROMPT = """## Role and Task
+You are a professional penalty node recognition expert. Please extract all key nodes from the text.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a key unit in the penalty causal chain, including types such as Violation, HandlingProcedure, and PenaltyResult, used to represent key links in the penalty process.
+
+## Extraction Rules
 1. Extract all key nodes: Violation, HandlingProcedure, PenaltyResult, etc.
 2. Assign a type to each node: Violation, HandlingProcedure, PenaltyResult, Other
 3. Add a detailed description to each node
@@ -55,8 +65,14 @@ _NODE_PROMPT = """You are a professional penalty node recognition expert. Please
 ### Source text:
 """
 
-_EDGE_PROMPT = """You are a professional penalty causal relationship recognition expert. Please extract the causal relationship between nodes from the given node list.
+_EDGE_PROMPT = """## Role and Task
+You are a professional penalty causal relationship recognition expert. Please extract the causal relationship between nodes from the given node list.
 
+## Core Concept Definitions
+- **Node**: In this template, "Node" refers to a key unit in the penalty causal chain, as participants in causal relationships.
+- **Edge**: In this template, "Edge" refers to a causal relationship between nodes, including binary relationships such as Causes, Triggers, Executes, and Produces, used to represent the evolution path from violation to penalty.
+
+## Extraction Rules
 ### Constraints
 1. Only extract edges from the known node list below
 2. Do not create unlisted nodes

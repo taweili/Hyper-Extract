@@ -22,9 +22,13 @@ class EncyclopediaInfo(BaseModel):
     relatedConcepts: List[str] = Field(description="Related concepts/entries", default_factory=list)
 
 
-_PROMPT = """You are a professional encyclopedia editor. Please extract structured attribute information for a single subject from the text to build an encyclopedia item infobox.
+_PROMPT = """## Role and Task
+You are a professional encyclopedia editor. Please extract structured attribute information for a single subject from the text to build an encyclopedia item infobox.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Object**: In this template, "Object" refers to a single encyclopedia entry subject, which is a structured information unit containing multiple fields such as title, entity type, aliases, categories, summary, attributes, important events, related concepts, etc.
+
+## Extraction Rules
 1. Identify the core subject of the text (Person, Location, Organization, Event, Concept, etc.)
 2. Assign a type to the subject: Person, Location, Organization, Event, Concept, Item, Other
 3. Extract all aliases, common names, or foreign names

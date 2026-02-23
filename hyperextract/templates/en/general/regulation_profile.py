@@ -25,9 +25,13 @@ class RegulationInfo(BaseModel):
     relatedRegulations: List[str] = Field(description="Related regulations", default_factory=list)
 
 
-_PROMPT = """You are a professional regulation analysis expert. Please extract metadata information of this regulation from the text to build a regulation profile.
+_PROMPT = """## Role and Task
+You are a professional regulation analysis expert. Please extract metadata information of this regulation from the text to build a regulation profile.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Object**: In this template, "Object" refers to regulation metadata information, structured institutional information that includes multiple fields: title, version, issuing authority, issue/effective/expiry dates, applicable scope, target audience, core purpose, keywords, and related regulations.
+
+## Extraction Rules
 1. Extract the full name of the regulation
 2. Extract version number (if available)
 3. Extract issuing authority

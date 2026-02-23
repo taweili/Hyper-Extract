@@ -12,65 +12,94 @@ from hyperextract.types import AutoHypergraph
 
 class ComplianceElement(BaseModel):
     """合规要素 - 节点"""
-    name: str = Field(description="要素名称")
-    type: str = Field(description="要素类型：主体、操作、条件、其他")
+    name: str = Field(description="要素名称，文本中出现的精确名称")
+    category: str = Field(description="要素类型：主体、操作、条件、其他")
     description: str = Field(description="简要描述", default="")
 
 
 class ComplianceRule(BaseModel):
     """合规规则 - 超边"""
-    rule_type: str = Field(description="规则类型：必须、禁止、允许、其他")
+    ruleType: str = Field(description="规则类型：必须、禁止、允许、其他")
+    participants: List[str] = Field(description="参与要素名称列表，必须使用已提取节点的 name")
     action: str = Field(description="要求执行或禁止的操作内容")
     condition: str = Field(description="适用条件/前置要求", default="")
-    penalty: str = Field(description="违规后果/处罚措施", default="")
-    source_clause: str = Field(description="规则来源条款", default="")
-    notes: str = Field(description="补充说明", default="")
-    participants: List[str] = Field(description="参与要素名称列表")
+    consequence: str = Field(description="违规后果/奖励措施", default="")
+    sourceClause: str = Field(description="规则来源条款", default="")
 
 
-_PROMPT = """你是一位专业的合规分析专家。请从文本中提取合规要素和规则，建模"在何种条件下，何种主体，必须/禁止执行何种操作"的复杂逻辑，构建合规行为超图。
+_PROMPT = """
+你是一位专业的合规评估员，擅长从文档中提取合规要素并分析规则逻辑。
 
-### 节点提取规则
+## 任务
+请从文本中提取合规要素和规则，构建合规行为超图。
+
+## 概念定义
+- **节点（Node）**：构成规则的基本要素，分为四类：
+  - **主体**：执行动作的实体（个人、部门、组织、角色等）
+  - **操作**：具体的动作或行为（提交、审批、执行、禁止等）
+  - **条件**：规则适用的前提或场景（时间、地点、状态、数量等）
+  - **其他**：不属于上述三类的要素（凭证、文件、状态、结果等）
+- **超边（Hyperedge/Edge）**：即"规则"，连接多个节点，表达"在何种条件下，何种主体，必须/禁止执行何种操作"的逻辑。
+
+## 提取规则
+
+### 节点提取
 1. 提取规则中涉及的要素作为节点
 2. 为每个要素指定类型：主体、操作、条件、其他
 3. 为每个要素添加简要描述
 
-### 超边提取规则
-1. 仅从提取的要素中创建合规规则（超边）
-2. 指定规则类型：必须、禁止、允许、其他
-3. 填写要求执行或禁止的操作内容（必须）
-4. 提取适用条件/前置要求（如有）
-5. 提取违规后果/处罚措施（如有）
-6. 提取规则来源条款（如有）
-7. 添加补充说明（如有）
-8. 列出所有参与要素名称（必须）
-
-### 约束条件
-- 确保规则逻辑准确
-- 保持客观准确，不添加文本中没有的信息
-- 每条超边必须包含 rule_type、action 和 participants
-- 其他字段尽量填充，缺失的使用空字符串
+### 超边提取
+1. 仅从已提取节点创建规则
+2. 规则类型：必须、禁止、允许、其他
+3. 必须包含 ruleType、participants、action
+4. participants 严格使用已提取节点的 name
+5. 其他字段尽量填充，缺失用空字符串
 
 ### 源文本:
 """
 
-_NODE_PROMPT = """你是一位专业的合规要素识别专家。请从文本中提取所有合规相关要素作为节点。
+_NODE_PROMPT = """
+你是一位专业的合规要素识别专家，擅长从文档中精准识别合规相关的核心要素。
 
-### 提取规则
-1. 提取规则中涉及的要素
-2. 为每个要素指定类型：主体、操作、条件、其他
-3. 为每个要素添加简要描述
+## 任务
+请从文本中提取所有合规相关要素作为节点。
+
+## 概念定义
+- **节点（Node）**：构成规则的基本要素，分为四类：
+  - **主体**：执行动作的实体（个人、部门、组织、角色等）
+  - **操作**：具体的动作或行为（提交、审批、执行、禁止等）
+  - **条件**：规则适用的前提或场景（时间、地点、状态、数量等）
+  - **其他**：不属于上述三类的要素（凭证、文件、状态、结果等）
+
+## 提取规则
+1. 提取具体、原子化的要素，不要抽象的"流程"或"对照表"
+2. 要素名称直接使用文本中出现的名词或动词
+3. 为每个要素指定正确的类型
+4. 为每个要素添加简要描述（1-2句话）
 
 ### 源文本:
 """
 
-_EDGE_PROMPT = """你是一位专业的合规规则提取专家。请从给定节点（要素）列表中提取合规规则超边。
+_EDGE_PROMPT = """
+你是一位专业的合规规则分析师，擅长从给定要素中构建清晰的合规规则关系。
 
-### 约束条件
-1. 仅从下方已知要素列表中提取规则（超边）
-2. 不要创建未列出的要素
-3. 每条规则必须包含 rule_type、action 和 participants
-4. 其他字段尽量填充，缺失的使用空字符串
+## 任务
+请从给定节点列表中提取合规规则超边。
+
+## 概念定义
+- **节点（Node）**：构成规则的基本要素，作为超边（Hyperedge/Edge）的参与者
+- **超边（Hyperedge/Edge）**：即"规则"，连接多个节点，表达"在何种条件下，何种主体，必须/禁止执行何种操作"的逻辑。
+
+## 提取规则
+1. **participants 必须严格使用下方中的名称，不要创建任何新的要素名称**
+2. 规则必须包含 ruleType、participants、action
+3. participants 应包含：涉及的主体、执行的操作、相关的其他要素
+
+### 规则类型
+- **必须**：强制要求执行的行为
+- **禁止**：不允许执行的行为
+- **允许**：可以执行的行为
+- **其他**：不属于上述三类的规则
 
 """
 
@@ -84,7 +113,7 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
 
     Example:
         >>> template = ComplianceLogic(llm_client=llm, embedder=embedder)
-        >>> template.feed_text("宇宙第一摸鱼公司合规手册...")
+        >>> template.feed_text("公司合规手册...")
         >>> template.show()
     """
 
@@ -114,7 +143,7 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             node_schema=ComplianceElement,
             edge_schema=ComplianceRule,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.rule_type}_{x.action}",
+            edge_key_extractor=lambda x: f"{sorted(x.participants)}_{x.ruleType}_{x.action}",
             nodes_in_edge_extractor=lambda x: tuple(x.participants),
             llm_client=llm_client,
             embedder=embedder,
@@ -141,10 +170,10 @@ class ComplianceLogic(AutoHypergraph[ComplianceElement, ComplianceRule]):
             top_k_for_chat: 问答使用的节点/边数量，默认为 3
         """
         def node_label_extractor(node: ComplianceElement) -> str:
-            return f"{node.name} ({node.type})"
+            return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: ComplianceRule) -> str:
-            return f"[{edge.rule_type}] {edge.action}"
+            return f"[{edge.ruleType}] {edge.action}"
 
         super().show(
             node_label_extractor=node_label_extractor,

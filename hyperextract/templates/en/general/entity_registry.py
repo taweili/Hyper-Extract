@@ -17,9 +17,13 @@ class RegistryEntry(BaseModel):
     description: str = Field(description="Brief description", default="")
 
 
-_PROMPT = """You are a professional entity recognition expert. Please extract all unique entities from the text to form an entity registry.
+_PROMPT = """## Role and Task
+You are a professional entity recognition expert. Please extract all unique entities from the text to form an entity registry.
 
-### Extraction Rules
+## Core Concept Definitions
+- **Element**: In this template, "Element" refers to a single entity registry entry, a unique knowledge unit that includes fields such as entity name, type, and description, and is deduplicated by name.
+
+## Extraction Rules
 1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
 2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other
 3. Keep entity names consistent with the original text
