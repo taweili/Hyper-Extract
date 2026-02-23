@@ -84,11 +84,11 @@ TEMPLATE_TO_INPUT = {
 # ==========================================
 
 # 医学教科书与专著
-# TEMPLATE = PathologyHypergraph  # 多因素病理机制图
+TEMPLATE = PathologyHypergraph  # 多因素病理机制图
 # TEMPLATE = MedicalConceptNet  # 医学概念网络
 # TEMPLATE = PharmacologyGraph  # 药理机制图
 # TEMPLATE = AnatomyHierarchy  # 解剖层级树
-TEMPLATE = SymptomDifferential  # 鉴别诊断表
+# TEMPLATE = SymptomDifferential  # 鉴别诊断表
 
 # 临床诊疗指南
 # TEMPLATE = TreatmentRegimenMap  # 综合治疗方案图

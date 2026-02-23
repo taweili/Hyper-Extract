@@ -97,6 +97,6 @@ class AdverseReactionStats(AutoList[AdverseReactionItem]):
         
         super().show(
             item_label_extractor=item_label_extractor,
-            top_k_items_for_search=top_k_for_search,
-            top_k_items_for_chat=top_k_for_chat,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

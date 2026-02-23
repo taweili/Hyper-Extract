@@ -13,6 +13,8 @@ from hyperextract.types import AutoList
 class EvidenceItem(BaseModel):
     """证据条目"""
 
+    topic: str = Field(description="推荐主题，如血糖控制、血脂管理、阿司匹林使用等")
+    summary: str = Field(description="推荐意见摘要，简短概括该推荐的核心内容，不超过10字")
     recommendation: str = Field(description="推荐意见")
     evidenceLevel: str = Field(description="证据等级，如A、B、C、1a、1b等")
     recommendationLevel: str = Field(description="推荐级别，如强推荐、弱推荐等")
@@ -22,14 +24,13 @@ class EvidenceItem(BaseModel):
 _PROMPT = """## 角色与任务
 你是一位专业的循证医学专家，请从文本中提取指南中的具体推荐意见及其对应的证据等级，构建证据评级表。
 
-## 核心概念定义
-- **条目 (Item)**：本模板中的"条目"指证据条目，包含推荐意见、证据等级、推荐级别和详细描述的结构化信息。
-
 ## 提取规则
 1. 提取所有推荐意见及其对应的证据等级
-2. 为每个推荐意见指定推荐级别（如强推荐、弱推荐等）
-3. 为每个推荐意见添加详细描述（如果文本中提供）
-4. 保持推荐意见与原文一致
+2. 为每个推荐意见指定推荐主题（topic），如血糖控制、血脂管理、阿司匹林使用等
+3. 为每个推荐意见提取摘要（summary），简短概括该推荐的核心内容，不超过10字
+4. 为每个推荐意见指定推荐级别（如强推荐、弱推荐等）
+5. 为每个推荐意见添加详细描述（如果文本中提供）
+6. 保持推荐意见与原文一致
 
 ### 约束条件
 - 只提取文本中明确提及的推荐意见和证据等级
@@ -96,10 +97,10 @@ class LevelOfEvidence(AutoList[EvidenceItem]):
         """
 
         def item_label_extractor(item: EvidenceItem) -> str:
-            return f"{item.recommendationLevel} (证据等级: {item.evidenceLevel})"
+            return f"{item.topic} [{item.evidenceLevel}]"
 
         super().show(
             item_label_extractor=item_label_extractor,
-            top_k_items_for_search=top_k_for_search,
-            top_k_items_for_chat=top_k_for_chat,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

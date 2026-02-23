@@ -1,9 +1,9 @@
-"""概念层级图 - 构建上下位关系（Subclass-Of）或组成关系（Part-Of）。
+"""概念层级图 - 构建上下位关系或组成关系。
 
 适用于科学学科、教材知识点等。
 """
 
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -24,7 +24,7 @@ class HierarchyRelation(BaseModel):
     source: str = Field(description="父概念/整体概念")
     target: str = Field(description="子概念/部分概念")
     relationType: str = Field(
-        description="关系类型：Subclass-Of（上下位）、Part-Of（组成）、Instance-Of（实例）、Other（其他）"
+        description="关系类型：上下位（Subclass-Of）、组成（Part-Of）、实例（Instance-Of）、其他（Other）"
     )
     details: str = Field(description="关系详细说明", default="")
 
@@ -34,7 +34,7 @@ _PROMPT = """## 角色与任务
 
 ## 核心概念定义
 - **节点 (Node)**：本模板中的"节点"指概念单元，分为核心概念、子概念、属性、实例等类型，用于表示知识体系中的基本概念。
-- **边 (Edge)**：本模板中的"边"指概念之间的层级关系，包括 Subclass-Of（上下位）、Part-Of（组成）、Instance-Of（实例）等二元关系。
+- **边 (Edge)**：本模板中的"边"指概念之间的层级关系，包括上下位（Subclass-Of）、组成（Part-Of）、实例（Instance-Of）等二元关系。
 
 ## 提取规则
 ### 节点提取规则
@@ -45,10 +45,10 @@ _PROMPT = """## 角色与任务
 ### 关系提取规则
 1. 仅从提取的概念中创建边
 2. 关系类型包括：
-   - Subclass-Of：上下位关系（如"狗"是"动物"的子类）
-   - Part-Of：组成关系（如"轮胎"是"汽车"的一部分）
-   - Instance-Of：实例关系（如"祖冲之"是"数学家"的实例）
-   - Other：其他关系
+   - 上下位（Subclass-Of）：如"狗"是"动物"的子类
+   - 组成（Part-Of）：如"轮胎"是"汽车"的一部分
+   - 实例（Instance-Of）：如"祖冲之"是"数学家"的实例
+   - 其他（Other）
 3. 每条边必须连接已提取的节点
 
 ### 约束条件
@@ -78,14 +78,14 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 核心概念定义
 - **节点 (Node)**：本模板中的"节点"指概念单元，作为层级关系的参与者。
-- **边 (Edge)**：本模板中的"边"指概念之间的层级关系，包括 Subclass-Of（上下位）、Part-Of（组成）、Instance-Of（实例）等二元关系。
+- **边 (Edge)**：本模板中的"边"指概念之间的层级关系，包括上下位（Subclass-Of）、组成（Part-Of）、实例（Instance-Of）等二元关系。
 
 ## 提取规则
 ### 关系类型说明
-- Subclass-Of：上下位关系（子类与父类）
-- Part-Of：组成关系（部分与整体）
-- Instance-Of：实例关系（实例与类）
-- Other：其他关系
+- 上下位（Subclass-Of）：子类与父类
+- 组成（Part-Of）：部分与整体
+- 实例（Instance-Of）：实例与类
+- 其他（Other）
 
 ### 约束条件
 1. 仅从下方已知概念列表中提取边
@@ -100,7 +100,7 @@ class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
     适用文档: 科学学科教材、知识库文档、分类体系说明
 
     功能介绍:
-    构建上下位关系（Subclass-Of）或组成关系（Part-Of）。适用于科学学科、教材知识点等。
+    构建上下位关系或组成关系。适用于科学学科、教材知识点等。
 
     Example:
         >>> template = ConceptHierarchy(llm_client=llm, embedder=embedder)

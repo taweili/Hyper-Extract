@@ -85,8 +85,8 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
     def show(
         self,
         *,
-        top_k_items_for_search: int = 10,
-        top_k_items_for_chat: int = 10,
+        top_k_for_search: int = 10,
+        top_k_for_chat: int = 10,
     ) -> None:
         def item_label_extractor(item: CulinaryDish) -> str:
             parts = [item.name]
@@ -96,6 +96,6 @@ class CulinaryDishSet(AutoSet[CulinaryDish]):
 
         super().show(
             item_label_extractor=item_label_extractor,
-            top_k_items_for_search=top_k_items_for_search,
-            top_k_items_for_chat=top_k_items_for_chat,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

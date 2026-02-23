@@ -93,11 +93,11 @@ class SymptomDifferential(AutoSet[SymptomDifferentialItem]):
             top_k_for_search: 语义检索返回的条目数量，默认为 3
             top_k_for_chat: 问答使用的条目数量，默认为 3
         """
-        def label_extractor(item: SymptomDifferentialItem) -> str:
-            return f"{item.symptom}: {', '.join(item.diseases[:3])}{'...' if len(item.diseases) > 3 else ''}"
+        def item_label_extractor(item: SymptomDifferentialItem) -> str:
+            return f"{item.symptom}"
         
         super().show(
-            label_extractor=label_extractor,
-            top_k_items_for_search=top_k_for_search,
-            top_k_items_for_chat=top_k_for_chat,
+            item_label_extractor=item_label_extractor,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

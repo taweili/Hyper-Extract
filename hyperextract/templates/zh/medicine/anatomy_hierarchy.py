@@ -1,4 +1,4 @@
-"""解剖层级树 - 构建解剖位置的包含 (Part-Of) 和毗邻 (Connected-To) 关系。
+"""解剖层级树 - 构建解剖位置的包含和毗邻关系。
 
 适用于医学教科书与专著中关于解剖学的内容。
 """
@@ -24,7 +24,7 @@ class AnatomyRelation(BaseModel):
     source: str = Field(description="源解剖结构")
     target: str = Field(description="目标解剖结构")
     relationType: str = Field(
-        description="关系类型：包含(Part-Of)、毗邻(Connected-To)、分支、供应等"
+        description="关系类型：包含、毗邻、分支、供应等"
     )
     details: str = Field(description="详细描述", default="")
 
@@ -34,7 +34,7 @@ _PROMPT = """## 角色与任务
 
 ## 核心概念定义
 - **节点 (Node)**：本模板中的"节点"指解剖实体，包括器官、组织、血管、神经、骨骼等类型，用于表示解剖学中的基本结构。
-- **边 (Edge)**：本模板中的"边"指解剖结构之间的关系，包括包含(Part-Of)、毗邻(Connected-To)、分支、供应等关系类型。
+- **边 (Edge)**：本模板中的"边"指解剖结构之间的关系，包括包含、毗邻、分支、供应等关系类型。
 
 ## 提取规则
 ### 节点提取规则
@@ -44,7 +44,7 @@ _PROMPT = """## 角色与任务
 
 ### 关系提取规则
 1. 仅从提取的解剖结构中创建关系边
-2. 关系类型包括：包含(Part-Of)、毗邻(Connected-To)、分支、供应等
+2. 关系类型包括：包含、毗邻、分支、供应等
 3. 为每个关系添加详细描述
 
 ### 约束条件
@@ -74,11 +74,11 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 核心概念定义
 - **节点 (Node)**：本模板中的"节点"指解剖实体，作为解剖关系的参与者。
-- **边 (Edge)**：本模板中的"边"指解剖结构之间的关系，包括包含(Part-Of)、毗邻(Connected-To)、分支、供应等关系类型。
+- **边 (Edge)**：本模板中的"边"指解剖结构之间的关系，包括包含、毗邻、分支、供应等关系类型。
 
 ## 提取规则
 1. 仅从下方已知解剖结构列表中提取边
-2. 关系类型包括：包含(Part-Of)、毗邻(Connected-To)、分支、供应等
+2. 关系类型包括：包含、毗邻、分支、供应等
 3. 为每个关系添加详细描述
 
 ### 约束条件
@@ -93,7 +93,7 @@ class AnatomyHierarchy(AutoGraph[AnatomyEntity, AnatomyRelation]):
     适用文档: 医学教科书、医学专著、解剖学图谱
 
     功能介绍:
-    构建解剖位置的包含 (Part-Of) 和毗邻 (Connected-To) 关系，适用于解剖学图谱、手术导航基础。
+    构建解剖位置的包含和毗邻关系，适用于解剖学图谱、手术导航基础。
 
     Example:
         >>> template = AnatomyHierarchy(llm_client=llm, embedder=embedder)

@@ -107,7 +107,7 @@ class ProcessingMethod(AutoList[ProcessingMethodItem]):
             return f"{item.herbName} - {item.methodName}"
         
         super().show(
-            label_extractor=label_extractor,
+            item_label_extractor=label_extractor,
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )

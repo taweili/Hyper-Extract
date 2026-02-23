@@ -1,4 +1,4 @@
-"""临床路径图 - 提取"If 症状A Then 检查B Else 治疗C"的决策树结构。
+"""临床路径图 - 提取"如果症状A则检查B否则治疗C"的决策树结构。
 
 适用于临床诊疗指南中关于决策路径的内容。
 """
@@ -23,12 +23,12 @@ class ClinicalEdge(BaseModel):
 
     source: str = Field(description="源节点")
     target: str = Field(description="目标节点")
-    condition: str = Field(description="条件描述，如If 症状A Then")
+    condition: str = Field(description="条件描述，如如果症状A则")
     details: str = Field(description="详细描述", default="")
 
 
 _PROMPT = """## 角色与任务
-你是一位专业的临床医生，请从文本中提取"If 症状A Then 检查B Else 治疗C"的决策树结构，构建临床路径图。
+你是一位专业的临床医生，请从文本中提取"如果症状A则检查B否则治疗C"的决策树结构，构建临床路径图。
 
 ## 核心概念定义
 - **节点 (Node)**：本模板中的"节点"指临床节点，包括症状、检查、治疗、诊断、决策点等类型，用于表示临床路径中的基本要素。
@@ -42,7 +42,7 @@ _PROMPT = """## 角色与任务
 
 ### 边提取规则
 1. 仅从提取的节点中创建边
-2. 边应包含条件描述，如"If 症状A Then"、"Else"等
+2. 边应包含条件描述，如"如果症状A则"、"否则"等
 3. 为每个边添加详细描述，说明具体的决策逻辑
 
 ### 约束条件
@@ -76,7 +76,7 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 提取规则
 1. 仅从下方已知节点列表中提取边
-2. 边应包含条件描述，如"If 症状A Then"、"Else"等
+2. 边应包含条件描述，如"如果症状A则"、"否则"等
 3. 为每个边添加详细描述，说明具体的决策逻辑
 
 ### 约束条件
@@ -91,7 +91,7 @@ class ClinicalPathway(AutoGraph[ClinicalNode, ClinicalEdge]):
     适用文档: 临床诊疗指南、决策路径手册
 
     功能介绍:
-    提取"If 症状A Then 检查B Else 治疗C"的决策树结构，适用于临床路径管理、诊疗规范化。
+    提取"如果症状A则检查B否则治疗C"的决策树结构，适用于临床路径管理、诊疗规范化。
 
     Example:
         >>> template = ClinicalPathway(llm_client=llm, embedder=embedder)

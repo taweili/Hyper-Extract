@@ -97,11 +97,11 @@ class MicroscopicFeatureSet(AutoSet[MicroscopicFeatureItem]):
             top_k_for_chat: 问答使用的条目数量，默认为 3
         """
 
-        def label_extractor(item: MicroscopicFeatureItem) -> str:
+        def item_label_extractor(item: MicroscopicFeatureItem) -> str:
             return f"{item.featureName} ({item.featureType}): {item.value}"
 
         super().show(
-            label_extractor=label_extractor,
-            top_k_items_for_search=top_k_for_search,
-            top_k_items_for_chat=top_k_for_chat,
+            item_label_extractor=item_label_extractor,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

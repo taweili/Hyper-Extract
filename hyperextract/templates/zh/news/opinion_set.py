@@ -66,4 +66,4 @@ class OpinionSet(AutoSet[OpinionStance]):
     def show(self, **kwargs):
         def label_func(item: OpinionStance) -> str:
             return f"【{item.stance}】{item.entity}: {item.key_argument}"
-        super().show(label_extractor=label_func, **kwargs)
+        super().show(item_label_extractor=label_func, **kwargs)

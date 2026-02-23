@@ -23,10 +23,17 @@ class PathologyEntity(BaseModel):
 class PathologyHyperedge(BaseModel):
     """病理机制超边"""
 
-    name: str = Field(description="超边名称，如致病机制、发病过程等")
-    nodes: List[str] = Field(description="参与超边的节点列表")
+    mechanism_name: str = Field(
+        description="机制名称，简短描述性名称，例如 '气道高反应性诱发机制'、'α1-抗胰蛋白酶缺乏致病途径'"
+    )
+    participating_entities: List[str] = Field(
+        description="参与此病理机制的所有实体名称列表"
+    )
     relationType: str = Field(description="关系类型：致病、诱发、促进、抑制等")
     details: str = Field(description="详细描述，如具体的致病机制")
+    outcome: str = Field(
+        description="该机制导致的结果或效应，例如 '慢性阻塞性肺疾病发生'、'肺气肿形成'"
+    )
 
 
 _PROMPT = """## 角色与任务
@@ -44,9 +51,11 @@ _PROMPT = """## 角色与任务
 
 ### 超边提取规则
 1. 仅从提取的实体中创建超边
-2. 超边应表示多个实体之间的复杂关联关系，如"基因+环境+诱因 -> 疾病"
-3. 关系类型包括：致病、诱发、促进、抑制等
-4. 为每个超边添加详细描述，说明具体的致病机制
+2. 超边应表示多个实体之间的复杂关联关系
+3. **mechanism_name 命名要求**：使用简短、清晰的描述性名称，例如 "COPD 环境致病机制"、"气道高反应性诱发机制"，不要使用 "A+B+C->D" 这种格式
+4. 关系类型包括：致病、诱发、促进、抑制等
+5. 为每个超边添加详细描述，说明具体的致病机制
+6. outcome 描述该机制导致的结果
 
 ### 约束条件
 - 每条超边必须连接多个已提取的节点
@@ -79,9 +88,15 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 提取规则
 1. 仅从下方已知实体列表中创建超边
-2. 超边应表示多个实体之间的复杂关联关系，如"基因+环境+诱因 -> 疾病"
-3. 关系类型包括：致病、诱发、促进、抑制等
-4. 为每个超边添加详细描述，说明具体的致病机制
+2. 超边应表示多个实体之间的复杂关联关系
+3. **mechanism_name 命名要求**：
+   - 使用简短、清晰、描述性的中文名称
+   - 例如："COPD 环境致病机制"、"气道高反应性诱发机制"、"α1-抗胰蛋白酶缺乏致病途径"
+   - 绝对不要使用 "基因+环境+诱因->疾病" 或类似的拼接格式
+   - 名称应该像一个医学术语或机制名称
+4. 关系类型包括：致病、诱发、促进、抑制等
+5. 为每个超边添加详细描述，说明具体的致病机制
+6. outcome 描述该机制导致的结果或效应
 
 ### 约束条件
 1. 不要创建未列出的实体
@@ -129,8 +144,8 @@ class PathologyHypergraph(AutoHypergraph[PathologyEntity, PathologyHyperedge]):
             node_schema=PathologyEntity,
             edge_schema=PathologyHyperedge,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: x.name,
-            nodes_in_edge_extractor=lambda x: x.nodes,
+            edge_key_extractor=lambda x: x.mechanism_name,
+            nodes_in_edge_extractor=lambda x: x.participating_entities,
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -164,7 +179,7 @@ class PathologyHypergraph(AutoHypergraph[PathologyEntity, PathologyHyperedge]):
             return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: PathologyHyperedge) -> str:
-            return f"{edge.name}: {edge.relationType}"
+            return f"[{edge.relationType}] {edge.mechanism_name}"
 
         super().show(
             node_label_extractor=node_label_extractor,
