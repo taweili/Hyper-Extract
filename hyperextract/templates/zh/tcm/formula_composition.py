@@ -122,6 +122,8 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
         embedder: Embeddings,
         *,
         extraction_mode: str = "two_stage",
+        chunk_size: int = 512,
+        chunk_overlap: int = 64,
         max_workers: int = 10,
         verbose: bool = False,
         **kwargs: Any,
@@ -134,6 +136,8 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
             embedder: 嵌入模型，用于语义检索
             extraction_mode: 提取模式，可选 "one_stage"（同时提取节点和边）
                 或 "two_stage"（先提取节点，再提取边），默认为 "two_stage"
+            chunk_size: 每个分块的最大字符数，默认为 512（中医文本信息量大，需较小分块）
+            chunk_overlap: 分块之间的重叠字符数，默认为 64
             max_workers: 最大工作线程数，默认为 10
             verbose: 是否输出详细日志，默认为 False
             **kwargs: 其他技术参数，传递给基类
@@ -160,6 +164,8 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
             prompt=_PROMPT,

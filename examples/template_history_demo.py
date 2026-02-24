@@ -68,12 +68,12 @@ TEMPLATE_TO_INPUT = {
 # ==========================================
 
 # 历史专著
-TEMPLATE = HistoricalKnowledgeGraph
+# TEMPLATE = HistoricalKnowledgeGraph
 # TEMPLATE = MultiParticipantEventMap
 
 # 编年史
 # TEMPLATE = ChronologicalEventChain
-# TEMPLATE = HistoricalContextGraph
+TEMPLATE = HistoricalContextGraph
 # TEMPLATE = PoliticalStruggleHypergraph
 
 # 口述历史
@@ -135,7 +135,6 @@ def main():
             llm_client=llm,
             embedder=embedder,
             verbose=True,
-            chunk_size=512,
         )
 
         # 喂入文本
