@@ -63,32 +63,17 @@ You are a professional biography chronology expert. Please extract entities such
 4. Date format: YYYY-MM-DD (e.g., 429-01-01) or year only (e.g., 429)
 5. Each edge must connect extracted nodes
 
-### English Time Calculation Rules
+### Time Parsing Rules
 Current observation date: {observation_time}
 
-1. **Relative Time Parsing**: Must parse relative time expressions based on observation date
-   - "last year" → Calculate as {observation_time} minus one year
-   - "this year" → The year of {observation_time}
-   - "next year" → {observation_time} plus one year
-   - "yesterday" → {observation_time} minus one day
-   - "today" → {observation_time}
-   - "tomorrow" → {observation_time} plus one day
-   - "last month" → First day of the month before {observation_time}
-   - "this month" → First day of the month of {observation_time}
-   - "next month" → First day of the month after {observation_time}
-   - "ten years ago" → {observation_time} minus ten years
-   - "five years later" → {observation_time} plus five years
-   - "beginning of year" → January 1st of the current year
-   - "end of year" → December 31st of the current year
-   - "beginning of century" → The 1st year of the century (e.g., 2000)
-   - "end of century" → The last year of the century (e.g., 2099)
+1. Relative time parsing (based on observation date):
+   - "last year" → the year before {observation_time}
+   - "last month" → the month before {observation_time}
+   - "this quarter" → the quarter of {observation_time}
+   - "recent" → the last 3 months from {observation_time}
 
-2. **Explicit Dates**: Keep explicit date formats from the original text unchanged
-   - Year only (e.g., 429, 2023) → 429, 2023
-   - Year-month (e.g., March 429) → 429-03
-   - Year-month-day (e.g., March 14, 429) → 429-03-14
-
-3. **Missing Time**: If there is no time information in the text, leave eventDate blank (None), do not fabricate dates
+2. Exact time → Keep as is
+3. Missing time → Leave blank, do not guess
 
 ### Constraints
 - Do not create entities or events not mentioned in the text
@@ -130,32 +115,17 @@ You are a professional life event extraction expert. Please extract life events 
 - Travel: Travel, relocation events
 - Other: Other events
 
-### English Time Calculation Rules
+### Time Parsing Rules
 Current observation date: {observation_time}
 
-1. **Relative Time Parsing**: Must parse relative time expressions based on observation date
-   - "last year" → Calculate as {observation_time} minus one year
-   - "this year" → The year of {observation_time}
-   - "next year" → {observation_time} plus one year
-   - "yesterday" → {observation_time} minus one day
-   - "today" → {observation_time}
-   - "tomorrow" → {observation_time} plus one day
-   - "last month" → First day of the month before {observation_time}
-   - "this month" → First day of the month of {observation_time}
-   - "next month" → First day of the month after {observation_time}
-   - "ten years ago" → {observation_time} minus ten years
-   - "five years later" → {observation_time} plus five years
-   - "beginning of year" → January 1st of the current year
-   - "end of year" → December 31st of the current year
-   - "beginning of century" → The 1st year of the century (e.g., 2000)
-   - "end of century" → The last year of the century (e.g., 2099)
+1. Relative time parsing (based on observation date):
+   - "last year" → the year before {observation_time}
+   - "last month" → the month before {observation_time}
+   - "this quarter" → the quarter of {observation_time}
+   - "recent" → the last 3 months from {observation_time}
 
-2. **Explicit Dates**: Keep explicit date formats from the original text unchanged
-   - Year only (e.g., 429, 2023) → 429, 2023
-   - Year-month (e.g., March 429) → 429-03
-   - Year-month-day (e.g., March 14, 429) → 429-03-14
-
-3. **Missing Time**: If there is no time information in the text, leave eventDate blank (None), do not fabricate dates
+2. Exact time → Keep as is
+3. Missing time → Leave blank, do not guess
 
 ### Date Format Requirements
 - All date information should be converted to "YYYY-MM-DD" format (e.g., 429-01-01) or year only (e.g., 429)
