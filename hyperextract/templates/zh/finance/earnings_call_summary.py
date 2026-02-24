@@ -102,7 +102,7 @@ class EarningsCallSummary(AutoModel[EarningsCallSummarySchema]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> summary = EarningsCallSummary(llm_client=llm, embedder=embedder)
         >>> transcript = "下午好。第三季度收入为 948 亿美元，超出一致预期..."

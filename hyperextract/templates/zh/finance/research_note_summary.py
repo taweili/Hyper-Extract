@@ -101,7 +101,7 @@ class ResearchNoteSummary(AutoModel[ResearchNoteSummarySchema]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> summary = ResearchNoteSummary(llm_client=llm, embedder=embedder)
         >>> report = "我们将 AAPL 评级上调为买入，目标价 200 美元..."

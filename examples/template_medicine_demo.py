@@ -97,11 +97,11 @@ TEMPLATE_TO_INPUT = {
 
 # 出院小结
 # TEMPLATE = SurgicalEventGraph  # 手术事件超图
-# TEMPLATE = HospitalCourseTimeline  # 住院病程时间轴
+TEMPLATE = HospitalCourseTimeline  # 住院病程时间轴
 # TEMPLATE = DischargeInstruction  # 出院医嘱摘要
 
 # 病理报告
-TEMPLATE = TumorStagingItem  # TNM 分期表
+# TEMPLATE = TumorStagingItem  # TNM 分期表
 # TEMPLATE = MicroscopicFeatureSet  # 微观特征集
 
 # 药品说明书
@@ -136,7 +136,7 @@ def main():
     print("\n🔧 初始化 LLM 客户端...")
     try:
         llm = ChatOpenAI(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             temperature=0,
         )
         embedder = OpenAIEmbeddings(model="text-embedding-3-small")

@@ -84,7 +84,7 @@ class CharacterRelationshipGraph(AutoGraph[Character, Relationship]):
 
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> # Initialize template
         >>> characters = CharacterRelationshipGraph(llm_client=llm, embedder=embedder)

@@ -20,7 +20,6 @@ from .general import (
     ComplianceLogic,
 )
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
-from .biology import TaxonomyGraph, BiologicalNetwork, MetabolicHypergraph
 from .finance import (
     RiskAssessmentGraph,
     SupplyChainGraph,
@@ -102,8 +101,4 @@ __all__ = [
     "CropCycleGraph",
     "LivestockGraph",
     "AgriPestControl",
-    # Biology
-    "TaxonomyGraph",
-    "BiologicalNetwork",
-    "MetabolicHypergraph",
 ]

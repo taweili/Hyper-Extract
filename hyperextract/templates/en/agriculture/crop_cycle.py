@@ -78,7 +78,7 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
 
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> graph = CropCycleGraph(llm_client=llm, embedder=embedder)
         >>> text = "Corn requires high nitrogen during the vegetative stage."

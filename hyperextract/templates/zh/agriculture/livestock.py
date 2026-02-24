@@ -59,7 +59,7 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
 
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> graph = LivestockGraph(llm_client=llm, embedder=embedder)
         >>> text = "402号母牛（安格斯）与09号公牛配种以提高肉质。"

@@ -100,7 +100,7 @@ class MDANarrativeGraph(AutoGraph[MDAFactor, MDANarrativeEdge]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> mda = MDANarrativeGraph(llm_client=llm, embedder=embedder)
         >>> text = "营收增长12%，主要受益于云计算业务的强劲需求..."

@@ -80,7 +80,7 @@ class FinancialForecast(AutoList[ForecastItem]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> forecast = FinancialForecast(llm_client=llm, embedder=embedder)
         >>> report = "We raise our FY2025 revenue estimate to $120.5B (from $115B)..."

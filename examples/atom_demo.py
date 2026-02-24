@@ -100,7 +100,7 @@ def main():
 
     # 1. 初始化
     print("📦 初始化组件...")
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     obs_time = "2024-12-15"

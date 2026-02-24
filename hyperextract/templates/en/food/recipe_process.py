@@ -87,7 +87,7 @@ class RecipeProcessGraph(AutoTemporalGraph[IngredientState, ProcessingStep]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> recipe = RecipeProcessGraph(llm_client=llm, embedder=embedder)
         >>> process = "Step 1: Blend eggs and sugar for 5 mins. Step 2: Heat to 175°C..."

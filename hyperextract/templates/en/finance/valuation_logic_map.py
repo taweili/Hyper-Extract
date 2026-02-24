@@ -105,7 +105,7 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> valuation = ValuationLogicMap(llm_client=llm, embedder=embedder)
         >>> report = "Cloud adoption drives recurring revenue, justifying a 30x forward P/E..."

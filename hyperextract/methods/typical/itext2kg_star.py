@@ -116,7 +116,7 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
 
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        >>> llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
         >>> embedder = OpenAIEmbeddings()
         >>> kg = iText2KG_Star(llm_client=llm, embedder=embedder)
 

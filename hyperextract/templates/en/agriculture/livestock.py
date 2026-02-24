@@ -69,7 +69,7 @@ class LivestockGraph(AutoGraph[AnimalNode, BreedingRelation]):
 
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> graph = LivestockGraph(llm_client=llm, embedder=embedder)
         >>> text = "Cow #402 (Angus) was crossbred with Bull #09 to improve meat quality."

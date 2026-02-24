@@ -150,7 +150,7 @@ def main():
 
     # 2. 初始化 LLM 和 Embedder
     print("\n[2] 初始化 LLM 和 Embedder...")
-    llm_client = ChatOpenAI(model="gpt-4o-mini")
+    llm_client = ChatOpenAI(model="gpt-5-mini")
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # 3. 创建 AutoModel 实例 (使用小的 chunk_size 测试多 chunk)

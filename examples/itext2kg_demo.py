@@ -201,7 +201,7 @@ def main():
 
     # 1. 初始化
     print("📦 初始化组件...")
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
     print("🚀 创建 iText2KG 实例...")

@@ -102,7 +102,7 @@ class FoodSafetyHACCPGraph(AutoGraph[BiologicalHazard, ControlMeasure]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> haccp = FoodSafetyHACCPGraph(llm_client=llm, embedder=embedder)
         >>> plan = "关键控制点：巴氏杀菌。危害：沙门氏菌。关键限值：72°C 持续 15 秒..."

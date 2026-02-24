@@ -59,7 +59,7 @@ from hyperextract.templates.zh.finance import ResearchNoteSummary
 from langchain_openai import ChatOpenAI
 
 # 1. 加载一个行业模板 (例如: 金融研报摘要)
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-5-mini")
 kb = AutoGraph.from_template(ResearchNoteSummary, llm_client=llm)
 
 # 2. “喂入” 领域文本 (自动完成知识提取与建模)

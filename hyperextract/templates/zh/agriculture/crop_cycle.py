@@ -68,7 +68,7 @@ class CropCycleGraph(AutoGraph[AgriEntity, AgriRelation]):
     
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> graph = CropCycleGraph(llm_client=llm, embedder=embedder)
         >>> text = "玉米在营养生长阶段需要大量的氮肥。"

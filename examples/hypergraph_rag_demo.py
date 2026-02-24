@@ -79,7 +79,7 @@ if __name__ == "__main__":
     print("=" * 80)
 
     llm_client = ChatOpenAI(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         extra_body={
             "system": "You are a helpful assistant. Always respond in Chinese."
         },

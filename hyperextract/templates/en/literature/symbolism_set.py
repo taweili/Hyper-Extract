@@ -43,7 +43,7 @@ class SymbolismSet(AutoSet[ImagerySymbol]):
 
     Example:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> # Initialize template
         >>> symbolism = SymbolismSet(llm_client=llm, embedder=embedder)

@@ -105,7 +105,7 @@ class FoodSafetyHACCPGraph(AutoGraph[BiologicalHazard, ControlMeasure]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> haccp = FoodSafetyHACCPGraph(llm_client=llm, embedder=embedder)
         >>> plan = "Critical Control Point: Pasteurization. Hazard: Salmonella. Critical limit: 72°C for 15s..."

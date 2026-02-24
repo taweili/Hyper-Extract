@@ -84,7 +84,7 @@ class RecipeProcessGraph(AutoTemporalGraph[IngredientState, ProcessingStep]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> recipe = RecipeProcessGraph(llm_client=llm, embedder=embedder)
         >>> process = "步骤 1：将蛋和糖混合 5 分钟。步骤 2：加热至 175°C"

@@ -78,7 +78,7 @@ class ProceedsUsage(AutoList[ProceedsItem]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> proceeds = ProceedsUsage(llm_client=llm, embedder=embedder)
         >>> prospectus = "We intend to use approximately $150M for R&D, $100M for debt repayment..."

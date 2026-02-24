@@ -15,7 +15,7 @@ class InteractionEntity(BaseModel):
 
     name: str = Field(description="实体名称，如药物、体质、不良反应等")
     category: str = Field(description="实体类型：药物、体质、不良反应、其他等")
-    description: str = Field(description="简要描述", default="")
+    description: str = Field(description="简要描述，如药物的功能、作用等", default="")
 
 
 class InteractionHyperedge(BaseModel):
@@ -161,7 +161,7 @@ class ComplexInteractionNet(AutoHypergraph[InteractionEntity, InteractionHypered
             return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: InteractionHyperedge) -> str:
-            return f"{edge.name}: {edge.interactionType}"
+            return f"{edge.name}"
 
         super().show(
             node_label_extractor=node_label_extractor,

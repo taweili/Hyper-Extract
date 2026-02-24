@@ -102,7 +102,7 @@ class MicroscopicFeatureSet(AutoSet[MicroscopicFeatureItem]):
         """
 
         def item_label_extractor(item: MicroscopicFeatureItem) -> str:
-            return f"{item.featureName} ({item.featureType}): {item.value}"
+            return f"{item.featureName} ({item.featureType})"
 
         super().show(
             item_label_extractor=item_label_extractor,

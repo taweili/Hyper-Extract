@@ -48,7 +48,7 @@ def llm_client(is_real_env):
         try:
             from langchain_openai import ChatOpenAI
 
-            return ChatOpenAI(model="gpt-4o-mini", temperature=0)
+            return ChatOpenAI(model="gpt-5-mini", temperature=0)
         except ImportError:
             pytest.fail(
                 "OPENAI_API_KEY detected but 'langchain-openai' package not installed. "

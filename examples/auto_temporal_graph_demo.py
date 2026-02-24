@@ -127,7 +127,7 @@ def run_demo():
 
     # 初始化 LLM
     print("\n🔧 初始化 LLM 和嵌入模型...")
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
     # 创建 AutoTemporalGraph

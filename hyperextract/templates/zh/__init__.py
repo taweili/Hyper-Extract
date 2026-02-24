@@ -20,7 +20,20 @@ from .general import (
     ComplianceLogic,
 )
 from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
-from .biology import TaxonomyGraph, BiologicalNetwork, MetabolicHypergraph
+from .biology import (
+    # 生物学专著
+    SpeciesInteractionWeb,
+    TaxonomicTree,
+    PhylogeneticRelationGraph,
+    # 蛋白质结构
+    ProteinComplexMap,
+    BindingSiteModel,
+    # 代谢通路
+    BiochemicalReactionHypergraph,
+    RegulatoryNetwork,
+    # 生态调查
+    BiodiversityRegistry,
+)
 from .finance import (
     RiskAssessmentGraph,
     SupplyChainGraph,
@@ -72,6 +85,22 @@ from .medicine import (
 )
 
 from .news import BreakingEventGraph, TopicTimeline, OpinionSet
+
+from .history import (
+    # 历史专著
+    HistoricalKnowledgeGraph,
+    MultiParticipantEventMap,
+    # 编年史
+    ChronologicalEventChain,
+    HistoricalContextGraph,
+    PoliticalStruggleHypergraph,
+    # 口述历史
+    PersonalTrajectoryHypergraph,
+    NarrativeRelationGraph,
+    MemoryFlashbackList,
+    # 档案馆藏信札
+    EpistolaryKnowledgeGraph,
+)
 
 from .tcm import (
     # 本草典籍
@@ -132,10 +161,6 @@ __all__ = [
     "FinancialEventCausalGraph",
     "MultiSourceSentimentHypergraph",
     "MarketNarrativeTimeline",
-    # Literature
-    "CharacterRelationshipGraph",
-    "NarrativeTimeline",
-    "SymbolismSet",
     # Medicine
     "PathologyHypergraph",
     "MedicalConceptNet",
@@ -170,15 +195,31 @@ __all__ = [
     "SyndromeReasoningGraph",
     "PrescriptionModification",
     "PulseTongueRecord",
+    # History
+    "HistoricalKnowledgeGraph",
+    "MultiParticipantEventMap",
+    "ChronologicalEventChain",
+    "HistoricalContextGraph",
+    "PoliticalStruggleHypergraph",
+    "PersonalTrajectoryHypergraph",
+    "NarrativeRelationGraph",
+    "MemoryFlashbackList",
+    "EpistolaryKnowledgeGraph",
+    # Biology
+    "SpeciesInteractionWeb",
+    "TaxonomicTree",
+    "PhylogeneticRelationGraph",
+    "ProteinComplexMap",
+    "BindingSiteModel",
+    "BiochemicalReactionHypergraph",
+    "RegulatoryNetwork",
+    "BiodiversityRegistry",
     # Agriculture
     "CropCycleGraph",
     "LivestockGraph",
     "AgriPestControl",
-    # Biology
-    "TaxonomyGraph",
-    "BiologicalNetwork",
-    "MetabolicHypergraph",
-    "MolecularStructureGraph",
-    "ChemicalReactionHyper",
-    "LabProtocolTemporal",
+    # Literature
+    "CharacterRelationshipGraph",
+    "NarrativeTimeline",
+    "SymbolismSet",
 ]

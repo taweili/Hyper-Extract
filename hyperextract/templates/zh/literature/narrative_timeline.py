@@ -63,7 +63,7 @@ class NarrativeTimeline(AutoTemporalGraph[NarrativePoint, TimeTransition]):
 
     示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> # 初始化模板
         >>> timeline = NarrativeTimeline(llm_client=llm, embedder=embedder)

@@ -93,7 +93,7 @@ class MarketSentimentModel(AutoModel[MarketSentimentSnapshot]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o")
+        >>> llm = ChatOpenAI(model="gpt-5-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> sentiment = MarketSentimentModel(llm_client=llm, embedder=embedder)
         >>> news = "科技股在 NVDA 公布创纪录财报后大幅上涨..."

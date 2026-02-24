@@ -59,7 +59,7 @@ from hyperextract.templates.en.finance import ResearchNoteSummary
 from langchain_openai import ChatOpenAI
 
 # 1. Load an industry-expert template
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-5-mini")
 kb = AutoGraph.from_template(ResearchNoteSummary, llm_client=llm)
 
 # 2. Feed your domain text (Extraction happens automatically!)
