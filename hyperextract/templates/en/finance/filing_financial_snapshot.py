@@ -119,7 +119,7 @@ class FilingFinancialSnapshot(AutoModel[FilingFinancialSnapshotSchema]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> snapshot = FilingFinancialSnapshot(llm_client=llm, embedder=embedder)
         >>> filing_text = "Item 8. Financial Statements: Revenue was $394.3 billion..."

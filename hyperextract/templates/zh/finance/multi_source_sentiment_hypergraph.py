@@ -117,7 +117,7 @@ class MultiSourceSentimentHypergraph(
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> fusion = MultiSourceSentimentHypergraph(llm_client=llm, embedder=embedder)
         >>> text = "彭博社报道科技股上涨。同时高盛上调 AAPL 评级。推特情绪看涨。"

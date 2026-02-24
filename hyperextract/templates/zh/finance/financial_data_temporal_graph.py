@@ -134,7 +134,7 @@ class FinancialDataTemporalGraph(
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> graph = FinancialDataTemporalGraph(llm_client=llm, embedder=embedder)
         >>> filing = "FY2024年度，苹果公司报告营收3943亿美元，较FY2023年的3658亿美元增长7.8%..."

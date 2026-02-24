@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     # Use a capable model for extraction
     llm_client = ChatOpenAI(
-        model="gpt-5-mini",
+        model="gpt-4o-mini",
         extra_body={
             "system": "You are a helpful assistant. Always respond in Chinese."
         },

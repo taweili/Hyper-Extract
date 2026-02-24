@@ -77,7 +77,7 @@ class FilingRiskFactorSet(AutoSet[RiskFactorItem]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> risk_set = FilingRiskFactorSet(llm_client=llm, embedder=embedder)
         >>> filing = "第1A项 风险因素：我们面临重大网络安全风险..."

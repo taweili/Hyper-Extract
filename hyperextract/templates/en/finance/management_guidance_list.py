@@ -85,7 +85,7 @@ class ManagementGuidanceList(AutoList[GuidanceItem]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> guidance = ManagementGuidanceList(llm_client=llm, embedder=embedder)
         >>> transcript = "For Q4, we expect revenue in the range of $95-97 billion..."

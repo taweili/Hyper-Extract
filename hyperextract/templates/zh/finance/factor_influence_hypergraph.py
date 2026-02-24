@@ -108,7 +108,7 @@ class FactorInfluenceHypergraph(AutoHypergraph[InvestmentFactor, FactorInteracti
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> factors = FactorInfluenceHypergraph(llm_client=llm, embedder=embedder)
         >>> report = "利率上升叠加强劲 GDP 和 AI 资本支出，推动向优质成长股轮动..."

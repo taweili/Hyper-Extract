@@ -82,7 +82,7 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> supply_chain = SupplyChainGraph(llm_client=llm, embedder=embedder)
         >>> filing = "供应商 XYZ 提供我们 70% 的零部件。我们还依赖于..."

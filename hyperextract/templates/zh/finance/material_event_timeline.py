@@ -110,7 +110,7 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> timeline = MaterialEventTimeline(llm_client=llm, embedder=embedder)
         >>> filing = "Item 5.02：2024年3月15日，董事会任命张三为首席执行官..."

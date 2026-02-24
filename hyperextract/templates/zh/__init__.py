@@ -19,7 +19,6 @@ from .general import (
     PenaltyMapping,
     ComplianceLogic,
 )
-from .agriculture import CropCycleGraph, LivestockGraph, AgriPestControl
 from .biology import (
     # 生物学专著
     SpeciesInteractionWeb,
@@ -59,7 +58,6 @@ from .finance import (
     MultiSourceSentimentHypergraph,
     MarketNarrativeTimeline,
 )
-from .literature import CharacterRelationshipGraph, NarrativeTimeline, SymbolismSet
 from .medicine import (
     # 医学教科书与专著
     PathologyHypergraph,
@@ -84,7 +82,6 @@ from .medicine import (
     AdverseReactionStats,
 )
 
-from .news import BreakingEventGraph, TopicTimeline, OpinionSet
 
 from .history import (
     # 历史专著
@@ -214,12 +211,4 @@ __all__ = [
     "BiochemicalReactionHypergraph",
     "RegulatoryNetwork",
     "BiodiversityRegistry",
-    # Agriculture
-    "CropCycleGraph",
-    "LivestockGraph",
-    "AgriPestControl",
-    # Literature
-    "CharacterRelationshipGraph",
-    "NarrativeTimeline",
-    "SymbolismSet",
 ]

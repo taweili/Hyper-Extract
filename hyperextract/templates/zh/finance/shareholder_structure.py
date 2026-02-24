@@ -109,7 +109,7 @@ class ShareholderStructure(AutoGraph[OwnershipEntity, OwnershipEdge]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> ownership = ShareholderStructure(llm_client=llm, embedder=embedder)
         >>> prospectus = "下表列示实益所有权情况：CEO 持有 15.3%..."

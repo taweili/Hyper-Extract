@@ -91,21 +91,21 @@ class MemoryFlashbackList(AutoList[MemoryFragment]):
     def show(
         self,
         *,
-        top_k_items_for_search: int = 5,
-        top_k_items_for_chat: int = 5,
+        top_k_for_search: int = 5,
+        top_k_for_chat: int = 5,
     ):
         """
         展示回忆片段清单。
 
         Args:
-            top_k_items_for_search: 语义检索返回的条目数量，默认为 5
-            top_k_items_for_chat: 问答使用的条目数量，默认为 5
+            top_k_for_search: 语义检索返回的条目数量，默认为 5
+            top_k_for_chat: 问答使用的条目数量，默认为 5
         """
         def item_label_extractor(item: MemoryFragment) -> str:
             return f"[{item.type}] {item.content[:30]}..."
 
         super().show(
             item_label_extractor=item_label_extractor,
-            top_k_items_for_search=top_k_items_for_search,
-            top_k_items_for_chat=top_k_items_for_chat,
+            top_k_for_search=top_k_for_search,
+            top_k_for_chat=top_k_for_chat,
         )

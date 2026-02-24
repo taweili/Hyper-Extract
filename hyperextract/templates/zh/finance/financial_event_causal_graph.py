@@ -108,7 +108,7 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> causal = FinancialEventCausalGraph(llm_client=llm, embedder=embedder)
         >>> news = "美联储加息 25 个基点，推动银行股上涨，同时科技股遭到抛售..."

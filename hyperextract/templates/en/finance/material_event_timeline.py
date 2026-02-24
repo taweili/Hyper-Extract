@@ -111,7 +111,7 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> timeline = MaterialEventTimeline(llm_client=llm, embedder=embedder)
         >>> filing = "Item 5.02: On March 15, 2024, the Board appointed John Smith as CEO..."

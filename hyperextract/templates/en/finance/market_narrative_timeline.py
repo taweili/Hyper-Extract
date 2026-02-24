@@ -115,7 +115,7 @@ class MarketNarrativeTimeline(
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> narrative = MarketNarrativeTimeline(llm_client=llm, embedder=embedder)
         >>> commentary = "Markets shifted from inflation fear to soft landing hope in Q2 2024..."

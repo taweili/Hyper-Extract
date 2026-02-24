@@ -53,7 +53,7 @@ class MonsterEntry(BaseModel):
 
 def main():
     # 初始化LLM和嵌入模型
-    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     # 创建AutoSet，使用LLM_MERGE策略

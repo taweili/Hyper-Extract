@@ -108,7 +108,7 @@ class iText2KG(AutoGraph[NodeSchema, EdgeSchema]):
     - Two-stage extraction: entities first, then relationships
 
     Example:
-        >>> llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
+        >>> llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         >>> embedder = OpenAIEmbeddings()
         >>> kg = iText2KG(llm_client=llm, embedder=embedder)
         >>> kg.feed_text(text)

@@ -78,7 +78,7 @@ class SegmentPerformanceList(AutoList[SegmentPerformanceItem]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> segments = SegmentPerformanceList(llm_client=llm, embedder=embedder)
         >>> filing = "Americas segment revenue was $48.2B, up 12% YoY..."

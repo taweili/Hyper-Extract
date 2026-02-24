@@ -117,7 +117,7 @@ class FilingFinancialSnapshot(AutoModel[FilingFinancialSnapshotSchema]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> snapshot = FilingFinancialSnapshot(llm_client=llm, embedder=embedder)
         >>> filing_text = "第8项 财务报表：营收为3943亿美元..."

@@ -73,13 +73,13 @@ TEMPLATE_TO_INPUT = {
 
 # 编年史
 # TEMPLATE = ChronologicalEventChain
-TEMPLATE = HistoricalContextGraph
+# TEMPLATE = HistoricalContextGraph
 # TEMPLATE = PoliticalStruggleHypergraph
 
 # 口述历史
 # TEMPLATE = PersonalTrajectoryHypergraph
 # TEMPLATE = NarrativeRelationGraph
-# TEMPLATE = MemoryFlashbackList
+TEMPLATE = MemoryFlashbackList
 
 # 档案馆藏信札
 # TEMPLATE = EpistolaryKnowledgeGraph
@@ -111,7 +111,7 @@ def main():
     print("\n🔧 初始化 LLM 客户端...")
     try:
         llm = ChatOpenAI(
-            model="gpt-5-mini",
+            model="gpt-4o-mini",
             temperature=0,
         )
         embedder = OpenAIEmbeddings(model="text-embedding-3-small")

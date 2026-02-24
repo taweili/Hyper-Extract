@@ -90,7 +90,7 @@ def run_demo():
     print("🕵️  AutoSpatioTemporalGraph 演示：冷战柏林行动")
     print("=" * 80)
 
-    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
     # 创建 AutoSpatioTemporalGraph 实例

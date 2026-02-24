@@ -109,7 +109,7 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> causal = FinancialEventCausalGraph(llm_client=llm, embedder=embedder)
         >>> news = "The Fed raised rates by 25bps, sending bank stocks higher while tech sold off..."

@@ -109,7 +109,7 @@ class RiskAssessmentGraph(AutoGraph[RiskFactor, RiskTransmissionEdge]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> risk_graph = RiskAssessmentGraph(llm_client=llm, embedder=embedder)
         >>> filing_text = "Item 1A. Risk Factors: Currency fluctuations could materially impact our margins..."

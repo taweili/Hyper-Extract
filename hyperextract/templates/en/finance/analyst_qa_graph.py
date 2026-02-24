@@ -110,7 +110,7 @@ class AnalystQAGraph(AutoGraph[QAParticipant, QAInteraction]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> qa = AnalystQAGraph(llm_client=llm, embedder=embedder)
         >>> transcript = "Analyst: Can you discuss your margin outlook? CEO: We expect margins to..."

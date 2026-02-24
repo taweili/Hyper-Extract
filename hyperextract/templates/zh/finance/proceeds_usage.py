@@ -70,7 +70,7 @@ class ProceedsUsage(AutoList[ProceedsItem]):
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> proceeds = ProceedsUsage(llm_client=llm, embedder=embedder)
         >>> prospectus = "我们拟将约 1.5 亿美元用于研发，1 亿美元用于偿还债务..."

@@ -136,7 +136,7 @@ def main():
     print("\n🔧 初始化 LLM 客户端...")
     try:
         llm = ChatOpenAI(
-            model="gpt-5-mini",
+            model="gpt-4o-mini",
             temperature=0,
         )
         embedder = OpenAIEmbeddings(model="text-embedding-3-small")

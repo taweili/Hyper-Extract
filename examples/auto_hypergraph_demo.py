@@ -120,7 +120,7 @@ def main():
     """主函数：完整的 AutoHypergraph 提取与分析流程"""
 
     # 初始化 LLM 和嵌入模型
-    llm_client = ChatOpenAI(model="gpt-5-mini", temperature=0)
+    llm_client = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings()
 
     # 1. 节点指纹：用名字即可

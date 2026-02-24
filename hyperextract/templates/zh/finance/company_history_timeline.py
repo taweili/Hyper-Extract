@@ -102,7 +102,7 @@ class CompanyHistoryTimeline(
 
     使用示例:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> history = CompanyHistoryTimeline(llm_client=llm, embedder=embedder)
         >>> text = "公司于 2015 年由张三创立。2017 年完成 1000 万美元 A 轮融资..."

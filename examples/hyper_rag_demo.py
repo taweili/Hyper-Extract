@@ -81,9 +81,9 @@ if __name__ == "__main__":
     print("Initializing Hyper-RAG System...")
     print("=" * 80)
 
-    # llm_client = ChatOpenAI(model="gpt-5-mini", temperature=0)
+    # llm_client = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     llm_client = ChatOpenAI(
-        model="gpt-5-mini",
+        model="gpt-4o-mini",
         extra_body={
             "system": "You are a helpful assistant. Always respond in Chinese."
         },

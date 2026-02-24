@@ -110,7 +110,7 @@ class CallSentimentHypergraph(AutoHypergraph[CallTopic, SentimentCluster]):
 
     Example Usage:
         >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-5-mini")
+        >>> llm = ChatOpenAI(model="gpt-4o-mini")
         >>> embedder = OpenAIEmbeddings()
         >>> sentiment = CallSentimentHypergraph(llm_client=llm, embedder=embedder)
         >>> transcript = "CEO: We are very excited about AI revenue growth..."
