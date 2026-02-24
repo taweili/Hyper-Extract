@@ -49,8 +49,8 @@ TEST_SAMPLES_ROOT = Path(__file__).parent.parent / "tests" / "fixtures" / "test_
 
 # 模板到输入文件的映射关系（根据 README 中的典型应用场景）
 TEMPLATE_TO_INPUT = {
-    # 本草典籍 -> 本草纲目
-    HerbPropertyModel: TEST_SAMPLES_ROOT / "herbal_compendium_sample.md",
+    # 本草典籍 -> 多味药 / 单味药
+    HerbPropertyModel: TEST_SAMPLES_ROOT / "herb_property_single.md", 
     ProcessingMethod: TEST_SAMPLES_ROOT / "herbal_compendium_sample.md",
     CompatibilityNet: TEST_SAMPLES_ROOT / "herbal_compendium_sample.md",
     # 方剂规范 -> 伤寒论
@@ -61,7 +61,7 @@ TEMPLATE_TO_INPUT = {
     AcupointLocationMap: TEST_SAMPLES_ROOT / "meridian_treatise_sample.md",
     # 名医医案
     SyndromeReasoningGraph: TEST_SAMPLES_ROOT / "medical_case_record_sample.md",
-    PrescriptionModification: TEST_SAMPLES_ROOT / "medical_case_record_sample.md",
+    PrescriptionModification: TEST_SAMPLES_ROOT / "prescription_modification_sample.md",
     PulseTongueRecord: TEST_SAMPLES_ROOT / "medical_case_record_sample.md",
 }
 
@@ -75,11 +75,11 @@ TEMPLATE_TO_INPUT = {
 # TEMPLATE = CompatibilityNet  # 七情配伍网络
 
 # 方剂规范
-# TEMPLATE = FormulaComposition  # 君臣佐使结构图
+TEMPLATE = FormulaComposition  # 君臣佐使结构图
 # TEMPLATE = FunctionIndicationMap  # 主治功效映射
 
 # 经络腧穴专著
-TEMPLATE = MeridianFlowGraph  # 经络流注图
+# TEMPLATE = MeridianFlowGraph  # 经络流注图
 # TEMPLATE = AcupointLocationMap  # 腧穴空间定位
 
 # 名医医案

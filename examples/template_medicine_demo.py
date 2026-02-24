@@ -84,7 +84,7 @@ TEMPLATE_TO_INPUT = {
 # ==========================================
 
 # 医学教科书与专著
-TEMPLATE = PathologyHypergraph  # 多因素病理机制图
+# TEMPLATE = PathologyHypergraph  # 多因素病理机制图
 # TEMPLATE = MedicalConceptNet  # 医学概念网络
 # TEMPLATE = PharmacologyGraph  # 药理机制图
 # TEMPLATE = AnatomyHierarchy  # 解剖层级树
@@ -101,7 +101,7 @@ TEMPLATE = PathologyHypergraph  # 多因素病理机制图
 # TEMPLATE = DischargeInstruction  # 出院医嘱摘要
 
 # 病理报告
-# TEMPLATE = TumorStagingItem  # TNM 分期表
+TEMPLATE = TumorStagingItem  # TNM 分期表
 # TEMPLATE = MicroscopicFeatureSet  # 微观特征集
 
 # 药品说明书

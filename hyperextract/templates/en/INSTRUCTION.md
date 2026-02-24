@@ -192,7 +192,23 @@ You are a professional xxx expert, please extract xxx from the text...
 - **Concept 2**: xxx
 
 ## Extraction Rules
-...
+### Core Constraints
+#### _NODE_PROMPT / _PROMPT (Node Extraction)
+1. Each node must correspond to a single independent entity; do not merge multiple entities into one node
+2. Entity names should remain consistent with the source text
+
+#### _EDGE_PROMPT (Edge Extraction)
+1. Only extract edges from the known entity list; do not create unlisted entities
+2. Relationship descriptions should remain consistent with the source text
+
+### Domain-Specific Rules (Optional)
+Different domains have specialized terminology or specific expressions. You may add targeted rules as needed. For example:
+- Traditional Chinese Medicine: Ancient dosage units (两, 钱, 分, 匕, 枚, etc.) can be kept in original form
+- Finance: Professional terminology should remain in original form
+- Medical: Professional abbreviations should remain in original form
+
+### Spatio-Temporal Resolution Rules (required for spatio-temporal graph types only)
+- Time/location resolution rules...
 ```
 
 **Why concept definitions are needed?**
@@ -228,23 +244,23 @@ You are a professional xxx expert, please extract xxx from the text...
 #### AutoGraph
 ```
 ## Core Concept Definitions
-- **Node**: Entities in the graph
-- **Edge**: Binary relationships between nodes
+- **Node**: Entities extracted from the document
+- **Edge**: Relationships between nodes
 ```
 
 #### AutoHypergraph
 ```
 ## Core Concept Definitions
-- **Node**: Basic elements that make up hyperedges (edges), serving as participants in hyperedges
-- **Edge**: Connects multiple nodes and expresses complex relationships among multiple entities
+- **Node**: Entities extracted from the document
+- **Edge**: Connects multiple nodes, expressing complex relationships among multiple entities
 ```
 
 #### AutoTemporalGraph / AutoSpatialGraph / AutoSpatioTemporalGraph
 In addition to node and edge definitions, time/location definitions must also be added:
 ```
 ## Core Concept Definitions
-- **Node**: Entities in the graph
-- **Edge**: Binary relationships between nodes
+- **Node**: Entities extracted from the document
+- **Edge**: Relationships between nodes
 - **Time**: xxx (define according to actual needs)
 - **Location**: xxx (define according to actual needs)
 ```
@@ -345,77 +361,70 @@ class FinancialRelation(BaseModel):
     details: str = Field(description="Detailed description", default="")
 
 # ==============================================================================
-# 2. Predefined Prompts (All in English)
+# 2. Predefined Prompts (Simplified Version)
 # ==============================================================================
 
 _NODE_PROMPT = """## Role and Task
-You are a professional financial analyst, extract all key entities as nodes from the text.
+You are a professional [domain] expert, extract all entities as nodes from the text.
 
 ## Core Concept Definitions
-- **Node**: Entities in the graph
-- **Edge**: Binary relationships between nodes
+- **Node**: Entities extracted from the document
+- **Edge**: Relationships between nodes
 
 ## Extraction Rules
-1. Extract all entities such as companies, products, departments
-2. Assign type for each entity: company, product, department
-3. Keep entity names consistent with the source text
-4. **NEVER extract time or location as independent nodes**
+### Core Constraints
+1. Each node must correspond to a single independent entity; do not merge multiple entities into one node
+2. Entity names should remain consistent with the source text
 
 ### Source Text:
 """
 
 _EDGE_PROMPT = """## Role and Task
-You are a professional financial analyst, extract relationships between given entities.
+You are a professional [domain] expert, extract relationships between given entities.
 
 ## Core Concept Definitions
-- **Node**: Entities in the graph
-- **Edge**: Binary relationships between nodes
-- **Time**: Records time information when relationships occur
+- **Node**: Entities extracted from the document
+- **Edge**: Relationships between nodes
 
 ## Extraction Rules
-### Time Format Requirements
-All time information must be unified to "YYYY-MM-DD" format (e.g., 2023-06-15).
+### Core Constraints
+1. Only extract edges from the known entity list; do not create unlisted entities
+2. Relationship descriptions should remain consistent with the source text
 
 ### Time Resolution Rules
 Current Observation Date: {observation_time}
 
 1. Relative time resolution (based on observation date):
-   - "last year" → year before {observation_time}, formatted as YYYY-01-01
-   - "last month" → month before {observation_time}, formatted as YYYY-MM-01
-   - "June 2023" → 2023-06-15
+   - "last year" → year before {observation_time}
+   - "last month" → month before {observation_time}
 
-2. Exact time → convert to YYYY-MM-DD format
+2. Exact time → keep as-is
 3. Missing time → leave empty
-
-### Constraints
-1. Only extract edges from the known entity list below
-2. Do NOT create entities not listed
-3. Each edge must contain source, target, relationType
-
 """
 
 _PROMPT = """## Role and Task
-You are a professional financial analyst, extract entities and their relationships from text.
+You are a professional [domain] expert, extract entities and their relationships from text.
 
 ## Core Concept Definitions
-- **Node**: Entities in the graph
-- **Edge**: Binary relationships between nodes
-- **Time**: Records time information when relationships occur
+- **Node**: Entities extracted from the document
+- **Edge**: Relationships between nodes
 
 ## Extraction Rules
-### Node Extraction Rules
-1. Extract all entities such as companies, products, departments
-2. **NEVER extract time or location as independent nodes**
+### Core Constraints
+1. Each node must correspond to a single independent entity; do not merge multiple entities into one node
+2. Entity names should remain consistent with the source text
+3. Only extract edges from the known entity list; do not create unlisted entities
+4. Relationship descriptions should remain consistent with the source text
 
-### Relationship Extraction Rules
+### Time Resolution Rules
 Current Observation Date: {observation_time}
 
-### Time Format Requirements
-All time information must be unified to "YYYY-MM-DD" format (e.g., 2023-06-15).
+1. Relative time resolution (based on observation date):
+   - "last year" → year before {observation_time}
+   - "last month" → month before {observation_time}
 
-1. Resolve relative time and convert to standard format
-2. Convert exact time to YYYY-MM-DD format
-3. Leave empty when time is missing
+2. Exact time → keep as-is
+3. Missing time → leave empty
 
 ### Source Text:
 """

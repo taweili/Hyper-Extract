@@ -32,81 +32,60 @@ class HierarchyRelation(BaseModel):
 
 
 _PROMPT = """## Role and Task
-You are a professional concept structure analysis expert. Please extract concepts and their hierarchical relationships from the text to build a concept hierarchy graph.
+You are a professional concept structure analysis expert. Please extract concepts and their hierarchical relationships from the text.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a concept unit, categorized into types such as CoreConcept, Subconcept, Attribute, and Instance, used to represent basic concepts in a knowledge system.
-- **Edge**: In this template, "Edge" refers to a hierarchical relationship between concepts, including binary relationships such as Subclass-Of (taxonomy), Part-Of (composition), and Instance-Of (instance).
+- **Node**: concept unit
+- **Edge**: hierarchical relationship between concepts
 
 ## Extraction Rules
 ### Node Extraction Rules
-1. Extract all concepts: CoreConcept, Subconcept, Attribute, Instance, etc.
-2. Assign a type to each concept: CoreConcept, Subconcept, Attribute, Instance, Other
-3. Add a brief description for each concept
+1. Extract all concepts
+2. Assign a type to each concept
 
 ### Edge Extraction Rules
 1. Only create edges from extracted concepts
-2. Relationship types include:
-   - Subclass-Of: Taxonomy relationship (e.g., "Dog" is a subclass of "Animal")
-   - Part-Of: Composition relationship (e.g., "Tire" is part of "Car")
-   - Instance-Of: Instance relationship (e.g., "Zu Chongzhi" is an instance of "Mathematician")
-   - Other: Other relationships
-3. Each edge must connect extracted nodes
-
-### Constraints
-- Maintain clear hierarchical relationships, avoid circular dependencies
-- Do not create concepts or relationships not mentioned in the text
-- Maintain objectivity and accuracy, do not add information not in the text
+2. Each edge must connect extracted nodes
 
 ### Source text:
 """
 
 _NODE_PROMPT = """## Role and Task
-You are a professional concept recognition expert. Please extract all concepts as nodes from the text.
+Please extract concepts as nodes from the text.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a concept unit, categorized into types such as CoreConcept, Subconcept, Attribute, and Instance, used to represent basic concepts in a knowledge system.
+- **Node**: concept unit
 
 ## Extraction Rules
-1. Extract all concepts: CoreConcept, Subconcept, Attribute, Instance, etc.
-2. Assign a type to each concept: CoreConcept, Subconcept, Attribute, Instance, Other
-3. Add a brief description for each concept
+1. Extract all concepts
+2. Assign a type to each concept
 
 ### Source text:
 """
 
 _EDGE_PROMPT = """## Role and Task
-You are a professional hierarchical relationship extraction expert. Please extract hierarchical relationships between concepts (nodes) from the given concept list.
+Please extract hierarchical relationships between concepts from the known concept list.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a concept unit, as participants in hierarchical relationships.
-- **Edge**: In this template, "Edge" refers to a hierarchical relationship between concepts, including binary relationships such as Subclass-Of (taxonomy), Part-Of (composition), and Instance-Of (instance).
+- **Edge**: hierarchical relationship between concepts
 
-## Extraction Rules
-### Relationship Type Explanation
-- Subclass-Of: Taxonomy relationship (subclass and superclass)
-- Part-Of: Composition relationship (part and whole)
-- Instance-Of: Instance relationship (instance and class)
-- Other: Other relationships
-
-### Constraints
-1. Only extract edges from the known concept list below
+## Constraints
+1. Only extract edges from the known concept list
 2. Do not create unlisted concepts
-3. Maintain clear hierarchical relationships, avoid circular dependencies
-
 """
 
 
 class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
     """
-    Applicable documents: Science textbooks, knowledge base documents, classification system descriptions
+    Applicable Documents: Scientific disciplines, textbook knowledge points, ontology documents
 
-    Function introduction:
-    Build subclass relationships (Subclass-Of) or composition relationships (Part-Of). Suitable for scientific disciplines, textbook knowledge points, etc.
+    Function Introduction:
+    Extract concepts and build subclass relationships (Subclass-Of) or composition relationships (Part-Of),
+    suitable for scientific disciplines, textbook knowledge points, etc.
 
     Example:
         >>> template = ConceptHierarchy(llm_client=llm, embedder=embedder)
-        >>> template.feed_text("Machine learning is a branch of artificial intelligence...")
+        >>> template.feed_text("Animals are divided into mammals, birds, reptiles, amphibians and fish...")
         >>> template.show()
     """
 
@@ -121,16 +100,16 @@ class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
         **kwargs: Any,
     ):
         """
-        Initialize concept hierarchy graph template.
+        Initialize the concept hierarchy template.
 
         Args:
             llm_client: LLM client for knowledge extraction
-            embedder: Embedding model for semantic search
-            extraction_mode: Extraction mode, either "one_stage" (extract nodes and edges simultaneously)
-                or "two_stage" (extract nodes first, then edges), default: "two_stage"
-            max_workers: Maximum number of worker threads, default: 10
-            verbose: Whether to output detailed logs, default: False
-            **kwargs: Other technical parameters, passed to base class
+            embedder: Embedding model for semantic retrieval
+            extraction_mode: Extraction mode, optional "one_stage" (extract nodes and edges simultaneously)
+                or "two_stage" (extract nodes first, then edges), default is "two_stage"
+            max_workers: Maximum worker threads, default is 10
+            verbose: Whether to output detailed logs, default is False
+            **kwargs: Other technical parameters, passed to the base class
         """
         super().__init__(
             node_schema=ConceptNode,
@@ -158,13 +137,13 @@ class ConceptHierarchy(AutoGraph[ConceptNode, HierarchyRelation]):
         top_k_edges_for_chat: int = 3,
     ):
         """
-        Display concept hierarchy graph.
+        Display the concept hierarchy.
 
         Args:
-            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
-            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
-            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
-            top_k_edges_for_chat: Number of edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes returned by semantic search, default is 3
+            top_k_edges_for_search: Number of edges returned by semantic search, default is 3
+            top_k_nodes_for_chat: Number of nodes used for Q&A, default is 3
+            top_k_edges_for_chat: Number of edges used for Q&A, default is 3
         """
 
         def node_label_extractor(node: ConceptNode) -> str:

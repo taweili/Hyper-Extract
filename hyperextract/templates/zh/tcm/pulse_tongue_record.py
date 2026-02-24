@@ -101,7 +101,7 @@ class PulseTongueRecord(AutoList[PulseTongueItem]):
             top_k_for_chat: 问答使用的条目数量，默认为 3
         """
         def item_label_extractor(item: PulseTongueItem) -> str:
-            return f"{item.type} - {item.subType}: {item.feature}"
+            return f"{item.type} - {item.subType}"
         
         super().show(
             item_label_extractor=item_label_extractor,

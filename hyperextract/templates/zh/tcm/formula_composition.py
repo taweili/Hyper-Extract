@@ -1,6 +1,10 @@
 """君臣佐使结构图 - 将方剂建模为 {君药, 臣药, 佐药, 使药} 的层级化超边结构。
 
 适用于方剂结构解析、组方规律研究。
+
+设计原则：
+- 节点（HerbNode）：存储药物的固有属性（性味归经、功效），不随方剂变化
+- 边（FormulaHyperedge）：存储方剂信息，以及药物在该方剂中的具体信息（剂量、角色）
 """
 
 from typing import Any, List
@@ -11,92 +15,106 @@ from hyperextract.types import AutoHypergraph
 
 
 class HerbNode(BaseModel):
-    """药物节点"""
+    """药物节点 - 存储药物的固有属性（不随方剂变化）"""
 
     name: str = Field(description="药物名称")
-    role: str = Field(description="药物角色：君药、臣药、佐药、使药")
-    dosage: str = Field(description="药物剂量", default="")
-    effect: str = Field(description="药物功效", default="")
+    nature: str = Field(description="性味，如：辛温、苦寒、甘平", default="")
+    meridian: str = Field(description="归经，如：归肺经、归脾经、归心经", default="")
+    effect: str = Field(description="功效，如：发汗解表、温通经脉、补气健脾", default="")
+
+
+class HerbInFormula(BaseModel):
+    """药物在方剂中的信息 - 包含剂量和炮制方法"""
+
+    name: str = Field(description="药物名称")
+    dosage: str = Field(description="剂量，如：三两、五钱、10g", default="")
+    processing: str = Field(description="炮制方法，如：炙、炒、煅、酒制", default="")
 
 
 class FormulaHyperedge(BaseModel):
-    """方剂超边"""
+    """方剂超边 - 存储方剂信息和药物在方剂中的具体角色"""
 
     formulaName: str = Field(description="方剂名称")
-    junHerbs: List[str] = Field(description="君药列表")
-    chenHerbs: List[str] = Field(description="臣药列表")
-    zuoHerbs: List[str] = Field(description="佐药列表")
-    shiHerbs: List[str] = Field(description="使药列表")
-    functions: List[str] = Field(description="方剂功能", default_factory=list)
-    indications: List[str] = Field(description="主治证候", default_factory=list)
-    decoctionMethod: str = Field(description="煎服法", default="")
+    source: str = Field(description="方剂来源，如：伤寒论、金匮要略、方剂学教材", default="")
+    junHerbs: List[HerbInFormula] = Field(description="君药列表", default_factory=list)
+    chenHerbs: List[HerbInFormula] = Field(description="臣药列表", default_factory=list)
+    zuoHerbs: List[HerbInFormula] = Field(description="佐药列表", default_factory=list)
+    shiHerbs: List[HerbInFormula] = Field(description="使药列表", default_factory=list)
+    functions: List[str] = Field(description="方剂功能，如：解肌发表、调和营卫", default_factory=list)
+    indications: List[str] = Field(description="主治证候，如：外感风寒表虚证", default_factory=list)
+    decoctionMethod: str = Field(description="煎服法，如：水煎服，日三服", default="")
 
 
 _PROMPT = """## 角色与任务
 你是一位专业的方剂学专家，请从文本中提取方剂的君臣佐使结构。
 
 ## 核心概念定义
-- **节点 (Node)**：本模板中的"节点"指方剂中的药物实体，包括药物名称、角色、剂量、功效等信息。
-- **边 (Edge)**：本模板中的"边"指方剂超边，包含方剂名称、君药、臣药、佐药、使药列表、方剂功能、主治证候、煎服法等信息。
+- **节点 (Node)**：药物实体，存储药物的固有属性（性味归经、功效）
+- **边 (Edge)**：方剂超边，存储方剂信息及药物在该方剂中的具体信息
 
 ## 提取规则
+
 ### 节点提取规则
 1. 提取方剂中的所有药物实体
-2. 为每个药物指定角色：君药、臣药、佐药、使药
-3. 提取每个药物的剂量和功效
+2. 提取每个药物的固有属性：
+   - 性味：如辛温、苦寒、甘平
+   - 归经：如归肺经、归脾经
+   - 功效：如发汗解表、温通经脉
+3. 注意：性味归经和功效是药物本身的属性，不随方剂变化
 
 ### 边提取规则
-1. 提取方剂名称
-2. 提取君药、臣药、佐药、使药列表
+1. 提取方剂名称和来源
+2. 提取君药、臣药、佐药、使药列表，每个药物包含：
+   - 名称
+   - 剂量（如三两、五钱）
+   - 炮制方法（如炙、炒、煅）
 3. 提取方剂功能和主治证候
 4. 提取煎服法
 
-### 术语标准化指导
-- **药物名称标准化**：同一药物的不同名称需统一使用规范正名（如"国老"→"甘草"，"仙灵脾"→"淫羊藿"）
-- **角色术语统一**：君、臣、佐、使的不同表述需统一为"君药"、"臣药"、"佐药"、"使药"
-- **剂量单位保留**：古代剂量单位（两、钱、分、匕、枚等）可保留原文，无需转换
-- **同义词处理**：同一概念的不同表述（如"主治"与"主疗"，"功效"与"功用"）应统一提取
-
 ### 约束条件
-- 每条边必须包含方剂名称和至少一种角色的药物列表
-- 不要创建未在文本中提及的实体或关系
-- 保持客观准确，符合方剂学专业术语规范
+- 每条边必须包含方剂名称
+- 药物角色（君臣佐使）通过所属列表区分
 
 ### 源文本:
 """
 
 _NODE_PROMPT = """## 角色与任务
-你是一位专业的药物识别专家，请从文本中提取方剂中的所有药物实体作为节点。
+请从文本中提取方剂中的药物实体作为节点。
 
 ## 核心概念定义
-- **节点 (Node)**：本模板中的"节点"指方剂中的药物实体，包括药物名称、角色、剂量、功效等信息。
+- **节点 (Node)**：药物实体，存储药物的固有属性
 
 ## 提取规则
 1. 提取方剂中的所有药物实体
-2. 为每个药物指定角色：君药、臣药、佐药、使药
-3. 提取每个药物的剂量和功效
+2. 提取每个药物的固有属性：
+   - 性味：如辛温、苦寒、甘平
+   - 归经：如归肺经、归脾经
+   - 功效：如发汗解表、温通经脉
+3. 注意：只提取药物本身的属性，不要提取剂量和角色
 
 ### 源文本:
 """
 
 _EDGE_PROMPT = """## 角色与任务
-你是一位专业的方剂学专家，请从给定药物列表中提取方剂的君臣佐使结构。
+请从已知药物列表中提取方剂的君臣佐使结构。
 
 ## 核心概念定义
-- **节点 (Node)**：本模板中的"节点"指方剂中的药物实体，作为方剂的组成部分。
-- **边 (Edge)**：本模板中的"边"指方剂超边，包含方剂名称、君药、臣药、佐药、使药列表、方剂功能、主治证候、煎服法等信息。
+- **边 (Edge)**：方剂超边，存储方剂信息及药物在该方剂中的具体信息
 
 ## 提取规则
-1. 提取方剂名称
-2. 从已知药物列表中提取君药、臣药、佐药、使药列表
-3. 提取方剂功能和主治证候
-4. 提取煎服法
+1. 提取方剂名称和来源
+2. 提取君药、臣药、佐药、使药列表
+3. 每个药物需包含：
+   - 名称（必须从已知药物列表中选择）
+   - 剂量
+   - 炮制方法（如有）
+4. 提取方剂功能和主治证候
+5. 提取煎服法
 
-### 约束条件
-1. 仅从下方已知药物列表中提取药物
-2. 不要创建未列出的药物
-3. 每条边必须包含方剂名称和至少一种角色的药物列表
-
+## 约束条件
+1. 药物名称必须从已知药物列表中选择
+2. 每条边必须包含方剂名称
+3. 药物角色通过所属列表（君/臣/佐/使）区分
 """
 
 
@@ -106,6 +124,10 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
 
     功能介绍:
     将方剂建模为 {君药, 臣药, 佐药, 使药} 的层级化超边结构，适用于方剂结构解析、组方规律研究。
+
+    设计说明:
+    - 节点（HerbNode）：存储药物的固有属性（性味归经、功效），不随方剂变化
+    - 边（FormulaHyperedge）：存储方剂信息，以及药物在该方剂中的具体信息（剂量、角色）
 
     Example:
         >>> template = FormulaComposition(llm_client=llm, embedder=embedder)
@@ -135,19 +157,25 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
             verbose: 是否输出详细日志，默认为 False
             **kwargs: 其他技术参数，传递给基类
         """
+
+        def nodes_in_edge_extractor(edge: FormulaHyperedge) -> set:
+            herbs = []
+            for herb_list in [
+                edge.junHerbs,
+                edge.chenHerbs,
+                edge.zuoHerbs,
+                edge.shiHerbs,
+            ]:
+                for herb in herb_list:
+                    herbs.append(herb.name)
+            return set(herbs)
+
         super().__init__(
             node_schema=HerbNode,
             edge_schema=FormulaHyperedge,
             node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: x.formulaName,
-            nodes_in_edge_extractor=lambda x: set(
-                [
-                    *x.junHerbs,
-                    *x.chenHerbs,
-                    *x.zuoHerbs,
-                    *x.shiHerbs,
-                ]
-            ),
+            nodes_in_edge_extractor=nodes_in_edge_extractor,
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -178,7 +206,7 @@ class FormulaComposition(AutoHypergraph[HerbNode, FormulaHyperedge]):
         """
 
         def node_label_extractor(node: HerbNode) -> str:
-            return f"{node.name} ({node.role})"
+            return f"{node.name}"
 
         def edge_label_extractor(edge: FormulaHyperedge) -> str:
             return edge.formulaName

@@ -34,59 +34,46 @@ class GeneralRelation(BaseModel):
 
 
 _PROMPT = """## Role and Task
-You are a professional knowledge graph extraction expert. Please extract all entities (nodes) and their relationships (edges) from the text.
+You are a professional knowledge graph extraction expert. Please extract entities and their relationships from the text.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a general entity, including types such as Person, Organization, Location, Product, Concept, etc., used to represent basic entities in a knowledge graph.
-- **Edge**: In this template, "Edge" refers to a binary relationship between entities, including relationship types such as BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, and RelatedTo.
+- **Node**: general entity
+- **Edge**: binary relationship between entities
 
 ## Extraction Rules
 ### Node Extraction Rules
-1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
-2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other
-3. Keep entity names consistent with the original text
-4. Add a brief description for each entity
+1. Extract all entities
+2. Assign a type to each entity
 
 ### Edge Extraction Rules
 1. Only create edges from extracted entities
-2. Relationship types include: BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, RelatedTo, etc.
-
-### Constraints
-- Each edge must connect extracted nodes
-- Do not create entities or relationships not mentioned in the text
-- Maintain objectivity and accuracy, do not add information not in the text
+2. Each edge must connect extracted nodes
 
 ### Source text:
 """
 
 _NODE_PROMPT = """## Role and Task
-You are a professional entity recognition expert. Please extract all key entities as nodes from the text.
+Please extract key entities as nodes from the text.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a general entity, including types such as Person, Organization, Location, Product, Concept, etc., used to represent basic entities in a knowledge graph.
+- **Node**: general entity
 
 ## Extraction Rules
-1. Extract all entities: Person, Organization, Location, Product, Concept, etc.
-2. Assign a type to each entity: Person, Organization, Location, Product, Concept, Other
-3. Keep entity names consistent with the original text
-4. Add a brief description for each entity
+1. Extract all entities
+2. Assign a type to each entity
 
 ### Source text:
 """
 
 _EDGE_PROMPT = """## Role and Task
-You are a professional relationship extraction expert. Please extract relationships between entities from the given entity list.
+Please extract relationships between entities from the known entity list.
 
 ## Core Concept Definitions
-- **Node**: In this template, "Node" refers to a general entity, as participants in relationships.
-- **Edge**: In this template, "Edge" refers to a binary relationship between entities, including relationship types such as BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, and RelatedTo.
+- **Edge**: binary relationship between entities
 
-## Extraction Rules
-### Constraints
-1. Only extract edges from the known entity list below
+## Constraints
+1. Only extract edges from the known entity list
 2. Do not create unlisted entities
-3. Relationship types include: BelongsTo, LocatedIn, CollaboratesWith, CompetesWith, InventedBy, CreatedBy, RelatedTo, etc.
-
 """
 
 
@@ -114,16 +101,16 @@ class KnowledgeGraph(AutoGraph[GeneralEntity, GeneralRelation]):
         **kwargs: Any,
     ):
         """
-        Initialize general knowledge graph template.
+        Initialize the general knowledge graph template.
 
         Args:
             llm_client: LLM client for knowledge extraction
-            embedder: Embedding model for semantic search
-            extraction_mode: Extraction mode, either "one_stage" (extract nodes and edges simultaneously)
-                or "two_stage" (extract nodes first, then edges), default: "two_stage"
-            max_workers: Maximum number of worker threads, default: 10
-            verbose: Whether to output detailed logs, default: False
-            **kwargs: Other technical parameters, passed to base class
+            embedder: Embedding model for semantic retrieval
+            extraction_mode: Extraction mode, optional "one_stage" (extract nodes and edges simultaneously)
+                or "two_stage" (extract nodes first, then edges), default is "two_stage"
+            max_workers: Maximum worker threads, default is 10
+            verbose: Whether to output detailed logs, default is False
+            **kwargs: Other technical parameters, passed to the base class
         """
         super().__init__(
             node_schema=GeneralEntity,
@@ -151,13 +138,13 @@ class KnowledgeGraph(AutoGraph[GeneralEntity, GeneralRelation]):
         top_k_edges_for_chat: int = 3,
     ):
         """
-        Display knowledge graph.
+        Display the knowledge graph.
 
         Args:
-            top_k_nodes_for_search: Number of nodes to return for semantic search, default: 3
-            top_k_edges_for_search: Number of edges to return for semantic search, default: 3
-            top_k_nodes_for_chat: Number of nodes to use for chat, default: 3
-            top_k_edges_for_chat: Number of edges to use for chat, default: 3
+            top_k_nodes_for_search: Number of nodes returned by semantic search, default is 3
+            top_k_edges_for_search: Number of edges returned by semantic search, default is 3
+            top_k_nodes_for_chat: Number of nodes used for Q&A, default is 3
+            top_k_edges_for_chat: Number of edges used for Q&A, default is 3
         """
 
         def node_label_extractor(node: GeneralEntity) -> str:

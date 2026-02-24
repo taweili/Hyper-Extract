@@ -136,11 +136,13 @@ class AutoModel(BaseAutoType[T]):
         return self._data
 
     def empty(self) -> bool:
-        """Checks if the model is empty (all fields are None).
+        """Checks if the model is empty (no data stored).
 
         Returns:
             True if no data is stored, False otherwise.
         """
+        if self._data is None:
+            return True
         for field_name in self._data_schema.model_fields:
             value = getattr(self._data, field_name)
             # Check if the value is not considered empty
@@ -158,10 +160,10 @@ class AutoModel(BaseAutoType[T]):
 
     def _init_data_state(self) -> None:
         """
-        INIT/RESET: Initialize or reset with empty schema instance.
+        INIT/RESET: Initialize or reset to empty state (None).
         Called during __init__ and when clear() is called.
         """
-        self._data = self._data_schema()
+        self._data = None
 
     def _init_index_state(self) -> None:
         """Initialize vector index to empty state."""
@@ -210,7 +212,7 @@ class AutoModel(BaseAutoType[T]):
             A new merged knowledge object with intelligently combined fields.
         """
         if not data_list:
-            return self._data_schema()
+            return None
 
         if len(data_list) == 1:
             return data_list[0]

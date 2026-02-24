@@ -10,16 +10,33 @@ from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoModel
 
 
+class MedicationItem(BaseModel):
+    """出院带药项"""
+    name: str = Field(description="药物名称")
+    dosage: str = Field(description="剂量")
+    usage: str = Field(description="用法")
+    frequency: str = Field(description="频次")
+
+
+class FollowUpItem(BaseModel):
+    """复诊计划项"""
+    time: str = Field(description="时间")
+    department: str = Field(description="科室")
+    examItems: List[str] = Field(description="检查项目", default_factory=list)
+
+
 class DischargeInstructionInfo(BaseModel):
     """出院医嘱信息"""
 
-    medications: List[dict] = Field(
-        description="出院带药列表，每个药物包含名称、剂量、用法、频次等信息"
+    medications: List[MedicationItem] = Field(
+        description="出院带药列表，每个药物包含名称、剂量、用法、频次等信息",
+        default_factory=list
     )
-    followUp: List[dict] = Field(
-        description="复诊计划列表，每个复诊包含时间、科室、检查项目等信息"
+    followUp: List[FollowUpItem] = Field(
+        description="复诊计划列表，每个复诊包含时间、科室、检查项目等信息",
+        default_factory=list
     )
-    rehabilitation: List[str] = Field(description="康复建议列表")
+    rehabilitation: List[str] = Field(description="康复建议列表", default_factory=list)
     diet: List[str] = Field(description="饮食建议列表", default_factory=list)
     activity: List[str] = Field(description="活动建议列表", default_factory=list)
     notes: List[str] = Field(description="其他注意事项列表", default_factory=list)
