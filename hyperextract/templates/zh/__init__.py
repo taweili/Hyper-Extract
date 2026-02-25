@@ -116,6 +116,37 @@ from .tcm import (
     PulseTongueRecord,
 )
 
+from .literature import (
+    # 影视剧本模板
+    SceneEventHypergraph,
+    NarrativeTimeline,
+    # 长篇小说模板
+    ComplexCharacterRelation,
+    StoryEntityGraph,
+    NarrativeEventChain,
+    # 文学评论模板
+    MotifAssociationNet,
+    CritiqueArgumentHypergraph,
+    NarrativeStructureTree,
+)
+
+from .legal import (
+    # 法学专著与评注
+    LegalConceptOntology,
+    CaseLawCitationNet,
+    # 主服务协议
+    ContractObligationHypergraph,
+    DefinedTermRegistry,
+    LiabilityClauseList,
+    # 法院判决书
+    CaseFactTimeline,
+    AdjudicationLogic,
+    LitigationParticipantMap,
+    # 合规申报文件
+    ComplianceRequirementList,
+    BeneficialOwnershipGraph,
+)
+
 __all__ = [
     # General
     "KnowledgeGraph",
@@ -211,4 +242,24 @@ __all__ = [
     "BiochemicalReactionHypergraph",
     "RegulatoryNetwork",
     "BiodiversityRegistry",
+    # Literature
+    "SceneEventHypergraph",
+    "NarrativeTimeline",
+    "ComplexCharacterRelation",
+    "StoryEntityGraph",
+    "NarrativeEventChain",
+    "MotifAssociationNet",
+    "CritiqueArgumentHypergraph",
+    "NarrativeStructureTree",
+    # Legal
+    "LegalConceptOntology",
+    "CaseLawCitationNet",
+    "ContractObligationHypergraph",
+    "DefinedTermRegistry",
+    "LiabilityClauseList",
+    "CaseFactTimeline",
+    "AdjudicationLogic",
+    "LitigationParticipantMap",
+    "ComplianceRequirementList",
+    "BeneficialOwnershipGraph",
 ]
