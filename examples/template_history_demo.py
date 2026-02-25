@@ -78,8 +78,8 @@ TEMPLATE_TO_INPUT = {
 
 # 口述历史
 # TEMPLATE = PersonalTrajectoryHypergraph
-# TEMPLATE = NarrativeRelationGraph
-TEMPLATE = MemoryFlashbackList
+TEMPLATE = NarrativeRelationGraph
+# TEMPLATE = MemoryFlashbackList
 
 # 档案馆藏信札
 # TEMPLATE = EpistolaryKnowledgeGraph
