@@ -62,11 +62,11 @@ TEMPLATE_TO_INPUT = {
 # TEMPLATE = PestControlHypergraph  # 病虫害防治超图
 
 # 巡田报告
-TEMPLATE = FieldObservationList  # 田间观测清单
+# TEMPLATE = FieldObservationList  # 田间观测清单
 
 # 土壤分析报告
 # TEMPLATE = SoilNutrientModel  # 土壤养分模型
-# TEMPLATE = AmendmentPlan  # 改良方案图
+TEMPLATE = AmendmentPlan  # 改良方案图
 
 # 自动获取对应的输入文件
 INPUT_FILE = TEMPLATE_TO_INPUT[TEMPLATE]

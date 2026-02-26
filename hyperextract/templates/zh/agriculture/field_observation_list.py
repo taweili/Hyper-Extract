@@ -83,7 +83,7 @@ class FieldObservationList(AutoList[FieldObservation]):
             **kwargs: 其他技术参数，传递给基类
         """
         super().__init__(
-            data_schema=FieldObservation,
+            item_schema=FieldObservation,
             llm_client=llm_client,
             embedder=embedder,
             prompt=_PROMPT,
@@ -108,11 +108,11 @@ class FieldObservationList(AutoList[FieldObservation]):
             top_k_for_chat (int): 对话上下文中的条目数。默认 3。
         """
 
-        def label_extractor(item: FieldObservation) -> str:
+        def item_label_extractor(item: FieldObservation) -> str:
             return f"{item.plot_id} | {item.crop} | {item.growth_stage}"
 
         super().show(
-            item_label_extractor=label_extractor,
+            item_label_extractor=item_label_extractor,
             top_k_for_search=top_k_for_search,
             top_k_for_chat=top_k_for_chat,
         )

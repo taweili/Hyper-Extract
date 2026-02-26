@@ -1,4 +1,4 @@
-"""观点逻辑结构 - 建模文章的论证逻辑：{核心观点, 支撑论据, 背景引用}。
+"""观点逻辑结构 - 建模文章的论证逻辑，将观点、论据、背景引用聚合为观点结构。
 
 适用于社论分析、舆情观点聚类。
 """
@@ -10,102 +10,103 @@ from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoHypergraph
 
 
-class ArgumentElementNode(BaseModel):
-    """论证元素节点"""
+class ArgumentElement(BaseModel):
+    """论证元素"""
 
-    name: str = Field(description="元素名称")
+    name: str = Field(description="元素名称，简短唯一标识符，如'政策建议'、'数据支撑'、'专家观点'")
     category: str = Field(description="元素类型：观点、论据、背景引用")
-    content: str = Field(description="内容")
-    source: str = Field(description="来源", default="")
+    content: str = Field(description="完整内容，概括原文意思")
+    source: str = Field(description="来源，如无则为空白", default="")
 
 
-class ViewpointHyperedge(BaseModel):
-    """观点结构超边"""
+class ViewpointCluster(BaseModel):
+    """观点聚合超边"""
 
-    coreViewpoint: str = Field(description="核心观点")
-    supportingEvidences: List[str] = Field(description="支撑论据列表")
-    backgroundCitations: List[str] = Field(description="背景引用列表")
-    source: str = Field(description="观点来源（专家/机构名称）", default="")
-    description: str = Field(description="论证描述")
+    name: str = Field(description="聚合名称，简短唯一标识，如'核心论点'、'论证结构'、'分析框架'")
+    participantNames: List[str] = Field(description="参与此观点论证的所有元素名称列表，必须从已提取的节点中选择")
+    description: str = Field(description="论证描述，说明这些元素如何构成观点")
 
 
 _NODE_PROMPT = """## 角色与任务
-请从政策分析或社论文本中提取所有论证元素作为节点。
+你是一位专业的政策分析师，请从政策分析或社论文本中提取所有论证元素作为节点。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的论证元素
-- **边 (Edge)**：连接多个元素的超边，表示完整的论证结构
+- **节点 (Node)**：从文档中提取的论证元素，包括观点、论据、背景引用
+- **边 (Edge)**：连接多个节点的超边，将相关的论证元素聚合为完整的观点结构
 
 ## 提取规则
 ### 核心约束
 1. 每个节点只能对应一个独立的元素，禁止将多个元素合并为一个节点
-2. 元素名称与原文保持一致
+2. 元素名称 (name) 必须是简短、唯一的标识符，用于后续引用
+3. 元素名称与原文保持一致，但要简洁（不超过10个字）
+4. 内容 (content) 字段要完整概括原文意思
 
 ### 领域特定规则
-- 元素类型：观点（核心论点）、论据（支撑观点的证据或分析）、背景引用（政策、数据、专家说法）
-- 内容要完整概括原文意思
+- **观点**：作者的核心论点、主张或结论（如"经济发展应优先于环境保护"）
+- **论据**：支撑观点的证据、数据或分析（如"GDP增长率下降2%"）
+- **背景引用**：政策文件、统计数据、专家说法等外部引用（如"根据国家统计局2023年数据"）
 - 来源如无则为空白
 
 ### 源文本:
 """
 
 _EDGE_PROMPT = """## 角色与任务
-请从已知论证元素列表中提取观点结构的超边。
+你是一位专业的政策分析师，请从已知论证元素列表中构建观点聚合超边。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的论证元素
-- **边 (Edge)**：连接多个元素的超边，表示完整的论证结构
+- **节点 (Node)**：从文档中提取的论证元素，每个节点有唯一的name作为标识符
+- **边 (Edge)**：连接多个节点的超边，将围绕同一观点的相关元素聚合在一起
 
 ## 提取规则
 ### 核心约束
-1. 超边必须包含至少一个论据或背景引用
-2. 超边必须包含核心观点
-3. 仅从已知元素列表中提取边，不要创建未列出的元素
-4. 描述应与原文保持一致
+1. 每个超边代表一个完整的观点论证结构
+2. 超边必须包含至少2个节点（一个观点 + 至少一个论据或背景引用）
+3. 只能从已知节点列表中选择，禁止创建未列出的节点
+4. participantNames字段必须填写节点的名字
+
+### 引用规则（关键）
+- `participantNames` 字段：填写参与此观点论证的所有元素名称列表
 
 ### 领域特定规则
-- 论据：支撑观点的证据或分析
-- 背景引用：政策文件、统计数据、专家说法
-- 观点：作者的核心论点
+- 将围绕同一核心观点的所有相关元素聚合到一个超边中
+- 一个观点可以参与多个超边（从不同角度论证）
+- 描述应说明这些元素如何共同支撑观点
 
 """
 
 _PROMPT = """## 角色与任务
-你是一位专业的政策分析师，请从文本中提取论证元素以及它们组成的观点结构超边。
+你是一位专业的政策分析师，请从文本中提取论证元素以及它们组成的观点聚合超边。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的论证元素
-- **边 (Edge)**：连接多个元素的超边，表示完整的论证结构
+- **节点 (Node)**：从文档中提取的论证元素，包括观点、论据、背景引用
+- **边 (Edge)**：连接多个节点的超边，将围绕同一观点的相关元素聚合在一起
 
 ## 提取规则
 ### 核心约束
-1. 每个节点只能对应一个独立的元素，禁止将多个元素合并为一个节点
-2. 元素名称与原文保持一致
-3. 超边必须包含至少一个论据或背景引用
-4. 超边必须包含核心观点
-5. 仅从已知元素列表中提取边，不要创建未列出的元素
-6. 描述应与原文保持一致
+1. 每个节点只能对应一个独立的元素，禁止将多个元素合并
+2. 元素名称 (name) 必须是简短、唯一的标识符（不超过10个字）
+3. 每个超边必须包含至少2个节点（观点 + 论据/背景引用）
+4. 超边中的participantNames必须填写节点的元素名称
 
 ### 领域特定规则
-- 元素类型：观点、论据、背景引用
-- 论据：支撑观点的证据或分析
-- 背景引用：政策文件、统计数据、专家说法
-- 观点：作者的核心论点
+- **观点**：作者的核心论点
+- **论据**：支撑观点的证据或分析
+- **背景引用**：政策文件、统计数据、专家说法
 
 ### 源文本:
 """
 
 
-class ViewpointStructure(AutoHypergraph[ArgumentElementNode, ViewpointHyperedge]):
+class ViewpointStructure(AutoHypergraph[ArgumentElement, ViewpointCluster]):
     """
     适用文档: 政策分析、社论、舆情文章
 
     功能介绍:
-    建模文章的论证逻辑：{核心观点, 支撑论据, 背景引用}。
+    建模文章的论证逻辑，将观点、论据、背景引用聚合为观点结构。
 
     设计说明:
-    - 节点（ArgumentElementNode）：存储论证元素信息，包括名称、类型、内容、来源
-    - 边（ViewpointHyperedge）：存储观点结构信息，包括核心观点、论据、引用、描述
+    - 节点（ArgumentElement）：存储论证元素信息，包括名称、类型、内容、来源
+    - 边（ViewpointCluster）：将围绕同一观点的相关元素聚合在一起
 
     Example:
         >>> template = ViewpointStructure(llm_client=llm, embedder=embedder)
@@ -124,7 +125,7 @@ class ViewpointStructure(AutoHypergraph[ArgumentElementNode, ViewpointHyperedge]
         **kwargs: Any,
     ):
         """
-        初始化观点逻辑结构模板。
+        初始化观点结构模板。
 
         Args:
             llm_client: LLM 客户端，用于知识提取
@@ -136,18 +137,14 @@ class ViewpointStructure(AutoHypergraph[ArgumentElementNode, ViewpointHyperedge]
             **kwargs: 其他技术参数，传递给基类
         """
 
-        def nodes_in_edge_extractor(edge: ViewpointHyperedge) -> set:
-            nodes = set()
-            nodes.add(edge.coreViewpoint)
-            nodes.update(edge.supportingEvidences)
-            nodes.update(edge.backgroundCitations)
-            return nodes
+        def nodes_in_edge_extractor(edge: ViewpointCluster) -> set:
+            return set(edge.participantNames)
 
         super().__init__(
-            node_schema=ArgumentElementNode,
-            edge_schema=ViewpointHyperedge,
+            node_schema=ArgumentElement,
+            edge_schema=ViewpointCluster,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: x.coreViewpoint[:30],
+            edge_key_extractor=lambda x: x.name,
             nodes_in_edge_extractor=nodes_in_edge_extractor,
             llm_client=llm_client,
             embedder=embedder,
@@ -169,7 +166,7 @@ class ViewpointStructure(AutoHypergraph[ArgumentElementNode, ViewpointHyperedge]
         top_k_edges_for_chat: int = 3,
     ):
         """
-        展示观点逻辑结构。
+        展示观点结构。
 
         Args:
             top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
@@ -178,11 +175,11 @@ class ViewpointStructure(AutoHypergraph[ArgumentElementNode, ViewpointHyperedge]
             top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
 
-        def node_label_extractor(node: ArgumentElementNode) -> str:
+        def node_label_extractor(node: ArgumentElement) -> str:
             return f"{node.name}[{node.category}]"
 
-        def edge_label_extractor(edge: ViewpointHyperedge) -> str:
-            return f"观点: {edge.coreViewpoint[:20]}..."
+        def edge_label_extractor(edge: ViewpointCluster) -> str:
+            return edge.name
 
         super().show(
             node_label_extractor=node_label_extractor,

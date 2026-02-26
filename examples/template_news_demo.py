@@ -64,7 +64,7 @@ TEMPLATE_TO_INPUT = {
 # ==========================================
 
 # 深度调查报道
-# TEMPLATE = InvestigativeContextGraph  # 调查背景图谱
+TEMPLATE = InvestigativeContextGraph  # 调查背景图谱
 # TEMPLATE = ComplexRelationNet  # 复杂关系网络
 # TEMPLATE = KeyEventSequence  # 调查事件脉络
 
@@ -75,7 +75,7 @@ TEMPLATE_TO_INPUT = {
 
 # 政策解读与社论
 # TEMPLATE = ViewpointStructure  # 观点逻辑结构
-TEMPLATE = ImpactChain  # 影响推演链
+# TEMPLATE = ImpactChain  # 影响推演链
 
 # 自动获取对应的输入文件
 INPUT_FILE = TEMPLATE_TO_INPUT[TEMPLATE]

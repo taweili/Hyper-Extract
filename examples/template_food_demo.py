@@ -46,7 +46,7 @@ TEMPLATE_TO_INPUT = {
     RecipeCollection: TEST_SAMPLES_ROOT / "restaurant_menu.md",
     # 标准化食谱 -> 标准食谱卡片
     StandardRecipeCard: TEST_SAMPLES_ROOT / "recipe_standard_card.md",
-    IngredientCompositionHypergraph: TEST_SAMPLES_ROOT / "recipe_standard_card.md",
+    IngredientCompositionHypergraph: TEST_SAMPLES_ROOT / "multi_recipe_card.md",
     # 美食评论与感官评价 -> 食评文章
     DishReviewSummary: TEST_SAMPLES_ROOT / "food_review_article.md",
     SensoryEvaluationGraph: TEST_SAMPLES_ROOT / "food_review_article.md",
@@ -60,10 +60,10 @@ TEMPLATE_TO_INPUT = {
 # 标准化食谱
 # TEMPLATE = RecipeCollection  # 菜谱名录
 # TEMPLATE = StandardRecipeCard  # 单品标准食谱
-# TEMPLATE = IngredientCompositionHypergraph  # 食材配伍超图
+TEMPLATE = IngredientCompositionHypergraph  # 食材配伍超图
 
 # 美食评论与感官评价
-TEMPLATE = DishReviewSummary  # 食评摘要清单
+# TEMPLATE = DishReviewSummary  # 食评摘要清单
 # TEMPLATE = SensoryEvaluationGraph  # 感官评价图谱
 
 # 自动获取对应的输入文件
