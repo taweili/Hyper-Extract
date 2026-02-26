@@ -355,15 +355,15 @@ Focuses on the "5Ws" (Who, What, Where, When, Why), event causality, and viewpoi
 | :--- | :--- | :--- | :--- |
 | **`InvestigativeContextGraph`** | `AutoGraph` | **Investigation Context Graph**. Extracts baseline static relationships (employment, kinship, location) between all entities mentioned in the report. | Entity mapping, Stakeholder identification |
 | **`ComplexRelationNet`** | `AutoHypergraph` | **Complex Relationship Network**. Models multi-party social connections (e.g., family ties, political alliances, business partnerships) involving three or more entities. | Political analysis, feature stories |
-| **`KeyEventSequence`** | `AutoTemporalGraph` | **Investigative Timeline**. Traces the chronological sequence of critical events discovered during an investigation. | Retrospective reports, backgrounders |
+| **`KeyEventSequence`** | `AutoGraph` | **Investigative Timeline**. Traces the chronological sequence of critical events discovered during an investigation. | Retrospective reports, backgrounders |
 
 *   **Breaking News Wires**: Short, factual updates focusing on immediate events and entities.
 
 | Template | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
-| **`NewsEntityGraph`** | `AutoGraph` | **Core Entity Graph**. Quickly extracts key subjects (who) and their direct actions (what) or relations. | News feeds, entity linking |
+| **`NewsEntityGraph`** | `AutoGraph` | **Core Entity Graph**. Extracts key entities (people, organizations, locations, products, events, states, etc.) and their actions or relations from news text. | News feeds, entity linking |
 | **`NewsSummaryModel`** | `AutoModel` | **Structured Summary**. Standardized extraction of 5W1H elements (Who, What, When, Where, Why, How). | News aggregation, Ticker generation |
-| **`LiveUpdateTimeline`** | `AutoTemporalGraph` | **Live Event Timeline**. Extracts minute-by-minute updates of an unfolding situation (e.g., press conferences, emergencies). | Live blog summary, Crisis monitoring |
+| **`LiveUpdateTimeline`** | `AutoGraph` | **Live Event Timeline**. Extracts minute-by-minute updates of an unfolding situation (e.g., press conferences, emergencies). | Live blog summary, Crisis monitoring |
 
 *   **Policy Analysis & Editorials**: Analytical pieces focusing on opinions, arguments, and future impacts.
 

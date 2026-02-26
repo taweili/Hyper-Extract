@@ -130,6 +130,20 @@ from .literature import (
     NarrativeStructureTree,
 )
 
+from .news import (
+    # 深度调查报道
+    InvestigativeContextGraph,
+    ComplexRelationNet,
+    KeyEventSequence,
+    # 突发新闻与电讯
+    NewsEntityGraph,
+    NewsSummaryModel,
+    LiveUpdateTimeline,
+    # 政策解读与社论
+    ViewpointStructure,
+    ImpactChain,
+)
+
 from .legal import (
     # 法学专著与评注
     LegalConceptOntology,
@@ -145,6 +159,27 @@ from .legal import (
     # 合规申报文件
     ComplianceRequirementList,
     BeneficialOwnershipGraph,
+)
+
+from .food import (
+    # 标准化食谱
+    RecipeCollection,
+    StandardRecipeCard,
+    IngredientCompositionHypergraph,
+    # 美食评论与感官评价
+    DishReviewSummary,
+    SensoryEvaluationGraph,
+)
+
+from .agriculture import (
+    # 农业技术手册
+    CropGrowthCycle,
+    PestControlHypergraph,
+    # 巡田报告
+    FieldObservationList,
+    # 土壤分析报告
+    SoilNutrientModel,
+    AmendmentPlan,
 )
 
 __all__ = [
@@ -262,4 +297,25 @@ __all__ = [
     "LitigationParticipantMap",
     "ComplianceRequirementList",
     "BeneficialOwnershipGraph",
+    # Food
+    "RecipeCollection",
+    "StandardRecipeCard",
+    "IngredientCompositionHypergraph",
+    "DishReviewSummary",
+    "SensoryEvaluationGraph",
+    # Agriculture
+    "CropGrowthCycle",
+    "PestControlHypergraph",
+    "FieldObservationList",
+    "SoilNutrientModel",
+    "AmendmentPlan",
+    # News
+    "InvestigativeContextGraph",
+    "ComplexRelationNet",
+    "KeyEventSequence",
+    "NewsEntityGraph",
+    "NewsSummaryModel",
+    "LiveUpdateTimeline",
+    "ViewpointStructure",
+    "ImpactChain",
 ]

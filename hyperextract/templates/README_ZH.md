@@ -356,15 +356,15 @@
 | :--- | :--- | :--- | :--- |
 | **`InvestigativeContextGraph`** | `AutoGraph` | **调查背景图谱**。提取报道中涉及的所有人物、机构、地点及其表层的静态关系（如任职、亲属、所在地）。 | 实体关系梳理、利益相关方识别 |
 | **`ComplexRelationNet`** | `AutoHypergraph` | **复杂关系网络**。建模涉及多方（三人及以上）的社会关联（如家族、政治盟友、商业伙伴），而非简单的点对点关系。 | 人物特稿、政商关系分析 |
-| **`KeyEventSequence`** | `AutoTemporalGraph` | **调查事件脉络**。按时间顺序还原调查中揭露的关键事件节点，梳理前因后果。 | 深度回顾、历史遗留问题揭秘 |
+| **`KeyEventSequence`** | `AutoGraph` | **调查事件脉络**。按时间顺序还原调查中揭露的关键事件节点，梳理前因后果。 | 深度回顾、历史遗留问题揭秘 |
 
 *   **突发新闻与电讯 (Breaking News & Wire Stories)**：注重时效性和核心事实的短消息。
 
 | 模板名称 | 底层原语 | 描述 | 典型应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`NewsEntityGraph`** | `AutoGraph` | **新闻实体图谱**。快速提取快讯中的核心主体（Who）及其直接动作（Action）或状态。 | 即时新闻流、实体链接 |
+| **`NewsEntityGraph`** | `AutoGraph` | **新闻实体图谱**。提取新闻文本中的核心实体（人物、机构、地点、产品、事件、状态等）及其动作或关系。 | 即时新闻流、实体链接 |
 | **`NewsSummaryModel`** | `AutoModel` | **结构化摘要**。标准化提取 5W1H 要素（Who, What, When, Where, Why, How）。 | 新闻聚合、自动简报 |
-| **`LiveUpdateTimeline`** | `AutoTemporalGraph` | **实时动态时间轴**。针对正在发生的事件（如由于发布会、突发事态），提取分钟级更新。 | 直播贴整理、实时监控 |
+| **`LiveUpdateTimeline`** | `AutoGraph` | **实时动态时间轴**。针对正在发生的事件（如由于发布会、突发事态），提取分钟级更新。 | 直播贴整理、实时监控 |
 
 *   **政策解读与社论 (Policy Analysis & Editorials)**：侧重观点、论证逻辑及未来影响分析的文章。
 

@@ -1,0 +1,1 @@
+# News domain test samples
