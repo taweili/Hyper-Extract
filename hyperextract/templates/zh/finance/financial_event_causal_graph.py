@@ -64,34 +64,68 @@ class EventCausalEdge(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是宏观策略师和财经新闻分析师。从这篇新闻或评论中提取金融事件、受影响的市场实体"
-    "以及连接它们的因果链。\n\n"
-    "规则:\n"
-    "- 识别触发事件（政策决议、财报、经济数据发布）。\n"
-    "- 识别受影响的实体（板块、个股、指数、大宗商品）。\n"
-    "- 映射从事件到市场反应的因果链。\n"
-    "- 捕捉反应的幅度和时间。\n"
-    "- 记录每条因果关系的置信度。"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的宏观策略师和财经新闻分析师，请从文本中提取金融事件、受影响的市场实体以及连接它们的因果链。
 
-_NODE_PROMPT = (
-    "你是宏观策略师。提取所有金融事件、实体和市场反应（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别触发事件和政策决议。\n"
-    "- 识别市场板块、指数和大宗商品。\n"
-    "- 识别市场反应和价格变动。\n"
-    "- 此阶段不建立因果关系。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的金融事件、市场实体或市场反应
+- **边 (Edge)**：节点之间的关系
 
-_EDGE_PROMPT = (
-    "你是宏观策略师。在获得事件和实体清单的基础上，提取因果链（边）。\n\n"
-    "提取规则:\n"
-    "- 将事件连接到其下游市场效果。\n"
-    "- 描述每条链路的因果机制。\n"
-    "- 记录影响方向、幅度和时间。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 识别触发事件（政策决议、财报、经济数据发布）
+- 识别受影响的实体（板块、个股、指数、大宗商品）
+- 映射从事件到市场反应的因果链
+- 捕捉反应的幅度和时间
+- 记录每条因果关系的置信度
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的宏观策略师，请从文本中提取所有金融事件、实体和市场反应作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的金融事件、市场实体或市场反应
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别触发事件和政策决议
+- 识别市场板块、指数和大宗商品
+- 识别市场反应和价格变动
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的宏观策略师，请从给定实体列表中提取因果链。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的金融事件、市场实体或市场反应
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 将事件连接到其下游市场效果
+- 描述每条链路的因果机制
+- 记录影响方向、幅度和时间
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -107,9 +141,6 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
     支持事件驱动策略开发和宏观影响分析。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> causal = FinancialEventCausalGraph(llm_client=llm, embedder=embedder)
         >>> news = "美联储加息 25 个基点，推动银行股上涨，同时科技股遭到抛售..."
         >>> causal.feed_text(news)
@@ -121,7 +152,7 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        extraction_mode: str = "one_stage",
+        extraction_mode: str = "two_stage",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -144,11 +175,11 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
         super().__init__(
             node_schema=FinancialEventNode,
             edge_schema=EventCausalEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}--({x.direction})-->{x.target.strip().lower()}"
+                f"{x.source}--({x.direction})-->{x.target}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,

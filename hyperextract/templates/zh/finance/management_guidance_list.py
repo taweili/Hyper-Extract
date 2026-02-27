@@ -1,3 +1,12 @@
+"""管理层业绩指引列表 - 从财报电话会议中提取管理层未来业绩指引。
+
+适用文档: 财报电话会议记录、10-Q/10-K 管理层讨论部分
+
+功能介绍:
+    提取管理层对未来营收、EPS、利润率等关键指标的指引，
+    支持投资者预期管理和业绩跟踪。
+"""
+
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -50,18 +59,23 @@ class GuidanceItem(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是跟踪财报电话会议管理层指引的分析师。"
-    "从本会议记录中提取所有前瞻性声明和业绩指引。\n\n"
-    "规则:\n"
-    "- 提取每一项指引条目（定量数据、战略规划、展望声明）。\n"
-    "- 注明指引相较前次是上调、下调还是维持不变。\n"
-    "- 捕捉每项指引覆盖的时间段。\n"
-    "- 保留管理层的确信程度措辞。\n"
-    "- 识别每项指引的发布者。\n"
-    "- 将每项指引声明作为独立条目提取。\n\n"
-    "### 原文:\n"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的分析师，请从财报电话会议记录中提取所有前瞻性声明和业绩指引。
+
+## 提取规则
+### 核心约束
+1. 每个条目对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 提取每一项指引条目（定量数据、战略规划、展望声明）
+- 注明指引相较前次是上调、下调还是维持不变
+- 捕捉每项指引覆盖的时间段
+- 保留管理层的确信程度措辞
+- 识别每项指引的发布者
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -77,9 +91,6 @@ class ManagementGuidanceList(AutoList[GuidanceItem]):
     独立捕捉，便于跟踪修订和管理预期。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> guidance = ManagementGuidanceList(llm_client=llm, embedder=embedder)
         >>> transcript = "对于第四季度，我们预计收入在 950 至 970 亿美元之间..."
         >>> guidance.feed_text(transcript)

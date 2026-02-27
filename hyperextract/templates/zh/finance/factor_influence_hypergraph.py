@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoHypergraph
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class InvestmentFactor(BaseModel):
     """
@@ -23,16 +19,12 @@ class InvestmentFactor(BaseModel):
     name: str = Field(
         description="因子名称（例如 'GDP 增长'、'半导体周期'、'云计算收入'）。"
     )
-    factor_level: str = Field(
-        description="层级：'宏观'、'行业'、'公司'、'技术面'。"
-    )
+    factor_level: str = Field(description="层级：'宏观'、'行业'、'公司'、'技术面'。")
     current_reading: Optional[str] = Field(
         None,
         description="当前值或状态（例如 '同比 3.2%'、'上升周期'、'加速增长'）。",
     )
-    description: Optional[str] = Field(
-        None, description="该因子重要性的说明。"
-    )
+    description: Optional[str] = Field(None, description="该因子重要性的说明。")
 
 
 class FactorInteraction(BaseModel):
@@ -62,41 +54,64 @@ class FactorInteraction(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的量化基本面研究分析师，请从研究报告中提取投资因子及其多因子交互关系。
 
-_PROMPT = (
-    "你是一名量化基本面研究分析师。从本研究报告中提取投资因子及其多因子交互关系。\n\n"
-    "规则:\n"
-    "- 识别宏观、行业和公司层面的因子。\n"
-    "- 提取多个因子共同产生结果的复杂交互关系。\n"
-    "- 超边连接所有参与因子，而非仅成对连接。\n"
-    "- 捕获每个交互关系的机制和结果。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的投资因子
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
 
-_NODE_PROMPT = (
-    "你是一名量化基本面研究分析师。提取所有投资因子（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别宏观指标、行业指标和公司关键绩效指标。\n"
-    "- 捕获当前值或读数。\n"
-    "- 按层级对每个因子进行分类。\n"
-    "- 此阶段不提取交互关系。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是一名量化基本面研究分析师。在获得因子列表的基础上，提取多个因子共同影响结果的"
-    "多因子交互关系（超边）。\n\n"
-    "提取规则:\n"
-    "- 每条超边应连接 2 个或更多因子。\n"
-    "- 描述交互机制和结果。\n"
-    "- 对交互类型进行分类。\n"
-    "- 仅引用提供列表中存在的因子。"
-)
+### 领域特定规则
+- 识别宏观、行业和公司层面的因子
+- 提取多个因子共同产生结果的复杂交互关系
+- 超边连接所有参与因子，而非仅成对连接
+- 捕获每个交互关系的机制和结果
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的量化基本面研究分析师，请从文本中提取所有投资因子作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的投资因子
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别宏观指标、行业指标和公司关键绩效指标
+- 捕获当前值或读数
+- 按层级对每个因子进行分类
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的量化基本面研究分析师，请从给定因子列表中提取多因子交互关系。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的投资因子
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 每条超边应连接 2 个或更多因子
+- 描述交互机制和结果
+- 对交互类型进行分类
+
+"""
 
 
 class FactorInfluenceHypergraph(AutoHypergraph[InvestmentFactor, FactorInteraction]):
@@ -107,9 +122,6 @@ class FactorInfluenceHypergraph(AutoHypergraph[InvestmentFactor, FactorInteracti
     交互关系，超越简单的成对关系。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> factors = FactorInfluenceHypergraph(llm_client=llm, embedder=embedder)
         >>> report = "利率上升叠加强劲 GDP 和 AI 资本支出，推动向优质成长股轮动..."
         >>> factors.feed_text(report)
@@ -144,10 +156,10 @@ class FactorInfluenceHypergraph(AutoHypergraph[InvestmentFactor, FactorInteracti
         super().__init__(
             node_schema=InvestmentFactor,
             edge_schema=FactorInteraction,
-            node_key_extractor=lambda x: x.name.strip().lower(),
-            edge_key_extractor=lambda x: x.interaction_name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: x.interaction_name,
             nodes_in_edge_extractor=lambda x: tuple(
-                f.strip().lower() for f in x.participating_factors
+                f for f in x.participating_factors
             ),
             llm_client=llm_client,
             embedder=embedder,

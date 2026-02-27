@@ -1,12 +1,17 @@
+"""股东结构图谱 - 从招股说明书或委托声明文件中提取股权结构。
+
+适用文档: S-1 招股说明书、DEF 14A 委托声明书、公司年报
+
+功能介绍:
+    提取公司股东、控股公司及其持股关系，支持识别
+    5%以上实益所有人、双重股权结构、投票权差异等。
+"""
+
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoGraph
-
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
 
 
 class OwnershipEntity(BaseModel):
@@ -46,58 +51,73 @@ class OwnershipEdge(BaseModel):
         None,
         description="股份类别（例如'A 类普通股'、'B 类（10 倍投票权）'、'C 轮优先股'）。",
     )
-    shares_held: Optional[str] = Field(
-        None,
-        description="持有股份数量（例如'45,000,000 股'）。",
-    )
     voting_power: Optional[str] = Field(
         None,
         description="投票权百分比（若与持股比例不同，例如'65% 投票权'）。",
     )
-    lock_up_period: Optional[str] = Field(
-        None,
-        description="IPO 后锁定期（如适用，例如'180 天'）。",
-    )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的公司治理分析师，请从招股说明书或委托声明文件中提取股权结构。
 
-_PROMPT = (
-    "你是公司治理分析师。从本招股说明书或委托声明文件中提取股权结构，包括股东、"
-    "控股公司及其持股关系。\n\n"
-    "规则:\n"
-    "- 识别所有重要股东（5% 以上实益所有人）。\n"
-    "- 提取持股比例和股份类别。\n"
-    "- 映射母子公司和控股公司结构。\n"
-    "- 注意双重股权结构和投票权差异。\n"
-    "- 捕捉锁定期和 IPO 后限制条款。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的股权实体
+- **边 (Edge)**：节点之间的关系
 
-_NODE_PROMPT = (
-    "你是公司治理分析师。提取所有股权实体（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别个人、机构投资者、控股公司和信托。\n"
-    "- 识别发行公司本身。\n"
-    "- 按类型对每个实体进行分类。\n"
-    "- 此阶段不提取持股关系。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是公司治理分析师。在获得实体清单的基础上，提取持股和控制关系（边）。\n\n"
-    "提取规则:\n"
-    "- 将持有方连接到其持有的资产。\n"
-    "- 提取持股比例和股份类别。\n"
-    "- 注意投票权差异。\n"
-    "- 捕捉锁定期。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+### 领域特定规则
+- 识别所有重要股东（5% 以上实益所有人）
+- 提取持股比例和股份类别
+- 映射母子公司和控股公司结构
+- 注意双重股权结构和投票权差异
+- 捕捉锁定期和 IPO 后限制条款
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
 
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的公司治理分析师，请从文本中提取所有股权实体作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的股权实体
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别个人、机构投资者、控股公司和信托
+- 识别发行公司本身
+- 按类型对每个实体进行分类
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的公司治理分析师，请从给定实体列表中提取持股和控制关系。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的股权实体
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 将持有方连接到其持有的资产
+- 提取持股比例和股份类别
+- 注意投票权差异
+- 捕捉锁定期
+"""
 
 class ShareholderStructure(AutoGraph[OwnershipEntity, OwnershipEdge]):
     """
@@ -108,9 +128,6 @@ class ShareholderStructure(AutoGraph[OwnershipEntity, OwnershipEdge]):
     IPO 后锁定期跟踪。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> ownership = ShareholderStructure(llm_client=llm, embedder=embedder)
         >>> prospectus = "下表列示实益所有权情况：CEO 持有 15.3%..."
         >>> ownership.feed_text(prospectus)
@@ -145,11 +162,11 @@ class ShareholderStructure(AutoGraph[OwnershipEntity, OwnershipEdge]):
         super().__init__(
             node_schema=OwnershipEntity,
             edge_schema=OwnershipEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}--({x.relationship_type})-->{x.target.strip().lower()}"
+                f"{x.source}--({x.relationship_type})-->{x.target}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,

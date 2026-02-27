@@ -1,3 +1,12 @@
+"""财报电话会议摘要 - 从财报电话会议记录中提取关键信息。
+
+适用文档: 财报电话会议记录、投资者日活动记录
+
+功能介绍:
+    提取管理层发言要点、财务数据、业绩指引和战略展望，
+    支持快速了解会议核心内容。
+"""
+
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -15,18 +24,12 @@ class EarningsCallSummarySchema(BaseModel):
     财报电话会议的结构化摘要。
     """
 
-    company_name: Optional[str] = Field(
-        None, description="公司名称。"
-    )
-    ticker: Optional[str] = Field(
-        None, description="股票代码。"
-    )
+    company_name: Optional[str] = Field(None, description="公司名称。")
+    ticker: Optional[str] = Field(None, description="股票代码。")
     quarter: Optional[str] = Field(
         None, description="报告季度（例如'Q3 FY2024'、'2024 年第四季度'）。"
     )
-    call_date: Optional[str] = Field(
-        None, description="财报电话会议日期。"
-    )
+    call_date: Optional[str] = Field(None, description="财报电话会议日期。")
     reported_revenue: Optional[str] = Field(
         None, description="本季度报告收入（例如'948 亿美元'）。"
     )
@@ -63,29 +66,31 @@ class EarningsCallSummarySchema(BaseModel):
         None,
         description="管理层强调的战略重点。",
     )
-    ceo_name: Optional[str] = Field(
-        None, description="CEO 或主要发言人姓名。"
-    )
-    cfo_name: Optional[str] = Field(
-        None, description="CFO 姓名。"
-    )
+    ceo_name: Optional[str] = Field(None, description="CEO 或主要发言人姓名。")
+    cfo_name: Optional[str] = Field(None, description="CFO 姓名。")
 
 
 # ==============================================================================
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是买方分析师，正在审阅财报电话会议记录。"
-    "提取关键财务指标、业绩指引和整体基调。\n\n"
-    "规则:\n"
-    "- 提取确切的报告数据（收入、每股收益）并与一致预期进行对比。\n"
-    "- 捕捉收入和盈利的前瞻性指引。\n"
-    "- 评估电话会议的整体基调（管理层措辞、分析师反应）。\n"
-    "- 列出准备发言中的核心亮点和问答环节中的主要关切。\n"
-    "- 识别管理层强调的战略重点。\n\n"
-    "### 原文:\n"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的分析师，请从财报电话会议记录中提取关键财务指标、业绩指引和整体基调。
+
+## 提取规则
+### 核心约束
+1. 每个对象对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 提取确切的报告数据（收入、每股收益）并与一致预期进行对比
+- 捕捉收入和盈利的前瞻性指引
+- 评估电话会议的整体基调（管理层措辞、分析师反应）
+- 列出准备发言中的核心亮点和问答环节中的主要关切
+- 识别管理层强调的战略重点
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -101,9 +106,6 @@ class EarningsCallSummary(AutoModel[EarningsCallSummarySchema]):
     基调和核心主题的统一视图，便于季度复盘仪表板和一致预期跟踪。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> summary = EarningsCallSummary(llm_client=llm, embedder=embedder)
         >>> transcript = "下午好。第三季度收入为 948 亿美元，超出一致预期..."
         >>> summary.feed_text(transcript)
@@ -145,3 +147,20 @@ class EarningsCallSummary(AutoModel[EarningsCallSummarySchema]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示财报电话会议摘要。
+
+        Args:
+            top_k (int): 展示的摘要数量。
+        """
+
+        def label_extractor(data: EarningsCallSummarySchema) -> str:
+            return f"{data.company_name or ''} ({data.ticker or ''}) - {data.quarter or ''}"
+
+        super().show(label_extractor=label_extractor, top_k=top_k)

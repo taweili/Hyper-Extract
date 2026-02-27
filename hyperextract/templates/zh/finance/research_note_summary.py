@@ -21,37 +21,25 @@ class ResearchNoteSummarySchema(BaseModel):
     股票研究报告的结构化摘要。
     """
 
-    company_name: Optional[str] = Field(
-        None, description="被覆盖公司的名称。"
-    )
-    ticker: Optional[str] = Field(
-        None, description="股票代码（例如 'AAPL'、'NVDA'）。"
-    )
-    analyst_name: Optional[str] = Field(
-        None, description="首席分析师的姓名。"
-    )
+    company_name: Optional[str] = Field(None, description="被覆盖公司的名称。")
+    ticker: Optional[str] = Field(None, description="股票代码（例如 'AAPL'、'NVDA'）。")
+    analyst_name: Optional[str] = Field(None, description="首席分析师的姓名。")
     research_firm: Optional[str] = Field(
         None, description="研究机构名称（例如 '高盛'、'摩根士丹利'）。"
     )
-    report_date: Optional[str] = Field(
-        None, description="报告发布日期。"
-    )
+    report_date: Optional[str] = Field(None, description="报告发布日期。")
     rating: Optional[str] = Field(
         None,
         description="分析师评级：'买入'、'增持'、'持有'、'中性'、'卖出'、'减持'。",
     )
-    prior_rating: Optional[str] = Field(
-        None, description="如有变更，之前的评级。"
-    )
+    prior_rating: Optional[str] = Field(None, description="如有变更，之前的评级。")
     target_price: Optional[str] = Field(
         None, description="当前目标价（例如 '$150.00'）。"
     )
     prior_target_price: Optional[str] = Field(
         None, description="如有变更，之前的目标价。"
     )
-    current_price: Optional[str] = Field(
-        None, description="报告发布时的股价。"
-    )
+    current_price: Optional[str] = Field(None, description="报告发布时的股价。")
     investment_thesis: Optional[str] = Field(
         None,
         description="核心投资论点或评级的关键论据。",
@@ -76,16 +64,23 @@ class ResearchNoteSummarySchema(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是一名股票研究分析师。从本研究报告中提取核心投资论点、评级、目标价和关键论据。\n\n"
-    "规则:\n"
-    "- 提取分析师的评级及任何评级变更。\n"
-    "- 捕获目标价以及变更前的目标价（如有变更）。\n"
-    "- 简洁地总结核心投资论点。\n"
-    "- 列出分析师识别的关键催化剂和风险。\n"
-    "- 在提及时提取财务预测（收入、每股收益）。\n\n"
-    "### 源文本:\n"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的股票研究分析师，请从研究报告中提取核心投资论点、评级、目标价和关键论据。
+
+## 提取规则
+### 核心约束
+1. 每个对象对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 提取分析师的评级及任何评级变更
+- 捕获目标价以及变更前的目标价（如有变更）
+- 简洁地总结核心投资论点
+- 列出分析师识别的关键催化剂和风险
+- 在提及时提取财务预测（收入、每股收益）
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -100,9 +95,6 @@ class ResearchNoteSummary(AutoModel[ResearchNoteSummarySchema]):
     用于数据库填充和筛选。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> summary = ResearchNoteSummary(llm_client=llm, embedder=embedder)
         >>> report = "我们将 AAPL 评级上调为买入，目标价 200 美元..."
         >>> summary.feed_text(report)
@@ -144,3 +136,20 @@ class ResearchNoteSummary(AutoModel[ResearchNoteSummarySchema]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示研究报告摘要。
+
+        Args:
+            top_k (int): 展示的摘要数量。
+        """
+
+        def label_extractor(data: ResearchNoteSummarySchema) -> str:
+            return f"{data.ticker or ''} - {data.rating or ''} (目标价: {data.target_price or 'N/A'})"
+
+        super().show(label_extractor=label_extractor, top_k=top_k)

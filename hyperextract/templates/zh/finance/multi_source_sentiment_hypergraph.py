@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoHypergraph
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class SentimentSource(BaseModel):
     """
@@ -46,7 +42,7 @@ class AggregatedSentiment(BaseModel):
         description='描述性名称（例如"AAPL 来自 3 个来源的看涨共识"）。'
     )
     participating_sources: List[str] = Field(
-        description='参与此融合的所有来源和受影响实体的名称。'
+        description="参与此融合的所有来源和受影响实体的名称。"
     )
     aggregated_polarity: str = Field(
         description='融合情绪："强烈看涨"、"看涨"、"中性"、"看跌"、"强烈看跌"、"冲突"。'
@@ -56,7 +52,7 @@ class AggregatedSentiment(BaseModel):
     )
     affected_entity: Optional[str] = Field(
         None,
-        description='情绪适用的主要实体（股票代码或板块）。',
+        description="情绪适用的主要实体（股票代码或板块）。",
     )
     signal_strength: Optional[str] = Field(
         None,
@@ -64,46 +60,70 @@ class AggregatedSentiment(BaseModel):
     )
     conflicting_views: Optional[str] = Field(
         None,
-        description='任何不同或冲突的情绪信号摘要。',
+        description="任何不同或冲突的情绪信号摘要。",
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的多源情绪融合分析师，请从不同来源提取情绪信号并创建聚合情绪视图。
 
-_PROMPT = (
-    "你是多源情绪融合分析师。从不同来源提取情绪信号并创建聚合情绪视图。\n\n"
-    "规则:\n"
-    "- 识别每个不同的情绪来源（新闻、分析师报告、社交媒体）。\n"
-    "- 提取每个来源的个别情绪信号。\n"
-    "- 创建连接来源到受影响实体的聚合情绪超边。\n"
-    "- 评估各来源之间的一致性。\n"
-    "- 记录冲突观点和信号强度。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的情绪来源或受影响的市场实体
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
 
-_NODE_PROMPT = (
-    "你是情绪融合分析师。提取所有情绪来源和受影响实体（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别新闻文章、分析师报告和社交媒体帖子。\n"
-    "- 识别受影响实体（股票代码、板块、指数）。\n"
-    "- 捕捉每个来源的个别情绪。\n"
-    "- 此阶段不创建聚合视图。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是情绪融合分析师。在获得来源和实体清单的基础上，创建聚合情绪融合（超边）。\n\n"
-    "提取规则:\n"
-    "- 每条超边连接多个来源到一个受影响实体。\n"
-    "- 评估聚合情绪极性和一致性水平。\n"
-    "- 评估交易用途的信号强度。\n"
-    "- 记录任何冲突观点。\n"
-    "- 仅引用提供列表中存在的元素。"
-)
+### 领域特定规则
+- 识别每个不同的情绪来源（新闻、分析师报告、社交媒体）
+- 提取每个来源的个别情绪信号
+- 创建连接来源到受影响实体的聚合情绪超边
+- 评估各来源之间的一致性
+- 记录冲突观点和信号强度
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的情绪融合分析师，请从文本中提取所有情绪来源和受影响实体作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的情绪来源或受影响的市场实体
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别新闻文章、分析师报告和社交媒体帖子
+- 识别受影响实体（股票代码、板块、指数）
+- 捕捉每个来源的个别情绪
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的情绪融合分析师，请从给定实体列表中创建聚合情绪融合。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的情绪来源或受影响的市场实体
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 每条超边连接多个来源到一个受影响实体
+- 评估聚合情绪极性和一致性水平
+- 评估交易用途的信号强度
+- 记录任何冲突观点
+
+"""
 
 
 class MultiSourceSentimentHypergraph(
@@ -116,9 +136,6 @@ class MultiSourceSentimentHypergraph(
     支持集成情绪评分和虚假信号过滤。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> fusion = MultiSourceSentimentHypergraph(llm_client=llm, embedder=embedder)
         >>> text = "彭博社报道科技股上涨。同时高盛上调 AAPL 评级。推特情绪看涨。"
         >>> fusion.feed_text(text)
@@ -153,10 +170,10 @@ class MultiSourceSentimentHypergraph(
         super().__init__(
             node_schema=SentimentSource,
             edge_schema=AggregatedSentiment,
-            node_key_extractor=lambda x: x.name.strip().lower(),
-            edge_key_extractor=lambda x: x.fusion_name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: x.fusion_name,
             nodes_in_edge_extractor=lambda x: tuple(
-                s.strip().lower() for s in x.participating_sources
+                s for s in x.participating_sources
             ),
             llm_client=llm_client,
             embedder=embedder,

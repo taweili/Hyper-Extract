@@ -21,15 +21,11 @@ class MarketSentimentSnapshot(BaseModel):
     从财经新闻或市场评论中提取的结构化情绪快照。
     """
 
-    headline: Optional[str] = Field(
-        None, description='新闻文章/评论的标题。'
-    )
+    headline: Optional[str] = Field(None, description="新闻文章/评论的标题。")
     source: Optional[str] = Field(
         None, description='出版物或来源（例如"彭博社"、"路透社"、"CNBC"）。'
     )
-    publication_date: Optional[str] = Field(
-        None, description='发布日期。'
-    )
+    publication_date: Optional[str] = Field(None, description="发布日期。")
     overall_sentiment: Optional[str] = Field(
         None,
         description='整体情绪："看涨"、"看跌"、"中性"、"混合"。',
@@ -60,7 +56,7 @@ class MarketSentimentSnapshot(BaseModel):
     )
     contrarian_signals: Optional[List[str]] = Field(
         None,
-        description='任何逆向或不同意见的观点。',
+        description="任何逆向或不同意见的观点。",
     )
 
 
@@ -68,16 +64,26 @@ class MarketSentimentSnapshot(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是金融情绪分析师。从这篇财经新闻文章或市场评论中提取情绪快照。\n\n"
-    "规则:\n"
-    "- 判断整体情绪极性（看涨/看跌/中性/混合）。\n"
-    "- 识别所有提及的股票代码和行业板块。\n"
-    "- 提取驱动情绪的关键事件。\n"
-    "- 评估预期市场影响和时间范围。\n"
-    "- 记录任何逆向或不同意见的观点。\n\n"
-    "### 源文本:\n"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的金融情绪分析师，请从财经新闻文章或市场评论中提取情绪快照。
+
+## 核心概念定义
+- **对象 (Object)**：从文本中提取的单一结构化对象
+
+## 提取规则
+### 核心约束
+1. 每个对象对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 判断整体情绪极性（看涨/看跌/中性/混合）
+- 识别所有提及的股票代码和行业板块
+- 提取驱动情绪的关键事件
+- 评估预期市场影响和时间范围
+- 记录任何逆向或不同意见的观点
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -92,9 +98,6 @@ class MarketSentimentModel(AutoModel[MarketSentimentSnapshot]):
     用于实时情绪数据流和交易信号生成。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> sentiment = MarketSentimentModel(llm_client=llm, embedder=embedder)
         >>> news = "科技股在 NVDA 公布创纪录财报后大幅上涨..."
         >>> sentiment.feed_text(news)
@@ -136,3 +139,20 @@ class MarketSentimentModel(AutoModel[MarketSentimentSnapshot]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示市场情绪快照。
+
+        Args:
+            top_k (int): 展示的快照数量。
+        """
+
+        def label_extractor(data: MarketSentimentSnapshot) -> str:
+            return f"{data.sentiment or ''} - {data.mentioned_tickers or ''}"
+
+        super().show(label_extractor=label_extractor, top_k=top_k)

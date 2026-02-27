@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoGraph
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class ValuationDriver(BaseModel):
     """
@@ -47,49 +43,73 @@ class ValuationEdge(BaseModel):
         description="分析师连接源到目标的推理逻辑"
         "（例如 '更高的云计算采用率推动经常性收入增长'）。"
     )
-    direction: str = Field(
-        description="影响方向：'正面'、'负面'、'中性'。"
-    )
+    direction: str = Field(description="影响方向：'正面'、'负面'、'中性'。")
     confidence: Optional[str] = Field(
         None,
         description="分析师的确信度：'高'、'中等'、'低'。",
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的股票研究分析师，请从研究报告中提取估值逻辑链：即从业务基本面到估值结论的因果推理。
 
-_PROMPT = (
-    "你是一名股票研究分析师。从本研究报告中提取估值逻辑链：即从业务基本面到估值结论的因果推理。\n\n"
-    "规则:\n"
-    "- 识别基本面驱动因素、增长催化剂和估值指标。\n"
-    "- 提取从业务驱动因素到目标价的因果链。\n"
-    "- 捕获分析师在每个链接处的具体推理。\n"
-    "- 记录影响方向和确信度。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的估值驱动因素
+- **边 (Edge)**：节点之间的关系
 
-_NODE_PROMPT = (
-    "你是一名股票研究分析师。提取所有估值驱动因素和指标（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别基本面驱动因素（收入增长、市场份额、TAM）。\n"
-    "- 识别估值指标（P/E、EV/EBITDA、DCF、可比倍数）。\n"
-    "- 在提及时捕获量化值。\n"
-    "- 此阶段不建立因果链接。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是一名股票研究分析师。在获得估值驱动因素的基础上，提取连接它们的逻辑推理链（边）。\n\n"
-    "提取规则:\n"
-    "- 将业务驱动因素连接到财务结果再到估值结论。\n"
-    "- 捕获每个链接处的具体推理。\n"
-    "- 记录每个链接是正面、负面还是中性影响。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+### 领域特定规则
+- 识别基本面驱动因素、增长催化剂和估值指标
+- 提取从业务驱动因素到目标价的因果链
+- 捕获分析师在每个链接处的具体推理
+- 记录影响方向和确信度
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的股票研究分析师，请从文本中提取所有估值驱动因素和指标作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的估值驱动因素
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别基本面驱动因素（收入增长、市场份额、TAM）
+- 识别估值指标（P/E、EV/EBITDA、DCF、可比倍数）
+- 在提及时捕获量化值
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的股票研究分析师，请从给定驱动因素列表中提取连接它们的逻辑推理链。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的估值驱动因素
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 将业务驱动因素连接到财务结果再到估值结论
+- 捕获每个链接处的具体推理
+- 记录每个链接是正面、负面还是中性影响
+
+"""
 
 
 class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
@@ -100,9 +120,6 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
     再到估值指标和目标价，支持投资策略映射和论点比较。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> valuation = ValuationLogicMap(llm_client=llm, embedder=embedder)
         >>> report = "云计算采用推动经常性收入，支撑 30 倍前瞻市盈率..."
         >>> valuation.feed_text(report)
@@ -114,7 +131,7 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        extraction_mode: str = "one_stage",
+        extraction_mode: str = "two_stage",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -137,11 +154,11 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
         super().__init__(
             node_schema=ValuationDriver,
             edge_schema=ValuationEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}--({x.direction})-->{x.target.strip().lower()}"
+                f"{x.source}--({x.direction})-->{x.target}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,

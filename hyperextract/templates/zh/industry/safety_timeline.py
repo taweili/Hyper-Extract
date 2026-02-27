@@ -1,7 +1,6 @@
-"""重大事件时间线 - 从 8-K 申报文件中按时间顺序提取重大事件。
+"""事故时序图 - 从事故调查报告中提取时间线，还原事故发生前后的操作与响应序列。
 
-提取高管变动、并购公告、财务重述及其他重大事件，
-按时间排序，用于事件驱动分析和监管监控。
+适用于事故报告、事故调查报告、安全事件记录等文本。
 """
 
 from typing import Optional, Any
@@ -11,57 +10,54 @@ from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoTemporalGraph
 
 
-class MaterialEventEntity(BaseModel):
+class SafetyTimelineEntity(BaseModel):
     """
-    参与重大公司事件的实体。
+    事故时序图中的实体节点。
     """
 
-    name: str = Field(description="实体名称（例如 公司名称、高管姓名、监管机构）。")
+    name: str = Field(description="实体名称（例如：操作人员、设备名称、岗位名称）。")
     entity_type: str = Field(
-        description="类型：'公司'、'高管'、'监管机构'、'交易对手'、'子公司'、'审计师'。"
+        description="类型：人员、设备、岗位、位置、环境状态。"
     )
     description: Optional[str] = Field(
-        None, description="角色或背景（例如 '首席执行官'、'收购方'、'SEC'）。"
+        None, description="角色或状态描述（例如：操作工、离心泵、现场负责人）。"
     )
 
 
-class MaterialEventEdge(BaseModel):
+class SafetyTimelineEdge(BaseModel):
     """
-    连接实体的重大事件及其时间背景。
+    事故时序图中的时间边。
     """
 
-    source: str = Field(description="行为实体名称。")
-    target: str = Field(description="受影响实体名称。")
-    event_type: str = Field(
-        description="类型：'高管任命'、'高管离职'、'收购'、'资产剥离'、"
-        "'财务重述'、'破产'、'退市'、'重大协议'、'股息宣派'、"
-        "'股票拆分'、'监管行动'。"
+    source: str = Field(description="源实体名称（执行操作的当事人）。")
+    target: str = Field(description="目标实体名称（受影响的对象或结果）。")
+    action: str = Field(
+        description="操作或动作描述（例如：启动设备、巡检、发现异常）。"
     )
     start_timestamp: Optional[str] = Field(
         None,
-        description="事件发生或公告的日期（例如 '2024-03-15'、'2024年3月15日'）。",
+        description="动作开始时间（例如：'2024-03-15 14:30'、'事故前30分钟'）。",
     )
     end_timestamp: Optional[str] = Field(
         None,
-        description="如适用的结束日期（例如 生效日期、交割日期）。",
+        description="动作结束时间（如适用）。",
     )
-    description: Optional[str] = Field(
-        None,
-        description="重大事件的详细信息，包括财务条款、条件或监管背景。",
+    location: Optional[str] = Field(
+        None, description="发生位置（例如：泵房、配电室、生产车间）。"
     )
-    sec_item: Optional[str] = Field(
+    status: Optional[str] = Field(
         None,
-        description="8-K 条目编号（例如 'Item 5.02'、'Item 1.01'、'Item 2.01'）。",
+        description="状态描述：正常、异常、故障、报警、失控等。",
     )
 
 
 _PROMPT = """## 角色与任务
-你是一位专业的监管申报分析师，请从文本中提取参与重大事件的实体及其之间的时序关系。
+你是一位工业安全事故调查专家，请从事故调查报告中提取时间线，还原事故发生前后的操作与响应序列。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的参与重大事件的实体
-- **边 (Edge)**：节点之间的关系
-- **时间**：事件发生或公告的日期
+- **节点 (Node)**：从文档中提取的参与事故的人员、设备、位置等实体
+- **边 (Edge)**：时间序列中的操作动作
+- **时间**：操作发生的时间点
 
 ## 提取规则
 ### 核心约束
@@ -71,20 +67,19 @@ _PROMPT = """## 角色与任务
 4. 关系描述应与原文保持一致
 
 ### 领域特定规则
-- 识别涉及的公司、高管、监管机构和交易对手
-- 提取每个重大事件及其具体日期
-- 在可获取时按 8-K 条目编号对事件进行分类
-- 捕获财务条款、条件和监管背景
-- 保持时间顺序的准确性
+- 识别事故相关人员（操作工、班组长、安全员、管理人员）
+- 识别相关设备（泵、电机、阀门、仪表）
+- 识别操作动作（启动、停止、巡检、维修、发现异常）
+- 识别环境状态（正常、异常、报警、危险）
+- 按时间顺序排列事件
 
 ### 时间解析规则
 当前观察日期: {observation_time}
 
 1. 相对时间解析（基于观察日期）:
-   - "去年" → {observation_time} 的前一年
-   - "上月" → {observation_time} 的前一个月
-   - "本季度" → {observation_time} 所在季度
-   - "近期" → {observation_time} 最近 3 个月
+   - "事故前30分钟" → {observation_time} 前30分钟
+   - "当天上午" → {observation_time} 当天上午
+   - "随后" → 接续前一事件
 
 2. 精确时间 → 保持原样
 3. 时间缺失 → 留空，不要猜测
@@ -93,69 +88,69 @@ _PROMPT = """## 角色与任务
 """
 
 _NODE_PROMPT = """## 角色与任务
-你是一位专业的监管申报分析师，请从文本中提取所有参与重大事件的实体作为节点。
+你是一位工业安全事故调查专家，请从事故调查报告中提取所有参与事故的实体作为节点。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的参与重大事件的实体
+- **节点 (Node)**：从文档中提取的参与事故的实体
 
 ## 提取规则
 ### 核心约束
 1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
 2. 实体名称与原文保持一致
 
-### 提取规则
-- 识别公司、高管、监管机构、审计师和交易对手
-- 按类型对每个实体进行分类
-- 捕获角色描述
+### 领域特定规则
+- 识别事故相关人员（操作工、班组长、安全员、管理人员）
+- 识别相关设备（泵、电机、阀门、仪表）
+- 识别位置（泵房、配电室、生产车间）
+- 识别环境状态实体
 
 ### 源文本:
 """
 
 _EDGE_PROMPT = """## 角色与任务
-你是一位专业的监管申报分析师，请从给定实体列表中提取所有带日期的重大事件。
+你是一位工业安全事故调查专家，请从已知实体列表中提取事故时间线中的操作动作作为时间边。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的参与重大事件的实体
-- **边 (Edge)**：节点之间的关系
-- **时间**：事件发生或公告的日期
+- **节点 (Node)**：从文档中提取的参与事故的实体
+- **边 (Edge)**：时间序列中的操作动作
+- **时间**：操作发生的时间点
 
 ## 提取规则
 ### 核心约束
 1. 仅从已知实体列表中提取边，不要创建未列出的实体
 2. 关系描述应与原文保持一致
 
-### 提取规则
-- 通过重大事件连接实体
-- 提取每个事件的具体日期
-- 按事件类型和 8-K 条目编号进行分类
-- 捕获财务条款和条件
+### 领域特定规则
+- 识别操作动作（启动、停止、巡检、维修、发现异常）
+- 提取时间点信息
+- 记录位置和环境状态
 
 ### 时间解析规则
 当前观察日期: {observation_time}
 
 1. 相对时间解析（基于观察日期）:
-   - "去年" → {observation_time} 的前一年
-   - "上月" → {observation_time} 的前一个月
+   - "事故前30分钟" → {observation_time} 前30分钟
+   - "随后" → 接续前一事件
 
 2. 精确时间 → 保持原样
 3. 时间缺失 → 留空，不要猜测
 
-### 源文本:
 """
 
 
-class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEventEdge]):
+class SafetyTimeline(AutoTemporalGraph[SafetyTimelineEntity, SafetyTimelineEdge]):
     """
-    适用文档: SEC 8-K 即时报告、重大事件披露、
-    8-K 附带的新闻稿、委托声明书（DEF 14A）。
+    适用文档: 事故调查报告、安全事件记录、
+    事件分析报告。
 
-    模板用于从 8-K 申报文件及相关披露中按时间顺序提取重大公司事件。
-    支持事件驱动分析、监管监控和公司治理跟踪。
+    模板用于从事故调查报告中提取时间线，
+    还原事故发生前后的操作与响应序列，
+    支持事故复盘和原因分析。
 
     使用示例:
-        >>> timeline = MaterialEventTimeline(llm_client=llm, embedder=embedder)
-        >>> filing = "Item 5.02：2024年3月15日，董事会任命张三为首席执行官..."
-        >>> timeline.feed_text(filing)
+        >>> timeline = SafetyTimeline(llm_client=llm, embedder=embedder)
+        >>> report = "14:30，操作工启动离心泵P-101；14:35，发现异常振动..."
+        >>> timeline.feed_text(report)
         >>> timeline.show()
     """
 
@@ -173,10 +168,10 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
         **kwargs: Any,
     ):
         """
-        初始化重大事件时间线模板。
+        初始化事故时序图模板。
 
         Args:
-            llm_client (BaseChatModel): 用于事件提取的 LLM。
+            llm_client (BaseChatModel): 用于时序提取的 LLM。
             embedder (Embeddings): 用于去重的嵌入模型。
             observation_time (str): 用于解析相对日期的参考时间。
             extraction_mode (str): "one_stage" 或 "two_stage"。
@@ -187,11 +182,11 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
             **kwargs: AutoTemporalGraph 的其他参数。
         """
         super().__init__(
-            node_schema=MaterialEventEntity,
-            edge_schema=MaterialEventEdge,
+            node_schema=SafetyTimelineEntity,
+            edge_schema=SafetyTimelineEdge,
             node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source}|{x.event_type}|{x.target}"
+                f"{x.source}|{x.action}|{x.target}"
             ),
             time_in_edge_extractor=lambda x: x.start_timestamp or "",
             nodes_in_edge_extractor=lambda x: (x.source, x.target),
@@ -218,7 +213,7 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
         top_k_edges_for_chat: int = 3,
     ) -> None:
         """
-        使用 OntoSight 可视化重大事件时间线。
+        使用 OntoSight 可视化事故时序图。
 
         Args:
             top_k_nodes_for_search (int): 检索的实体数。默认 3。
@@ -227,12 +222,12 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
             top_k_edges_for_chat (int): 对话上下文中的事件数。默认 3。
         """
 
-        def node_label_extractor(node: MaterialEventEntity) -> str:
+        def node_label_extractor(node: SafetyTimelineEntity) -> str:
             return f"{node.name} ({node.entity_type})"
 
-        def edge_label_extractor(edge: MaterialEventEdge) -> str:
+        def edge_label_extractor(edge: SafetyTimelineEdge) -> str:
             date = f" [{edge.start_timestamp}]" if edge.start_timestamp else ""
-            return f"{edge.event_type}{date}"
+            return f"{edge.action}{date}"
 
         super().show(
             node_label_extractor=node_label_extractor,

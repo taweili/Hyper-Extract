@@ -1,3 +1,12 @@
+"""公司历史时间线 - 从招股说明书或公司历史文档中提取里程碑事件。
+
+适用文档: S-1 招股说明书、公司简介页面、尽职调查报告、公司历史摘要
+
+功能介绍:
+    按时间顺序提取公司创立、融资轮次、收购、IPO 等里程碑事件，
+    支持尽职调查和公司发展历史分析。
+"""
+
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -58,32 +67,91 @@ class CorporateMilestoneEdge(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是尽职调查分析师。从本招股说明书或公司历史文档中提取公司历史里程碑及相关实体。\n\n"
-    "规则:\n"
-    "- 识别创立事件、融资轮次、收购、战略转型和关键人才引进。\n"
-    "- 提取每个里程碑的具体日期或时间段。\n"
-    "- 捕捉财务细节（估值、交易规模）（如有提及）。\n"
-    "- 保持时间顺序的准确性。"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的尽职调查分析师，请从招股说明书或公司历史文档中提取公司历史里程碑及相关实体。
 
-_NODE_PROMPT = (
-    "你是尽职调查分析师。提取公司历史中涉及的所有实体（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别公司、创始人、投资者、被收购公司和合作伙伴。\n"
-    "- 按类型对每个实体进行分类。\n"
-    "- 此阶段不提取事件。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：里程碑事件发生的日期或时间段
 
-_EDGE_PROMPT = (
-    "你是尽职调查分析师。在获得实体清单的基础上，提取带有日期的公司里程碑（边）。\n\n"
-    "提取规则:\n"
-    "- 通过里程碑事件连接实体。\n"
-    "- 提取具体日期或时间段。\n"
-    "- 捕捉财务细节（交易规模、估值）。\n"
-    "- 按类型对每个里程碑进行分类。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 识别创立事件、融资轮次、收购、战略转型和关键人才引进
+- 提取每个里程碑的具体日期或时间段
+- 捕捉财务细节（估值、交易规模）（如有提及）
+- 保持时间顺序的准确性
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+   - "本季度" → {observation_time} 所在季度
+   - "近期" → {observation_time} 最近 3 个月
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的尽职调查分析师，请从文本中提取公司历史中涉及的所有实体作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 识别公司、创始人、投资者、被收购公司和合作伙伴
+- 按类型对每个实体进行分类
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的尽职调查分析师，请从给定实体列表中提取带有日期的公司里程碑。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：里程碑事件发生的日期或时间段
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 通过里程碑事件连接实体
+- 提取具体日期或时间段
+- 捕捉财务细节（交易规模、估值）
+- 按类型对每个里程碑进行分类
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -101,9 +169,6 @@ class CompanyHistoryTimeline(
     时间线构建和企业演进跟踪。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> history = CompanyHistoryTimeline(llm_client=llm, embedder=embedder)
         >>> text = "公司于 2015 年由张三创立。2017 年完成 1000 万美元 A 轮融资..."
         >>> history.feed_text(text)
@@ -140,12 +205,12 @@ class CompanyHistoryTimeline(
         super().__init__(
             node_schema=CorporateEntity,
             edge_schema=CorporateMilestoneEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}|{x.event_type.lower()}|{x.target.strip().lower()}"
+                f"{x.source}|{x.event_type}|{x.target}"
             ),
             time_in_edge_extractor=lambda x: x.start_timestamp or "",
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             observation_time=observation_time,

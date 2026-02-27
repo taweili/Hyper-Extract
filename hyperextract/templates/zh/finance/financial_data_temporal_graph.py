@@ -76,44 +76,99 @@ class FinancialDataEdge(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是一位资深财务分析师，擅长多期 SEC 申报文件分析。"
-    "从文本中提取财务实体及其跨时间的量化关系。\n\n"
-    "规则:\n"
-    "- 将公司、业务分部和财务指标/会计科目识别为实体。\n"
-    "- 对每个报告数据，创建连接报告主体与指标的边，附带精确数值和财务期间。\n"
-    "- 将同比变化、衍生比率和分部贡献分别作为独立的边提取。\n"
-    "- 保留源文本中的精确金额和单位。\n"
-    "- 统一使用一致的财务期间标签（例如 'FY2024'、'Q3 2024'）。\n"
-    "- 在可获取时提取多期对比数据。\n"
-    "- 不要计算文本中未明确给出的数值。"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从文本中提取财务实体及其跨时间的量化关系。
 
-_NODE_PROMPT = (
-    "你是一位资深财务分析师。从文本中提取所有财务实体（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别申报公司及其子公司或关联方。\n"
-    "- 识别文中提到的业务分部或地理区域。\n"
-    "- 识别财务指标和会计科目（营业收入、净利润、每股收益、总资产等）。\n"
-    "- 识别文中明确提及的影响财务的外部因素（例如 '汇率逆风'、'关税影响'）。\n"
-    "- 按类型分类：公司、分部、财务指标、会计科目、外部因素。\n"
-    "- 不要将日期、时间期间或纯数值提取为实体。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：财务数据所属的财务期间
 
-_EDGE_PROMPT = (
-    "你是一位资深财务分析师。在获得实体清单的基础上，提取所有带时间上下文的财务数据关系（边）。\n\n"
-    "提取规则:\n"
-    "- 对每个报告数据，连接报告主体/分部与相应的财务指标。\n"
-    "- 每条边必须包含精确数值、单位和财务期间。\n"
-    "- 将同比变化单独提取为边（例如 source='营业收入', target='收入增长率', "
-    "relationship='同比变化', value='+7.8%'）。\n"
-    "- 提取分部贡献（例如 source='服务分部', target='营业收入', "
-    "relationship='贡献', value='852亿美元'）。\n"
-    "- 提取文中明确列出的衍生比率（例如 source='毛利润', target='毛利率', "
-    "relationship='比率', value='45.6%'）。\n"
-    "- 根据财务期间的起止边界赋值 start_timestamp 和 end_timestamp。\n"
-    "- 仅在提供的实体列表中存在的节点之间创建边。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 将公司、业务分部和财务指标/会计科目识别为实体
+- 对每个报告数据，创建连接报告主体与指标的边，附带精确数值和财务期间
+- 将同比变化、衍生比率和分部贡献分别作为独立的边提取
+- 保留源文本中的精确金额和单位
+- 统一使用一致的财务期间标签（例如 'FY2024'、'Q3 2024'）
+- 在可获取时提取多期对比数据
+- 不要计算文本中未明确给出的数值
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+   - "本季度" → {observation_time} 所在季度
+   - "FY2024" → 2024财年
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从文本中提取所有财务实体作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 识别申报公司及其子公司或关联方
+- 识别文中提到的业务分部或地理区域
+- 识别财务指标和会计科目（营业收入、净利润、每股收益、总资产等）
+- 识别文中明确提及的影响财务的外部因素（例如 '汇率逆风'、'关税影响'）
+- 按类型分类：公司、分部、财务指标、会计科目、外部因素
+- 不要将日期、时间期间或纯数值提取为实体
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从给定实体列表中提取所有带时间上下文的财务数据关系。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：财务数据所属的财务期间
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 对每个报告数据，连接报告主体/分部与相应的财务指标
+- 每条边必须包含精确数值、单位和财务期间
+- 将同比变化单独提取为边
+- 提取分部贡献
+- 提取文中明确列出的衍生比率
+- 根据财务期间的起止边界赋值时间字段
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "FY2024" → 2024财年
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -133,11 +188,8 @@ class FinancialDataTemporalGraph(
     时序边进行连接，支持多期趋势分析和跨期对比。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> graph = FinancialDataTemporalGraph(llm_client=llm, embedder=embedder)
-        >>> filing = "FY2024年度，苹果公司报告营收3943亿美元，较FY2023年的3658亿美元增长7.8%..."
+        >>> filing = "2024年度，苹果公司报告营收3943亿美元，较FY2023年的3658亿美元增长7.8%..."
         >>> graph.feed_text(filing)
         >>> graph.show()
     """
@@ -172,12 +224,12 @@ class FinancialDataTemporalGraph(
         super().__init__(
             node_schema=FinancialDataEntity,
             edge_schema=FinancialDataEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}|{x.relationship.lower()}|{x.target.strip().lower()}"
+                f"{x.source}|{x.relationship}|{x.target}"
             ),
             time_in_edge_extractor=lambda x: x.fiscal_period or x.start_timestamp or "",
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             observation_time=observation_time,
@@ -217,10 +269,6 @@ class FinancialDataTemporalGraph(
             parts = [edge.relationship]
             if edge.value:
                 parts.append(edge.value)
-            if edge.fiscal_period:
-                parts.append(f"[{edge.fiscal_period}]")
-            elif edge.start_timestamp:
-                parts.append(f"[{edge.start_timestamp}]")
             return " ".join(parts)
 
         super().show(

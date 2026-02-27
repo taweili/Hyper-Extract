@@ -1,12 +1,17 @@
+"""供应链图谱 - 从 SEC 申报文件中提取供应链实体及其关系。
+
+适用文档: 10-K 财报业务概览部分、供应商审计报告、ESG 报告
+
+功能介绍:
+    映射企业供应链依赖和伙伴关系，支持识别关键供应商、
+    地缘政治敞口和供应链韧性风险。
+"""
+
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoGraph
-
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
 
 
 class SupplyEntity(BaseModel):
@@ -18,9 +23,7 @@ class SupplyEntity(BaseModel):
     entity_type: str = Field(
         description='类型："客户"、"供应商"、"战略伙伴"、"分销商"、"本公司"。'
     )
-    details: Optional[str] = Field(
-        None, description="地理管辖区、认证信息及合规说明。"
-    )
+    details: Optional[str] = Field(None, description="地理管辖区、认证信息及合规说明。")
 
 
 class SupplyTransaction(BaseModel):
@@ -36,42 +39,66 @@ class SupplyTransaction(BaseModel):
     product_service: str = Field(
         description='被供应或交易的内容，例如"锂芯片"、"物流服务"等。'
     )
-    risk_assessment: Optional[str] = Field(
-        None,
-        description="依赖程度、交易量占比、地理来源风险及地缘政治因素的综合评估。",
-    )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的供应链分析师，请从文本中提取供应链实体及其关系。
 
-_PROMPT = (
-    "你是供应链分析师。提取供应链实体及其关系。\n\n"
-    "规则:\n"
-    "- 识别供应商、客户和伙伴。\n"
-    "- 提取交易类型及产品。\n"
-    "- 将依赖度、交易量及地缘政治风险汇总至 **risk_assessment**。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的供应链参与者
+- **边 (Edge)**：节点之间的关系
 
-_NODE_PROMPT = (
-    "你是供应链分析师。提取供应链参与者（节点）。\n\n"
-    "规则:\n"
-    "- 识别公司及和伙伴。\n"
-    "- 分类角色。\n"
-    "- 记录地区及认证至 **details**。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是供应链分析师。提取交易关系（边）。\n\n"
-    "规则:\n"
-    "- 通过产品/服务连接实体。\n"
-    "- **risk_assessment**: 综合评估依赖度、交易量及风险（关税、单一来源）。"
-)
+### 领域特定规则
+- 识别供应商、客户和伙伴
+- 提取交易类型及产品
+- 将依赖度、交易量及地缘政治风险汇总至 risk_assessment
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的供应链分析师，请从文本中提取所有供应链参与者作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的供应链参与者
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别公司及合作伙伴
+- 分类角色（客户、供应商、战略伙伴、分销商）
+- 记录地区及认证至 details
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的供应链分析师，请从给定参与者列表中提取交易关系。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的供应链参与者
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 通过产品/服务连接实体
+- 综合评估依赖度、交易量及风险（关税、单一来源）
+
+"""
 
 
 class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
@@ -81,9 +108,6 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
     模板用于映射企业供应链依赖和伙伴关系。支持识别关键供应商、地缘政治敞口和供应链韧性风险。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> supply_chain = SupplyChainGraph(llm_client=llm, embedder=embedder)
         >>> filing = "供应商 XYZ 提供我们 70% 的零部件。我们还依赖于..."
         >>> supply_chain.feed_text(filing)
@@ -118,11 +142,11 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
         super().__init__(
             node_schema=SupplyEntity,
             edge_schema=SupplyTransaction,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip()}--({x.product_service})-->{x.target.strip()}"
+                f"{x.source}--({x.product_service})-->{x.target}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -158,8 +182,7 @@ class SupplyChainGraph(AutoGraph[SupplyEntity, SupplyTransaction]):
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: SupplyTransaction) -> str:
-            risk = f" [{edge.risk_assessment}]" if edge.risk_assessment else ""
-            return f"{edge.product_service}{risk}"
+            return f"{edge.relationship_type}"
 
         super().show(
             node_label_extractor=node_label_extractor,

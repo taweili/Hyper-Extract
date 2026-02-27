@@ -1,12 +1,17 @@
+"""募集资金用途列表 - 从 IPO 招股说明书中提取募集资金分配计划。
+
+适用文档: S-1 招股说明书、F-1 外国发行人招股说明书
+
+功能介绍:
+    提取 IPO 募集资金的分配计划和具体用途，
+    支持投资者了解资金筹集后的战略规划。
+"""
+
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoList
-
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
 
 
 class ProceedsItem(BaseModel):
@@ -40,24 +45,22 @@ class ProceedsItem(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的 IPO 分析师，请从招股说明书中提取所有募集资金用途分配信息。
 
-_PROMPT = (
-    "你是 IPO 分析师。从本招股说明书或发行文件中提取所有募集资金用途分配信息。\n\n"
-    "规则:\n"
-    "- 提取每一项资金用途类别和具体项目。\n"
-    "- 捕捉分配金额和百分比。\n"
-    "- 提取资金使用时间表（如有说明）。\n"
-    "- 保留资金使用方式的详细描述。\n"
-    "- 将每项分配作为独立条目提取。\n\n"
-    "### 原文:\n"
-)
+## 提取规则
+### 核心约束
+1. 每个条目对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 领域特定规则
+- 提取每一项资金用途类别和具体项目
+- 捕捉分配金额和百分比
+- 提取资金使用时间表（如有说明）
+- 保留资金使用方式的详细描述
+
+### 源文本:
+"""
 
 
 class ProceedsUsage(AutoList[ProceedsItem]):
@@ -69,9 +72,6 @@ class ProceedsUsage(AutoList[ProceedsItem]):
     便于 IPO 后监控和资金用途跟踪。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> proceeds = ProceedsUsage(llm_client=llm, embedder=embedder)
         >>> prospectus = "我们拟将约 1.5 亿美元用于研发，1 亿美元用于偿还债务..."
         >>> proceeds.feed_text(prospectus)

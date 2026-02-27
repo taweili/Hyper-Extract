@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoList
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class SegmentPerformanceItem(BaseModel):
     """
@@ -46,25 +42,22 @@ class SegmentPerformanceItem(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从 SEC 申报文件中提取每个业务板块或地理区域的业绩数据。
 
-_PROMPT = (
-    "你是一位专精于板块层面分析的财务分析师。"
-    "从 SEC 申报文件中提取每个业务板块或地理区域的业绩数据。\n\n"
-    "规则:\n"
-    "- 提取每个可识别板块的营收和营业利润。\n"
-    "- 捕获增长率和与前期的对比数据。\n"
-    "- 提取板块特定的关键绩效指标和度量。\n"
-    "- 保留管理层的板块评论。\n"
-    "- 将每个板块作为独立条目分别提取。\n\n"
-    "### 源文本:\n"
-)
+## 提取规则
+### 核心约束
+1. 每个条目对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 领域特定规则
+- 提取每个可识别板块的营收和营业利润
+- 捕获增长率和与前期的对比数据
+- 提取板块特定的关键绩效指标和度量
+- 保留管理层的板块评论
+
+### 源文本:
+"""
 
 
 class SegmentPerformanceList(AutoList[SegmentPerformanceItem]):
@@ -76,9 +69,6 @@ class SegmentPerformanceList(AutoList[SegmentPerformanceItem]):
     每个板块作为独立的列表条目捕获，用于对比分析和板块层面估值。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> segments = SegmentPerformanceList(llm_client=llm, embedder=embedder)
         >>> filing = "美洲地区板块营收为482亿美元，同比增长12%..."
         >>> segments.feed_text(filing)

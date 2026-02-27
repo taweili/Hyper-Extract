@@ -19,6 +19,27 @@ from .general import (
     PenaltyMapping,
     ComplianceLogic,
 )
+from .industry import (
+    # 管理规范
+    SafetyControlGraph,
+    EmergencyResponseGraph,
+    IncidentCausalityMap,
+    SafetyTimeline,
+    # 技术规格书
+    SystemTopologyGraph,
+    EquipmentTopologyGraph,
+    SpecParameterTable,
+    SystemCompatibilityGraph,
+    # 操作运维
+    OperationFlowGraph,
+    OperatingModeGraph,
+    MaintenaceOperationMap,
+    # 设备维护
+    InspectionRecordGraph,
+    FailureCaseGraph,
+    FailureKnowledgeHypergraph,
+    PartReplacementList,
+)
 from .biology import (
     # 生物学专著
     SpeciesInteractionWeb,
@@ -199,6 +220,22 @@ __all__ = [
     "OperationalProcedure",
     "PenaltyMapping",
     "ComplianceLogic",
+    # Industry
+    "SafetyControlGraph",
+    "EmergencyResponseGraph",
+    "IncidentCausalityMap",
+    "SafetyTimeline",
+    "SystemTopologyGraph",
+    "EquipmentTopologyGraph",
+    "SpecParameterTable",
+    "SystemCompatibilityGraph",
+    "OperationFlowGraph",
+    "OperatingModeGraph",
+    "MaintenaceOperationMap",
+    "InspectionRecordGraph",
+    "FailureCaseGraph",
+    "FailureKnowledgeHypergraph",
+    "PartReplacementList",
     # Finance
     "RiskAssessmentGraph",
     "MarketSentimentGraph",

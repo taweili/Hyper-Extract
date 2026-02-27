@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoGraph
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class MDAFactor(BaseModel):
     """
@@ -52,42 +48,68 @@ class MDANarrativeEdge(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从管理层讨论与分析文本中提取业务驱动因素、财务结果及其之间的因果关系。
 
-_PROMPT = (
-    "你是一位专精于 SEC 申报文件 MD&A（管理层讨论与分析）部分的财务分析师。"
-    "提取管理层描述的业务驱动因素、财务结果及其之间的因果关系。\n\n"
-    "规则:\n"
-    "- 识别管理层讨论的各类因素：营收驱动因素、成本压力、战略变化、外部力量。\n"
-    "- 按管理层呈现的方式提取因果链（例如 '需求增长带动了营收增长'）。\n"
-    "- 在有说明时捕获量化影响。\n"
-    "- 保留管理层的归因表述语言。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的业务驱动因素、财务结果或运营因素
+- **边 (Edge)**：节点之间的关系
 
-_NODE_PROMPT = (
-    "你是一位财务分析师。从 MD&A 文本中提取所有业务驱动因素、财务结果和运营因素（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别营收驱动因素、成本因素、战略举措和外部力量。\n"
-    "- 识别财务结果（营收变化、利润率变动、现金流影响）。\n"
-    "- 按类型对每个因素进行分类。\n"
-    "- 此阶段不建立因果关系。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是一位财务分析师。在获得 MD&A 因素清单的基础上，提取管理层描述的因果和解释性关系（边）。\n\n"
-    "提取规则:\n"
-    "- 按管理层呈现的方式将原因与结果连接。\n"
-    "- 分类关系类型（导致、促成、被抵消等）。\n"
-    "- 在可获取时提取量化幅度。\n"
-    "- 捕获管理层自身的因果解释。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+### 领域特定规则
+- 识别管理层讨论的各类因素：营收驱动因素、成本压力、战略变化、外部力量
+- 按管理层呈现的方式提取因果链
+- 在有说明时捕获量化影响
+- 保留管理层的归因表述语言
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从 MD&A 文本中提取所有业务驱动因素、财务结果和运营因素作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的业务驱动因素、财务结果或运营因素
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别营收驱动因素、成本因素、战略举措和外部力量
+- 识别财务结果（营收变化、利润率变动、现金流影响）
+- 按类型对每个因素进行分类
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从给定因素列表中提取管理层描述的因果和解释性关系。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的业务驱动因素、财务结果或运营因素
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 按管理层呈现的方式将原因与结果连接
+- 分类关系类型（导致、促成、被抵消等）
+- 在可获取时提取量化幅度
+- 捕获管理层自身的因果解释
+
+### 源文本:
+"""
 
 
 class MDANarrativeGraph(AutoGraph[MDAFactor, MDANarrativeEdge]):
@@ -99,9 +121,6 @@ class MDANarrativeGraph(AutoGraph[MDAFactor, MDANarrativeEdge]):
     及其对财务的影响，支持叙述分析和驱动因素归因。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> mda = MDANarrativeGraph(llm_client=llm, embedder=embedder)
         >>> text = "营收增长12%，主要受益于云计算业务的强劲需求..."
         >>> mda.feed_text(text)
@@ -136,11 +155,11 @@ class MDANarrativeGraph(AutoGraph[MDAFactor, MDANarrativeEdge]):
         super().__init__(
             node_schema=MDAFactor,
             edge_schema=MDANarrativeEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}--({x.relationship_type})-->{x.target.strip().lower()}"
+                f"{x.source}--({x.relationship_type})-->{x.target}"
             ),
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=extraction_mode,
@@ -176,8 +195,7 @@ class MDANarrativeGraph(AutoGraph[MDAFactor, MDANarrativeEdge]):
             return f"{node.name} ({node.factor_type})"
 
         def edge_label_extractor(edge: MDANarrativeEdge) -> str:
-            mag = f" [{edge.magnitude}]" if edge.magnitude else ""
-            return f"{edge.relationship_type}{mag}"
+            return f"{edge.relationship_type}"
 
         super().show(
             node_label_extractor=node_label_extractor,

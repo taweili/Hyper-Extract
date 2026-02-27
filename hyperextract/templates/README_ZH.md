@@ -193,36 +193,49 @@
 | **`MeridianFlowGraph`** | `AutoGraph` | **经络流注图**。提取十二经脉的循行路线及经气流注次序。 | 经络理论教学 |
 
 ### 5. `industry` (工业)
-专注于电力、制造、能源等行业的运维数据与非结构化日志分析。
+专注于电力，制造、能源等行业的运维数据与非结构化日志分析。
 
-*   **维修日志与工单 (Maintenance Logs)**：现场人员记录的设备故障现象、维修措施及备件更换情况，常包含大量行业术语。
-
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
-| :--- | :--- | :--- | :--- |
-| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **故障知识超图**。建模 `{故障现象, 根因, 涉及部件, 解决方案}` 多维关联，解决单一因果无法覆盖复杂故障的问题。 | 故障诊断专家系统、维修知识库 |
-| **`MaintenaceOperationMap`** | `AutoHypergraph` | **维修作业图**。将维修作业视为一个复杂事件，关联 `{操作人, 使用工具, 操作对象, 动作耗时}`。 | 维修动作标准化、工时定额分析 |
-| **`PartReplacementList`** | `AutoList` | **备件消耗清单**。结构化提取更换的具体零件型号、数量及更换原因。 | 备件库存预测、供应链优化 |
-
-*   **HSE安全事故报告 (Incident Reports)**：对生产事故的调查报告，包含事件时间线、根本原因分析 (RCA) 及整改措施。
+*   **管理规范 (Management Specifications)**：安全规程、应急预案等管理性文档。
 
 | 模板名称 | 底层原语 | 描述 | 典型应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`IncidentCausalityMap`** | `AutoHypergraph` | **事故因果链超图**。建模 `{隐患, 触发条件, 违章行为, 事故后果}` 的多因素耦合关系。 | 安全风险双重预防机制、事故推演 |
-| **`SafetyTimeline`** | `AutoTemporalGraph` | **事故时序图**。还原事故发生前后的关键操作、报警与响应序列。 | 事故复盘、应急预案演练 |
-
-*   **交接班记录 (Shift Handover)**：运行人员记录的设备状态变化、异常参数及遗留问题。
-
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
-| :--- | :--- | :--- | :--- |
-| **`OpenIssueRegistry`** | `AutoSet` | **遗留问题登记**。去重汇总当前未解决的隐患、待办事项及挂牌情况。 | 交接班管理、隐患排查闭环 |
-| **`AbnormalParameterList`** | `AutoList` | **异常参数记录**。提取交接班中重点提及的数值异常或状态报警（如“T-101温度偏高”）。 | 运行状态趋势分析 |
+| **`SafetyControlGraph`** | `AutoGraph` | **安全管控图**。提取危险源、风险点和管控措施。 | 安全规程 |
+| **`EmergencyResponseGraph`** | `AutoGraph` | **应急预案图**。提取事故场景、响应动作和部门。 | 应急预案 |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | **事故因果链超图**。建模隐患、触发条件、违章行为、事故后果。 | 风险预防 |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | **事故时序图**。还原事故发生前后的操作与响应序列。 | 事故复盘 |
 
 *   **技术规格书 (Technical Specifications)**：描述设备额定参数、材质标准及性能曲线的半结构化文本。
 
 | 模板名称 | 底层原语 | 描述 | 典型应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **系统兼容性超图**。提取设备与不同环境、介质、电压等级之间的 `{设备, 适用工况, 限制条件}` 对应关系。 | 选型辅助、设计合规性检查 |
-| **`SpecParameterTable`** | `AutoModel` | **核心规格表**。提取额定功率、材质、尺寸精度等关键技术指标。 | 主要设备台账构建、数字化交付 |
+| **`SystemTopologyGraph`** | `AutoGraph` | **系统拓扑图**。提取工厂的厂区、系统、子系统、设备等层级结构。 | 系统说明书 |
+| **`EquipmentTopologyGraph`** | `AutoGraph` | **设备拓扑图**。提取工业设备的实体及其相互连接关系。 | 设备系统图 |
+| **`SpecParameterTable`** | `AutoModel` | **核心规格表**。提取额定功率、材质、尺寸精度等关键技术指标。 | 设备台账 |
+| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **系统兼容性超图**。提取设备与环境、介质的对应关系。 | 选型辅助 |
+
+*   **操作运维 (Operations)**：设备运行规程、工况切换等操作相关知识。
+
+| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`OperationFlowGraph`** | `AutoGraph` | **操作流程图**。提取操作步骤、设备状态和预期结果。 | 运行规程 |
+| **`OperatingModeGraph`** | `AutoGraph` | **工况切换图**。提取工况类型和切换条件。 | 工况切换说明书 |
+| **`MaintenaceOperationMap`** | `AutoHypergraph` | **维修作业图**。关联操作人、工具、对象、耗时。 | 维修标准化 |
+
+*   **设备维护 (Maintenance)**：巡检记录、故障案例、备件更换等维护知识。
+
+| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`InspectionRecordGraph`** | `AutoGraph` | **巡检记录图**。提取设备和巡检项。 | 巡检记录本 |
+| **`FailureCaseGraph`** | `AutoGraph` | **故障案例图**。提取故障现象、原因、措施和教训。 | 故障案例库 |
+| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **故障知识超图**。建模故障现象、根因、部件、解决方案。 | 故障诊断 |
+| **`PartReplacementList`** | `AutoList` | **备件消耗清单**。提取零件型号、数量、原因。 | 备件管理 |
+
+*   **HSE事故报告 (Incident Reports)**：对生产事故的调查报告，包含事件时间线、根本原因分析及整改措施。
+
+| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | **事故因果链超图**。建模隐患、触发条件、违章行为、事故后果。 | 事故推演 |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | **事故时序图**。还原事故发生前后的操作与响应序列。 | 事故复盘 |
 
 ### 6. `history` (历史)
 专注于长跨度的时间线梳理及人物社会网络构建。

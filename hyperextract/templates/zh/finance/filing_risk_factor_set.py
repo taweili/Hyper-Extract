@@ -51,15 +51,22 @@ class RiskFactorItem(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是一位专精于风险披露分析的监管申报分析师。"
-    "从 SEC 申报文件的第1A项（风险因素）或等效风险披露章节中提取并归类所有单项风险因素。\n\n"
-    "提取原则:\n"
-    "1. **规范化**: 将相关的风险描述归纳到一个简明的风险标题下。\n"
-    "2. **分类**: 将每项风险归入其主要类别。\n"
-    "3. **完整性**: 提取每一个不同的风险因素，即使只是简要提及。\n"
-    "4. **累积合并**: 如果同一风险在不同章节中出现了更多细节，则合并相关信息。"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的监管申报分析师，请从 SEC 申报文件的风险因素章节中提取并归类所有单项风险因素。
+
+## 提取规则
+### 核心约束
+1. 每个元素对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- **规范化**: 将相关的风险描述归纳到一个简明的风险标题下
+- **分类**: 将每项风险归入其主要类别
+- **完整性**: 提取每一个不同的风险因素，即使只是简要提及
+- **累积合并**: 如果同一风险在不同章节中出现了更多细节，则合并相关信息
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -76,9 +83,6 @@ class FilingRiskFactorSet(AutoSet[RiskFactorItem]):
     全面的风险目录。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> risk_set = FilingRiskFactorSet(llm_client=llm, embedder=embedder)
         >>> filing = "第1A项 风险因素：我们面临重大网络安全风险..."
         >>> risk_set.feed_text(filing)
@@ -110,7 +114,7 @@ class FilingRiskFactorSet(AutoSet[RiskFactorItem]):
         """
         super().__init__(
             item_schema=RiskFactorItem,
-            key_extractor=lambda x: x.risk_title.strip().lower(),
+            key_extractor=lambda x: x.risk_title,
             llm_client=llm_client,
             embedder=embedder,
             prompt=_PROMPT,

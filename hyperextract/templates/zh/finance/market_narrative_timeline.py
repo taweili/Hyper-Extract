@@ -69,33 +69,91 @@ class NarrativeShiftEdge(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是主题投资策略师。从这篇财经评论中提取市场叙事、主导主题以及它们随时间的演变。\n\n"
-    "规则:\n"
-    "- 识别主导市场叙事和主题（例如'通胀恐惧'、'AI 热潮'）。\n"
-    "- 追踪叙事如何转变、替代或演变为新的叙事。\n"
-    "- 提取转变发生的具体日期或时间段。\n"
-    "- 捕捉触发叙事变化的催化剂。\n"
-    "- 记录叙事转变的市场影响。"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的策略师，请从财经评论中提取市场叙事、主导主题以及它们随时间的演变。
 
-_NODE_PROMPT = (
-    "你是主题投资策略师。提取所有叙事、主题和市场实体（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别主导叙事和投资主题。\n"
-    "- 识别市场指数、资产类别和政策体制。\n"
-    "- 此阶段不提取叙事转变。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：叙事转变发生的日期或时间段
 
-_EDGE_PROMPT = (
-    "你是主题投资策略师。在获得叙事和实体清单的基础上，提取叙事转变和演变事件（边），"
-    "附带日期。\n\n"
-    "提取规则:\n"
-    "- 通过叙事的演变连接它们（被替代、演变为等）。\n"
-    "- 提取具体日期或时间段。\n"
-    "- 捕捉催化剂和市场影响。\n"
-    "- 仅在提供的列表中存在的节点之间创建边。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+3. 仅从已知实体列表中提取边，不要创建未列出的实体
+4. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 识别主导市场叙事和主题（例如'通胀恐惧'、'AI 热潮'）
+- 追踪叙事如何转变、替代或演变为新的叙事
+- 提取转变发生的具体日期或时间段
+- 捕捉触发叙事变化的催化剂
+- 记录叙事转变的市场影响
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+   - "本季度" → {observation_time} 所在季度
+   - "近期" → {observation_time} 最近 3 个月
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的策略师，请从文本中提取所有叙事、主题和市场实体作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 识别主导叙事和投资主题
+- 识别市场指数、资产类别和政策体制
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的策略师，请从给定实体列表中提取叙事转变和演变事件。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的实体
+- **边 (Edge)**：节点之间的关系
+- **时间**：叙事转变发生的日期或时间段
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 领域特定规则
+- 通过叙事的演变连接它们（被替代、演变为等）
+- 提取具体日期或时间段
+- 捕捉催化剂和市场影响
+
+### 时间解析规则
+当前观察日期: {observation_time}
+
+1. 相对时间解析（基于观察日期）:
+   - "去年" → {observation_time} 的前一年
+   - "上月" → {observation_time} 的前一个月
+
+2. 精确时间 → 保持原样
+3. 时间缺失 → 留空，不要猜测
+
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -112,9 +170,6 @@ class MarketNarrativeTimeline(
     市场体制识别和叙事动量分析。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> narrative = MarketNarrativeTimeline(llm_client=llm, embedder=embedder)
         >>> commentary = "市场在 2024 年第二季度从通胀恐惧转向软着陆希望..."
         >>> narrative.feed_text(commentary)
@@ -151,12 +206,12 @@ class MarketNarrativeTimeline(
         super().__init__(
             node_schema=NarrativeEntity,
             edge_schema=NarrativeShiftEdge,
-            node_key_extractor=lambda x: x.name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source.strip().lower()}|{x.shift_type.lower()}|{x.target.strip().lower()}"
+                f"{x.source}|{x.shift_type}|{x.target}"
             ),
             time_in_edge_extractor=lambda x: x.start_timestamp or "",
-            nodes_in_edge_extractor=lambda x: (x.source.strip(), x.target.strip()),
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             observation_time=observation_time,

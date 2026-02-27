@@ -1,12 +1,17 @@
+"""电话会议情绪超图 - 从财报电话会议中提取多维情绪聚类。
+
+适用文档: 财报电话会议记录、投资者日活动记录、管理层报告
+
+功能介绍:
+    使用超边建模 {主题, 发言人, 情绪, 驱动因素} 聚类，
+    支持情绪驱动的交易信号和基调变化检测。
+"""
+
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoHypergraph
-
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
 
 
 class CallTopic(BaseModel):
@@ -20,9 +25,7 @@ class CallTopic(BaseModel):
     element_type: str = Field(
         description='类型："主题"、"发言人"、"情绪"、"驱动因素"。'
     )
-    description: Optional[str] = Field(
-        None, description="该元素的上下文或说明。"
-    )
+    description: Optional[str] = Field(None, description="该元素的上下文或说明。")
 
 
 class SentimentCluster(BaseModel):
@@ -39,9 +42,7 @@ class SentimentCluster(BaseModel):
     sentiment_polarity: str = Field(
         description='整体情绪方向："看多"、"看空"、"中性"、"混合"。'
     )
-    intensity: str = Field(
-        description='情绪强度："强"、"中等"、"轻微"。'
-    )
+    intensity: str = Field(description='情绪强度："强"、"中等"、"轻微"。')
     evidence: Optional[str] = Field(
         None,
         description="支持情绪判断的关键引述或意译。",
@@ -52,41 +53,66 @@ class SentimentCluster(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的财报电话会议情绪分析师，请从文本中提取主题、发言人、情绪信号及其多维关系。
 
-_PROMPT = (
-    "你是财报电话会议情绪分析专家。提取主题、发言人、"
-    "情绪信号及其多维关系。\n\n"
-    "规则:\n"
-    "- 识别讨论的关键主题（收入、利润率、指引、战略）。\n"
-    "- 识别发言人及其角色。\n"
-    "- 评估每个主题-发言人组合的情绪方向和强度。\n"
-    "- 超边连接 主题 + 发言人 + 情绪 + 驱动因素。\n"
-    "- 记录与前一季度基调的变化。"
-)
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的主题、发言人、情绪或驱动因素
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
 
-_NODE_PROMPT = (
-    "你是情绪分析专家。从财报电话会议中提取所有主题、发言人、情绪和"
-    "驱动因素（节点）。\n\n"
-    "提取规则:\n"
-    "- 识别讨论的财务主题。\n"
-    "- 识别发言人（分析师、管理层）。\n"
-    "- 识别情绪标签和驱动因素。\n"
-    "- 此阶段不创建情绪聚类。"
-)
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
 
-_EDGE_PROMPT = (
-    "你是情绪分析专家。在获得元素清单的基础上，创建多维"
-    "情绪聚类（超边）。\n\n"
-    "提取规则:\n"
-    "- 每个聚类连接 主题 + 发言人 + 情绪 + 驱动因素。\n"
-    "- 评估整体情绪方向和强度。\n"
-    "- 捕捉支撑证据。\n"
-    "- 记录与前几个季度的基调变化。\n"
-    "- 仅引用提供列表中存在的元素。"
-)
+### 领域特定规则
+- 识别讨论的关键主题（收入、利润率、指引、战略）
+- 识别发言人及其角色
+- 评估每个主题-发言人组合的情绪方向和强度
+- 超边连接 主题 + 发言人 + 情绪 + 驱动因素
+- 记录与前一季度基调的变化
+
+### 源文本:
+"""
+
+_NODE_PROMPT = """## 角色与任务
+你是一位专业的情绪分析师，请从财报电话会议中提取所有主题、发言人、情绪和驱动因素作为节点。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的主题、发言人、情绪或驱动因素
+
+## 提取规则
+### 核心约束
+1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+2. 实体名称与原文保持一致
+
+### 提取规则
+- 识别讨论的财务主题
+- 识别发言人（分析师、管理层）
+- 识别情绪标签和驱动因素
+
+### 源文本:
+"""
+
+_EDGE_PROMPT = """## 角色与任务
+你是一位专业的情绪分析师，请从给定实体列表中创建多维情绪聚类。
+
+## 核心概念定义
+- **节点 (Node)**：从文档中提取的主题、发言人、情绪或驱动因素
+- **边 (Edge)**：连接多个节点的超边，表达多个实体间的复杂关联关系
+
+## 提取规则
+### 核心约束
+1. 仅从已知实体列表中提取边，不要创建未列出的实体
+2. 关系描述应与原文保持一致
+
+### 提取规则
+- 每个聚类连接 主题 + 发言人 + 情绪 + 驱动因素
+- 评估整体情绪方向和强度
+- 捕捉支撑证据
+- 记录与前几个季度的基调变化
+
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -102,9 +128,6 @@ class CallSentimentHypergraph(AutoHypergraph[CallTopic, SentimentCluster]):
     {主题, 发言人, 情绪, 驱动因素} 聚类，支持情绪驱动的交易信号和基调变化检测。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> sentiment = CallSentimentHypergraph(llm_client=llm, embedder=embedder)
         >>> transcript = "CEO：我们对 AI 收入增长感到非常兴奋..."
         >>> sentiment.feed_text(transcript)
@@ -139,10 +162,10 @@ class CallSentimentHypergraph(AutoHypergraph[CallTopic, SentimentCluster]):
         super().__init__(
             node_schema=CallTopic,
             edge_schema=SentimentCluster,
-            node_key_extractor=lambda x: x.name.strip().lower(),
-            edge_key_extractor=lambda x: x.cluster_name.strip().lower(),
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: x.cluster_name,
             nodes_in_edge_extractor=lambda x: tuple(
-                e.strip().lower() for e in x.participating_elements
+                e for e in x.participating_elements
             ),
             llm_client=llm_client,
             embedder=embedder,

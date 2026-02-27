@@ -21,68 +21,35 @@ class FilingFinancialSnapshotSchema(BaseModel):
     从 SEC 申报文件中提取的关键财务数据结构化快照。
     """
 
-    company_name: Optional[str] = Field(
-        None, description="申报实体的法定名称。"
-    )
-    ticker: Optional[str] = Field(
-        None, description="股票代码（例如 'AAPL'、'MSFT'）。"
-    )
+    company_name: Optional[str] = Field(None, description="申报实体的法定名称。")
+    ticker: Optional[str] = Field(None, description="股票代码（例如 'AAPL'、'MSFT'）。")
     filing_type: Optional[str] = Field(
         None, description="申报类型：'10-K'、'10-Q'、'8-K'、'20-F'。"
     )
     filing_period: Optional[str] = Field(
         None,
-        description="涵盖的财务期间（例如 'FY2024'、'Q3 2024'、'截至2024年12月31日的年度'）。",
+        description="涵盖的财务期间（例如 'FY2024'、'Q3 2024'）。",
     )
     revenue: Optional[str] = Field(
         None,
-        description="该期间的总营收或净销售额（例如 '3943亿美元'）。",
+        description="总营收或净销售额（例如 '3943亿美元'）。",
     )
-    cost_of_revenue: Optional[str] = Field(
-        None, description="销售成本或营业成本。"
-    )
-    gross_profit: Optional[str] = Field(
-        None, description="毛利润（营收减去营业成本）。"
-    )
-    operating_income: Optional[str] = Field(
-        None, description="营业利润或营业亏损。"
-    )
-    net_income: Optional[str] = Field(
-        None, description="归属于普通股股东的净利润。"
-    )
+    net_income: Optional[str] = Field(None, description="净利润。")
     earnings_per_share: Optional[str] = Field(
         None, description="稀释每股收益（例如 '$6.13'）。"
     )
-    total_assets: Optional[str] = Field(
-        None, description="资产负债表上的总资产。"
-    )
-    total_liabilities: Optional[str] = Field(
-        None, description="资产负债表上的总负债。"
-    )
-    shareholders_equity: Optional[str] = Field(
-        None, description="股东权益合计。"
-    )
-    cash_and_equivalents: Optional[str] = Field(
-        None, description="现金及现金等价物。"
-    )
+    total_assets: Optional[str] = Field(None, description="总资产。")
+    total_liabilities: Optional[str] = Field(None, description="总负债。")
+    shareholders_equity: Optional[str] = Field(None, description="股东权益。")
     operating_cash_flow: Optional[str] = Field(
-        None, description="经营活动产生的现金流量净额。"
-    )
-    capital_expenditures: Optional[str] = Field(
-        None, description="资本支出（CapEx）。"
+        None, description="经营活动现金流。"
     )
     free_cash_flow: Optional[str] = Field(
-        None, description="自由现金流（经营性现金流减去资本支出）。"
+        None, description="自由现金流。"
     )
-    dividends_per_share: Optional[str] = Field(
-        None, description="每股已宣派股息。"
-    )
-    shares_outstanding: Optional[str] = Field(
-        None, description="加权平均稀释流通股数。"
-    )
-    key_ratios: Optional[List[str]] = Field(
+    key_metrics: Optional[List[str]] = Field(
         None,
-        description="提及的主要财务比率（例如 '毛利率：45.6%'、'资产负债率：1.2倍'）。",
+        description="其他关键财务指标列表（如毛利率、ROE、市盈率等）。",
     )
 
 
@@ -90,17 +57,23 @@ class FilingFinancialSnapshotSchema(BaseModel):
 # 2. 提示词 (Prompts)
 # ==============================================================================
 
-_PROMPT = (
-    "你是一位专精于 SEC 申报文件分析的财务分析专家。"
-    "从本申报文件中嵌入的利润表、资产负债表和现金流量表中提取关键财务数据。\n\n"
-    "规则:\n"
-    "- 按报告原文提取精确的金额数据，保留单位（百万、十亿）。\n"
-    "- 识别申报实体、股票代码、申报类型和财务期间。\n"
-    "- 在可获取时同时提取最近期间和前期对比数据。\n"
-    "- 捕获申报文件中明确列出的关键财务比率。\n"
-    "- 使用表格中的精确数据；除非文件明确给出，否则不要计算衍生数值。\n\n"
-    "### 源文本:\n"
-)
+_PROMPT = """## 角色与任务
+你是一位专业的财务分析师，请从 SEC 申报文件中提取关键财务数据。
+
+## 提取规则
+### 核心约束
+1. 每个对象对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
+
+### 领域特定规则
+- 按报告原文提取精确的金额数据，保留单位（百万、十亿）
+- 识别申报实体、股票代码、申报类型和财务期间
+- 在可获取时同时提取最近期间和前期对比数据
+- 捕获申报文件中明确列出的关键财务比率
+- 使用表格中的精确数据；除非文件明确给出，否则不要计算衍生数值
+
+### 源文本:
+"""
 
 # ==============================================================================
 # 3. 模板类
@@ -116,9 +89,6 @@ class FilingFinancialSnapshot(AutoModel[FilingFinancialSnapshotSchema]):
     将利润表、资产负债表和现金流量表中的财务数据跨多个章节合并为单一结构化对象。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> snapshot = FilingFinancialSnapshot(llm_client=llm, embedder=embedder)
         >>> filing_text = "第8项 财务报表：营收为3943亿美元..."
         >>> snapshot.feed_text(filing_text)
@@ -160,3 +130,20 @@ class FilingFinancialSnapshot(AutoModel[FilingFinancialSnapshotSchema]):
             verbose=verbose,
             **kwargs,
         )
+
+    def show(
+        self,
+        *,
+        top_k: int = 3,
+    ):
+        """
+        展示财务快照。
+
+        Args:
+            top_k (int): 展示的快照数量。
+        """
+
+        def label_extractor(data: FilingFinancialSnapshotSchema) -> str:
+            return f"{data.company_name or ''} ({data.ticker or ''}) - {data.filing_period or ''}"
+
+        super().show(label_extractor=label_extractor, top_k=top_k)

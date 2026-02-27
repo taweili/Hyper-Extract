@@ -10,10 +10,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from hyperextract.types import AutoList
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
-
 
 class RiskItem(BaseModel):
     """
@@ -27,9 +23,7 @@ class RiskItem(BaseModel):
         description="类别：'监管'、'竞争'、'宏观经济'、'运营'、'汇率/货币'、"
         "'地缘政治'、'技术'、'法律/诉讼'、'ESG'、'执行'。"
     )
-    description: str = Field(
-        description="风险情景的详细描述。"
-    )
+    description: str = Field(description="风险情景的详细描述。")
     potential_impact: Optional[str] = Field(
         None,
         description="估计的财务影响（例如 '收入下行 3-5%'、'每股收益风险 $0.50'）。",
@@ -44,24 +38,22 @@ class RiskItem(BaseModel):
     )
 
 
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
+_PROMPT = """## 角色与任务
+你是一位专业的风险分析师，请从文本中提取所有下行风险和风险因素。
 
-_PROMPT = (
-    "你是一名审查股票研究报告的风险分析师。提取分析师识别的所有下行风险和风险因素。\n\n"
-    "规则:\n"
-    "- 提取提及的每一个不同的风险因素。\n"
-    "- 对每项风险进行适当分类。\n"
-    "- 在提供量化影响估算时予以捕获。\n"
-    "- 记录概率评估和时间范围。\n"
-    "- 将每项风险作为独立条目单独提取。\n\n"
-    "### 源文本:\n"
-)
+## 提取规则
+### 核心约束
+1. 每个条目对应一个独立的实体，禁止合并
+2. 实体名称与原文保持一致
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
+### 领域特定规则
+- 提取每一个不同的风险因素
+- 对每项风险进行适当分类
+- 在提供量化影响估算时予以捕获
+- 记录概率评估和时间范围
+
+### 源文本:
+"""
 
 
 class RiskFactorList(AutoList[RiskItem]):
@@ -72,9 +64,6 @@ class RiskFactorList(AutoList[RiskItem]):
     用于风险监控和投资组合风险评估。
 
     使用示例:
-        >>> from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-        >>> llm = ChatOpenAI(model="gpt-4o-mini")
-        >>> embedder = OpenAIEmbeddings()
         >>> risks = RiskFactorList(llm_client=llm, embedder=embedder)
         >>> report = "主要风险包括：1) 欧盟数字市场法合规成本..."
         >>> risks.feed_text(report)

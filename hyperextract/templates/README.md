@@ -195,34 +195,47 @@ Specialized for the unique logic of syndrome differentiation (`Bian Zheng`) and 
 ### 5. `industry` (Industry)
 Focuses on unstructured operational data in manufacturing, energy, and power sectors.
 
-*   **Maintenance Logs & Work Orders**: Field records of equipment failures, repair actions taken, and parts replaced. often containing jargon and abbreviations.
+*   **Management Specifications**: Safety procedures, emergency plans and other management documents.
 
 | Template | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
-| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **Failure Hypergraph**. Models `{Structure, RootCause, Component, Solution}` multi-dimensional relations. | Diagnostic expert systems |
-| **`MaintenaceOperationMap`** | `AutoHypergraph` | **Maintenance Operation Map**. Models the operation as a complex event: `{Operator, Tool, Object, Duration}`. | SOP standardization, Man-hour analysis |
-| **`PartReplacementList`** | `AutoList` | **Spare Parts List**. Extracts replaced part numbers, quantities, and reasons. | Inventory prediction |
-
-*   **HSE Incident Reports**: Investigations into safety incidents, detailing the sequence of events, root causes, and corrective actions.
-
-| Template | Primitive | Description | Typical Use Case |
-| :--- | :--- | :--- | :--- |
-| **`IncidentCausalityMap`** | `AutoHypergraph` | **Incident Causality**. Models the coupling of `{Hazard, Trigger, Violation, Consequence}`. | Risk prevention, Accident simulation |
-| **`SafetyTimeline`** | `AutoTemporalGraph` | **Incident Timeline**. Reconstructs the sequence of alarms, actions, and responses. | Accident review, Drill planning |
-
-*   **Shift Handover Logs**: Summaries written by operators regarding equipment status changes, anomalies, and ongoing issues.
-
-| Template | Primitive | Description | Typical Use Case |
-| :--- | :--- | :--- | :--- |
-| **`OpenIssueRegistry`** | `AutoSet` | **Open Issue Registry**. Deduplicated list of unresolved hazards or pending tasks. | Handover management |
-| **`AbnormalParameterList`** | `AutoList` | **Abnormal Parameters**. Extracts mentions of abnormal values or alarms (e.g., "High Temp on T-101"). | Trend analysis |
+| **`SafetyControlGraph`** | `AutoGraph` | **Safety Control Graph**. Extracts hazard sources, risk points, and control measures. | Safety procedures |
+| **`EmergencyResponseGraph`** | `AutoGraph` | **Emergency Response Graph**. Extracts incident scenarios, response actions, and departments. | Emergency plans |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | **Incident Causality**. Models hazard, trigger, violation, consequence. | Risk prevention |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | **Incident Timeline**. Reconstructs operations and response sequences. | Accident review |
 
 *   **Technical Specifications / Datasheets**: Semi-structured text describing equipment parameters, design standards, and performance curves.
 
 | Template | Primitive | Description | Typical Use Case |
 | :--- | :--- | :--- | :--- |
-| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **Compatibility Hypergraph**. Extracts `{Device, Condition, Constraint}` relationships for different environments. | Selection assistance, Design compliance |
-| **`SpecParameterTable`** | `AutoModel` | **Key Specs Table**. Extracts rated power, material classes, and dimensional tolerances. | Digital asset delivery |
+| **`SystemTopologyGraph`** | `AutoGraph` | **System Topology Graph**. Extracts factory areas, systems, subsystems, equipment hierarchy. | System manuals |
+| **`EquipmentTopologyGraph`** | `AutoGraph` | **Equipment Topology Graph**. Extracts equipment entities and connections. | Equipment diagrams |
+| **`SpecParameterTable`** | `AutoModel` | **Key Specs Table**. Extracts rated power, materials, tolerances. | Equipment records |
+| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **Compatibility Hypergraph**. Extracts device-environment relationships. | Selection assistance |
+
+*   **Operations**: Equipment operating procedures, mode switching, etc.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`OperationFlowGraph`** | `AutoGraph` | **Operation Flow Graph**. Extracts operation steps, states, and expected results. | Operating procedures |
+| **`OperatingModeGraph`** | `AutoGraph` | **Operating Mode Graph**. Extracts operating modes and switching conditions. | Mode switching docs |
+| **`MaintenaceOperationMap`** | `AutoHypergraph` | **Maintenance Operation Map**. Links operator, tool, object, duration. | SOP standardization |
+
+*   **Maintenance**: Inspection records, failure cases, spare parts replacement.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`InspectionRecordGraph`** | `AutoGraph` | **Inspection Record Graph**. Extracts equipment and inspection items. | Inspection logs |
+| **`FailureCaseGraph`** | `AutoGraph` | **Failure Case Graph**. Extracts phenomena, causes, measures, lessons. | Failure case libraries |
+| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **Failure Hypergraph**. Models phenomena, causes, components, solutions. | Fault diagnosis |
+| **`PartReplacementList`** | `AutoList` | **Spare Parts List**. Extracts part numbers, quantities, reasons. | Spare parts management |
+
+*   **HSE Incident Reports**: Investigations into safety incidents, detailing the sequence of events, root causes, and corrective actions.
+
+| Template | Primitive | Description | Typical Use Case |
+| :--- | :--- | :--- | :--- |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | **Incident Causality**. Models hazard, trigger, violation, consequence. | Accident simulation |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | **Incident Timeline**. Reconstructs operations and response sequences. | Accident review |
 
 ### 6. `history` (History)
 Focuses on long-span timelines and social network reconstruction.
