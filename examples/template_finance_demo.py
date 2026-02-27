@@ -42,7 +42,7 @@ from hyperextract.templates.zh.finance import (
     # 财报电话会议记录
     EarningsCallSummary,
     ManagementGuidanceList,
-    AnalystQAGraph,
+    DiscussionGraph,
     CallSentimentHypergraph,
     # 金融新闻与市场评论
     MarketSentimentModel,
@@ -86,7 +86,7 @@ TEMPLATE_TO_INPUT = {
     # 财报电话会议
     EarningsCallSummary: TEST_SAMPLES_ROOT / "earnings_call_transcript_sample.md",
     ManagementGuidanceList: TEST_SAMPLES_ROOT / "earnings_call_transcript_sample.md",
-    AnalystQAGraph: TEST_SAMPLES_ROOT / "earnings_call_transcript_sample.md",
+    DiscussionGraph: TEST_SAMPLES_ROOT / "earnings_call_transcript_sample.md",
     CallSentimentHypergraph: TEST_SAMPLES_ROOT / "earnings_call_transcript_sample.md",
     # 金融新闻
     MarketSentimentModel: TEST_SAMPLES_ROOT / "financial_news_sample.md",
@@ -124,13 +124,13 @@ TEMPLATE = RiskAssessmentGraph  # 风险评估图谱
 # 财报电话会议
 # TEMPLATE = EarningsCallSummary  # 财报电话会议摘要
 # TEMPLATE = ManagementGuidanceList  # 管理层业绩指引
-# TEMPLATE = AnalystQAGraph  # 分析师问答图
+# TEMPLATE = DiscussionGraph  # 分析师问答图
 # TEMPLATE = CallSentimentHypergraph  # 电话会议情绪超图
 
 # 金融新闻
 # TEMPLATE = MarketSentimentModel  # 市场情绪模型
 # TEMPLATE = FinancialEventCausalGraph  # 金融事件因果图
-# TEMPLATE = MultiSourceSentimentHypergraph  # 多源情绪超图
+TEMPLATE = MultiSourceSentimentHypergraph  # 多源情绪超图
 # TEMPLATE = MarketNarrativeTimeline  # 市场叙事时间线
 
 # 自动获取对应的输入文件

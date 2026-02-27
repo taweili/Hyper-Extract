@@ -7,172 +7,153 @@
     支持尽职调查和公司发展历史分析。
 """
 
-from typing import Optional, Any
-from pydantic import BaseModel, Field
-from langchain_core.language_models.chat_models import BaseChatModel
+from typing import Any, Optional
+from datetime import datetime
+from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
+from pydantic import BaseModel, Field
 from hyperextract.types import AutoTemporalGraph
 
-# ==============================================================================
-# 1. Schema 定义
-# ==============================================================================
+
+class CompanyEntity(BaseModel):
+    """公司实体节点"""
+
+    name: str = Field(description="实体名称")
+    type: str = Field(
+        description="实体类型：公司、创始人、投资机构等"
+    )
+    description: str = Field(description="简要描述", default="")
 
 
-class CorporateEntity(BaseModel):
-    """
-    参与公司历史里程碑的实体。
-    """
+class CompanyEvent(BaseModel):
+    """公司事件边（带时间戳）"""
 
-    name: str = Field(
-        description="实体名称（例如公司名称、创始人、投资者、被收购方）。"
+    source: str = Field(description="事件主体/相关实体")
+    target: str = Field(description="事件对象/相关实体")
+    eventType: str = Field(
+        description="事件类型：成立、融资、并购、IPO、裁员、发布产品、管理层变更、股权变更、获得专利、获奖"
     )
-    entity_type: str = Field(
-        description='类型："公司"、"创始人"、"投资者"、"被收购方"、"合作伙伴"、"监管机构"。'
+    eventDate: Optional[str] = Field(
+        description="事件日期，格式为年-月-日或年份", default=None
     )
-    description: Optional[str] = Field(
-        None, description="角色或背景信息（例如'A 轮领投方'、'被收购子公司'）。"
-    )
+    details: str = Field(description="事件详细描述", default="")
 
-
-class CorporateMilestoneEdge(BaseModel):
-    """
-    带有时间上下文的公司里程碑事件。
-    """
-
-    source: str = Field(description="发起方实体名称。")
-    target: str = Field(description="受影响的实体或里程碑目标。")
-    event_type: str = Field(
-        description='类型："创立"、"融资轮次"、"收购"、"产品发布"、'
-        '"IPO"、"战略转型"、"合作"、"扩张"、"重组"、"关键人才引进"。'
-    )
-    start_timestamp: Optional[str] = Field(
-        None,
-        description="里程碑日期（例如'2015-06'、'2018 年 3 月'、'2020'）。",
-    )
-    end_timestamp: Optional[str] = Field(
-        None,
-        description="结束日期（如适用，例如收购完成日期）。",
-    )
-    description: Optional[str] = Field(
-        None,
-        description="里程碑详情（例如'红杉资本领投 5000 万美元 B 轮融资'）。",
-    )
-    financial_details: Optional[str] = Field(
-        None,
-        description="财务条款（如有，例如估值、交易规模）。",
-    )
-
-
-# ==============================================================================
-# 2. 提示词 (Prompts)
-# ==============================================================================
 
 _PROMPT = """## 角色与任务
-你是一位专业的尽职调查分析师，请从招股说明书或公司历史文档中提取公司历史里程碑及相关实体。
+你是一位专业的公司历史分析师，请从文本中提取公司相关的实体以及里程碑事件。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的实体
-- **边 (Edge)**：节点之间的关系
-- **时间**：里程碑事件发生的日期或时间段
+- **节点 (Node)**：与公司历史直接相关的实体（本公司、子公司、创始人、投资机构）
+- **边 (Edge)**：公司里程碑事件
+- **时间**：事件发生的时间
 
 ## 提取规则
-### 核心约束
-1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
-2. 实体名称与原文保持一致
-3. 仅从已知实体列表中提取边，不要创建未列出的实体
-4. 关系描述应与原文保持一致
+### 节点提取规则
+1. 仅提取与公司历史直接相关的核心实体
+2. 重点关注：本公司、子公司、创始人、投资机构
 
-### 领域特定规则
-- 识别创立事件、融资轮次、收购、战略转型和关键人才引进
-- 提取每个里程碑的具体日期或时间段
-- 捕捉财务细节（估值、交易规模）（如有提及）
-- 保持时间顺序的准确性
+### 事件提取规则
+1. 仅从提取的实体中创建事件边
+2. 每条边必须连接已提取的节点
+3. 时间信息为可选，仅在文本中明确提及时才提取
+4. **source 和 target 只能是单个实体，不能是多个实体的拼接**
+5. 如果多个主体参与同一事件，应为每个主体创建独立的边
+   - 例如："A和B共同创立了C" → 创建两条边：(A, 创立, C) 和 (B, 创立, C)
+
+### 事件类型
+- 成立：公司成立
+- 融资：种子轮、A轮、B轮、C轮、D轮、战略投资
+- 并购：收购或被收购
+- IPO：上市
+- 裁员：人员优化、人员缩减
+- 发布产品：新品发布、产品上线
+- 管理层变更：CEO、CTO、COO等高管变动
+- 股权变更：股权结构调整、增持、减持
+- 获得专利：专利获批
+- 获奖：行业奖项
 
 ### 时间解析规则
-当前观察日期: {observation_time}
+当前观察日期：{observation_time}
 
-1. 相对时间解析（基于观察日期）:
-   - "去年" → {observation_time} 的前一年
-   - "上月" → {observation_time} 的前一个月
-   - "本季度" → {observation_time} 所在季度
-   - "近期" → {observation_time} 最近 3 个月
+1. 相对时间解析（基于观察日期）：
+   - "去年" → {observation_time} 前一年
+   - "今年" → {observation_time} 所属年份
+   - "明年" → {observation_time} 后一年
+   - "五年前" → {observation_time} 前五年
+   - "最近" → {observation_time} 前1年
 
-2. 精确时间 → 保持原样
-3. 时间缺失 → 留空，不要猜测
+2. 明确日期：保持原格式
+   - 年份（如 2015年）→ 2015
+   - 年-月-日 → 保持原格式
+
+3. 缺失时间：留空
 
 ### 源文本:
 """
 
 _NODE_PROMPT = """## 角色与任务
-你是一位专业的尽职调查分析师，请从文本中提取公司历史中涉及的所有实体作为节点。
+请从文本中提取公司历史相关的实体作为节点。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的实体
+- **节点 (Node)**：与公司历史直接相关的实体
 
 ## 提取规则
-### 核心约束
-1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
-2. 实体名称与原文保持一致
+1. 仅提取与公司历史直接相关的核心实体
+2. 重点关注：本公司、子公司、创始人、投资机构
+3. 谨慎提取：其他实体除非与重大里程碑事件相关
 
-### 领域特定规则
-- 识别公司、创始人、投资者、被收购公司和合作伙伴
-- 按类型对每个实体进行分类
+### 实体类型（优先提取）
+- 公司：本公司的主体名称
+- 创始人：公司的创始团队成员
+- 投资机构：VC、PE等投资方
 
 ### 源文本:
 """
 
 _EDGE_PROMPT = """## 角色与任务
-你是一位专业的尽职调查分析师，请从给定实体列表中提取带有日期的公司里程碑。
+请从已知实体列表中提取公司里程碑事件。
 
 ## 核心概念定义
-- **节点 (Node)**：从文档中提取的实体
-- **边 (Edge)**：节点之间的关系
-- **时间**：里程碑事件发生的日期或时间段
+- **边 (Edge)**：公司里程碑事件
+- **时间**：事件发生的时间
 
-## 提取规则
-### 核心约束
-1. 仅从已知实体列表中提取边，不要创建未列出的实体
-2. 关系描述应与原文保持一致
-
-### 领域特定规则
-- 通过里程碑事件连接实体
-- 提取具体日期或时间段
-- 捕捉财务细节（交易规模、估值）
-- 按类型对每个里程碑进行分类
+### 事件类型
+- 成立、融资、并购、IPO、裁员、发布产品、管理层变更等
 
 ### 时间解析规则
-当前观察日期: {observation_time}
+当前观察日期：{observation_time}
 
-1. 相对时间解析（基于观察日期）:
-   - "去年" → {observation_time} 的前一年
-   - "上月" → {observation_time} 的前一个月
+1. 相对时间解析：
+   - "去年" → {observation_time} 前一年
+   - "今年" → {observation_time} 所属年份
+   - "五年前" → {observation_time} 前五年
 
-2. 精确时间 → 保持原样
-3. 时间缺失 → 留空，不要猜测
+2. 明确日期：保持原格式
+3. 缺失时间：留空
 
-### 源文本:
+### 约束条件
+1. 仅从已知实体列表中提取事件
+2. 不要创建未列出的实体
+3. 时间信息为可选，仅在文本中明确提及时才提取
+4. **source 和 target 只能是单个实体，不能是多个实体的拼接**
+5. 如果多个主体参与同一事件，应为每个主体创建独立的边
+   - 例如："A和B共同创立了C" → 创建两条边：(A, 创立, C) 和 (B, 创立, C)
+   - 例如："红杉资本、IDG投资了该公司" → 创建两条边：(红杉资本, 投资, 该公司) 和 (IDG, 投资, 该公司)
 """
 
-# ==============================================================================
-# 3. 模板类
-# ==============================================================================
 
-
-class CompanyHistoryTimeline(
-    AutoTemporalGraph[CorporateEntity, CorporateMilestoneEdge]
-):
+class CompanyHistoryTimeline(AutoTemporalGraph[CompanyEntity, CompanyEvent]):
     """
-    适用文档: S-1 招股说明书（业务部分）、公司简介页面、
-    尽职调查报告、公司历史摘要、投资者演示材料。
+    适用文档: S-1 招股说明书、公司简介页面、尽职调查报告、公司历史摘要
 
-    模板用于从招股说明书和公司历史中按时间顺序提取公司里程碑。支持尽职调查
-    时间线构建和企业演进跟踪。
+    功能介绍:
+    按时间顺序提取公司创立、融资轮次、收购、IPO 等里程碑事件，
+    支持尽职调查和公司发展历史分析。
 
-    使用示例:
-        >>> history = CompanyHistoryTimeline(llm_client=llm, embedder=embedder)
-        >>> text = "公司于 2015 年由张三创立。2017 年完成 1000 万美元 A 轮融资..."
-        >>> history.feed_text(text)
-        >>> history.show()
+    Example:
+        >>> template = CompanyHistoryTimeline(llm_client=llm, embedder=embedder)
+        >>> template.feed_text("公司于2015年成立，2018年完成A轮融资，2020年IPO上市...")
+        >>> template.show()
     """
 
     def __init__(
@@ -180,10 +161,8 @@ class CompanyHistoryTimeline(
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        observation_time: str = "2024-01-01",
         extraction_mode: str = "two_stage",
-        chunk_size: int = 2048,
-        chunk_overlap: int = 256,
+        observation_time: str | None = None,
         max_workers: int = 10,
         verbose: bool = False,
         **kwargs: Any,
@@ -192,36 +171,35 @@ class CompanyHistoryTimeline(
         初始化公司历史时间线模板。
 
         Args:
-            llm_client (BaseChatModel): 用于里程碑提取的 LLM。
-            embedder (Embeddings): 用于去重的嵌入模型。
-            observation_time (str): 用于解析相对日期的参考时间。
-            extraction_mode (str): "one_stage" 或 "two_stage"。
-            chunk_size (int): 每个分块的最大字符数。
-            chunk_overlap (int): 分块之间的重叠。
-            max_workers (int): 并行处理工作线程数。
-            verbose (bool): 是否启用进度日志。
-            **kwargs: AutoTemporalGraph 的其他参数。
+            llm_client: LLM 客户端，用于知识提取
+            embedder: 嵌入模型，用于语义检索
+            extraction_mode: 提取模式，可选 "one_stage"（同时提取节点和边）
+                或 "two_stage"（先提取节点，再提取边），默认为 "two_stage"
+            observation_time: 观察时间，用于解析相对时间表达，
+                如未指定则使用当前日期
+            max_workers: 最大工作线程数，默认为 10
+            verbose: 是否输出详细日志，默认为 False
+            **kwargs: 其他技术参数，传递给基类
         """
+        if observation_time is None:
+            observation_time = datetime.now().strftime("%Y-%m-%d")
+
         super().__init__(
-            node_schema=CorporateEntity,
-            edge_schema=CorporateMilestoneEdge,
+            node_schema=CompanyEntity,
+            edge_schema=CompanyEvent,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: (
-                f"{x.source}|{x.event_type}|{x.target}"
-            ),
-            time_in_edge_extractor=lambda x: x.start_timestamp or "",
+            edge_key_extractor=lambda x: f"{x.source}|{x.eventType}|{x.details}",
+            time_in_edge_extractor=lambda x: x.eventDate or "",
             nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
             observation_time=observation_time,
             extraction_mode=extraction_mode,
+            max_workers=max_workers,
+            verbose=verbose,
             prompt=_PROMPT,
             prompt_for_node_extraction=_NODE_PROMPT,
             prompt_for_edge_extraction=_EDGE_PROMPT,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            max_workers=max_workers,
-            verbose=verbose,
             **kwargs,
         )
 
@@ -232,23 +210,24 @@ class CompanyHistoryTimeline(
         top_k_edges_for_search: int = 3,
         top_k_nodes_for_chat: int = 3,
         top_k_edges_for_chat: int = 3,
-    ) -> None:
+    ):
         """
-        使用 OntoSight 可视化公司历史时间线。
+        展示公司历史时间线。
 
         Args:
-            top_k_nodes_for_search (int): 检索的实体数。默认 3。
-            top_k_edges_for_search (int): 检索的里程碑数。默认 3。
-            top_k_nodes_for_chat (int): 对话上下文中的实体数。默认 3。
-            top_k_edges_for_chat (int): 对话上下文中的里程碑数。默认 3。
+            top_k_nodes_for_search: 语义检索返回的节点数量，默认为 3
+            top_k_edges_for_search: 语义检索返回的边数量，默认为 3
+            top_k_nodes_for_chat: 问答使用的节点数量，默认为 3
+            top_k_edges_for_chat: 问答使用的边数量，默认为 3
         """
 
-        def node_label_extractor(node: CorporateEntity) -> str:
-            return f"{node.name} ({node.entity_type})"
+        def node_label_extractor(node: CompanyEntity) -> str:
+            return f"{node.name} ({node.type})"
 
-        def edge_label_extractor(edge: CorporateMilestoneEdge) -> str:
-            date = f" [{edge.start_timestamp}]" if edge.start_timestamp else ""
-            return f"{edge.event_type}{date}"
+        def edge_label_extractor(edge: CompanyEvent) -> str:
+            if edge.eventDate:
+                return f"{edge.eventType} ({edge.eventDate})"
+            return f"{edge.eventType}"
 
         super().show(
             node_label_extractor=node_label_extractor,

@@ -161,6 +161,6 @@ class EarningsCallSummary(AutoModel[EarningsCallSummarySchema]):
         """
 
         def label_extractor(data: EarningsCallSummarySchema) -> str:
-            return f"{data.company_name or ''} ({data.ticker or ''}) - {data.quarter or ''}"
+            return f"{data.company_name or ''} - {data.quarter or ''}"
 
         super().show(label_extractor=label_extractor, top_k=top_k)

@@ -272,7 +272,7 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
                 node_context = "No specific entities identified in this chunk."
             else:
                 node_keys = [self.node_key_extractor(n) for n in nodes]
-                node_context = "Known entities: " + ", ".join(node_keys)
+                node_context = "Known entities: " + "\n- ".join(node_keys)
 
             inputs.append(
                 {

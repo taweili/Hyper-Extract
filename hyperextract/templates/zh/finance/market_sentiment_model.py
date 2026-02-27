@@ -21,7 +21,7 @@ class MarketSentimentSnapshot(BaseModel):
     从财经新闻或市场评论中提取的结构化情绪快照。
     """
 
-    headline: Optional[str] = Field(None, description="新闻文章/评论的标题。")
+    headline: Optional[str] = Field(description="新闻文章/评论的标题/主题")
     source: Optional[str] = Field(
         None, description='出版物或来源（例如"彭博社"、"路透社"、"CNBC"）。'
     )
@@ -153,6 +153,6 @@ class MarketSentimentModel(AutoModel[MarketSentimentSnapshot]):
         """
 
         def label_extractor(data: MarketSentimentSnapshot) -> str:
-            return f"{data.sentiment or ''} - {data.mentioned_tickers or ''}"
+            return f"{data.headline}"
 
         super().show(label_extractor=label_extractor, top_k=top_k)

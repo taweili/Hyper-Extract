@@ -30,7 +30,7 @@ from .company_history_timeline import CompanyHistoryTimeline
 # 财报电话会议记录
 from .earnings_call_summary import EarningsCallSummary
 from .management_guidance_list import ManagementGuidanceList
-from .analyst_qa_graph import AnalystQAGraph
+from .discussion_graph import DiscussionGraph
 from .call_sentiment_hypergraph import CallSentimentHypergraph
 
 # 金融新闻与市场评论
@@ -62,7 +62,7 @@ __all__ = [
     # 财报电话会议
     "EarningsCallSummary",
     "ManagementGuidanceList",
-    "AnalystQAGraph",
+    "DiscussionGraph",
     "CallSentimentHypergraph",
     # 金融新闻
     "MarketSentimentModel",

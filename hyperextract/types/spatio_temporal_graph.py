@@ -267,7 +267,7 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             nodes = node_list.items if node_list else []
             node_context = (
                 "Known entities: "
-                + ", ".join([self.node_key_extractor(n) for n in nodes])
+                + "\n- ".join([self.node_key_extractor(n) for n in nodes])
                 if nodes
                 else "No specific entities identified."
             )

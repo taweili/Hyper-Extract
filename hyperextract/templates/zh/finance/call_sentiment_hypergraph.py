@@ -163,7 +163,7 @@ class CallSentimentHypergraph(AutoHypergraph[CallTopic, SentimentCluster]):
             node_schema=CallTopic,
             edge_schema=SentimentCluster,
             node_key_extractor=lambda x: x.name,
-            edge_key_extractor=lambda x: x.cluster_name,
+            edge_key_extractor=lambda x: f"{x.cluster_name}|{sorted(x.participating_elements)}",
             nodes_in_edge_extractor=lambda x: tuple(
                 e for e in x.participating_elements
             ),
@@ -202,7 +202,7 @@ class CallSentimentHypergraph(AutoHypergraph[CallTopic, SentimentCluster]):
             return f"{node.name} [{node.element_type}]"
 
         def edge_label_extractor(edge: SentimentCluster) -> str:
-            return f"[{edge.sentiment_polarity}/{edge.intensity}] {edge.cluster_name}"
+            return f"{edge.cluster_name}"
 
         super().show(
             node_label_extractor=node_label_extractor,

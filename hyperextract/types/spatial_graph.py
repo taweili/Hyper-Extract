@@ -251,7 +251,7 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
-            node_context = "Known entities: " + ", ".join([self.node_key_extractor(n) for n in nodes]) if nodes else "No specific entities identified."
+            node_context = "Known entities: " + "\n- ".join([self.node_key_extractor(n) for n in nodes]) if nodes else "No specific entities identified."
 
             inputs.append({
                 "chunk_text": chunk,

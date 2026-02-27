@@ -103,7 +103,7 @@ Optimized for complex financial relationships, market sentiment, and temporal ev
 | :--- | :--- | :--- | :--- |
 | **`EarningsCallSummary`** | `AutoModel` | **Call Overview**. Extracts reported metrics (Revenue, EPS), management guidance, and overall call tone (positive/cautious/negative). | Quarterly review dashboards, consensus tracking |
 | **`ManagementGuidanceList`** | `AutoList` | **Forward Guidance**. Extracts forward-looking statements: projected figures, strategic priorities, and qualitative outlook. | Guidance tracking, expectation management |
-| **`AnalystQAGraph`** | `AutoGraph` | **Q&A Interaction Map**. Maps analyst questions to management responses, capturing concerns raised and commitments made. | Analyst focus analysis, commitment tracking |
+| **`DiscussionGraph`** | `AutoGraph` | **Earnings Call Discussion Graph**. Extracts entities and their多元 relationships (Q&A, attention, business, financial) from earnings call transcripts. | Analyst focus analysis, Q&A tracking |
 | **`CallSentimentHypergraph`** | `AutoHypergraph` | **Topic-Sentiment Analysis**. Models multi-dimensional sentiment: `{Topic (Revenue/Margin/Guidance), Speaker, Sentiment, Driving Factor}` across the call. | Sentiment-driven trading signals, tone shift detection |
 
 *   **Financial News & Market Commentary**: News articles, analyst commentaries, and social media posts conveying market sentiment, event impact, and forward-looking opinions about financial instruments or markets. 

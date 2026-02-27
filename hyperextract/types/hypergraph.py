@@ -494,7 +494,7 @@ class AutoHypergraph(
                 node_context = "No entities identified in this chunk."
             else:
                 node_keys = [f"- {self.node_key_extractor(n)}" for n in nodes]
-                node_context = "Allowed Entities:\n" + "\n".join(node_keys)
+                node_context = "Known entities: " + "\n- ".join(node_keys)
 
             inputs.append({"chunk_text": chunk, "node_context": node_context})
 

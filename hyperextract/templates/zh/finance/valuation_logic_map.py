@@ -43,7 +43,10 @@ class ValuationEdge(BaseModel):
         description="分析师连接源到目标的推理逻辑"
         "（例如 '更高的云计算采用率推动经常性收入增长'）。"
     )
-    direction: str = Field(description="影响方向：'正面'、'负面'、'中性'。")
+    relation_type: str = Field(
+        description="关系类型：'驱动'（正面）、'支撑'（正面）、'确认'（正面）、"
+        "'抑制'（负面）、'限制'（负面）、'假设'（中性）、'关联'（中性）。"
+    )
     confidence: Optional[str] = Field(
         None,
         description="分析师的确信度：'高'、'中等'、'低'。",
@@ -68,7 +71,7 @@ _PROMPT = """## 角色与任务
 - 识别基本面驱动因素、增长催化剂和估值指标
 - 提取从业务驱动因素到目标价的因果链
 - 捕获分析师在每个链接处的具体推理
-- 记录影响方向和确信度
+- 记录关系类型：驱动/支撑/确认（正面）、抑制/限制（负面）、假设/关联（中性）
 
 ### 源文本:
 """
@@ -107,7 +110,7 @@ _EDGE_PROMPT = """## 角色与任务
 ### 提取规则
 - 将业务驱动因素连接到财务结果再到估值结论
 - 捕获每个链接处的具体推理
-- 记录每个链接是正面、负面还是中性影响
+- 记录关系类型：驱动/支撑/确认（正面）、抑制/限制（负面）、假设/关联（中性）
 
 """
 
@@ -156,7 +159,7 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
             edge_schema=ValuationEdge,
             node_key_extractor=lambda x: x.name,
             edge_key_extractor=lambda x: (
-                f"{x.source}--({x.direction})-->{x.target}"
+                f"{x.source}--({x.relation_type})-->{x.target}"
             ),
             nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
@@ -195,7 +198,7 @@ class ValuationLogicMap(AutoGraph[ValuationDriver, ValuationEdge]):
             return f"{node.name}{val}"
 
         def edge_label_extractor(edge: ValuationEdge) -> str:
-            return f"[{edge.direction}] {edge.logic[:60]}"
+            return f"{edge.relation_type}"
 
         super().show(
             node_label_extractor=node_label_extractor,
