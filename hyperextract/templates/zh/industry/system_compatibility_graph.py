@@ -152,6 +152,7 @@ class SystemCompatibilityGraph(AutoHypergraph[CompatibilityEntity, Compatibility
             node_schema=CompatibilityEntity,
             edge_schema=CompatibilityEdge,
             node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.compatibility_type}_{sorted(x.nodes)}",
             nodes_in_edge_extractor=lambda x: x.nodes,
             llm_client=llm_client,
             embedder=embedder,

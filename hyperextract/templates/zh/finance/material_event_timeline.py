@@ -5,6 +5,7 @@
 """
 
 from typing import Optional, Any
+from datetime import datetime
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -164,7 +165,7 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        observation_time: str = "2024-01-01",
+        observation_time: str | None = None,
         extraction_mode: str = "two_stage",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
@@ -178,7 +179,7 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
         Args:
             llm_client (BaseChatModel): 用于事件提取的 LLM。
             embedder (Embeddings): 用于去重的嵌入模型。
-            observation_time (str): 用于解析相对日期的参考时间。
+            observation_time (str): 用于解析相对日期的参考时间，未指定时默认为当前日期。
             extraction_mode (str): "one_stage" 或 "two_stage"。
             chunk_size (int): 每个分块的最大字符数。
             chunk_overlap (int): 分块之间的重叠。
@@ -186,6 +187,9 @@ class MaterialEventTimeline(AutoTemporalGraph[MaterialEventEntity, MaterialEvent
             verbose (bool): 是否启用进度日志。
             **kwargs: AutoTemporalGraph 的其他参数。
         """
+        if observation_time is None:
+            observation_time = datetime.now().strftime("%Y-%m-%d")
+
         super().__init__(
             node_schema=MaterialEventEntity,
             edge_schema=MaterialEventEdge,

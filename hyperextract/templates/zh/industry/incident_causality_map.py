@@ -154,6 +154,7 @@ class IncidentCausalityMap(AutoHypergraph[IncidentEntity, IncidentCausalityEdge]
             node_schema=IncidentEntity,
             edge_schema=IncidentCausalityEdge,
             node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.causality_type}_{sorted(x.nodes)}",
             nodes_in_edge_extractor=lambda x: x.nodes,
             llm_client=llm_client,
             embedder=embedder,

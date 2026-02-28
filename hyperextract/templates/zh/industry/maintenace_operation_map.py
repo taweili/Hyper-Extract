@@ -166,6 +166,7 @@ class MaintenaceOperationMap(
             node_schema=MaintenanceEntity,
             edge_schema=MaintenanceOperationEdge,
             node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.operation_name}_{sorted(x.nodes)}",
             nodes_in_edge_extractor=lambda x: x.nodes,
             llm_client=llm_client,
             embedder=embedder,
@@ -202,8 +203,7 @@ class MaintenaceOperationMap(
             return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: MaintenanceOperationEdge) -> str:
-            duration = f" [{edge.duration}]" if edge.duration else ""
-            return f"{edge.operation_name}{duration}"
+            return f"{edge.operation_name}"
 
         super().show(
             node_label_extractor=node_label_extractor,

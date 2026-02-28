@@ -75,8 +75,8 @@ TEMPLATE_TO_INPUT = {
 # TEMPLATE = CompatibilityNet  # 七情配伍网络
 
 # 方剂规范
-TEMPLATE = FormulaComposition  # 君臣佐使结构图
-# TEMPLATE = FunctionIndicationMap  # 主治功效映射
+# TEMPLATE = FormulaComposition  # 君臣佐使结构图
+TEMPLATE = FunctionIndicationMap  # 主治功效映射
 
 # 经络腧穴专著
 # TEMPLATE = MeridianFlowGraph  # 经络流注图

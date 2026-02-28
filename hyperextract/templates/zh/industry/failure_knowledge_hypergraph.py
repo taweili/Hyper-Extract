@@ -143,6 +143,7 @@ class FailureKnowledgeHypergraph(AutoHypergraph[FailureEntity, FailureKnowledgeE
             node_schema=FailureEntity,
             edge_schema=FailureKnowledgeEdge,
             node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.reasoning_type}_{sorted(x.nodes)}",
             nodes_in_edge_extractor=lambda x: x.nodes,
             llm_client=llm_client,
             embedder=embedder,

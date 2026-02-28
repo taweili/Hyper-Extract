@@ -106,11 +106,11 @@ TEMPLATE_TO_INPUT = {
 
 # 1. 管理规范 (Management Specifications) - 安全规程、应急预案
 # TEMPLATE = SafetyControlGraph      # 安全管控图：提取危险源、风险点和管控措施
-TEMPLATE = EmergencyResponseGraph  # 应急预案图：提取事故场景、响应动作和部门
+# TEMPLATE = EmergencyResponseGraph  # 应急预案图：提取事故场景、响应动作和部门
 
 # 2. 技术规格书 (Technical Specifications) - 设备额定参数、材质标准
 # TEMPLATE = SystemTopologyGraph       # 系统拓扑图：提取工厂的厂区、系统、子系统、设备等层级结构
-# TEMPLATE = EquipmentTopologyGraph   # 设备拓扑图：提取工业设备的实体及其相互连接关系
+TEMPLATE = EquipmentTopologyGraph   # 设备拓扑图：提取工业设备的实体及其相互连接关系
 # TEMPLATE = SpecParameterTable       # 核心规格表：提取额定功率、材质、尺寸精度等关键技术指标
 # TEMPLATE = SystemCompatibilityGraph # 系统兼容性超图：提取设备与环境、介质的对应关系
 

@@ -105,8 +105,8 @@ TEMPLATE_TO_INPUT = {
 # TEMPLATE = FilingRiskFactorSet  # 风险因子集合
 # TEMPLATE = MaterialEventTimeline  # 重大事件时间线
 # TEMPLATE = SegmentPerformanceList  # 业务分部业绩列表
-# TEMPLATE = FinancialDataTemporalGraph  # 财务数据时序图
-TEMPLATE = RiskAssessmentGraph  # 风险评估图谱
+TEMPLATE = FinancialDataTemporalGraph  # 财务数据时序图
+# TEMPLATE = RiskAssessmentGraph  # 风险评估图谱
 # TEMPLATE = SupplyChainGraph  # 供应链图谱
 
 # 股票研究报告
@@ -130,7 +130,7 @@ TEMPLATE = RiskAssessmentGraph  # 风险评估图谱
 # 金融新闻
 # TEMPLATE = MarketSentimentModel  # 市场情绪模型
 # TEMPLATE = FinancialEventCausalGraph  # 金融事件因果图
-TEMPLATE = MultiSourceSentimentHypergraph  # 多源情绪超图
+# TEMPLATE = MultiSourceSentimentHypergraph  # 多源情绪超图
 # TEMPLATE = MarketNarrativeTimeline  # 市场叙事时间线
 
 # 自动获取对应的输入文件

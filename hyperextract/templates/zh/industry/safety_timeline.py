@@ -11,44 +11,22 @@ from hyperextract.types import AutoTemporalGraph
 
 
 class SafetyTimelineEntity(BaseModel):
-    """
-    事故时序图中的实体节点。
-    """
+    """事故时序图中的实体节点。"""
 
-    name: str = Field(description="实体名称（例如：操作人员、设备名称、岗位名称）。")
-    entity_type: str = Field(
-        description="类型：人员、设备、岗位、位置、环境状态。"
-    )
-    description: Optional[str] = Field(
-        None, description="角色或状态描述（例如：操作工、离心泵、现场负责人）。"
-    )
+    name: str = Field(description="实体名称")
+    entity_type: str = Field(description="类型：人员、设备、设施等")
+    description: Optional[str] = None
 
 
 class SafetyTimelineEdge(BaseModel):
-    """
-    事故时序图中的时间边。
-    """
+    """事故时序图中的时间边。"""
 
-    source: str = Field(description="源实体名称（执行操作的当事人）。")
-    target: str = Field(description="目标实体名称（受影响的对象或结果）。")
-    action: str = Field(
-        description="操作或动作描述（例如：启动设备、巡检、发现异常）。"
-    )
-    start_timestamp: Optional[str] = Field(
-        None,
-        description="动作开始时间（例如：'2024-03-15 14:30'、'事故前30分钟'）。",
-    )
-    end_timestamp: Optional[str] = Field(
-        None,
-        description="动作结束时间（如适用）。",
-    )
-    location: Optional[str] = Field(
-        None, description="发生位置（例如：泵房、配电室、生产车间）。"
-    )
-    status: Optional[str] = Field(
-        None,
-        description="状态描述：正常、异常、故障、报警、失控等。",
-    )
+    source: str = Field(description="源实体名称")
+    target: str = Field(description="目标实体名称")
+    action: str = Field(description="操作动作")
+    timestamp: Optional[str] = Field(None, description="动作发生时间")
+    location: Optional[str] = Field(None, description="发生位置")
+    status: Optional[str] = Field(None, description="状态描述")
 
 
 _PROMPT = """## 角色与任务
@@ -71,7 +49,6 @@ _PROMPT = """## 角色与任务
 - 识别相关设备（泵、电机、阀门、仪表）
 - 识别操作动作（启动、停止、巡检、维修、发现异常）
 - 识别环境状态（正常、异常、报警、危险）
-- 按时间顺序排列事件
 
 ### 时间解析规则
 当前观察日期: {observation_time}
@@ -87,53 +64,43 @@ _PROMPT = """## 角色与任务
 ### 源文本:
 """
 
-_NODE_PROMPT = """## 角色与任务
-你是一位工业安全事故调查专家，请从事故调查报告中提取所有参与事故的实体作为节点。
-
-## 核心概念定义
-- **节点 (Node)**：从文档中提取的参与事故的实体
+_NODE_PROMPT = """## 角色
+你是工业安全事故调查专家，从事故调查报告中提取参与事故的实体作为节点。
 
 ## 提取规则
 ### 核心约束
-1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+1. 每个节点对应一个独立实体
 2. 实体名称与原文保持一致
 
-### 领域特定规则
-- 识别事故相关人员（操作工、班组长、安全员、管理人员）
-- 识别相关设备（泵、电机、阀门、仪表）
-- 识别位置（泵房、配电室、生产车间）
-- 识别环境状态实体
+### 提取范围
+- 人员、设备、设施、岗位、位置等
 
-### 源文本:
+## 源文本:
 """
 
-_EDGE_PROMPT = """## 角色与任务
-你是一位工业安全事故调查专家，请从已知实体列表中提取事故时间线中的操作动作作为时间边。
+_EDGE_PROMPT = """## 角色
+你是工业安全事故调查专家，从已知实体列表中提取事故时间线中的操作动作。
 
-## 核心概念定义
-- **节点 (Node)**：从文档中提取的参与事故的实体
-- **边 (Edge)**：时间序列中的操作动作
-- **时间**：操作发生的时间点
+## 核心约束
+1. **source 和 target 都必须是已知实体列表中的节点**
+2. 每个操作动作都必须提取为一条边
+3. 节点名称必须完全匹配
 
-## 提取规则
-### 核心约束
-1. 仅从已知实体列表中提取边，不要创建未列出的实体
-2. 关系描述应与原文保持一致
+## 操作类型
+- 启动、停止、开启、关闭
+- 巡检、检查、排查
+- 维修、检修、保养
+- 发现、识别、报告
+- 操作、使用、触发
 
-### 领域特定规则
-- 识别操作动作（启动、停止、巡检、维修、发现异常）
-- 提取时间点信息
-- 记录位置和环境状态
-
-### 时间解析规则
-当前观察日期: {observation_time}
-
-1. 相对时间解析（基于观察日期）:
-   - "事故前30分钟" → {observation_time} 前30分钟
-   - "随后" → 接续前一事件
-
-2. 精确时间 → 保持原样
-3. 时间缺失 → 留空，不要猜测
+## 输出格式
+每条边必须包含：
+- source: 源实体（节点名称）
+- target: 目标实体（节点名称）
+- action: 操作动作
+- timestamp: 动作发生时间
+- location: 发生位置
+- status: 状态
 
 """
 
@@ -188,7 +155,7 @@ class SafetyTimeline(AutoTemporalGraph[SafetyTimelineEntity, SafetyTimelineEdge]
             edge_key_extractor=lambda x: (
                 f"{x.source}|{x.action}|{x.target}"
             ),
-            time_in_edge_extractor=lambda x: x.start_timestamp or "",
+            time_in_edge_extractor=lambda x: x.timestamp or "",
             nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
@@ -226,7 +193,7 @@ class SafetyTimeline(AutoTemporalGraph[SafetyTimelineEntity, SafetyTimelineEdge]
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: SafetyTimelineEdge) -> str:
-            date = f" [{edge.start_timestamp}]" if edge.start_timestamp else ""
+            date = f" [{edge.timestamp}]" if edge.timestamp else ""
             return f"{edge.action}{date}"
 
         super().show(

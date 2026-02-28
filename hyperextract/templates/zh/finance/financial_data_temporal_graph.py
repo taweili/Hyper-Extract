@@ -5,6 +5,7 @@
 """
 
 from typing import Optional, Any
+from datetime import datetime
 from pydantic import BaseModel, Field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -33,42 +34,24 @@ class FinancialDataEntity(BaseModel):
 
 
 class FinancialDataEdge(BaseModel):
-    """
-    锚定于特定报告期的时序财务关系，将实体与指标、指标与指标关联起来。
-    """
+    """锚定于特定报告期的时序财务关系，将实体与指标、指标与指标关联起来。"""
 
     source: str = Field(
-        description="报告主体或贡献因素（例如 '苹果公司'、'服务分部'）。"
+        description="主体（公司/分部/指标名称）"
     )
     target: str = Field(
-        description="财务指标或会计科目（例如 '营业收入'、'经营利润'）。"
+        description="目标（指标/分部/因素名称）"
     )
     relationship: str = Field(
-        description="关系类型：'报告'、'贡献'、'衍生'、'同比变化'、'比率'、'受影响于'。"
+        description="关系类型：'拥有'、'同比变化'、'占比'、'贡献'、'影响'"
     )
     value: Optional[str] = Field(
         None,
-        description="报告金额或百分比（例如 '3943亿美元'、'+7.8%'、'45.6%'）。",
-    )
-    unit: Optional[str] = Field(
-        None,
-        description="金额单位或币种（例如 '百万美元'、'百分比'）。",
+        description="数值（如 '3943亿美元'、'+7.8%'、'30%'）"
     )
     fiscal_period: Optional[str] = Field(
         None,
-        description="财务期间标签（例如 'FY2024'、'Q3 2024'、'截至2024年12月31日的年度'）。",
-    )
-    start_timestamp: Optional[str] = Field(
-        None,
-        description="报告期开始日期（例如 '2024-01-01'、'2024年1月1日'）。",
-    )
-    end_timestamp: Optional[str] = Field(
-        None,
-        description="报告期结束日期（例如 '2024-12-31'、'2024年12月31日'）。",
-    )
-    description: Optional[str] = Field(
-        None,
-        description="补充说明，如对比备注、重述标记或会计处理方式等。",
+        description="财务期间（如 'FY2024'、'Q3 2024'）"
     )
 
 
@@ -115,59 +98,58 @@ _PROMPT = """## 角色与任务
 ### 源文本:
 """
 
-_NODE_PROMPT = """## 角色与任务
-你是一位专业的财务分析师，请从文本中提取所有财务实体作为节点。
-
-## 核心概念定义
-- **节点 (Node)**：从文档中提取的实体
+_NODE_PROMPT = """## 角色
+你是专业的财务分析师，从文本中提取财务实体作为节点。
 
 ## 提取规则
 ### 核心约束
-1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+1. 每个节点对应一个独立实体
 2. 实体名称与原文保持一致
+3. **重要**：提取的节点名称要完整准确，因为边会引用这些名称
 
-### 领域特定规则
-- 识别申报公司及其子公司或关联方
-- 识别文中提到的业务分部或地理区域
-- 识别财务指标和会计科目（营业收入、净利润、每股收益、总资产等）
-- 识别文中明确提及的影响财务的外部因素（例如 '汇率逆风'、'关税影响'）
-- 按类型分类：公司、分部、财务指标、会计科目、外部因素
-- 不要将日期、时间期间或纯数值提取为实体
+### 只提取以下类型的实体：
+- **公司**：申报公司及其重要子公司
+- **分部**：业务分部或区域（具体名称）
+- **财务指标**：关键财务指标（营业收入、净利润、毛利率等）
+- **会计科目**：主要会计科目
+- **外部因素**：影响财务的外部因素
 
-### 源文本:
+### 不提取为节点：
+- 日期、时间期间
+- 纯数值
+
+### 提取原则
+- 公司名使用完整官方名称（如 '苹果公司' 而非 '苹果'）
+- 财务指标使用标准名称（如 '营业收入' 而非 '收入'）
+- 避免提取过于通用或抽象的概念
+
+## 源文本:
 """
 
-_EDGE_PROMPT = """## 角色与任务
-你是一位专业的财务分析师，请从给定实体列表中提取所有带时间上下文的财务数据关系。
+_EDGE_PROMPT = """## 角色
+你是专业的财务分析师，从文本中提取带时间上下文的财务数据关系。
 
-## 核心概念定义
-- **节点 (Node)**：从文档中提取的实体
-- **边 (Edge)**：节点之间的关系
-- **时间**：财务数据所属的财务期间
+## 核心约束
+1. **source 和 target 都必须是已知实体列表中的节点**
+2. 每个出现的财务数据都必须提取为一条边
+3. 节点名称必须完全匹配
 
-## 提取规则
-### 核心约束
-1. 仅从已知实体列表中提取边，不要创建未列出的实体
-2. 关系描述应与原文保持一致
+## 关系类型（有区分度的类型）
+- "拥有"：公司拥有某分部/子公司
+- "同比变化"：同比增加/减少（如 "营收同比增长7.8%"）
+- "占比"：某指标占某指标的比例（如 "云服务收入占比30%"）
+- "贡献"：某分部贡献了某指标的多少（如 "华东区贡献收入20%"）
+- "影响"：外部因素影响了某指标（如 "汇率影响收入-5%"）
 
-### 领域特定规则
-- 对每个报告数据，连接报告主体/分部与相应的财务指标
-- 每条边必须包含精确数值、单位和财务期间
-- 将同比变化单独提取为边
-- 提取分部贡献
-- 提取文中明确列出的衍生比率
-- 根据财务期间的起止边界赋值时间字段
+## 输出格式
+每条边必须包含：
+- source: 主体（节点名称）
+- target: 目标（节点名称）
+- relationship: 关系类型
+- value: 数值（必须）
+- fiscal_period: 财务期间
 
-### 时间解析规则
-当前观察日期: {observation_time}
-
-1. 相对时间解析（基于观察日期）:
-   - "去年" → {observation_time} 的前一年
-   - "FY2024" → 2024财年
-
-2. 精确时间 → 保持原样
-3. 时间缺失 → 留空，不要猜测
-
+## 源文本:
 """
 
 # ==============================================================================
@@ -199,7 +181,7 @@ class FinancialDataTemporalGraph(
         llm_client: BaseChatModel,
         embedder: Embeddings,
         *,
-        observation_time: str = "2024-01-01",
+        observation_time: str | None = None,
         extraction_mode: str = "two_stage",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
@@ -213,7 +195,7 @@ class FinancialDataTemporalGraph(
         Args:
             llm_client (BaseChatModel): 用于财务数据提取的 LLM。
             embedder (Embeddings): 用于去重和语义检索的嵌入模型。
-            observation_time (str): 用于解析相对时间表达式的参考日期。
+            observation_time (str): 用于解析相对时间表达式的参考日期，未指定时默认为当前日期。
             extraction_mode (str): "one_stage" 或 "two_stage"（默认 "two_stage"）。
             chunk_size (int): 每个文本分块的最大字符数。
             chunk_overlap (int): 相邻分块之间的重叠字符数。
@@ -221,6 +203,9 @@ class FinancialDataTemporalGraph(
             verbose (bool): 是否启用进度日志。
             **kwargs: AutoTemporalGraph 的其他参数。
         """
+        if observation_time is None:
+            observation_time = datetime.now().strftime("%Y-%m-%d")
+
         super().__init__(
             node_schema=FinancialDataEntity,
             edge_schema=FinancialDataEdge,
@@ -228,7 +213,7 @@ class FinancialDataTemporalGraph(
             edge_key_extractor=lambda x: (
                 f"{x.source}|{x.relationship}|{x.target}"
             ),
-            time_in_edge_extractor=lambda x: x.fiscal_period or x.start_timestamp or "",
+            time_in_edge_extractor=lambda x: x.fiscal_period or "",
             nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
@@ -266,10 +251,9 @@ class FinancialDataTemporalGraph(
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: FinancialDataEdge) -> str:
-            parts = [edge.relationship]
-            if edge.value:
-                parts.append(edge.value)
-            return " ".join(parts)
+            if edge.value is None:
+                return f"{edge.relationship}"
+            return f"{edge.relationship} ({edge.value})"
 
         super().show(
             node_label_extractor=node_label_extractor,

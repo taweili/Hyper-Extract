@@ -17,25 +17,33 @@ from hyperextract.types import AutoGraph
 class FinancialEventNode(BaseModel):
     """金融事件节点"""
 
-    name: str = Field(description="事件/实体名称")
-    type: str = Field(description="类型：事件、政策、经济指标、板块、实体")
-    description: str = Field(description="简要描述", default="")
+    name: str = Field(description="实体名称")
+    category: str = Field(
+        description="实体类别：'政策事件'、'市场实体'、'经济指标'"
+    )
+    description: str = Field(
+        description="实体的简要描述"
+    )
 
 
 class EventCausalEdge(BaseModel):
     """因果关系边"""
 
-    source: str = Field(description="源实体（原因侧的实体）")
-    target: str = Field(description="目标实体（结果侧的实体）")
-    relation_type: str = Field(description="因果关系类型")
-    description: str = Field(description="简要描述", default="")
+    source: str = Field(description="源实体名称")
+    target: str = Field(description="目标实体名称")
+    relation_type: str = Field(
+        description="因果关系类型：推动、促进、带动、抑制、拖累、冲击、利好、利空"
+    )
+    description: str = Field(
+        description="因果关系的详细说明"
+    )
 
 
 _PROMPT = """## 角色与任务
 你是一位专业的宏观策略师，请从文本中提取金融事件及它们之间的因果关系。
 
 ## 核心概念定义
-- **节点 (Node)**：金融事件、政策、经济指标、板块、实体
+- **节点 (Node)**：金融事件、政策、经济指标、市场实体
 - **边 (Edge)**：因果关系
 
 ## 提取规则
@@ -45,15 +53,14 @@ _PROMPT = """## 角色与任务
 3. **source 和 target 都必须是已提取的实体节点**
 
 ### 实体类型
-- 政策：降准、加息、财政赤字、IPO重启
-- 经济指标：GDP、CPI、PPI、利率、汇率
-- 板块：银行、房地产、科技、消费
-- 实体：具体公司或产品
+- 政策事件：降准、加息、财政政策
+- 市场实体：银行、房地产、科技、消费
+- 经济指标：GDP、CPI、利率、汇率
 
 ### 关系类型
-- 政策影响：利好（受益）、利空（受损）
-- 因果传导：导致、引起、推动、促进、抑制、拖累
-- 市场表现：上涨、下跌、增长、下降
+- 推动类：推动、促进、带动
+- 抑制类：抑制、拖累、冲击
+- 影响类：利好、利空
 
 ### 源文本:
 """
@@ -62,17 +69,16 @@ _NODE_PROMPT = """## 角色与任务
 请从文本中提取金融实体作为节点。
 
 ## 核心概念定义
-- **节点 (Node)**：政策、经济指标、板块、实体
+- **节点 (Node)**：政策事件、市场实体、经济指标
 
 ## 提取规则
 1. 提取所有金融实体
 2. 名称与原文保持一致
 
 ### 实体类型
-- 政策：降准、加息、财政赤字
-- 经济指标：GDP、CPI、PPI、利率
-- 板块：银行、房地产、科技、消费
-- 实体：具体公司
+- 政策事件：降准、加息、财政政策
+- 市场实体：银行、房地产、科技、消费
+- 经济指标：GDP、CPI、利率
 
 ### 源文本:
 """
@@ -87,17 +93,12 @@ _EDGE_PROMPT = """## 角色与任务
 ### 核心约束
 1. 仅从已知实体列表中提取边，不要创建未列出的实体
 2. 关系描述应与原文保持一致
+3. **关键**：边的 source 和 target 必须完全使用下方实体列表中的名称
 
 ### 关系类型
-- 政策影响：利好（受益）、利空（受损）
-- 因果传导：导致、引起、推动、促进、抑制、拖累
-- 市场表现：上涨、下跌、增长、下降
-
-### 示例
-- (降准, 利好, 银行)
-- (降准, 推动, 房地产)
-- (加息, 利空, 房地产)
-- (GDP增长, 推动, 股市上涨)
+- 推动类：推动、促进、带动
+- 抑制类：抑制、拖累、冲击
+- 影响类：利好、利空
 
 """
 
@@ -156,10 +157,10 @@ class FinancialEventCausalGraph(AutoGraph[FinancialEventNode, EventCausalEdge]):
         top_k_edges_for_chat: int = 3,
     ):
         def node_label_extractor(node: FinancialEventNode) -> str:
-            return f"{node.name} ({node.type})"
+            return f"{node.name} ({node.category})"
 
         def edge_label_extractor(edge: EventCausalEdge) -> str:
-            return f" {edge.relation_type}"
+            return f"{edge.relation_type}"
 
         super().show(
             node_label_extractor=node_label_extractor,

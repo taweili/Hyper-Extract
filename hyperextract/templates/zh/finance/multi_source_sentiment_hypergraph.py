@@ -207,11 +207,10 @@ class MultiSourceSentimentHypergraph(
         """
 
         def node_label_extractor(node: SentimentSource) -> str:
-            signal = f" [{node.sentiment_signal}]" if node.sentiment_signal else ""
-            return f"{node.name} ({node.source_type}){signal}"
+            return f"{node.name} ({node.source_type})"
 
         def edge_label_extractor(edge: AggregatedSentiment) -> str:
-            return f"[{edge.aggregated_polarity}] {edge.fusion_name}"
+            return f"{edge.fusion_name}"
 
         super().show(
             node_label_extractor=node_label_extractor,
