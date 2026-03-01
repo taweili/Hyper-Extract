@@ -95,6 +95,9 @@ iText2KG_Star_EDGE_EXTRACTION_PROMPT = """
 - Avoid reflexive relations (entity relating to itself).
 - IMPORTANT: Set 'observation_date' to null in all cases. Do NOT extract or infer dates from the context.
 - The observation_date field should be populated by the user manually after extraction.
+
+### Source Text:
+{source_text}
 """
 
 
@@ -214,15 +217,8 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             chunks = self.text_splitter.split_text(text)
 
         # 2. Batch Extract Edges directly
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-
-        inputs = [{"chunk_text": chunk} for chunk in chunks]
-        chunk_edge_lists = llm_chain.batch(
+        inputs = [{"source_text": chunk} for chunk in chunks]
+        chunk_edge_lists = self.edge_extractor.batch(
             inputs, config={"max_concurrency": self.max_workers}
         )
 

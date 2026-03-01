@@ -159,7 +159,9 @@ def main():
             "- Location（地点）：故事发生的地方\n"
             "- Item（物品）：故事中提到的重要物品或武器\n"
             "- Faction（派系）：故事中的组织或势力\n\n"
-            "请确保提取所有重要的实体，并正确分类它们的类别。"
+            "请确保提取所有重要的实体，并正确分类它们的类别。\n\n"
+            "## 源文本:\n"
+            "{source_text}"
         ),
         prompt_for_edge_extraction=(
             "你的任务是从故事文本中提取复杂的叙事关系，将其建模为超边。\n"
@@ -174,7 +176,11 @@ def main():
             "1. summary：对这个叙事单元的简洁描述\n"
             "2. edge_type：上述分类之一\n"
             "3. participants：所有牵涉其中的实体名称列表\n\n"
-            "确保 participants 列表包含故事中与该事件相关的所有实体。"
+            "确保 participants 列表包含故事中与该事件相关的所有实体。\n"
+            "### 已知的实体列表\n"
+            "{known_nodes}\n\n"
+            "## 源文本:\n"
+            "{source_text}\n\n"
         ),
         chunk_size=1000,
     )

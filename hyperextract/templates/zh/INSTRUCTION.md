@@ -181,7 +181,6 @@ class FinancialRelation(BaseModel):
 
 **图类型（AutoGraph/AutoHypergraph 等）必须遵循以下前置结构**：
 
-```
 ## 角色与任务
 你是一位专业的 xxx 专家，请从文本中提取 xxx...
 
@@ -205,9 +204,43 @@ class FinancialRelation(BaseModel):
 - 金融领域：专业术语保持原文表述
 - 医学领域：专业缩写保持原文
 
+### 特殊占位符（必须）
+**每个 Prompt 都必须包含特殊占位符**，用于接收待提取的文本：
+
+- **_PROMPT / _NODE_PROMPT**：必须包含 `{source_text}` 占位符
+  ```python
+  ## 源文本:
+  {source_text}
+  ```
+
+- **_EDGE_PROMPT**：以 AutoGraph/AutoHypergraph 为例，必须包含 `{known_nodes}` 和 `{source_text}` 占位符。对于时空图类型，还会额外包含 `{observation_time}` 或 `{observation_location}` 占位符（详见下方表格）。
+  ```python
+  ## 已知实体
+  {known_nodes}
+
+  ## 源文本:
+  {source_text}
+  ```
+
+#### 各 AutoType 支持的占位符
+
+| AutoType | 节点提取 | 边提取 |
+|----------|---------|--------|
+| `AutoModel` / `AutoList` / `AutoSet` | `{source_text}` | - |
+| `AutoGraph` / `AutoHypergraph` | `{source_text}` | `{source_text}`, `{known_nodes}` |
+| `AutoTemporalGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_time}` |
+| `AutoSpatialGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_location}` |
+| `AutoSpatioTemporalGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_time}`, `{observation_location}` |
+
+#### 占位符说明
+
+- **`{source_text}`**: 待分析的原始文本（必填）
+- **`{known_nodes}`**: 两阶段提取模式下，已知节点列表（用于边提取）
+- **`{observation_time}`**: 观测时间，用于解析相对时间表达（如"去年"、"上个月"）
+- **`{observation_location}`**: 观测位置，用于解析相对位置表达（如"这里"、"附近"）
+
 ### 时空解析规则（仅时空图类型需要）
 - 时间/位置解析规则...
-```
 
 **为什么需要概念定义？**
 - 让大模型先理解要提取的"是什么"，再告诉它"怎么提取"
@@ -220,24 +253,6 @@ class FinancialRelation(BaseModel):
 - **AutoSet**：直接提取元素集合，元素定义已在 Pydantic Schema 中明确
 
 ### 4.4 各 AutoType 的核心概念定义模板
-
-#### AutoModel
-```
-## 核心概念定义
-- **对象 (Object)**：从文本中提取的单一结构化对象，包含多个字段
-```
-
-#### AutoList
-```
-## 核心概念定义
-- **条目 (Item)**：从文本中提取的重复模式实例
-```
-
-#### AutoSet
-```
-## 核心概念定义
-- **元素 (Element)**：具有唯一键的知识单元，用于累积信息
-```
 
 #### AutoGraph
 ```
@@ -374,7 +389,8 @@ _NODE_PROMPT = """## 角色与任务
 1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
 2. 实体名称与原文保持一致
 
-### 源文本:
+## 待分析文本:
+{source_text}
 """
 
 _EDGE_PROMPT = """## 角色与任务
@@ -398,6 +414,12 @@ _EDGE_PROMPT = """## 角色与任务
 
 2. 精确时间 → 保持原样
 3. 时间缺失 → 留空
+
+## 已知实体列表
+{known_nodes}
+
+## 待分析文本
+{source_text}
 """
 
 _PROMPT = """## 角色与任务
@@ -424,7 +446,8 @@ _PROMPT = """## 角色与任务
 2. 精确时间 → 保持原样
 3. 时间缺失 → 留空
 
-### 源文本:
+## 待分析文本:
+{source_text}
 """
 
 # ==============================================================================

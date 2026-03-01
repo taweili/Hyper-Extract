@@ -296,12 +296,18 @@ def run_demo():
         prompt_for_node_extraction=(
             "提取文本中的所有游戏实体作为节点。关键：必须提取BOSS（如深渊魔龙）、公会（如星辰阁）以及关键玩家。"
             "如果文中提到'全团'或'所有人'，也将其作为一个群体实体提取。"
-            "注意识别ID和别名，将别名（如'团长'）标准化为具体ID。"
+            "注意识别ID和别名，将别名（如'团长'）标准化为具体ID。\n\n"
+            "## 源文本:\n"
+            "{source_text}"
         ),
         prompt_for_edge_extraction=(
             "提取实体之间的互动行为。"
             "重要规则：互动中的 source 和 target 必须是你刚才提取过的实体名称。"
             "例如，如果之前提取了节点'深渊魔龙'，那么攻击BOSS的互动 target 必须填'深渊魔龙'。"
+            "### 已知的实体列表\n"
+            "{known_nodes}\n\n"
+            "## 源文本:\n"
+            "{source_text}\n\n"
         ),
         verbose=True,
     )

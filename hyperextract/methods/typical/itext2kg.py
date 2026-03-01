@@ -77,6 +77,7 @@ and possibly a Relationship('Haira' -> 'plans' -> 'Escape')."
     - Act like an experienced knowledge graph builder.
 
 ### Source Text:
+{source_text}
 """
 
 iText2KG_EDGE_EXTRACTION_PROMPT = """
@@ -89,6 +90,12 @@ The predicates should be chosen with precision to accurately reflect the express
     - Do not change the name or label of the provided entities list.
     - Do not add any entity outside the provided list.
     - Avoid reflexive relations.
+
+# Provided Entities
+{known_nodes}
+
+### Source Text:
+{source_text}
 """
 
 

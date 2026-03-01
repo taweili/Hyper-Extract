@@ -71,7 +71,8 @@ _PROMPT = """## 角色与任务
 2. 超边必须包含 obligation_type、participants
 3. participants 必须严格使用已提取节点的名称
 
-### 源文本:
+## 合同条款:
+{source_text}
 """
 
 _NODE_PROMPT = """## 角色与任务
@@ -96,11 +97,12 @@ _NODE_PROMPT = """## 角色与任务
 2. 为每个要素指定类型
 3. 为每个要素添加简要描述（1-2句话）
 
-### 源文本:
+## 合同条款:
+{source_text}
 """
 
 _EDGE_PROMPT = """## 角色与任务
-请从已知节点列表中提取合同义务超边。
+请从已知合同要素列表中提取合同义务超边。
 
 ## 核心概念定义
 - **节点 (Node)**：构成合同义务的基本要素，作为超边的参与者
@@ -108,7 +110,7 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 提取规则
 ### 核心约束
-1. participants 必须严格使用已知节点列表中的名称，不要创建新名称
+1. participants 必须严格使用已知合同要素列表中的名称，不要创建新名称
 2. 超边必须包含 obligation_type、participants
 3. participants 应包含涉及的主体、义务及相关要素
 
@@ -132,6 +134,11 @@ _EDGE_PROMPT = """## 角色与任务
 - 解除合同
 - 返还已付款项
 
+## 已知合同要素列表:
+{known_nodes}
+
+## 合同条款:
+{source_text}
 """
 
 

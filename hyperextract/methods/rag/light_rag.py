@@ -56,8 +56,10 @@ class EdgeSchema(BaseModel):
 Light_RAG_NODE_EXTRACTION_PROMPT = """
 -Goal-
 Identify relevant entities from the text.
-Entities will serve as nodes in the knowledge graph.\n\n
+Entities will serve as nodes in the knowledge graph.
+
 ### Source Text:
+{source_text}
 """
 
 Light_RAG_EDGE_EXTRACTION_PROMPT = """
@@ -73,6 +75,11 @@ An Edge represents a specific connection (action, relation, ownership, etc.) fro
 2. Ensure every edge has exactly one Source and one Target.
 3. Provide a clear, comprehensive description for each edge.
 
+# Provided Entities
+{known_nodes}
+
+### Source Text:
+{source_text}
 """
 
 # ============================================================================

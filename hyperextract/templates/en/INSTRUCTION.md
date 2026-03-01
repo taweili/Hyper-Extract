@@ -207,9 +207,43 @@ Different domains have specialized terminology or specific expressions. You may 
 - Finance: Professional terminology should remain in original form
 - Medical: Professional abbreviations should remain in original form
 
+### Special Placeholders (Required)
+**Each Prompt must include special placeholders** to receive the text to be extracted:
+
+- **_PROMPT / _NODE_PROMPT**: Must include `{source_text}` placeholder
+  ```python
+  ## Source Text:
+  {source_text}
+  ```
+
+- **_EDGE_PROMPT**: Taking AutoGraph/AutoHypergraph as examples, must include `{known_nodes}` and `{source_text}` placeholders. For spatio-temporal graph types, additional `{observation_time}` or `{observation_location}` placeholders will be included (see table below for details).
+  ```python
+  ## Known Entities
+  {known_nodes}
+
+  ## Source Text:
+  {source_text}
+  ```
+
+#### Placeholders by AutoType
+
+| AutoType | Node Extraction | Edge Extraction |
+|----------|-----------------|-----------------|
+| `AutoModel` / `AutoList` / `AutoSet` | `{source_text}` | - |
+| `AutoGraph` / `AutoHypergraph` | `{source_text}` | `{source_text}`, `{known_nodes}` |
+| `AutoTemporalGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_time}` |
+| `AutoSpatialGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_location}` |
+| `AutoSpatioTemporalGraph` | `{source_text}` | `{source_text}`, `{known_nodes}`, `{observation_time}`, `{observation_location}` |
+
+#### Placeholder Description
+
+- **`{source_text}`**: The original text to be analyzed (required)
+- **`{known_nodes}`**: Known nodes list in two-stage extraction mode (for edge extraction)
+- **`{observation_time}`**: Observation time, used to resolve relative time expressions (e.g., "last year", "last month")
+- **`{observation_location}`**: Observation location, used to resolve relative location expressions (e.g., "here", "nearby")
+
 ### Spatio-Temporal Resolution Rules (required for spatio-temporal graph types only)
 - Time/location resolution rules...
-```
 
 **Why concept definitions are needed?**
 - Let the LLM understand "what" to extract first, before telling it "how" to extract
@@ -223,47 +257,27 @@ Different domains have specialized terminology or specific expressions. You may 
 
 ### 4.4 Core Concept Definition Templates for Each AutoType
 
-#### AutoModel
-```
-## Core Concept Definitions
-- **Object**: A single structured object extracted from the text, containing multiple fields
-```
-
-#### AutoList
-```
-## Core Concept Definitions
-- **Item**: Repeating pattern instances extracted from the text
-```
-
-#### AutoSet
-```
-## Core Concept Definitions
-- **Element**: Knowledge units with unique keys, used for accumulating information
-```
-
 #### AutoGraph
-```
 ## Core Concept Definitions
 - **Node**: Entities extracted from the document
 - **Edge**: Relationships between nodes
-```
+
 
 #### AutoHypergraph
-```
+
 ## Core Concept Definitions
 - **Node**: Entities extracted from the document
 - **Edge**: Connects multiple nodes, expressing complex relationships among multiple entities
-```
 
 #### AutoTemporalGraph / AutoSpatialGraph / AutoSpatioTemporalGraph
 In addition to node and edge definitions, time/location definitions must also be added:
-```
+
 ## Core Concept Definitions
 - **Node**: Entities extracted from the document
 - **Edge**: Relationships between nodes
 - **Time**: xxx (define according to actual needs)
 - **Location**: xxx (define according to actual needs)
-```
+
 
 ---
 
@@ -292,6 +306,12 @@ In addition to node and edge definitions, time/location definitions must also be
 ---
 
 ## 6. Show Function Design Specifications
+
+### 7.1 Design Pattern
+
+The `show()` method should follow the decorator pattern, wrapping the parent class implementation.
+
+### 7.2 Implementation Example
 
 ```python
 def show(
@@ -376,7 +396,8 @@ You are a professional [domain] expert, extract all entities as nodes from the t
 1. Each node must correspond to a single independent entity; do not merge multiple entities into one node
 2. Entity names should remain consistent with the source text
 
-### Source Text:
+##  Pending Text to Analyze:
+{source_text}
 """
 
 _EDGE_PROMPT = """## Role and Task
@@ -400,6 +421,12 @@ Current Observation Date: {observation_time}
 
 2. Exact time → keep as-is
 3. Missing time → leave empty
+
+##  Known Entities
+{known_nodes}
+
+##  Pending Text to Analyze
+{source_text}
 """
 
 _PROMPT = """## Role and Task
@@ -426,7 +453,8 @@ Current Observation Date: {observation_time}
 2. Exact time → keep as-is
 3. Missing time → leave empty
 
-### Source Text:
+##  Pending Text to Analyze:
+{source_text}
 """
 
 # ==============================================================================

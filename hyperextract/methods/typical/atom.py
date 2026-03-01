@@ -161,14 +161,14 @@ Given an input paragraph and an `observation_time`, generate a list of all disti
 - Convert ALL time references to absolute dates/times using the observation_time
 
 #### Conversion Rules:
-- "today" 鈫?exact observation_time
-- "yesterday" 鈫?observation_time minus 1 day
-- "this week" 鈫?Monday of observation_time's week
-- "last week" 鈫?Monday of the week before observation_time
-- "this month" 鈫?first day of observation_time's month
-- "last month" 鈫?first day of the month before observation_time
-- "this year" 鈫?January 1st of observation_time's year
-- "last year" 鈫?January 1st of the year before observation_time
+- "today" → exact observation_time
+- "yesterday" → observation_time minus 1 day
+- "this week" → Monday of observation_time's week
+- "last week" → Monday of the week before observation_time
+- "this month" → first day of observation_time's month
+- "last month" → first day of the month before observation_time
+- "this year" → January 1st of observation_time's year
+- "last year" → January 1st of the year before observation_time
 - Keep explicit dates as-is (e.g., "June 18, 2024")
 
 #### Additional Temporal Guidelines:
@@ -195,15 +195,19 @@ Given an input paragraph and an `observation_time`, generate a list of all disti
 - Real Madrid won the Champions League final on June 18, 2024
 - The Champions League final ended with a 2-1 victory for Real Madrid on June 18, 2024
 - Fans of Real Madrid celebrated the Champions League victory across the city on June 18, 2024
+
+## Source Text:
+{source_text}
 """
 
+# Atom FACToid prompt ends, edge prompt begins
 Atom_EDGE_EXTRACTION_PROMPT = """
 Observation Date: {observation_time}
 
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
 Your goal is to extract all meaningful relationships (edges) between entities, while rigorously capturing their temporal bounds and grounding evidence.
 
-### 馃幆 Objective
+### Objective
 Extract a list of relationships where each relationship consists of:
 1. **Start Node**: The subject entity (Name + Label).
 2. **End Node**: The object entity (Name + Label).
@@ -260,6 +264,12 @@ Extract a list of relationships where each relationship consists of:
 - Use the **Observation Date** as the anchor for all relative temporal expressions.
 - Maintain consistency: The same entity name should be used across multiple relations.
 - Ensure `atomic_facts` contains exact copies of the source text strings.
+
+### Known Nodes:
+{known_nodes}
+
+### Source Text:
+{source_text}
 """
 
 
@@ -418,7 +428,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 2. Define Fact Extraction Chain
         fact_prompt_template = ChatPromptTemplate.from_template(
-            f"{Atom_FACTOID_EXTRACTION_PROMPT}\n\nObservation Date: {{observation_time}}\n\n### Source Text:\n{{chunk_text}}"
+            Atom_FACTOID_EXTRACTION_PROMPT
         )
         fact_chain = fact_prompt_template | self.llm_client.with_structured_output(
             AtomicFactSchema
@@ -426,7 +436,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
 
         # 3. Batch Extract Facts
         fact_inputs = [
-            {"chunk_text": chunk, "observation_time": obs_date_str}
+            {"source_text": chunk, "observation_time": obs_date_str}
             for chunk in raw_chunks
         ]
         chunk_fact_lists: List[AtomicFactSchema] = fact_chain.batch(
@@ -453,51 +463,49 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         fact_chunks = []
         current_batch = []
         current_char_count = 0
-        
+
         # Estimate overhead: "[Fact 99]: " + newline is approx 12 chars
         PREFIX_OVERHEAD = 12
 
         for fact in all_facts:
             fact_len = len(fact) + PREFIX_OVERHEAD
-            
+
             # Check constraints:
             # 1. Size limit (fuzzy check to keep under chunk_size)
             # 2. Count limit (facts_per_chunk)
             size_limit_reached = (current_char_count + fact_len) > self.chunk_size
             count_limit_reached = len(current_batch) >= self.facts_per_chunk
-            
+
             if (size_limit_reached or count_limit_reached) and current_batch:
                 # Flush current batch
                 formatted_chunk = "\n".join(
-                    [f"[Fact {i+1}]: {f}" for i, f in enumerate(current_batch)]
+                    [f"[Fact {i + 1}]: {f}" for i, f in enumerate(current_batch)]
                 )
                 fact_chunks.append(formatted_chunk)
-                
+
                 # Reset
                 current_batch = []
                 current_char_count = 0
-            
+
             current_batch.append(fact)
             current_char_count += fact_len
-            
+
         # Flush remaining items
         if current_batch:
             formatted_chunk = "\n".join(
-                [f"[Fact {i+1}]: {f}" for i, f in enumerate(current_batch)]
+                [f"[Fact {i + 1}]: {f}" for i, f in enumerate(current_batch)]
             )
             fact_chunks.append(formatted_chunk)
 
         # 6. Batch Extract Edges directly from Fact Chunks
         # Format the edge prompt with observation date
         edge_prompt_with_date = self.edge_prompt.format(observation_time=obs_date_str)
-        edge_prompt_template = ChatPromptTemplate.from_template(
-            f"{edge_prompt_with_date}\n\n### Source Text:\n{{chunk_text}}"
-        )
+        edge_prompt_template = ChatPromptTemplate.from_template(edge_prompt_with_date)
         edge_chain = edge_prompt_template | self.llm_client.with_structured_output(
             self.edge_list_schema
         )
 
-        edge_inputs = [{"chunk_text": chunk} for chunk in fact_chunks]
+        edge_inputs = [{"source_text": chunk} for chunk in fact_chunks]
         chunk_edge_lists = edge_chain.batch(
             edge_inputs, config={"max_concurrency": self.max_workers}
         )
@@ -611,4 +619,3 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             f"鉁?Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
         )
         return self
-

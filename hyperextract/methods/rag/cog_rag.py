@@ -38,30 +38,14 @@ class NodeSchema(BaseModel):
 class ThemeSchema(BaseModel):
     """Represents a Theme or Narrative Arc connecting multiple entities (Hyperedge)."""
 
-    participants: List[str] = Field(
-        description="Names of key entities involved in this theme"
-    )
-    description: str = Field(
-        description="A sentence that describes the primary theme, reflecting the main conflict, resolution, or key message"
-    )
-
-
-class TEMP_ThemeSchema(BaseModel):
-    """Temporary schema for extracting Themes with nested Entities."""
-
-    description: str = Field(
-        description="A sentence that describes the primary theme, reflecting the main conflict, resolution, or key message"
-    )
+    # participants: List[str] = Field(
+    #     description="Names of key entities involved in this theme"
+    # )
     participants: List[NodeSchema] = Field(
         description="List of key entities involved in this theme, with their details."
     )
-
-
-class TEMP_ThemeListSchema(BaseModel):
-    """List of extracted themes."""
-
-    items: List[TEMP_ThemeSchema] = Field(
-        description="List of extracted themes and their participants."
+    description: str = Field(
+        description="A sentence that describes the primary theme, reflecting the main conflict, resolution, or key message"
     )
 
 
@@ -104,6 +88,9 @@ For each Theme, you must also identify the key **Participants** (Entities) invol
 1. Analyze the text to identify primary themes/events.
 2. For each theme, identify the entities involved.
 3. Output the Theme description and the list of Participant Entities.
+
+### Source Text:
+{source_text}
 """
 
 COG_RAG_NODE_EXTRACTION_PROMPT = """
@@ -112,6 +99,7 @@ Identify relevant entities from the text.
 Entities will serve as participants in complex events later.
 
 ### Source Text:
+{source_text}
 """
 
 COG_RAG_EDGE_EXTRACTION_PROMPT = """
@@ -129,6 +117,11 @@ It treats all involved entities as **participants** in a shared context
 2. Do NOT create edges for entities that represent strictly different concepts with no interaction.
 3. Ensure every edge has at least 2 participants.
 
+# Provided Entities
+{known_nodes}
+
+### Source Text:
+{source_text}
 """
 
 # ============================================================================
@@ -196,7 +189,7 @@ class Cog_RAG_ThemeLayer(AutoHypergraph[NodeSchema, ThemeSchema]):
         edge_key_fn = lambda x: md5(x.description.encode()).hexdigest()
 
         # Nodes in theme
-        nodes_in_edge_fn = lambda x: x.participants
+        nodes_in_edge_fn = lambda x: [n.name for n in x.participants]
 
         # 2. Create custom Mergers
         node_merger = CustomRuleMerger(
@@ -240,20 +233,13 @@ class Cog_RAG_ThemeLayer(AutoHypergraph[NodeSchema, ThemeSchema]):
         Extract Themes and nested Participants (One-Stage).
         Implements the HyperGraph_RAG extraction pattern.
         """
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            TEMP_ThemeListSchema
-        )
-
         # Batch Processing
         if len(text) <= self.chunk_size:
-            raw_results_list = [llm_chain.invoke({"chunk_text": text})]
+            raw_results_list = [self.edge_extractor.invoke({"source_text": text})]
         else:
             chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            raw_results_list = llm_chain.batch(
+            inputs = [{"source_text": chunk} for chunk in chunks]
+            raw_results_list = self.edge_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
@@ -269,18 +255,11 @@ class Cog_RAG_ThemeLayer(AutoHypergraph[NodeSchema, ThemeSchema]):
             cur_edges = []
 
             for item in result.items:
-                item: TEMP_ThemeSchema
+                item: ThemeSchema
                 extracted_nodes = item.participants
                 cur_nodes.extend(extracted_nodes)
 
-                cur_edges.append(
-                    ThemeSchema(
-                        description=item.description,
-                        participants=[
-                            self.node_key_extractor(n) for n in extracted_nodes
-                        ],
-                    )
-                )
+                cur_edges.append(item)
 
             all_nodes_list.append(cur_nodes)
             all_edges_list.append(cur_edges)
@@ -436,7 +415,7 @@ class Cog_RAG:
             context_parts.append("=== MACRO THEMES (Narrative Context) ===")
             for t in results["themes"]:
                 context_parts.append(
-                    f"- {t.description} (Involved: {', '.join(t.participants)})"
+                    f"- {t.description} (Involved: {', '.join([n.name for n in t.participants])})"
                 )
 
         if results["entities"]:

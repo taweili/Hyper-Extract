@@ -158,7 +158,9 @@ def run_demo():
             "1. 提取所有人名（Elias、Viktor、Bond、Katya、Sarah等）及其别称或代称\n"
             "2. 提取所有地点（柏林、Black Swan酒吧、Charlottenburg Palace等）\n"
             "3. 提取组织（CIA、KGB等）和物品（炸弹、枪、起爆器等）\n"
-            "4. 将代称和别名标准化为主要名称"
+            "4. 将代称和别名标准化为主要名称\n\n"
+            "## 源文本:\n"
+            "{source_text}"
         ),
         prompt_for_edge_extraction=(
             "提取人物之间和与物品/地点之间的**时间感知的行动**。\n"
@@ -169,6 +171,10 @@ def run_demo():
             "4. 提取精确到分钟级别（HH:MM格式），日期使用 YYYY-MM-DD\n"
             "5. 在 description 字段中记录行动发生的地点或其他上下文信息\n"
             "6. 如果时间不明确，填写空值而不是猜测"
+            "### 已知的实体列表\n"
+            "{known_nodes}\n\n"
+            "## 源文本:\n"
+            "{source_text}\n\n"
         ),
         verbose=True,
         chunk_size=2048,

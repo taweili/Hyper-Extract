@@ -58,6 +58,7 @@ Requirements:
 - Each entity should be a single name or brief identifier
 
 ### Source Text:
+{source_text}
 """
 
 KG_Gen_EDGE_EXTRACTION_PROMPT = """
@@ -70,7 +71,11 @@ CRITICAL RULES:
 4. Each triple must be faithful to the source text
 5. Be thorough - extract all relationships mentioned
 
+# Provided Entities
+{known_nodes}
+
 ### Source Text:
+{source_text}
 """
 
 

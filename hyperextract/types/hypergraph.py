@@ -48,12 +48,14 @@ CRITICAL RULES:
 5. A Hyperedge represents a Grouping, Event, or Complex Relation involving the listed participants.
 
 ### Source Text:
+{source_text}
 """
 
 DEFAULT_NODE_PROMPT = """Extract all distinct entities from the text. 
 Entities will serve as participants in complex events later.
 
 ### Source Text:
+{source_text}
 """
 
 DEFAULT_EDGE_PROMPT = """You are an expert hypergraph extraction assistant. 
@@ -65,6 +67,11 @@ CRITICAL RULES:
 3. ONLY use entities from the provided 'Known Entities' list.
 4. If an entity is not in the list, exclude it from the hyperedge.
 
+# Provided Entities
+{known_nodes}
+
+# Source Text:
+{source_text}
 """
 
 
@@ -218,9 +225,7 @@ class AutoHypergraph(
         self.max_workers = max_workers
         self.verbose = verbose
 
-        # Initialize prompts
-        self.node_prompt = prompt_for_node_extraction or DEFAULT_NODE_PROMPT
-        self.edge_prompt = prompt_for_edge_extraction or DEFAULT_EDGE_PROMPT
+        graph_prompt = prompt or DEFAULT_HYPERGRAPH_PROMPT
 
         # Create dynamic HypergraphSchema
         graph_schema_name = f"{node_schema.__name__}{edge_schema.__name__}Hypergraph"
@@ -290,11 +295,28 @@ class AutoHypergraph(
             data_schema=self.graph_schema,
             llm_client=llm_client,
             embedder=embedder,
-            prompt=prompt or DEFAULT_HYPERGRAPH_PROMPT,
+            prompt=graph_prompt,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
+        )
+
+        # Initialize prompts
+        self.node_prompt = prompt_for_node_extraction or DEFAULT_NODE_PROMPT
+        self.edge_prompt = prompt_for_edge_extraction or DEFAULT_EDGE_PROMPT
+
+        # Two-stage mode: validate prompts and initialize extractors
+        self.prompt_template = ChatPromptTemplate.from_template(self.node_prompt)
+        self.node_extractor = (
+            self.prompt_template
+            | self.llm_client.with_structured_output(self.node_list_schema)
+        )
+
+        self.edge_prompt_template = ChatPromptTemplate.from_template(self.edge_prompt)
+        self.edge_extractor = (
+            self.edge_prompt_template
+            | self.llm_client.with_structured_output(self.edge_list_schema)
         )
 
     # ==================== Prompts ====================
@@ -415,21 +437,14 @@ class AutoHypergraph(
         Returns:
             Raw extracted hypergraph data.
         """
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.prompt}{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.graph_schema
-        )
-
         # Extract from single chunk or multiple chunks
         if len(text) <= self.chunk_size:
-            graph = llm_chain.invoke({"chunk_text": text})
+            graph = self.data_extractor.invoke({"source_text": text})
             graph_list = [graph]
         else:
             chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            graph_list = llm_chain.batch(
+            inputs = [{"source_text": chunk} for chunk in chunks]
+            graph_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
@@ -473,15 +488,10 @@ class AutoHypergraph(
         self, chunks: List[str]
     ) -> List[NodeListSchema[NodeSchema]]:
         """Batch extract nodes from multiple text chunks."""
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.node_prompt}{{chunk_text}}"
+        inputs = [{"source_text": chunk} for chunk in chunks]
+        return self.node_extractor.batch(
+            inputs, config={"max_concurrency": self.max_workers}
         )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.node_list_schema
-        )
-
-        inputs = [{"chunk_text": chunk} for chunk in chunks]
-        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_edges_batch(
         self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
@@ -491,21 +501,16 @@ class AutoHypergraph(
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
             if not nodes:
-                node_context = "No entities identified in this chunk."
+                known_nodes = "No entities identified in this chunk."
             else:
-                node_keys = [f"- {self.node_key_extractor(n)}" for n in nodes]
-                node_context = "Known entities: " + "\n- ".join(node_keys)
+                node_keys = [self.node_key_extractor(n) for n in nodes]
+                known_nodes = "\n- ".join(node_keys)
 
-            inputs.append({"chunk_text": chunk, "node_context": node_context})
+            inputs.append({"source_text": chunk, "known_nodes": known_nodes})
 
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
+        return self.edge_extractor.batch(
+            inputs, config={"max_concurrency": self.max_workers}
         )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-
-        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _prune_dangling_edges(
         self, graph: AutoHypergraphSchema
@@ -838,10 +843,18 @@ class AutoHypergraph(
             )
 
             def search_callback(query: str) -> None:
-                return self.search(query, top_k_nodes=top_k_nodes_for_search, top_k_edges=top_k_edges_for_search)
+                return self.search(
+                    query,
+                    top_k_nodes=top_k_nodes_for_search,
+                    top_k_edges=top_k_edges_for_search,
+                )
 
             def chat_callback(question: str) -> None:
-                response = self.chat(question, top_k_nodes=top_k_nodes_for_chat, top_k_edges=top_k_edges_for_chat)
+                response = self.chat(
+                    question,
+                    top_k_nodes=top_k_nodes_for_chat,
+                    top_k_edges=top_k_edges_for_chat,
+                )
                 content = response.content
                 retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
                 retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])

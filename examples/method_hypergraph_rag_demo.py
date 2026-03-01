@@ -116,13 +116,13 @@ if __name__ == "__main__":
 
     print(f"\n--- Low-Order Edges (Pairwise) ---")
     for i, edge in enumerate(low_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
+        print(f"\n{i}. Participants: {' <-> '.join(e.name for e in edge.related_entities)}")
         print(f"   Knowledge Segment: {edge.knowledge_segment}")
         print(f"   Completeness Score: {edge.completeness_score}/10")
 
     print(f"\n--- High-Order Edges (Hyperedges) ---")
     for i, edge in enumerate(high_order_edges, 1):
-        print(f"\n{i}. Participants: {' <-> '.join(edge.related_entities)}")
+        print(f"\n{i}. Participants: {' <-> '.join(e.name for e in edge.related_entities)}")
         print(f"   Knowledge Segment: {edge.knowledge_segment}")
         print(f"   Completeness Score: {edge.completeness_score}/10")
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     centrality = {}
     for edge in rag.edges:
         for participant in edge.related_entities:
-            centrality[participant] = centrality.get(participant, 0) + 1
+            centrality[participant.name] = centrality.get(participant.name, 0) + 1
 
     for entity, count in sorted(centrality.items(), key=lambda x: x[1], reverse=True)[
         :10

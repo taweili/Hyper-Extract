@@ -58,8 +58,10 @@ class EdgeSchema(BaseModel):
 Hyper_RAG_NODE_EXTRACTION_PROMPT = """
 -Goal-
 Identify relevant entities from the text.
-Entities will serve as participants in complex events later.\n\n
+Entities will serve as participants in complex events later.
+
 ### Source Text:
+{source_text}
 """
 
 Hyper_RAG_EDGE_EXTRACTION_PROMPT = """
@@ -77,6 +79,11 @@ It treats all involved entities as **participants** in a shared context
 2. Do NOT create edges for entities that represent strictly different concepts with no interaction.
 3. Ensure every edge has at least 2 participants.
 
+# Provided Entities
+{known_nodes}
+
+### Source Text:
+{source_text}
 """
 
 # ============================================================================

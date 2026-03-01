@@ -116,6 +116,10 @@ def run_demo():
             "特别是：\n"
             "- 如果提到'这里'，指 Brandenburg Gate\n"
             "- 提取具体的车站名、建筑物名或房间号"
+            "### 已知的实体列表\n"
+            "{known_nodes}\n\n"
+            "## 源文本:\n"
+            "{source_text}\n\n"
         ),
         verbose=True
     )

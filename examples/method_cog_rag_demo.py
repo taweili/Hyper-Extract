@@ -121,7 +121,7 @@ if __name__ == "__main__":
     print("\n--- MACRO LAYER: Themes (Narrative Arcs) ---")
     for i, edge in enumerate(rag.theme_layer.edges, 1):
         print(f"\nTheme {i}: {edge.description}")
-        print(f"   Participants: {', '.join(edge.participants)}")
+        print(f"   Participants: {', '.join([n.name for n in edge.participants])}")
 
     print(f"\n✓ Total Themes extracted: {len(rag.theme_layer.edges)}")
 

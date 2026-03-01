@@ -27,6 +27,16 @@ from hyperextract.utils.logging import logger
 ItemSchema = TypeVar("ItemSchema", bound=BaseModel)
 
 
+DEFAULT_LIST_PROMPT = (
+    "You are an expert knowledge extraction assistant. "
+    "Extract all relevant items from the text into a list. "
+    "Be comprehensive and ensure no item is missed. "
+    "Extract all items without adding information not present in the text.\n\n"
+    "### Source Text:\n"
+    "{source_text}"
+)
+
+
 class AutoListSchema(BaseModel, Generic[ItemSchema]):
     """Generic schema container for list-based knowledge patterns."""
 
@@ -113,13 +123,7 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
 
     def _default_prompt(self) -> str:
         """Returns the default extraction prompt for list-based extraction."""
-        return (
-            "You are an expert knowledge extraction assistant. "
-            "Extract all relevant items from the text into a list. "
-            "Be comprehensive and ensure no item is missed. "
-            "Extract all items without adding information not present in the text.\n\n"
-            "### Source Text:\n"
-        )
+        return DEFAULT_LIST_PROMPT
 
     @property
     def items(self) -> List[ItemSchema]:

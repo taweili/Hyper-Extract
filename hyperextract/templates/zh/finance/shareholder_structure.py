@@ -78,7 +78,8 @@ _PROMPT = """## 角色与任务
 - 注意双重股权结构和投票权差异
 - 捕捉锁定期和 IPO 后限制条款
 
-### 源文本:
+## 源文本:
+{source_text}
 """
 
 _NODE_PROMPT = """## 角色与任务
@@ -97,7 +98,8 @@ _NODE_PROMPT = """## 角色与任务
 - 识别发行公司本身
 - 按类型对每个实体进行分类
 
-### 源文本:
+## 源文本:
+{source_text}
 """
 
 _EDGE_PROMPT = """## 角色与任务
@@ -117,6 +119,12 @@ _EDGE_PROMPT = """## 角色与任务
 - 提取持股比例和股份类别
 - 注意投票权差异
 - 捕捉锁定期
+
+## 已知股权实体列表
+{known_nodes}
+
+## 源文本:
+{source_text}
 """
 
 class ShareholderStructure(AutoGraph[OwnershipEntity, OwnershipEdge]):

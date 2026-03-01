@@ -2,7 +2,6 @@
 
 from typing import Type, Callable, Tuple, Any, List
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
@@ -32,6 +31,7 @@ DEFAULT_SPATIAL_NODE_RULES_SUFFIX = """
    Spatial context belongs to the relationships between entities.
 
 ### Source Text:
+{source_text}
 """
 
 # Edge Extraction Prompts
@@ -58,6 +58,11 @@ Current Observation Location: {observation_location}
 2. DO NOT create edges involving entities that are not listed.
 3. Use the defined schema fields for location as specified in the output format.
 
+# Provided Entities
+{known_nodes}
+
+# Source Text:
+{source_text}
 """
 
 # One-Stage Graph Extraction Prompts
@@ -79,6 +84,7 @@ Current Observation Location: {observation_location}
 3. **Missing Space**: Leave location fields empty if not present.
 
 ### Source Text:
+{source_text}
 """
 
 
@@ -245,57 +251,46 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
     def _extract_edges_batch(
         self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
     ) -> List[EdgeListSchema[EdgeSchema]]:
-        """
-        Override: Inject observation_location into edge extraction during two-stage extraction.
-        """
+        """Override: Inject observation_location into edge extraction during two-stage extraction."""
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
-            node_context = "Known entities: " + "\n- ".join([self.node_key_extractor(n) for n in nodes]) if nodes else "No specific entities identified."
+            known_nodes = (
+                "\n- ".join([self.node_key_extractor(n) for n in nodes])
+                if nodes
+                else "No specific entities identified."
+            )
 
-            inputs.append({
-                "chunk_text": chunk,
-                "node_context": node_context,
-                "observation_location": self.observation_location,
-            })
+            inputs.append(
+                {
+                    "source_text": chunk,
+                    "known_nodes": known_nodes,
+                    "observation_location": self.observation_location,
+                }
+            )
 
-        # Ensure observation_location is explicitly in the prompt if not already part of self.edge_prompt
-        prompt_with_location = f"Current location context: {{observation_location}}\n\n{self.edge_prompt}"
-        
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{prompt_with_location}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-
-        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
+        return self.edge_extractor.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
-        """
-        Override: Inject observation_location into one-stage extraction.
-        """
-        prompt_with_location = f"Current location context: {{observation_location}}\n\n{self.prompt}"
-        template_str = f"{prompt_with_location}{{chunk_text}}"
-        prompt_template = ChatPromptTemplate.from_template(template_str)
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.graph_schema
-        )
+        """Override: Inject observation_location into one-stage extraction."""
 
         if len(text) <= self.chunk_size:
             inp = {
-                "chunk_text": text,
+                "source_text": text,
                 "observation_location": self.observation_location,
             }
-            graph = llm_chain.invoke(inp)
+            graph = self.data_extractor.invoke(inp)
             graph_list = [graph]
         else:
             chunks = self.text_splitter.split_text(text)
             inputs = [
-                {"chunk_text": chunk, "observation_location": self.observation_location}
+                {
+                    "source_text": chunk,
+                    "observation_location": self.observation_location,
+                }
                 for chunk in chunks
             ]
-            graph_list = llm_chain.batch(
+            graph_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 

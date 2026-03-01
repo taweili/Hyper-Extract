@@ -30,6 +30,16 @@ from hyperextract.utils.logging import logger
 ItemSchema = TypeVar("ItemSchema", bound=BaseModel)
 
 
+DEFAULT_SET_PROMPT = (
+    "You are an expert knowledge extraction assistant. "
+    "Extract all unique items from the text into a set. "
+    "Be comprehensive and ensure no item is missed. "
+    "Extract all items without adding information not present in the text.\n\n"
+    "### Source Text:\n"
+    "{source_text}"
+)
+
+
 class AutoSetSchema(BaseModel, Generic[ItemSchema]):
     """Generic schema container for set-based knowledge patterns."""
 
@@ -212,13 +222,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
 
     def _default_prompt(self) -> str:
         """Returns the default extraction prompt for set-based extraction."""
-        return (
-            "You are an expert knowledge extraction assistant. "
-            "Extract all unique items from the text into a set. "
-            "Be comprehensive and ensure no item is missed. "
-            "Extract all items without adding information not present in the text.\n\n"
-            "### Source Text:\n"
-        )
+        return DEFAULT_SET_PROMPT
 
     @property
     def data(self) -> AutoSetSchema[ItemSchema]:

@@ -63,7 +63,8 @@ _PROMPT = """## 角色与任务
 2. 超边必须包含 logic_type、participants、reasoning、conclusion
 3. participants 必须严格使用已提取节点的名称
 
-### 源文本:
+## 源文本:
+{source_text}
 """
 
 _NODE_PROMPT = """## 角色与任务
@@ -88,11 +89,12 @@ _NODE_PROMPT = """## 角色与任务
 2. 为每个要素指定类型
 3. 为每个要素添加简要描述
 
-### 源文本:
+## 判决书文本:
+{source_text}
 """
 
 _EDGE_PROMPT = """## 角色与任务
-请从已知节点列表中提取裁判逻辑超边。
+请从已知裁判要素列表中提取裁判逻辑超边。
 
 ## 核心概念定义
 - **节点 (Node)**：构成裁判逻辑的基本要素，作为超边的参与者
@@ -100,7 +102,7 @@ _EDGE_PROMPT = """## 角色与任务
 
 ## 提取规则
 ### 核心约束
-1. participants 必须严格使用已知节点列表中的名称，不要创建新名称
+1. participants 必须严格使用已知裁判要素列表中的名称，不要创建新名称
 2. 超边必须包含 logic_type、participants、reasoning、conclusion
 3. participants 应包含事实认定、法律依据、裁判结论等相关要素
 
@@ -112,6 +114,11 @@ _EDGE_PROMPT = """## 角色与任务
 - **金额计算**：计算具体的赔偿金额
 - **其他**：不属于上述类型的推理
 
+## 已知裁判要素列表:
+{known_nodes}
+
+## 判决书文本:
+{source_text}
 """
 
 

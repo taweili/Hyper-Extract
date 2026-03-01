@@ -3,7 +3,6 @@
 from typing import Type, Callable, Tuple, Any, List
 from datetime import datetime
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
@@ -34,6 +33,7 @@ DEFAULT_TEMPORAL_NODE_RULES_SUFFIX = """
 4. **Exclude Pure Numbers**: Do not extract standalone amounts or numeric values as independent nodes.
 
 ### Source Text:
+{source_text}
 """
 
 # Edge Extraction Prompts
@@ -62,6 +62,11 @@ Current Observation Date: {observation_time}
 2. DO NOT create edges involving entities that are not listed.
 3. Use the defined schema fields for time as specified in the output format.
 
+# Provided Entities
+{known_nodes}
+
+# Source Text:
+{source_text}
 """
 
 # One-Stage Graph Extraction Prompts
@@ -91,6 +96,7 @@ Current Observation Date: {observation_time}
 3. **Missing Time**: If no time information is present, leave time fields empty. DO NOT hallucinate dates.
 
 ### Source Text:
+{source_text}
 """
 
 
@@ -262,56 +268,41 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
     def _extract_edges_batch(
         self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
     ) -> List[EdgeListSchema[EdgeSchema]]:
-        """
-        Override: Inject observation_time into edge extraction during two-stage extraction.
+        """Override: Inject observation_time into edge extraction during two-stage extraction.
         """
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
             if not nodes:
-                node_context = "No specific entities identified in this chunk."
+                known_nodes = "No specific entities identified in this chunk."
             else:
                 node_keys = [self.node_key_extractor(n) for n in nodes]
-                node_context = "Known entities: " + "\n- ".join(node_keys)
+                known_nodes = "\n- ".join(node_keys)
 
             inputs.append(
                 {
-                    "chunk_text": chunk,
-                    "node_context": node_context,
+                    "source_text": chunk,
+                    "known_nodes": known_nodes,
                     "observation_time": self.observation_time,
                 }
             )
 
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-
-        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
+        return self.edge_extractor.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
-        """
-        Override: Inject observation_time into one-stage extraction.
-        """
-        template_str = f"{self.prompt}{{chunk_text}}"
-        prompt_template = ChatPromptTemplate.from_template(template_str)
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.graph_schema
-        )
+        """Override: Inject observation_time into one-stage extraction."""
 
         if len(text) <= self.chunk_size:
-            inp = {"chunk_text": text, "observation_time": self.observation_time}
-            graph = llm_chain.invoke(inp)
+            inp = {"source_text": text, "observation_time": self.observation_time}
+            graph = self.data_extractor.invoke(inp)
             graph_list = [graph]
         else:
             chunks = self.text_splitter.split_text(text)
             inputs = [
-                {"chunk_text": chunk, "observation_time": self.observation_time}
+                {"source_text": chunk, "observation_time": self.observation_time}
                 for chunk in chunks
             ]
-            graph_list = llm_chain.batch(
+            graph_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 

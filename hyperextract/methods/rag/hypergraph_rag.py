@@ -15,7 +15,6 @@ from hashlib import md5
 from pydantic import BaseModel, Field
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts.chat import ChatPromptTemplate
 from ontomem.merger import MergeStrategy
 
 from hyperextract.types.hypergraph import AutoHypergraph, AutoHypergraphSchema
@@ -56,31 +55,11 @@ class EdgeSchema(BaseModel):
     completeness_score: int = Field(
         description="A score from 0 to 10 indicating how complete and meaningful this knowledge segment is on its own."
     )
-    related_entities: List[str] = Field(
-        description="A list of all entity names involved in or referenced by this knowledge segment."
-    )
-
-
-# Below Schema is used for Information Extraction with LLM
-class TEMP_EdgeSchema(BaseModel):
-    """Represents a knowledge segment (hyper-edge) that connects multiple entities through a specific context or event."""
-
-    knowledge_segment: str = Field(
-        description="A complete sentence or phrase from the text that captures a specific relationship, event, or context connecting the entities."
-    )
-    completeness_score: int = Field(
-        description="A score from 0 to 10 indicating how complete and meaningful this knowledge segment is on its own."
-    )
+    # related_entities: List[str] = Field(
+    #     description="A list of all entity names involved in or referenced by this knowledge segment."
+    # )
     related_entities: List[NodeSchema] = Field(
         description="A list of all entities involved in or referenced by this knowledge segment."
-    )
-
-
-class TEMP_EdgeListSchema(BaseModel):
-    """Intermediate schema for batch hyperedge extraction."""
-
-    items: List[TEMP_EdgeSchema] = Field(
-        description="List of extracted hyperedges with their knowledge segments and related entities."
     )
 
 
@@ -115,24 +94,24 @@ A **Hyper-edge** represents a specific "knowledge segment" (a sentence or event 
 
 **Output**:
 [
-  {
+  {{
     "knowledge_segment": "Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty.",
     "completeness_score": 8,
     "related_entities": [
-      {
+      {{
         "name": "Alex",
         "type": "person",
         "description": "Alex is a person displaying frustration by clenching his jaw.",
         "key_score": 90
-      },
-      {
+      }},
+      {{
         "name": "Taylor",
         "type": "person",
         "description": "Taylor is a person exhibiting authoritarian certainty causing Alex's frustration.",
         "key_score": 85
-      }
+      }}
     ]
-  }
+  }}
 ]
 
 ## Example 2
@@ -141,28 +120,28 @@ A **Hyper-edge** represents a specific "knowledge segment" (a sentence or event 
 
 **Output**:
 [
-  {
+  {{
     "knowledge_segment": "\"The device could change the game for us,\" Taylor said, observing the machine with reverence.",
     "completeness_score": 9,
     "related_entities": [
-      {
+      {{
         "name": "Taylor",
         "type": "person",
         "description": "Taylor is a person who believes the device is game-changing and observes it with reverence.",
         "key_score": 95
-      },
-      {
+      }},
+      {{
         "name": "device",
         "type": "object",
         "description": "An object that Taylor believes could change the game.",
         "key_score": 90
-      }
+      }}
     ]
-  }
+  }}
 ]
 
-\n\n
-### Source Text:
+## Source Text:
+{source_text}
 """
 
 # ============================================================================
@@ -225,7 +204,7 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
         # 1. Define Key Extractors
         node_key_fn = lambda x: x.name
         edge_key_fn = lambda x: md5(x.knowledge_segment.encode()).hexdigest()
-        nodes_in_edge_fn = lambda x: x.related_entities
+        nodes_in_edge_fn = lambda x: [entity.name for entity in x.related_entities]
 
         # 4. Call parent class initialization
         super().__init__(
@@ -269,22 +248,14 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
                 deduplicated and merged entities (nodes) and knowledge segments (hyperedges).
         """
         # 1. Extract Hyperedges
-
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.prompt}{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            TEMP_EdgeListSchema
-        )
-
         # Extract from single chunk or multiple chunks
         if len(text) <= self.chunk_size:
-            raw_hyperedges = llm_chain.invoke({"chunk_text": text})
+            raw_hyperedges = self.edge_extractor.invoke({"source_text": text})
             raw_hyperedges_list = [raw_hyperedges]
         else:
             chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            raw_hyperedges_list = llm_chain.batch(
+            inputs = [{"source_text": chunk} for chunk in chunks]
+            raw_hyperedges_list = self.edge_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
@@ -295,18 +266,9 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             cur_nodes, cur_edges = [], []
             data_list = raw_hyperedges.items
             for data in data_list:
-                data: TEMP_EdgeSchema
+                data: EdgeSchema
                 cur_nodes.extend(data.related_entities)
-                cur_edges.append(
-                    EdgeSchema(
-                        knowledge_segment=data.knowledge_segment,
-                        completeness_score=data.completeness_score,
-                        related_entities=[
-                            self.node_key_extractor(node)
-                            for node in data.related_entities
-                        ],
-                    )
-                )
+                cur_edges.append(data)
             all_nodes_list.append(cur_nodes)
             all_edges_list.append(cur_edges)
 

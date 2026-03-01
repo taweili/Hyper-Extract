@@ -68,6 +68,13 @@ class BaseAutoType(ABC, Generic[T]):
         self.max_workers = max_workers
         self.verbose = verbose
 
+        # Initialize template
+        self.prompt_template = ChatPromptTemplate.from_template(self.prompt)
+        self.data_extractor = (
+            self.prompt_template
+            | self.llm_client.with_structured_output(self._data_schema)
+        )
+
         # Initialize text splitter for chunking long documents
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
@@ -235,31 +242,15 @@ class BaseAutoType(ABC, Generic[T]):
     # ==================== Extraction & Merge ====================
 
     def _extract_data(self, text: str) -> T:
-        """
-        Internal: Unified extraction logic (Chunking -> LLM -> Merge).
-        Implemented in BaseAutoType for code reuse by List and Set.
-
-        Args:
-            text: Input text.
-
-        Returns:
-            The extracted knowledge data.
-        """
-
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.prompt}{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self._data_schema
-        )
+        """Internal: Unified extraction logic (Chunking -> LLM -> Merge)."""
 
         if len(text) <= self.chunk_size:
-            extracted_data = llm_chain.invoke({"chunk_text": text})
+            extracted_data = self.data_extractor.invoke({"source_text": text})
             extracted_data_list = [extracted_data]
         else:
             chunks = self.text_splitter.split_text(text)
-            inputs = [{"chunk_text": chunk} for chunk in chunks]
-            extracted_data_list = llm_chain.batch(
+            inputs = [{"source_text": chunk} for chunk in chunks]
+            extracted_data_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 
@@ -390,7 +381,9 @@ class BaseAutoType(ABC, Generic[T]):
                 if isinstance(item, BaseModel):
                     formatted_context.append(item.model_dump_json(indent=2))
                 elif isinstance(item, dict):
-                    formatted_context.append(json.dumps(item, indent=2, ensure_ascii=False))
+                    formatted_context.append(
+                        json.dumps(item, indent=2, ensure_ascii=False)
+                    )
                 elif isinstance(item, str):
                     formatted_context.append(item)
                 else:

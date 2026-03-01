@@ -3,7 +3,6 @@
 from typing import Type, Callable, Tuple, Any, List
 from datetime import datetime
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy, BaseMerger
 
@@ -34,6 +33,7 @@ DEFAULT_SPATIO_TEMPORAL_NODE_RULES_SUFFIX = """
 4. **Exclude Pure Numbers**: Do not extract standalone amounts or numeric values as independent nodes.
 
 ### Source Text:
+{source_text}
 """
 
 # Edge Extraction Prompts
@@ -67,6 +67,11 @@ Current Observation Location: {observation_location}
 2. DO NOT create edges involving entities that are not listed.
 3. Use the defined schema fields for time and space as specified in the output format.
 
+# Provided Entities
+{known_nodes}
+
+# Source Text:
+{source_text}
 """
 
 # One-Stage Graph Extraction Prompts
@@ -91,6 +96,7 @@ Current Observation Location: {observation_location}
 4. **Missing Information**: Leave time/location fields empty if not present.
 
 ### Source Text:
+{source_text}
 """
 
 
@@ -265,57 +271,45 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
-            node_context = (
-                "Known entities: "
-                + "\n- ".join([self.node_key_extractor(n) for n in nodes])
+            known_nodes = (
+                "\n- ".join([self.node_key_extractor(n) for n in nodes])
                 if nodes
                 else "No specific entities identified."
             )
 
             inputs.append(
                 {
-                    "chunk_text": chunk,
-                    "node_context": node_context,
+                    "source_text": chunk,
+                    "known_nodes": known_nodes,
                     "observation_time": self.observation_time,
                     "observation_location": self.observation_location,
                 }
             )
 
-        prompt_template = ChatPromptTemplate.from_template(
-            f"{self.edge_prompt}{{node_context}}\n\n### Source Text:\n{{chunk_text}}"
-        )
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-        return llm_chain.batch(inputs, config={"max_concurrency": self.max_workers})
+        return self.edge_extractor.batch(inputs, config={"max_concurrency": self.max_workers})
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
         """Inject observation_time and observation_location into one-stage extraction."""
-        template_str = f"{self.prompt}{{chunk_text}}"
-        prompt_template = ChatPromptTemplate.from_template(template_str)
-        llm_chain = prompt_template | self.llm_client.with_structured_output(
-            self.graph_schema
-        )
 
         if len(text) <= self.chunk_size:
             inp = {
-                "chunk_text": text,
+                "source_text": text,
                 "observation_time": self.observation_time,
                 "observation_location": self.observation_location,
             }
-            graph = llm_chain.invoke(inp)
+            graph = self.data_extractor.invoke(inp)
             graph_list = [graph]
         else:
             chunks = self.text_splitter.split_text(text)
             inputs = [
                 {
-                    "chunk_text": chunk,
+                    "source_text": chunk,
                     "observation_time": self.observation_time,
                     "observation_location": self.observation_location,
                 }
                 for chunk in chunks
             ]
-            graph_list = llm_chain.batch(
+            graph_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
 

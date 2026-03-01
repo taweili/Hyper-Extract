@@ -14,6 +14,16 @@ from .base import BaseAutoType, T
 from hyperextract.utils.logging import logger
 
 
+DEFAULT_MODEL_PROMPT = (
+    "You are an expert knowledge extraction assistant. "
+    "Your task is to carefully analyze the following text and extract structured information "
+    "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
+    "Extract all relevant details without adding information not present in the text.\n\n"
+    "### Source Text:\n"
+    "{source_text}"
+)
+
+
 class AutoModel(BaseAutoType[T]):
     """AutoModel - extracts a single structured object from text.
 
@@ -118,13 +128,7 @@ class AutoModel(BaseAutoType[T]):
 
     def _default_prompt(self) -> str:
         """Returns the default extraction prompt for single-object extraction."""
-        return (
-            "You are an expert knowledge extraction assistant. "
-            "Your task is to carefully analyze the following text and extract structured information "
-            "according to the specified schema. Be precise, comprehensive, and faithful to the source text. "
-            "Extract all relevant details without adding information not present in the text.\n\n"
-            "### Source Text:\n"
-        )
+        return DEFAULT_MODEL_PROMPT
 
     @property
     def data(self) -> T:

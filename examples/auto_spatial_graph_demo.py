@@ -169,13 +169,19 @@ def run_demo():
         edge_strategy_or_merger=MergeStrategy.LLM.BALANCED,
         prompt_for_node_extraction=(
             "提取深海空间站中的所有关键实体（船员、设备、怪物等）。\n"
-            "注意：不要在节点中提取位置信息，位置将作为关系属性提取。"
+            "注意：不要在节点中提取位置信息，位置将作为关系属性提取。\n\n"
+            "## 源文本:\n"
+            "{source_text}"
         ),
         prompt_for_edge_extraction=(
             "提取实体之间的互动关系，并精确捕获它们发生的地理位置。\n"
             "特别是：\n"
             "- 解析相对位置（如'这里'解析为 observation_location）\n"
             "- 注意 3D 空间层级（上层甲板、中央枢纽、反应堆舱）"
+            "### 已知的实体列表\n"
+            "{known_nodes}\n\n"
+            "## 源文本:\n"
+            "{source_text}\n\n"
         ),
         verbose=True,
         chunk_size=2048,
