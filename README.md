@@ -1,114 +1,153 @@
-# Hyper-Extract: The Knowledge Engine for Vertical AI Agents 🧠🚀
+# Hyper-Extract
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-
-**Hyper-Extract** is a next-generation framework designed to transform massive, unstructured domain documents into **searchable, queryable, and actionable** knowledge structures. 
-
-Stop treating your documents as dead text chunks. With Hyper-Extract, every PDF, report, and manual becomes a live, structured brain for your AI Agents.
-
-[中文版 (README_ZH.md)](README_ZH.md) | [Domain Samples](examples/)
+[中文版](./README_ZH.md) · [English Version](#)
 
 ---
 
-## 🌟 Why Hyper-Extract?
-
-Traditional RAG often fails in professional domains because it loses the **logical structure** of knowledge. Hyper-Extract solves this by providing a unique **3-Layer Architecture**:
-
-### 🧱 Layer 1: Knowledge Primitives (`hyperextract.types`)
-The "DNA" of knowledge. We provide specialized "AutoType" structures categorized into four levels of complexity:
-
-| Level | Primitives | Core Logic | Best For |
-| :--- | :--- | :--- | :--- |
-| **Scalar & Doc** | `AutoModel` | Many chunks -> **One** consistent object | Research reports, Infoboxes, Summaries |
-| **Collections** | `AutoList`, `AutoSet` | Many independent or unique items | Entity registries, Event logs, Glossaries |
-| **Graphs** | `AutoGraph`, `AutoHypergraph` | Pairwise or N-ary (Hyper-edge) relations | Knowledge Graphs, Complex causality reasoning |
-| **Context-Aware** | `AutoTemporalGraph`, `AutoSpatialGraph`, `AutoSpatioTemporalGraph` | Resolves relative time/space context | Timelines, History, IoT |
-
-### ⚙️ Layer 2: Extraction Engines (`hyperextract.methods`)
-The "Brain" of the framework. Built-in SOTA algorithms that turn primitives into power:
-- **Light-RAG / GraphRAG**: High-efficiency retrieval over graph structures.
-- **Hyper-RAG**: Reasoning via complex hyper-relations.
-- **CogRAG**: Cognition-driven hierarchical extraction.
-
-### 🧠 Layer 3: 12+ Domain Expert Templates (`hyperextract.templates`)
-The "Expertise" you need. Out-of-the-box schemas and prompts for vertical industries:
-- **Finance, Medicine, Law, TCM, Industry, History, Biology, Literature, Travel, News, Agriculture, Food.**
+<!-- Architecture Diagram -->
+![Architecture](./docs/assets/fw.png)
 
 ---
 
-## 🎭 Transform Your Domain in Minutes
+## "Chat solved. What's next is Knowledge."
 
-"From static files to an intelligent agent engine."
-
-| Your Domain | From Static Docs ... | To Actionable Agents 🤖 |
-| :--- | :--- | :--- |
-| **💰 Finance** | Annual reports, prospectuses | **Investment Analyst Agent** (Reasoning over valuation logic) |
-| **🏥 Medicine** | Clinical guidelines, patient records | **Diagnostic Assistant Agent** (Mapping symptoms to pathways) |
-| **⚖️ Legal** | Contracts, court rulings | **Compliance Auditor Agent** (Extracting obligations & risks) |
-| **🔧 Industry** | Maintenance logs, specs | **Ops Expert Agent** (Connecting failure modes to root causes) |
-| **📜 History** | Chronicles, biographies | **Historian Agent** (Reconstructing event timelines) |
+Transform LLM output from scattered text into **searchable, queryable, and reasoning-enabled** structured knowledge.
 
 ---
 
-## 🚀 Quick Start: Build an "Askable" Knowledge Base
+## ❌ Before | ✅ After
+
+<!-- Concept Diagram -->
+![Concept](./docs/assets/concept.png)
+
+| Before | After |
+| :--- | :--- |
+| LLM outputs a wall of text | Structured knowledge output |
+| ❌ Answer disappears after chat | ✅ Persistent storage |
+| ❌ Can't search precisely | ✅ Precise search |
+| ❌ Can't trace the source | ✅ Traceable provenance |
+| ❌ Fragmented, can't reuse | ✅ Knowledge accumulates |
+
+---
+
+## 🧩 8 AutoTypes
+
+<!-- AutoTypes Diagram -->
+![AutoTypes](./docs/assets/autotypes.png)
+
+| Type | Icon | What it does |
+| :--- | :---: | :--- |
+| **AutoModel** | 📋 | Extract into a complete data model |
+| **AutoList** | 📝 | Extract as a list (keywords, items) |
+| **AutoSet** | 📦 | Extract and deduplicate (entity registry) |
+| **AutoGraph** | 🔗 | Extract as a knowledge graph (relations) |
+| **AutoTemporalGraph** | ⏱️ | Extract as timeline (events over time) |
+| **AutoSpatialGraph** | 📍 | Extract as spatial graph (locations) |
+| **AutoSpatioTemporalGraph** | 🌏 | Extract as spatiotemporal graph (time + space) |
+| **AutoHypergraph** | 🌐 | Extract as hypergraph (multi-party relations) |
+
+---
+
+## 🔬 Method Comparison
+
+| Method | Type | Model | List | Set | Graph | Temporal | Spatial | Spatiotemporal | Hypergraph |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **KG-Gen** | Graph | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **ATOM** | Atomic | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Graphiti** | Temporal | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **LightRAG** | Graph | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Hyper-RAG** | Hypergraph | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Hyper-Extract** | All-in-One | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 🌍 12 Domains, 200+ Templates
+
+| Domain | Templates | Domain | Templates |
+| :--- | :---: | :--- | :---: |
+| 💰 Finance | 25+ | 📜 History | 12+ |
+| 🏥 Medicine | 20+ | 🧬 Biology | 10+ |
+| ⚖️ Legal | 15+ | 🎭 Literature | 10+ |
+| 🌿 TCM | 15+ | 📰 News | 12+ |
+| 🔧 Industry | 18+ | 🌾 Agriculture | 8+ |
+| 🍜 Food | 8+ | 🌐 General | 20+ |
+
+---
+
+## 🚀 Quick Start
 
 ```python
-from hyperextract.types import AutoGraph
 from hyperextract.templates.en.finance import ResearchNoteSummary
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-# 1. Load an industry-expert template
 llm = ChatOpenAI(model="gpt-4o-mini")
-kb = AutoGraph.from_template(ResearchNoteSummary, llm_client=llm)
+embedder = OpenAIEmbeddings()
 
-# 2. Feed your domain text (Extraction happens automatically!)
-text = "Apple's valuation is driven by its services growth and iPhone 16 cycle..."
-kb.feed_text(text)
+template = ResearchNoteSummary(llm_client=llm, embedder=embedder)
+result = template.extract("Apple Q3 revenue reached $94.9 billion...")
 
-# 3. Chat with the Structure (Actionable Insight)
-answer = kb.chat("What are the core drivers of Apple's valuation?")
+answer = template.chat("What drove the revenue growth?")
 print(answer.content)
 ```
 
+---
+
+## 🔧 Architecture
+
+<details>
+<summary><strong>Technical Details</strong></summary>
+
+```
+hyperextract/
+├── types/                    # 8 AutoTypes
+│   ├── model.py             # AutoModel
+│   ├── list.py              # AutoList
+│   ├── set.py               # AutoSet
+│   ├── graph.py             # AutoGraph
+│   ├── hypergraph.py        # AutoHypergraph
+│   ├── temporal_graph.py    # AutoTemporalGraph
+│   ├── spatial_graph.py     # AutoSpatialGraph
+│   └── spatio_temporal_graph.py  # AutoSpatioTemporalGraph
+│
+├── methods/                  # Extraction Engines
+│   ├── rag/                 # RAG methods
+│   │   ├── light_rag.py
+│   │   ├── hyper_rag.py
+│   │   └── cog_rag.py
+│   └── typical/             # Reproduced methods
+│       ├── kg_gen.py        # KG-Gen
+│       └── atom.py          # ATOM
+│
+└── templates/                # Domain Templates
+    ├── zh/                  # Chinese templates
+    │   ├── finance/         # 25+ templates
+    │   ├── medicine/        # 20+ templates
+    │   └── ...
+    └── en/                  # English templates
+```
+
+</details>
 
 ---
 
-## 🎨 Domain Templates
+## 📚 Documentation & Resources
 
-The `hyperextract/templates` directory provides a wealth of domain-specific definitions that you can import directly without writing prompts from scratch:
-
-| Category | Templates | Description |
-| :--- | :--- | :--- |
-| **General** | `General`, `IText2KG` | Versatile extraction for most daily knowledge. |
-| **Science** | `Physics`, `Chemistry`, `Biology` | Capture experiments, elements, and reactions. |
-| **Industry** | `Finance`, `Legal` | Extract compliance, risks, and entity webs. |
-| **Entertainment** | `Game`, `Movie`, `Food` | Perfect for story plots, character networks, and recipes. |
-| ... | | 15+ domains in the [templates folder](hyperextract/templates) |
-
----
-
-## 🏗️ Core Components
-
-- **`hyperextract.types`**: Core AutoTypes data structures (AutoModel, AutoGraph, AutoHypergraph, etc.).
-- **`hyperextract.methods`**: Extraction algorithms and RAG strategies (Hyper-RAG, Cog-RAG, iText2KG, etc.).
-- **`hyperextract.utils`**: Essential utilities for logging and merging strategies.
-
----
-
-## 📚 Implemented Algorithms & Paper Demos
-
-- **Auto-Graph**: Schema-adaptive graph extraction.
-- **Hyper-RAG**: Retrieval Augmented Generation via Hypergraphs.
-- **Light-RAG**: Lightweight and efficient graph retrieval.
-- **IText2KG / IText2KG-Star**: Iterative Knowledge Graph generation.
-- **CogRAG**: Cognition-driven hierarchical retrieval.
+- [📖 Full Documentation](docs/)
+- [💻 Examples](examples/)
+- [🏷️ Template Gallery](hyperextract/templates/)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome Issues and Pull Requests!
+Welcome! Please feel free to submit issues and pull requests.
 
-- **License**: [MIT LICENSE](LICENSE)
-- **Support**: If you find this project helpful, please give us a ⭐️!
+---
+
+## ⭐ Support
+
+If you find this project helpful, please give us a ⭐ to show your support!
+
+---
+
+*Built with ❤️ for the AI Community*

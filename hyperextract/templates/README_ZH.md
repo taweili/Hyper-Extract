@@ -2,7 +2,41 @@
 
 **Hyper-Extract 领域模板库** 旨在为不同垂直行业提供专业的非结构化文本抽取能力。
 
-本库按 **领域 (Domain)** 组织，每个领域针对其特定的文档类型、行业术语和业务逻辑进行了优化。以下是各领域及其典型处理文档的介绍。
+本库按 **领域 (Domain)** 组织，每个领域针对其特定的文档类型、行业术语和业务逻辑进行了优化。
+
+> 切换至 [English Version](./README.md)
+
+---
+
+## 📋 目录
+
+- [📚 通用](#1-general-通用general-purpose)
+- [💰 金融](#2-finance-金融)
+- [🏥 医疗](#3-medicine-医学)
+- [🌿 中医](#4-tcm-中医中药)
+- [⚙️ 工业](#5-industry-工业)
+- [📜 历史](#6-history-历史)
+- [🧬 生物](#7-biology-生物科学)
+- [⚖️ 法律](#8-legal-法律)
+- [🎭 文学](#9-literature-文学与影视)
+- [📰 新闻](#10-news-新闻传媒)
+- [🌾 农业](#11-agriculture-农业)
+- [🍜 美食](#12-food-美食餐饮)
+
+---
+
+## 底层原语说明
+
+| 原语 | 说明 |
+| :--- | :--- |
+| **`AutoGraph`** | 知识图谱 - 提取实体及成对关系 |
+| **`AutoSet`** | 实体集合 - 去重并汇总唯一实体 |
+| **`AutoList`** | 列表 - 提取数值数组（关键词、条目等）|
+| **`AutoModel`** | 数据模型 - 提取结构化字段（如信息框）|
+| **`AutoTemporalGraph`** | 时序图谱 - 构建时间有序的事件序列 |
+| **`AutoHypergraph`** | 超图 - 建模复杂的多实体关系 |
+
+---
 
 ## 领域索引
 
@@ -23,406 +57,465 @@
 
 ---
 
-## 领域详情与典型文档
+## 领域详情
 
-### 1. `general` (General Purpose)
+### 1. 📚 `general` (通用)
+
 适用于无法归类或多领域交叉的文本，通过提取基础实体和SPO关系构建通用图谱。
 
-*   **任意文本 (通用提取)**：适用于任何类型的文本（如网页内容、日常笔记、博客文章），直接提取其中的实体及关系。
+*   **任意文本 (通用提取)**：适用于任何类型的文本，直接提取其中的实体及关系。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`KnowledgeGraph`** | `AutoGraph` | **通用知识图谱**。使用通用的 Schema 提取实体与关系。 | 任意文本、网页抓取内容 |
-| **`EntityRegistry`** | `AutoSet` | **实体注册表**。去重并汇总文本中出现的所有唯一实体（如人名、机构）。 | 实体发现、命名实体识别 |
-| **`KeywordList`** | `AutoList` | **关键词列表**。提取文本的核心概念、重要主题或标签。 | 内容打标、索引生成 |
+| **`KnowledgeGraph`** | `AutoGraph` | 通用知识图谱提取 | 任意文本、网页内容 |
+| **`EntityRegistry`** | `AutoSet` | 去重唯一实体（人名、机构） | 实体发现、NER任务 |
+| **`KeywordList`** | `AutoList` | 核心概念、主题或标签 | 内容打标、索引生成 |
 
-*   **维基百科/百度百科条目**：对实体（人物、组织、地点）的综合性描述，包含结构化的属性信息。
+*   **百科条目**：对实体的综合性描述，包含结构化属性信息。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`EncyclopediaItem`** | `AutoModel` | **百科条目**。针对单一主体提取结构化的属性信息（类似信息框 Infobox）。 | 维基百科、专业词典词条 |
-| **`ConceptHierarchy`** | `AutoGraph` | **概念层级图**。构建上下位关系（Subclass-Of）或组成关系（Part-Of）。 | 科学学科、教材知识点 |
-| **`CrossReferenceNet`** | `AutoGraph` | **交叉引用网络**。映射概念之间的超链接或相互引用关系。 | 百科内链、跨词条关联图 |
+| **`EncyclopediaItem`** | `AutoModel` | 结构化属性信息（信息框风格）| 百科词典词条 |
+| **`ConceptHierarchy`** | `AutoGraph` | 上下位/组成关系 | 科学教材知识点 |
+| **`CrossReferenceNet`** | `AutoGraph` | 超链接与相互引用 | 跨词条关联 |
 
-*   **人物传记与回忆录**：记录个人生平事迹、主要成就及社会关系的叙事性文本。
+*   **人物传记与回忆录**：记录个人生平事迹、主要成就及社会关系。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`LifeEventTimeline`** | `AutoTemporalGraph` | **生平时序图**。提取带时间戳的事件，并按时间顺序排列。 | 人物传记、年表、回忆录 |
-| **`SocialNetwork`** | `AutoGraph` | **社交网络图**。专注于提取人际关系、互动与组织隶属。 | 传记分析、人物设定研究 |
-| **`PersonalProfile`** | `AutoModel` | **个人档案**。聚合人物的静态属性（生卒年、学历、核心身份）。 | 简历、人物简介、讣告摘要 |
+| **`LifeEventTimeline`** | `AutoTemporalGraph` | 带时间戳的生平事件 | 传记、年表 |
+| **`SocialNetwork`** | `AutoGraph` | 人际关系与互动 | 人物分析 |
+| **`PersonalProfile`** | `AutoModel` | 静态属性（生卒年、学历）| 简历、简介 |
 
-*   **规章制度与合规文档**：公司内部管理制度、行政法规、操作手册、合规指南。
+*   **规章制度与合规文档**：公司制度、操作手册、合规指南。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`RegulationProfile`** | `AutoModel` | **规章元数据快照**。提取制度的名称、版本、适用范围、生效日期及核心宗旨。 | 制度概览、版本管理 |
-| **`ComplianceLogic`** | `AutoHypergraph` | **合规行为超图**。建模“在何种条件下，何种主体，必须/禁止执行何种操作”的复杂逻辑。 | 合规审计、风险识别 |
-| **`PenaltyRegistry`** | `AutoSet` | **违规处罚对照表**。去重汇总特定的违规行为及其对应的后果，形成清晰的处罚台账。 | 内部风控、合规检查 |
-| **`OperationalProcedure`** | `AutoGraph` | **执行程序流程图**。提取规章中规定的申报、审批或操作的具体先后步骤。 | 操作导引、SOP 流程可视化 |
-| **`PenaltyMapping`** | `AutoGraph` | **违规处罚因果链**。描述从“违规行为”到“处理程序”再到“最终结果”的演变路径。 | 风险溯源、处罚逻辑分析 |
-| **`ClauseList`** | `AutoList` | **规章条文清单**。将规章制度拆解为逐条的原子化条文，方便快速索引。 | 条文检索、全文比对 |
+| **`RegulationProfile`** | `AutoModel` | 制度名称、版本、生效日期 | 制度概览 |
+| **`ComplianceLogic`** | `AutoHypergraph` | 条件性行为逻辑 | 合规审计 |
+| **`PenaltyRegistry`** | `AutoSet` | 违规行为与后果 | 风险管控 |
+| **`OperationalProcedure`** | `AutoGraph` | 申报审批具体步骤 | SOP流程 |
+| **`PenaltyMapping`** | `AutoGraph` | 违规到结果的演变路径 | 风险溯源 |
+| **`ClauseList`** | `AutoList` | 原子化条文 | 条文检索 |
 
-### 2. `finance` (金融)
+[↑ 返回目录](#目录)
+
+---
+
+### 2. 💰 `finance` (金融)
+
 专注于提取复杂的交易关系、市场观点及时间敏感事件。
 
-*   **SEC财报 (10-K / 10-Q / 8-K)**：提交给监管机构的标准化财务申报文件，涵盖财务报表、管理层讨论与分析 (MD&A)、风险因素及重大事件披露，具有复杂的文档结构（表格、叙述文本、附件）。 
+*   **SEC财报 (10-K / 10-Q / 8-K)**：标准化财务申报文件，涵盖财务报表、MD&A、风险因素。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`FilingFinancialSnapshot`** | `AutoModel` | **财务数据快照**。从申报文件中嵌入的利润表、资产负债表及现金流量表中提取关键财务数据。 | 基本面筛选、财务数据库构建 |
-| **`MDANarrativeGraph`** | `AutoGraph` | **MD&A 因果图谱**。从管理层讨论与分析部分提取因果关系（如"供应链中断 -> 营收下降 -> 利润率压缩"）。 | 叙事分析、业绩驱动因素归因 |
-| **`FilingRiskFactorSet`** | `AutoSet` | **风险因素登记册**。去重汇总 Item 1A 中披露的所有风险因素，跟踪各报告期的新增与删除变化。 | 风险演变监控、跨公司风险对标 |
-| **`MaterialEventTimeline`** | `AutoTemporalGraph` | **重大事件时间轴**。按时间顺序提取 8-K 当期报告中的重大事件（高管变动、并购公告、财务重述等）。 | 事件驱动分析、合规监控 |
-| **`SegmentPerformanceList`** | `AutoList` | **分部业绩明细**。按业务分部或地理区域提取营收、经营利润等关键指标。 | 分部估值、区域风险敞口分析 |
-| **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | **财务数据时序图谱**。构建跨报告期的财务指标时序图谱，追踪营收、利润率、分部贡献及关键比率随时间的演变。 | 多期趋势分析、跨期对比、财务数据溯源 |
-| **`RiskAssessmentGraph`** | `AutoGraph` | **风险评估图谱**。系统性提取风险因素到财务影响的传导路径，包含可能性、严重性及缓解措施。 | 风险监控、多报告期对比分析 |
-| **`SupplyChainGraph`** | `AutoGraph` | **供应链图谱**。提取供应链主体、交易关系及风险评估，识别关键供应商和地缘政治风险。 | 供应链韧性分析、ESG 报告分析 |
+| **`FilingFinancialSnapshot`** | `AutoModel` | 关键财务数据 | 基本面筛选 |
+| **`MDANarrativeGraph`** | `AutoGraph` | MD&A因果关系 | 叙事分析 |
+| **`FilingRiskFactorSet`** | `AutoSet` | 风险因素登记 | 风险监控 |
+| **`MaterialEventTimeline`** | `AutoTemporalGraph` | 重大事件时间轴 | 事件驱动分析 |
+| **`SegmentPerformanceList`** | `AutoList` | 分部/区域业绩 | 分部估值 |
+| **`FinancialDataTemporalGraph`** | `AutoTemporalGraph` | 跨期财务指标 | 趋势分析 |
+| **`RiskAssessmentGraph`** | `AutoGraph` | 风险传导路径 | 风险监控 |
+| **`SupplyChainGraph`** | `AutoGraph` | 供应链主体与风险 | ESG分析 |
 
-*   **股票研究报告 (Equity Research)**：分析师撰写的深度报告，包含评级、目标价及投资逻辑相关内容。
+*   **股票研究报告**：分析师深度报告，包含评级、目标价及投资逻辑。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ResearchNoteSummary`** | `AutoModel` | **研报核心摘要**。提取评级（买入/卖出）、目标价及核心投资逻辑摘要。 | 研报数据库、快速筛选 |
-| **`FinancialForecast`** | `AutoList` | **财务预测表**。提取分析师对未来几年的营收、EPS、PE 等关键指标预测。 | 一致性预期分析、估值建模 |
-| **`ValuationLogicMap`** | `AutoGraph` | **估值逻辑图**。提取驱动股价变化的因果链条（如：新产品发布 -> 营收增长）。 | 投资逻辑图志、归因分析 |
-| **`FactorInfluenceHypergraph`** | `AutoHypergraph` | **多因子影响分析**。建模宏观因素、行业趋势与公司指标之间的复杂关联。 | 量化基本面分析、因子归因 |
-| **`RiskFactorList`** | `AutoList` | **风险清单**。提取报告中的具体下行风险点（监管、汇率、供应链风险等）。 | 风险监控、负面因素扫描 |
+| **`ResearchNoteSummary`** | `AutoModel` | 评级、目标价、投资逻辑 | 研报数据库 |
+| **`FinancialForecast`** | `AutoList` | 营收、EPS、PE预测 | 一致性预期 |
+| **`ValuationLogicMap`** | `AutoGraph` | 股价驱动因果链 | 策略映射 |
+| **`FactorInfluenceHypergraph`** | `AutoHypergraph` | 宏观→行业→公司关联 | 因子归因 |
+| **`RiskFactorList`** | `AutoList` | 下行风险点 | 风险监控 |
 
-*   **招股说明书 (Prospectus/IPO)**：企业上市前的全面披露文件，详述股权结构、募集资金用途等。
+*   **招股说明书 (IPO)**：企业上市前披露文件，详述股权结构、募集资金用途。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ShareholderStructure`** | `AutoGraph` | **股权结构图**。提取股东占比、层级关系及最终实际控制人路径。 | 穿透式监管、关联方识别 |
-| **`ProceedsUsage`** | `AutoList` | **募资投向**。详细提取募投项目的名称、计划金额分配及预计时间表。 | 投后管理、资金使用合规 |
-| **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | **公司大事记**。按时间轴提取公司成立以来的融资、并购、管理层变更等里程碑。 | 投研尽调、企业图鉴 |
+| **`ShareholderStructure`** | `AutoGraph` | 股东占比、层级关系 | 尽职调查 |
+| **`ProceedsUsage`** | `AutoList` | 募投项目、金额、时间表 | 投后管理 |
+| **`CompanyHistoryTimeline`** | `AutoTemporalGraph` | 成立、融资、并购大事 | 企业历史 |
 
-*   **财报电话会议 (Earnings Call Transcripts)**：管理层按季度发布的业绩说明会实录，包含财务数据解读、前瞻性指引及分析师问答，蕴含丰富的情感信号与预期信息。
+*   **财报电话会议**：管理层业绩说明会实录，包含前瞻性指引。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`EarningsCallSummary`** | `AutoModel` | **电话会议概览**。提取核心披露指标（营收、EPS）、管理层指引及整体会议基调（积极/审慎/消极）。 | 季度回顾看板、一致性预期跟踪 |
-| **`ManagementGuidanceList`** | `AutoList` | **前瞻性指引**。提取管理层的前瞻性声明：预期数据、战略优先级及定性展望。 | 业绩指引跟踪、预期差分析 |
-| **`DiscussionGraph`** | `AutoGraph` | **财报会议讨论图谱**。提取财报会议中讨论的实体及它们之间的多元关系（问答、关注、业务、财务等），支持分析师关注点分析。 | 分析师关注点分析、问答互动追踪 |
-| **`CallSentimentHypergraph`** | `AutoHypergraph` | **话题-情感分析超图**。建模多维情感信号：`{话题(营收/利润率/指引), 发言人, 情感倾向, 驱动因素}` 的复杂关联。 | 情感驱动交易信号、基调变化检测 |
+| **`EarningsCallSummary`** | `AutoModel` | 核心指标、指引、会议基调 | 季度回顾 |
+| **`ManagementGuidanceList`** | `AutoList` | 前瞻性声明 | 业绩指引跟踪 |
+| **`DiscussionGraph`** | `AutoGraph` | 讨论实体及多元关系 | 分析师关注分析 |
+| **`CallSentimentHypergraph`** | `AutoHypergraph` | 多维情感信号 | 交易信号 |
 
-*   **金融新闻与市场评论 (Financial News & Market Commentary)**：传递市场情绪、事件影响及前瞻性观点的新闻报道、分析师评论及社交媒体帖子。 
+*   **金融新闻与市场评论**：传递市场情绪、事件影响的新闻报道。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`MarketSentimentModel`** | `AutoModel` | **情绪快照**。提取情感极性（看涨/看跌/中性）、涉及实体（股票代码、板块）及预期价格影响方向。 | 实时情绪数据流、交易信号生成 |
-| **`FinancialEventCausalGraph`** | `AutoGraph` | **事件影响图谱**。映射金融事件到受影响实体及下游市场反应的因果链（如"美联储加息 -> 银行板块上涨 -> 债券收益率上升"）。 | 事件驱动策略、宏观影响分析 |
-| **`MultiSourceSentimentHypergraph`** | `AutoHypergraph` | **多源情绪融合超图**。融合多渠道情绪信号：`{新闻报道, 社交媒体, 分析师研报} -> 聚合情绪 -> 受影响实体` 的多因素模型。 | 集成情绪评分、虚假信号过滤 |
-| **`MarketNarrativeTimeline`** | `AutoTemporalGraph` | **市场叙事演变轴**。追踪市场主流叙事与主题如何随时间演变（如从"通胀恐慌"转向"软着陆预期"）。 | 主题投资、市场状态识别 |
+| **`MarketSentimentModel`** | `AutoModel` | 情感极性、实体、价格影响 | 交易信号 |
+| **`FinancialEventCausalGraph`** | `AutoGraph` | 事件→实体→市场反应 | 策略分析 |
+| **`MultiSourceSentimentHypergraph`** | `AutoHypergraph` | 多源情绪融合 | 集成评分 |
+| **`MarketNarrativeTimeline`** | `AutoTemporalGraph` | 市场叙事演变 | 主题投资 |
 
-### 3. `medicine` (医学)
+[↑ 返回目录](#目录)
+
+---
+
+### 3. 🏥 `medicine` (医学)
+
 专注于疾病诊疗逻辑、标准化术语映射及因果关系提取。
 
-*   **医学教科书与专著**：系统性阐述解剖、病理、药理及治疗原则的专业书籍。
+*   **医学教科书与专著**：系统性阐述解剖、病理、治疗原则。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`PathologyHypergraph`** | `AutoHypergraph` | **多因素病理机制图**。建模“基因+环境+诱因 -> 疾病”的复杂致病逻辑。 | 疾病原理研究、知识库构建 |
-| **`MedicalConceptNet`** | `AutoGraph` | **医学概念网络**。提取医学术语及其关联属性（如：属于、定义为）。 | 术语标准化、语义搜索 |
-| **`PharmacologyGraph`** | `AutoGraph` | **药理机制图**。提取药物、受体、靶点及生理反应之间的相互作用路径。 | 药理逻辑梳理、新药研发 |
-| **`AnatomyHierarchy`** | `AutoGraph` | **解剖层级树**。构建解剖位置的包含 (Part-Of) 和毗邻 (Connected-To) 关系。 | 解剖学图谱、手术导航基础 |
-| **`SymptomDifferential`** | `AutoSet` | **鉴别诊断表**。汇总症状与其对应的鉴别疾病列表，形成症状-疾病映射。 | CDSS 辅助诊断、教学系统 |
+| **`PathologyHypergraph`** | `AutoHypergraph` | 基因+环境+诱因→疾病 | 研究知识库 |
+| **`MedicalConceptNet`** | `AutoGraph` | 医学术语及语义关系 | 术语标准化 |
+| **`PharmacologyGraph`** | `AutoGraph` | 药物-受体-生理反应 | 药理分析 |
+| **`AnatomyHierarchy`** | `AutoGraph` | 解剖位置层级 | 手术导航 |
+| **`SymptomDifferential`** | `AutoSet` | 症状→鉴别疾病 | 辅助诊断 |
 
-*   **临床诊疗指南 (Clinical Guidelines)**：权威机构发布的标准化文档，定义了决策路径。
+*   **临床诊疗指南**：标准化治疗决策路径。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`TreatmentRegimenMap`** | `AutoHypergraph` | **综合治疗方案图**。提取由“药物组合+理疗+生活干预”构成的多因素治疗方案。 | 肿瘤化疗方案、慢病管理 |
-| **`ClinicalPathway`** | `AutoGraph` | **临床路径图**。提取“If 症状A Then 检查B Else 治疗C”的决策树结构。 | 临床路径管理、诊疗规范化 |
-| **`LevelOfEvidence`** | `AutoList` | **证据评级表**。提取指南中的具体推荐意见及其对应的证据等级。 | 设计临床质控方案、科研引用 |
+| **`TreatmentRegimenMap`** | `AutoHypergraph` | 多因素治疗方案 | 肿瘤化疗方案 |
+| **`ClinicalPathway`** | `AutoGraph` | 临床决策树 | 诊疗规范化 |
+| **`LevelOfEvidence`** | `AutoList` | 推荐意见及证据等级 | 临床质控 |
 
-*   **出院小结 (Discharge Summaries)**：患者住院全过程的叙述性记录。
+*   **出院小结**：患者住院全过程的叙述性记录。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SurgicalEventGraph`** | `AutoHypergraph` | **手术事件超图**。将手术建模为 {医生, 部位, 术式, 器械} 共同参与的复杂事件。 | 手术质控、绩效评估 |
-| **`HospitalCourseTimeline`** | `AutoTemporalGraph` | **住院病程时间轴**。严格按时间顺序提取入院、检查、治疗、转归等节点。 | 病历质控、医疗纠纷溯源 |
-| **`DischargeInstruction`** | `AutoModel` | **出院医嘱摘要**。提取出院带药、复诊计划及康复建议的结构化信息。 | 患者随访、慢病续方 |
+| **`SurgicalEventGraph`** | `AutoHypergraph` | 手术复杂事件 | 手术质控 |
+| **`HospitalCourseTimeline`** | `AutoTemporalGraph` | 入院→检查→治疗→转归 | 病历质控 |
+| **`DischargeInstruction`** | `AutoModel` | 出院带药、复诊、康复 | 患者随访 |
 
-*   **病理报告 (Pathology Reports)**：对组织样本的微观描述。
+*   **病理报告**：对组织样本的微观描述。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`TumorStagingItem`** | `AutoModel` | **TNM 分期表**。提取肿瘤大小(T)、淋巴结(N)、转移(M)及分期结果。 | 肿瘤登记、预后评估 |
-| **`MicroscopicFeatureSet`** | `AutoSet` | **微观特征集**。提取免疫组化指标（如 HER2+, Ki67）及基因突变状态。 | 靶向药匹配、科研入组筛选 |
+| **`TumorStagingItem`** | `AutoModel` | TNM分期 | 肿瘤登记 |
+| **`MicroscopicFeatureSet`** | `AutoSet` | 免疫组化、基因突变 | 靶向药匹配 |
 
-*   **药品说明书 (Package Inserts)**：法律规定的药品文档，包含适应症、禁忌症等内容。
+*   **药品说明书**：包含适应症、禁忌症等专业信息。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ComplexInteractionNet`** | `AutoHypergraph` | **条件性相互作用网**。建模“药A+药B+特定体质 -> 不良反应”的高阶依赖。 | 合理用药系统 (高级版) |
-| **`ContraindicationList`** | `AutoList` | **禁忌症清单**。提取绝对禁忌（如孕妇、严重肾衰竭等）的明确列表。 | 处方拦截、用药安全监测 |
-| **`AdverseReactionStats`** | `AutoList` | **不良反应统计**。提取各系统的不良反应表现及其发生率描述。 | 药物警戒、安全性评价 |
+| **`ComplexInteractionNet`** | `AutoHypergraph` | 药物相互作用 | CDSS |
+| **`ContraindicationList`** | `AutoList` | 绝对禁忌 | 处方拦截 |
+| **`AdverseReactionStats`** | `AutoList` | 不良反应及发生率 | 药物警戒 |
 
-### 4. `tcm` (中医中药)
+[↑ 返回目录](#目录)
+
+---
+
+### 4. 🌿 `tcm` (中医中药)
+
 针对中医特有的辨证论治逻辑和药性理论进行优化。
 
-*   **名医医案 (Medical Case Records)**：记录“望闻问切”症状、辨证分析（理）、治法（法）及处方（方药）的临床实录。
+*   **名医医案**：记录症状、辨证分析、治法及处方的临床实录。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SyndromeReasoningGraph`** | `AutoHypergraph` | **辨证论治逻辑图**。建模 `{症状群} -> 证型 -> 治则 -> {处方}` 的完整推理链条。 | 医案数据挖掘、名老中医经验传承 |
-| **`PrescriptionModification`** | `AutoGraph` | **处方加减逻辑**。提取基于特定症状对基础方剂进行的药物加减（如“随证加减”）。 | 临证用药规律分析 |
-| **`PulseTongueRecord`** | `AutoList` | **舌脉特征提取**。结构化提取舌象（质、苔）与脉象描述，用于统计分析。 | 中医诊断客观化研究 |
+| **`SyndromeReasoningGraph`** | `AutoHypergraph` | 症状→证型→治则→处方 | 医案挖掘 |
+| **`PrescriptionModification`** | `AutoGraph` | 处方加减逻辑 | 用药规律分析 |
+| **`PulseTongueRecord`** | `AutoList` | 舌象与脉象特征 | 诊断客观化 |
 
-*   **本草典籍 (Herbal Compendiums)**：描述单味药的四气五味、归经、功效主治及配伍禁忌的文本。
+*   **本草典籍**：描述单味药的四气五味、归经、功效。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`HerbPropertyModel`** | `AutoModel` | **药物性味归经**。提取单味药的四气五味、归经、毒性及推荐剂量。 | 中药基础数据库构建 |
-| **`CompatibilityNet`** | `AutoGraph` | **七情配伍网络**。提取药物间的相须、相使、相畏、相杀、十八反十九畏关系。 | 配伍禁忌预警、方剂组网分析 |
-| **`ProcessingMethod`** | `AutoList` | **炮制方法列表**。提取药物的不同炮制方法（如蜜炙、酒炒）及其对药效的影响。 | 中药炮制规范、饮片管理 |
+| **`HerbPropertyModel`** | `AutoModel` | 四气五味、归经、毒性 | 中药数据库 |
+| **`CompatibilityNet`** | `AutoGraph` | 七情配伍关系 | 配伍禁忌 |
+| **`ProcessingMethod`** | `AutoList` | 炮制方法及影响 | 炮制规范 |
 
-*   **方剂规范 (Prescription Formularies)**：记载方剂组成的文档，包含君臣佐使的配伍结构及煎服法。
+*   **方剂规范**：记载方剂组成，包含君臣佐使配伍结构。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`FormulaComposition`** | `AutoHypergraph` | **君臣佐使结构图**。将方剂建模为 `{君药, 臣药, 佐药, 使药}` 的层级化超边结构。 | 方剂结构解析、组方规律研究 |
-| **`FunctionIndicationMap`** | `AutoGraph` | **主治功效映射**。关联 方剂 -> 功能（如清热解毒） -> 主治证候。 | 方剂推荐系统 |
+| **`FormulaComposition`** | `AutoHypergraph` | 君臣佐使层级结构 | 方剂解析 |
+| **`FunctionIndicationMap`** | `AutoGraph` | 方剂→功能→主治 | 推荐系统 |
 
-*   **经络腧穴专著 (Meridian Treatises)**：描述穴位解剖定位、归经及其特定主治功能的文本。
+*   **经络腧穴专著**：描述穴位定位、归经及主治功能。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`AcupointLocationMap`** | `AutoGraph` | **腧穴空间定位**。基于人体解剖标志提取穴位的相对位置关系（如“脐旁2寸”）。 | 针灸教学可视化、穴位图谱 |
-| **`MeridianFlowGraph`** | `AutoGraph` | **经络流注图**。提取十二经脉的循行路线及经气流注次序。 | 经络理论教学 |
+| **`AcupointLocationMap`** | `AutoGraph` | 腧穴空间定位 | 针灸教学 |
+| **`MeridianFlowGraph`** | `AutoGraph` | 十二经脉循行 | 经络理论 |
 
-### 5. `industry` (工业)
-专注于电力，制造、能源等行业的运维数据与非结构化日志分析。
+[↑ 返回目录](#目录)
 
-*   **管理规范 (Management Specifications)**：安全规程、应急预案等管理性文档。
+---
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+### 5. ⚙️ `industry` (工业)
+
+专注于电力、制造、能源等行业的运维数据与日志分析。
+
+*   **管理规范**：安全规程、应急预案等。
+
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SafetyControlGraph`** | `AutoGraph` | **安全管控图**。提取危险源、风险点和管控措施。 | 安全规程 |
-| **`EmergencyResponseGraph`** | `AutoGraph` | **应急预案图**。提取事故场景、响应动作和部门。 | 应急预案 |
-| **`IncidentCausalityMap`** | `AutoHypergraph` | **事故因果链超图**。建模隐患、触发条件、违章行为、事故后果。 | 风险预防 |
-| **`SafetyTimeline`** | `AutoTemporalGraph` | **事故时序图**。还原事故发生前后的操作与响应序列。 | 事故复盘 |
+| **`SafetyControlGraph`** | `AutoGraph` | 危险源、风险点、管控 | 安全规程 |
+| **`EmergencyResponseGraph`** | `AutoGraph` | 事故场景、响应动作 | 应急预案 |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | 隐患→触发→违章→后果 | 风险预防 |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | 操作与响应序列 | 事故复盘 |
 
-*   **技术规格书 (Technical Specifications)**：描述设备额定参数、材质标准及性能曲线的半结构化文本。
+*   **技术规格书**：设备额定参数、设计标准。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SystemTopologyGraph`** | `AutoGraph` | **系统拓扑图**。提取工厂的厂区、系统、子系统、设备等层级结构。 | 系统说明书 |
-| **`EquipmentTopologyGraph`** | `AutoGraph` | **设备拓扑图**。提取工业设备的实体及其相互连接关系。 | 设备系统图 |
-| **`SpecParameterTable`** | `AutoModel` | **核心规格表**。提取额定功率、材质、尺寸精度等关键技术指标。 | 设备台账 |
-| **`SystemCompatibilityGraph`** | `AutoHypergraph` | **系统兼容性超图**。提取设备与环境、介质的对应关系。 | 选型辅助 |
+| **`SystemTopologyGraph`** | `AutoGraph` | 厂区、系统、设备层级 | 系统说明书 |
+| **`EquipmentTopologyGraph`** | `AutoGraph` | 设备实体及连接 | 设备图纸 |
+| **`SpecParameterTable`** | `AutoModel` | 额定功率、材质、精度 | 设备台账 |
+| **`SystemCompatibilityGraph`** | `AutoHypergraph` | 设备与环境关系 | 选型辅助 |
 
-*   **操作运维 (Operations)**：设备运行规程、工况切换等操作相关知识。
+*   **操作运维**：设备运行规程、工况切换。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`OperationFlowGraph`** | `AutoGraph` | **操作流程图**。提取操作步骤、设备状态和预期结果。 | 运行规程 |
-| **`OperatingModeGraph`** | `AutoGraph` | **工况切换图**。提取工况类型和切换条件。 | 工况切换说明书 |
-| **`MaintenaceOperationMap`** | `AutoHypergraph` | **维修作业图**。关联操作人、工具、对象、耗时。 | 维修标准化 |
+| **`OperationFlowGraph`** | `AutoGraph` | 操作步骤、状态、结果 | 运行规程 |
+| **`OperatingModeGraph`** | `AutoGraph` | 工况类型和切换条件 | 工况切换 |
+| **`MaintenaceOperationMap`** | `AutoHypergraph` | 操作人、工具、对象、耗时 | 维修标准化 |
 
-*   **设备维护 (Maintenance)**：巡检记录、故障案例、备件更换等维护知识。
+*   **设备维护**：巡检记录、故障案例、备件更换。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`InspectionRecordGraph`** | `AutoGraph` | **巡检记录图**。提取设备和巡检项。 | 巡检记录本 |
-| **`FailureCaseGraph`** | `AutoGraph` | **故障案例图**。提取故障现象、原因、措施和教训。 | 故障案例库 |
-| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | **故障知识超图**。建模故障现象、根因、部件、解决方案。 | 故障诊断 |
-| **`PartReplacementList`** | `AutoList` | **备件消耗清单**。提取零件型号、数量、原因。 | 备件管理 |
+| **`InspectionRecordGraph`** | `AutoGraph` | 设备和巡检项 | 巡检记录 |
+| **`FailureCaseGraph`** | `AutoGraph` | 现象、原因、措施、教训 | 故障案例库 |
+| **`FailureKnowledgeHypergraph`** | `AutoHypergraph` | 现象、根因、部件、方案 | 故障诊断 |
+| **`PartReplacementList`** | `AutoList` | 零件型号、数量、原因 | 备件管理 |
 
-*   **HSE事故报告 (Incident Reports)**：对生产事故的调查报告，包含事件时间线、根本原因分析及整改措施。
+*   **HSE事故报告**：生产事故调查报告。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`IncidentCausalityMap`** | `AutoHypergraph` | **事故因果链超图**。建模隐患、触发条件、违章行为、事故后果。 | 事故推演 |
-| **`SafetyTimeline`** | `AutoTemporalGraph` | **事故时序图**。还原事故发生前后的操作与响应序列。 | 事故复盘 |
+| **`IncidentCausalityMap`** | `AutoHypergraph` | 隐患→触发→违章→后果 | 事故推演 |
+| **`SafetyTimeline`** | `AutoTemporalGraph` | 操作与响应序列 | 事故复盘 |
 
-### 6. `history` (历史)
-专注于长跨度的时间线梳理及人物社会网络构建。
+[↑ 返回目录](#目录)
 
-*   **历史专著 (Historical Monographs)**：对特定断代、事件或人物进行深度因果分析与考证的学术书籍。
+---
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+### 6. 📜 `history` (历史)
+
+专注于长跨度时间线梳理及人物社会网络构建。
+
+*   **历史专著**：对特定断代、事件或人物的深度分析。
+
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`HistoricalKnowledgeGraph`** | `AutoGraph` | **通用历史图谱**。提取基础的人物关系（亲属、君臣、敌友）及事件因果。 | 历史人物关系网构建 |
-| **`MultiParticipantEventMap`** | `AutoHypergraph` | **多方事件超图**。将历史事件建模为连接多个参与者的超边（如“鸿门宴”连接项羽、刘邦等）。 | 复杂历史事件还原、群像分析 |
+| **`HistoricalKnowledgeGraph`** | `AutoGraph` | 人物关系、事件因果 | 社会网络分析 |
+| **`MultiParticipantEventMap`** | `AutoHypergraph` | 多方参与事件 | 事件还原 |
 
-*   **编年史 (Chronicles)**：按严格时间顺序记录的历史事件，侧重于时序演变。
+*   **编年史**：按时间顺序记录的历史事件。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ChronologicalEventChain`** | `AutoTemporalGraph` | **编年事件链**。提取带精确时间戳的原子事件，严格还原时间线。 | 历史大事年表生成 |
-| **`HistoricalContextGraph`** | `AutoGraph` | **历史背景关联图**。提取事件背后的人物关系、地缘政治等静态关联。 | 历史事件背景挖掘 |
-| **`PoliticalStruggleHypergraph`** | `AutoHypergraph` | **政治博弈超图**。针对战役或政争，提取 `{攻方, 守方, 策划者, 变节者}` 的复杂互动。 | 战役复盘、派系斗争分析 |
+| **`ChronologicalEventChain`** | `AutoTemporalGraph` | 带时间戳的原子事件 | 年表生成 |
+| **`HistoricalContextGraph`** | `AutoGraph` | 静态关联（亲属、联盟）| 背景挖掘 |
+| **`PoliticalStruggleHypergraph`** | `AutoHypergraph` | 攻守方、策划者、变节者 | 派系分析 |
 
-*   **口述历史 (Oral History)**：亲历者的第一人称回忆录，包含非线性叙事及个人视角细节。
+*   **口述历史**：第一人称回忆录。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`PersonalTrajectoryHypergraph`** | `AutoHypergraph` | **个人轨迹超图**。以人生阶段为超边，关联 `{时期, 地点, 同行人物, 核心经历}`。 | 人物传记编撰、生命历程研究 |
-| **`NarrativeRelationGraph`** | `AutoGraph` | **叙事关系图**。提取口述者主观视角下的人物互动与评价关系。 | 口述史社会网络分析 |
-| **`MemoryFlashbackList`** | `AutoList` | **回忆片段清单**。提取口述中提到的具体轶事、感悟或对特定历史时刻的侧面描写。 | 历史细节补充、情感分析 |
+| **`PersonalTrajectoryHypergraph`** | `AutoHypergraph` | 人生阶段超边 | 传记编撰 |
+| **`NarrativeRelationGraph`** | `AutoGraph` | 主观视角人物互动 | 社会网络分析 |
+| **`MemoryFlashbackList`** | `AutoList` | 轶事、感悟、侧面描写 | 历史细节 |
 
-*   **档案馆藏信札 (Archival Correspondence)**：历史人物间的往来书信，揭示隐秘的社交网络和事件细节。
+*   **档案信札**：历史人物往来书信。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`EpistolaryKnowledgeGraph`** | `AutoGraph` | **信札内容图谱**。提取信件正文中提到的人物、事件及其相互关系，而非仅仅是发信和收信关系。 | 史料挖掘、事件考证 |
+| **`EpistolaryKnowledgeGraph`** | `AutoGraph` | 信件内容中的人物事件 | 史料挖掘 |
 
-### 7. `biology` (生物科学)
-从单一的基因组扩展到蛋白质组学、代谢通路及生态学。
+[↑ 返回目录](#目录)
 
-*   **生物学专著 (Biological Monographs)**：详述物种分类、进化历史或复杂生物系统机制的学术书籍。
+---
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+### 7. 🧬 `biology` (生物科学)
+
+从基因组扩展到蛋白质组学、代谢通路及生态学。
+
+*   **生物学专著**：物种分类、进化历史。
+
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SpeciesInteractionWeb`** | `AutoGraph` | **物种相互作用网**。提取捕食、寄生、竞争、互利共生等关系。 | 食物网构建、生态关系分析 |
-| **`TaxonomicTree`** | `AutoGraph` | **分类学树**。提取界门纲目科属种的层级包含关系。 | 生物分类学数据库 |
+| **`SpeciesInteractionWeb`** | `AutoGraph` | 捕食、寄生、竞争、共生 | 食物网分析 |
+| **`TaxonomicTree`** | `AutoGraph` | 界门纲目科属种层级 | 分类学数据库 |
 
-*   **蛋白质结构摘要 (Protein Structure Summaries)**：描述蛋白质晶体结构、配体结合位点及修饰位点的文本。
+*   **蛋白质结构摘要**：晶体结构、配体结合位点。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ProteinComplexMap`** | `AutoHypergraph` | **蛋白质复合物超图**。建模 `{亚基A, 亚基B, 辅因子}` 共同组成功能复合物的多亚基结构。 | 蛋白质复合物数据库、结构研究 |
-| **`BindingSiteModel`** | `AutoModel` | **关键位点模型**。提取活性位点、结合位点的残基编号、化学性质及功能注解。 | 药物设计、位点突变分析 |
+| **`ProteinComplexMap`** | `AutoHypergraph` | 多亚基复合物 | 蛋白数据库 |
+| **`BindingSiteModel`** | `AutoModel` | 活性位点、化学性质 | 药物设计 |
 
-*   **代谢通路描述 (Metabolic Pathways)**：解释生物化学反应级联的文本，涉及酶、底物、产物及调控机制。
+*   **代谢通路描述**：生化反应级联。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`BiochemicalReactionHypergraph`** | `AutoHypergraph` | **生化反应超图**。精准建模 `{酶 + 底物A + 底物B -> 产物C + 产物D}` 的多输入多输出反应。 | 代谢通路图谱、代谢工程 |
-| **`RegulatoryNetwork`** | `AutoGraph` | **基因调控网络**。提取转录因子、启动子及其对基因表达的促进、抑制、协同作用。 | 基因调控分析、系统生物学 |
+| **`BiochemicalReactionHypergraph`** | `AutoHypergraph` | 酶+底物→产物反应 | 通路图谱 |
+| **`RegulatoryNetwork`** | `AutoGraph` | 转录因子→启动子→基因表达 | 基因调控分析 |
 
-*   **生态调查 ( Ecological Surveys)**：对物种形态特征、鉴别要点及系统发育关系的详细记录，以及特定区域内物种分布与生境特征的考察。
+*   **生态调查**：物种形态、分布、生境特征。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`PhylogeneticRelationGraph`** | `AutoGraph` | **系统发育关系图**。提取物种间的亲缘关系、演化距离及分支点。 | 分子系统学、进化树构建 |
-| **`BiodiversityRegistry`** | `AutoSet` | **物种名录**。去重汇总调查报告中观测到的所有物种及其种群数量信息。 | 物种清单制作、保护优先级评估 |
+| **`PhylogeneticRelationGraph`** | `AutoGraph` | 亲缘关系、演化距离 | 系统发育树 |
+| **`BiodiversityRegistry`** | `AutoSet` | 观测物种及种群 | 生物多样性评估 |
 
-### 8. `legal` (法律)
-专注于提取权利义务逻辑、条件约束及法律事实。
+[↑ 返回目录](#目录)
 
-*   **法学专著与评注**：对法律原则、法条逻辑及判例法进行深度学理解析的书籍。
+---
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+### 8. ⚖️ `legal` (法律)
+
+专注于权利义务逻辑、条件约束及法律事实。
+
+*   **法学专著与评注**：法律原则、法条逻辑分析。
+
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`LegalConceptOntology`** | `AutoGraph` | **法律概念本体**。提取法律术语的定义、上下位关系及法理阐释。 | 法律检索增强、法学教育 |
-| **`CaseLawCitationNet`** | `AutoGraph` | **判例引用网络**。映射案件之间的引用、区分（Distinguish）或推翻（Overrule）关系。 | 判例法研究、类案检索 |
+| **`LegalConceptOntology`** | `AutoGraph` | 术语定义、上下位关系 | 法律检索 |
+| **`CaseLawCitationNet`** | `AutoGraph` | 案件引用关系 | 判例研究 |
 
-*   **主服务协议 (MSA)**：定义长期商业合作框架的合同，包含责任限制、知识产权归属及违约条款。
+*   **主服务协议 (MSA)**：长期商业合同。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ContractObligationHypergraph`** | `AutoHypergraph` | **合同义务超图**。建模复杂的条件性义务：`{主体, 义务, 触发条件, 例外情形, 违约责任}`。 | 同时履行抗辩权分析、合同审查 |
-| **`DefinedTermRegistry`** | `AutoSet` | **术语定义表**。去重并汇总合同中定义的所有专有名词（如“机密信息”、“不可抗力”）。 | 术语一致性检查、合同摘要 |
-| **`LiabilityClauseList`** | `AutoList` | **责任条款清单**。提取关于赔偿、责任限制、保证及免责声明的具体条款。 | 合同风险评估、法务审核 |
+| **`ContractObligationHypergraph`** | `AutoHypergraph` | 主体+义务+条件+例外+责任 | 合同审查 |
+| **`DefinedTermRegistry`** | `AutoSet` | 定义的专有名词 | 一致性检查 |
+| **`LiabilityClauseList`** | `AutoList` | 赔偿、责任限制条款 | 风险评估 |
 
-*   **法院判决书 (Judgments)**：法官对案件的最终裁定，包含事实认定、法律推理及判例引用。
+*   **法院判决书**：法官最终裁定。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`CaseFactTimeline`** | `AutoTemporalGraph` | **案件事实时序图**。从“经审理查明”部分还原导致纠纷的按时间顺序排列的事实链条。 | 案情复盘、证据链梳理 |
-| **`AdjudicationLogic`** | `AutoHypergraph` | **裁判逻辑超图**。建模法官的推理过程：`{认定事实 + 适用法律 -> 裁判结论}`。 | 类案推送、判决预测辅助 |
-| **`LitigationParticipantMap`** | `AutoGraph` | **诉讼参与人图谱**。提取原告、被告、第三人、代理律师及证人之间的关系。 | 利益冲突检索、关联案件分析 |
+| **`CaseFactTimeline`** | `AutoTemporalGraph` | 时间顺序的事实链条 | 案情分析 |
+| **`AdjudicationLogic`** | `AutoHypergraph` | 事实+法律→结论 | 判决预测 |
+| **`LitigationParticipantMap`** | `AutoGraph` | 原告被告律师证人关系 | 利益冲突 |
 
-*   **合规申报文件 (Compliance Filings)**：企业提交给监管机构的关于数据合规、反洗钱或环境影响的详细陈述。
+*   **合规申报文件**：数据合规、反洗钱报告。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ComplianceRequirementList`** | `AutoList` | **合规要求清单**。提取文件中承诺遵守的具体义务或整改措施。 | 合规差距分析、监管应对 |
-| **`BeneficialOwnershipGraph`** | `AutoGraph` | **受益所有权图谱**。穿透多层股权结构，识别最终受益人 (UBO) 和控制人。 | 反洗钱 (AML)、制裁筛查 |
+| **`ComplianceRequirementList`** | `AutoList` | 具体义务或整改措施 | 合规分析 |
+| **`BeneficialOwnershipGraph`** | `AutoGraph` | 股权穿透至UBO | AML/KYC |
 
+[↑ 返回目录](#目录)
 
-### 9. `literature` (文学与影视)
+---
+
+### 9. 🎭 `literature` (文学与影视)
+
 专注于叙事结构分析、角色互动及世界观设定。
 
-*   **影视剧本 (Screenplays)**：格式严格的文本（场景头、动作、对白），适合提取角色互动图谱。
+*   **影视剧本**：格式严格的文本（场景、对白）。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SceneEventHypergraph`** | `AutoHypergraph` | **场景事件超图**。将一场戏建模为连接 `{出场角色, 场景地点, 关键道具, 核心动作}` 的超边。 | 剧本统筹、场次复杂度分析 |
-| **`CharacterArcTimeline`** | `AutoTemporalGraph` | **角色弧光时序图**。按剧本时间线提取角色在不同场次中的位置、情绪状态或关键行为。 | 人物成长路径分析、连戏检查 |
+| **`SceneEventHypergraph`** | `AutoHypergraph` | 场景超边 | 剧本统筹 |
+| **`CharacterArcTimeline`** | `AutoTemporalGraph` | 角色成长路径 | 人物分析 |
 
-*   **长篇小说 (Novels)**：情节复杂、人物众多且关系交织的文本。
+*   **长篇小说**：复杂情节、众多人物。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ComplexCharacterRelation`** | `AutoHypergraph` | **复杂人物关系网**。超越两两关系，提取涉及多方的社会结构（如三角恋、结盟、家族派系）。 | 人物群像分析、粉丝维基构建 |
-| **`StoryEntityGraph`** | `AutoGraph` | **故事实体图谱**。专注于提取关键物品、地点及其归属或位置关系，与人物关系分离。 | 世界观设定整理、RPG 游戏改编 |
-| **`NarrativeEventChain`** | `AutoTemporalGraph` | **叙事事件链**。按故事内部时间线提取关键情节转折点 (Plot Points)。 | 故事梗概生成、时间线梳理 |
+| **`ComplexCharacterRelation`** | `AutoHypergraph` | 多方社会结构 | 群像分析 |
+| **`StoryEntityGraph`** | `AutoGraph` | 物品、地点归属 | 世界观设定 |
+| **`NarrativeEventChain`** | `AutoTemporalGraph` | 关键情节转折 | 梗概生成 |
 
-*   **文学评论 (Literary Criticism)**：对作品主题、意象及结构的深度剖析。
+*   **文学评论**：主题、意象、结构分析。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`MotifAssociationNet`** | `AutoGraph` | **意象关联网络**。提取文本中反复出现的符号、意象之间的关联，节点类型统一为“意象”。 | 文本细读辅助、符号学分析 |
-| **`CritiqueArgumentHypergraph`** | `AutoHypergraph` | **评论论证超图**。建模复杂的论证逻辑：`{论据1, 论据2, 引用文本} -> 核心观点`。 | 学术论文分析、观点提炼 |
-| **`NarrativeStructureTree`** | `AutoGraph` | **叙事结构树**。构建作品的结构层级（如主线、支线、插叙部分）。 | 叙事学研究、结构拆解 |
+| **`MotifAssociationNet`** | `AutoGraph` | 反复出现的意象 | 符号学分析 |
+| **`CritiqueArgumentHypergraph`** | `AutoHypergraph` | 论据→观点 | 论文分析 |
+| **`NarrativeStructureTree`** | `AutoGraph` | 叙事结构层级 | 叙事学研究 |
 
-### 10. `news` (新闻传媒)
+[↑ 返回目录](#目录)
+
+---
+
+### 10. 📰 `news` (新闻传媒)
+
 专注于新闻要素 (5W1H)、事件因果链及观点分析。
 
-*   **深度调查报道 (Investigative Journalism)**：揭示复杂社会关系或深层真相的长篇报道。
+*   **深度调查报道**：揭示复杂社会关系的长篇报道。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`InvestigativeContextGraph`** | `AutoGraph` | **调查背景图谱**。提取报道中涉及的所有人物、机构、地点及其表层的静态关系（如任职、亲属、所在地）。 | 实体关系梳理、利益相关方识别 |
-| **`ComplexRelationNet`** | `AutoHypergraph` | **复杂关系网络**。建模涉及多方（三人及以上）的社会关联（如家族、政治盟友、商业伙伴），而非简单的点对点关系。 | 人物特稿、政商关系分析 |
-| **`KeyEventSequence`** | `AutoGraph` | **调查事件脉络**。按时间顺序还原调查中揭露的关键事件节点，梳理前因后果。 | 深度回顾、历史遗留问题揭秘 |
+| **`InvestigativeContextGraph`** | `AutoGraph` | 静态关系（任职、亲属）| 实体映射 |
+| **`ComplexRelationNet`** | `AutoHypergraph` | 多方社会关联 | 政商分析 |
+| **`KeyEventSequence`** | `AutoGraph` | 关键事件时间线 | 深度回顾 |
 
-*   **突发新闻与电讯 (Breaking News & Wire Stories)**：注重时效性和核心事实的短消息。
+*   **突发新闻与电讯**：注重时效性的短消息。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`NewsEntityGraph`** | `AutoGraph` | **新闻实体图谱**。提取新闻文本中的核心实体（人物、机构、地点、产品、事件、状态等）及其动作或关系。 | 即时新闻流、实体链接 |
-| **`NewsSummaryModel`** | `AutoModel` | **结构化摘要**。标准化提取 5W1H 要素（Who, What, When, Where, Why, How）。 | 新闻聚合、自动简报 |
-| **`LiveUpdateTimeline`** | `AutoGraph` | **实时动态时间轴**。针对正在发生的事件（如由于发布会、突发事态），提取分钟级更新。 | 直播贴整理、实时监控 |
+| **`NewsEntityGraph`** | `AutoGraph` | 核心实体及关系 | 新闻流 |
+| **`NewsSummaryModel`** | `AutoModel` | 5W1H提取 | 新闻聚合 |
+| **`LiveUpdateTimeline`** | `AutoGraph` | 分钟级更新 | 直播整理 |
 
-*   **政策解读与社论 (Policy Analysis & Editorials)**：侧重观点、论证逻辑及未来影响分析的文章。
+*   **政策解读与社论**：观点、论证逻辑分析。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`ViewpointStructure`** | `AutoHypergraph` | **观点逻辑结构**。建模文章的论证逻辑：`{核心观点, 支撑论据, 背景引用}`。 | 社论分析、舆情观点聚类 |
-| **`ImpactChain`** | `AutoGraph` | **影响推演链**。提取“政策/事件 -> 影响群体 -> 预期后果”的因果预测链条。 | 宏观政策解读、行业影响评估 |
+| **`ViewpointStructure`** | `AutoHypergraph` | 观点→论据→结论 | 舆情分析 |
+| **`ImpactChain`** | `AutoGraph` | 政策→影响群体→后果 | 政策解读 |
 
-### 11. `agriculture` (农业)
+[↑ 返回目录](#目录)
+
+---
+
+### 11. 🌾 `agriculture` (农业)
+
 专注于作物全生命周期管理、田间监测及土壤健康数据。
 
-*   **农业技术手册 (Agricultural Manuals)**：关于作物种植规范、田间管理标准及病虫害防治技术的指导书。
+*   **农业技术手册**：种植规范、病虫害防治。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`CropGrowthCycle`** | `AutoTemporalGraph` | **作物生长周期图**。以时间为轴，提取作物各生长阶段（播种、分蘖、成熟等）对应的关键农事操作与环境要求。 | 种植日历生成、农事任务规划 |
-| **`PestControlHypergraph`** | `AutoHypergraph` | **病虫害防治超图**。建模复杂的防治逻辑：`{作物, 阶段, 不良诱因} -> {防治对象(病/虫), 推荐药剂, 剂量, 安全间隔期}`。 | 智能植保系统、农药推荐 |
+| **`CropGrowthCycle`** | `AutoTemporalGraph` | 各生长阶段农事操作 | 种植日历 |
+| **`PestControlHypergraph`** | `AutoHypergraph` | 作物+阶段+诱因→防治方案 | 智能植保 |
 
-*   **巡田报告 (Crop Scouting Reports)**：对作物生长阶段及病虫害情况的实地观察记录。
+*   **巡田报告**：作物生长阶段及病虫害实地观察。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`FieldObservationList`** | `AutoList` | **田间观测清单**。结构化提取每一次巡田的核心记录：`{地块编号, 作物, 生长阶段, 观测问题(杂草/虫害), 严重等级, 建议措施}`。 | 巡田日志数字化、病虫害预警 |
+| **`FieldObservationList`** | `AutoList` | 地块、作物、问题、建议 | 病虫害预警 |
 
-*   **土壤分析报告 (Soil Analysis)**：描述土壤化学成分及对应施肥建议的文本。
+*   **土壤分析报告**：化学成分及施肥建议。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`SoilNutrientModel`** | `AutoModel` | **土壤养分模型**。提取核心理化指标（pH、有机质、N-P-K含量、微量元素）。 | 测土配方施肥、地力等级评价 |
-| **`AmendmentPlan`** | `AutoGraph` | **改良方案图**。提取 `{检测结果 -> 限制因子 -> 改良措施 -> 预期目标}` 的逻辑链条。 | 精准农业处方生成 |
+| **`SoilNutrientModel`** | `AutoModel` | pH、有机质、N-P-K | 配方施肥 |
+| **`AmendmentPlan`** | `AutoGraph` | 检测→限制因子→措施→目标 | 精准农业 |
 
-### 12. `food` (美食餐饮)
+[↑ 返回目录](#目录)
+
+---
+
+### 12. 🍜 `food` (美食餐饮)
+
 专注于食谱标准化、食材配伍逻辑及美食评价数据。
 
-*   **标准化食谱 (Standardized Recipes)**：包含配料表、烹饪步骤及关键控制点的结构化文本。
+*   **标准化食谱**：配料表、烹饪步骤。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`RecipeCollection`** | `AutoSet` | **菜谱名录**。去重提取文本中出现的所有独立菜品实体及基本分类。 | 菜单数字化、菜品库索引构建 |
-| **`StandardRecipeCard`** | `AutoModel` | **单品标准食谱**。针对单个菜品提取完整的配料表、步骤说明及关键TIPS。 | 后厨 SOP 卡片、烹饪教学 |
-| **`IngredientCompositionHypergraph`** | `AutoHypergraph` | **食材配伍超图**。建模菜品与其 `{主料, 辅料, 调味品}` 的复杂组合关系。 | 成本核算、过敏原管理、新菜研发 |
+| **`RecipeCollection`** | `AutoSet` | 唯一菜品实体及分类 | 菜单数字化 |
+| **`StandardRecipeCard`** | `AutoModel` | 完整配料、步骤、技巧 | 后厨SOP |
+| **`IngredientCompositionHypergraph`** | `AutoHypergraph` | 菜品主料辅料调味关系 | 成本过敏原管理 |
 
-*   **美食评论与感官评价 (Food Reviews & Sensory Evaluation)**：专业食评人或研发团队对菜品的详细评价记录。
+*   **美食评论与感官评价**：专业食评人或研发团队评价。
 
-| 模板名称 | 底层原语 | 描述 | 典型应用场景 |
+| 模板 | 原语 | 描述 | 应用场景 |
 | :--- | :--- | :--- | :--- |
-| **`DishReviewSummary`** | `AutoList` | **食评摘要清单**。按菜品提取核心评价点、推荐等级及价格感知。 | 探店笔记结构化、必吃榜单生成 |
-| **`SensoryEvaluationGraph`** | `AutoGraph` | **感官评价图谱**。提取 `{菜品} -[具有特征]-> {口感/味道} -[归因于]-> {食材/技法}` 的评价逻辑。 | 风味归因分析、新品研发反馈 |
+| **`DishReviewSummary`** | `AutoList` | 核心评价点、推荐等级 | 必吃榜单 |
+| **`SensoryEvaluationGraph`** | `AutoGraph` | 菜品→口感→食材/技法 | 风味归因 |
+
+[↑ 返回目录](#目录)
+
+---
