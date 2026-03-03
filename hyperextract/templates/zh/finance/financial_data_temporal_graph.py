@@ -249,7 +249,7 @@ class FinancialDataTemporalGraph(
             return f"{node.name} ({node.entity_type})"
 
         def edge_label_extractor(edge: FinancialDataEdge) -> str:
-            if edge.value is None:
+            if not edge.value:
                 return f"{edge.relationship}"
             return f"{edge.relationship} ({edge.value})"
 
