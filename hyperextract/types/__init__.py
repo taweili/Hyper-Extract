@@ -46,6 +46,10 @@ These types inject "Observation Context" (Current Time/Location) into the LLM pr
 *   **`AutoSpatioTemporalGraph`**: The combination of both above.
 """
 
+import os
+# Suppress Transformers warnings
+os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
+
 from .base import BaseAutoType
 from .model import AutoModel
 from .list import AutoList
