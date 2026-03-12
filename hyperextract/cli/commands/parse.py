@@ -118,6 +118,7 @@ def main(
         progress.update(task, description="Saving data...")
         kb.dump(output_path)
 
+        #TODO 后续可以考虑怎么融合进 dump 方法
         metadata = {
             "template": template,
             "lang": lang,
