@@ -40,14 +40,18 @@ class PromptBuilder:
         self.labels = LABEL_MAPPING.get(language, LABEL_MAPPING["zh"])
 
     @staticmethod
-    def _get_text(value: Optional[Union[str, Dict[str, str]]], language: str = "zh") -> Optional[str]:
-        """Get multilingual text value."""
+    def _get_text(value: Optional[Union[List[str], Dict[str, List[str]]]], language: str = "zh") -> Optional[str]:
+        """Get multilingual text value, supports list format."""
         if value is None:
             return None
-        if isinstance(value, str):
-            return value
+        if isinstance(value, list):
+            return "\n".join(f"{i+1}. {item}" for i, item in enumerate(value))
         if isinstance(value, dict):
-            return value.get(language) or value.get("zh") or ""
+            dict_value = value.get(language) or value.get("zh")
+            if dict_value is None:
+                return None
+            if isinstance(dict_value, list):
+                return "\n".join(f"{i+1}. {item}" for i, item in enumerate(dict_value))
         return None
 
     def _add_title(self, text: str, title_key: str) -> str:

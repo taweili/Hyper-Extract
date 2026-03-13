@@ -64,6 +64,9 @@ def main(
         table.add_row("he show", "<kb_path>", "Visualize knowledge base")
         table.add_row("he search", "<query> -k <kb>", "Semantic search in knowledge base")
         table.add_row("he talk", "-k <kb>", "Chat with knowledge base")
+        table.add_row("he config", "--help", "Manage LLM and Embedder configuration")
+        table.add_row("he feed", "-k <kb>", "Feed knowledge into knowledge base")
+        table.add_row("he build-index", "-k <kb>", "Build search index for knowledge base")
         
         panel = Panel(
             table,

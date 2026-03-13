@@ -1,6 +1,8 @@
-# Hyper-Extract 核心领域知识模板
+# Hyper-Extract 领域知识抽取模板
 
 **Hyper-Extract 领域模板库** 旨在为不同垂直行业提供专业的非结构化文本抽取能力。
+
+本库按 **领域 (Domain)** 组织，每个领域针对其特定的文档类型、行业术语和业务逻辑进行了优化。
 
 > 切换至 [English Version](./README.md)
 
@@ -10,20 +12,30 @@
 
 ```
 templates/
-├── presets/              # 领域模板（6个核心领域）
-│   ├── finance/         # 金融投资
-│   ├── general/         # 通用领域
-│   ├── industry/        # 工业制造
-│   ├── legal/           # 法律合规
-│   ├── medicine/        # 医疗健康
-│   └── tcm/            # 中医中药
+├── presets/              # 预设模板（系统预置）
+│   ├── agriculture/
+│   ├── biology/
+│   ├── finance/
+│   └── ...
 ├── customs/              # 自定义模板（用户可自行创建）
+│   └── (用户模板)
+├── legacy/               # 废弃的 Python 模板
+│   ├── zh/
+│   └── en/
+├── README.md
 └── README_ZH.md
 ```
 
+### presets vs customs
+
+| 目录 | 用途 | 说明 |
+|------|------|------|
+| `presets/` | 预设模板 | 系统预置的知识模板，用户只能读取使用 |
+| `customs/` | 自定义模板 | 用户自行创建的模板，可覆盖同名预设 |
+
 ---
 
-## 🚀 快速开始
+## 🚀 使用方式
 
 ### 推荐方式：使用 YAML 配置
 
@@ -34,7 +46,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 llm = ChatOpenAI(model="gpt-4o-mini")
 embedder = OpenAIEmbeddings()
 
-# 获取模板
+# 直接获取模板（自动加载 presets 和 customs）
 config = Gallery.get("KnowledgeGraph")
 
 # 创建模板
@@ -45,22 +57,53 @@ result = template.parse("您的文本内容...")
 print(Gallery.list_all())
 ```
 
+### 创建自定义模板
+
+用户可以在 `templates/customs/` 目录下创建自己的模板：
+
+```python
+# 添加自定义模板目录（自动加载）
+Gallery.add_path("/path/to/my/templates")
+
+# 获取自定义模板
+config = Gallery.get("MyCustomTemplate")
+```
+
+### 废弃方式：使用 Python 类
+
+```python
+from hyperextract.templates.legacy.zh.general import KnowledgeGraph
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+template = KnowledgeGraph(llm_client=llm, embedder=embedder)
+result = template.parse("您的文本内容...")
+```
+
+> ⚠️ **警告**: `legacy/` 目录下的 Python 类模板已废弃，将在未来版本中删除。请迁移到基于 YAML 配置的模板。
+
 ---
 
-## 📋 领域索引
+## 📋 目录
 
-| 领域 | 描述 | 核心关注点 |
-| :--- | :--- | :--- |
-| **`general`** | 通用领域 | 任意文本、百科全书、人物传记、规章制度 |
-| **`finance`** | 金融投资 | 财报、研报、会议纪要、金融资讯 |
-| **`medicine`** | 医疗健康 | 临床指南、病历、药品文档 |
-| **`tcm`** | 中医中药 | 医案、本草、方剂、经络 |
-| **`industry`** | 工业制造 | 运维日志、安全报告、技术规格 |
-| **`legal`** | 法律合规 | 合同协议、判决书、监管文件 |
+- [📚 通用](#1-general-通用general-purpose)
+- [💰 金融](#2-finance-金融)
+- [🏥 医疗](#3-medicine-医学)
+- [🌿 中医](#4-tcm-中医中药)
+- [⚙️ 工业](#5-industry-工业)
+- [📜 历史](#6-history-历史)
+- [🧬 生物](#7-biology-生物科学)
+- [⚖️ 法律](#8-legal-法律)
+- [🎭 文学](#9-literature-文学与影视)
+- [📰 新闻](#10-news-新闻传媒)
+- [🌾 农业](#11-agriculture-农业)
+- [🍜 美食](#12-food-美食餐饮)
 
 ---
 
-## 🔧 底层原语
+## 底层原语说明
 
 | 原语 | 说明 |
 | :--- | :--- |
@@ -73,9 +116,28 @@ print(Gallery.list_all())
 
 ---
 
-## 📚 领域详情
+## 领域索引
 
-### 1. 📚 `general` (通用领域)
+| 领域代码 | 领域名称 | 核心关注点 |
+| :--- | :--- | :--- |
+| **`general`** | 通用/百科 | 任意文本、百科全书、人物传记、规章制度 |
+| **`finance`** | 金融投资 | 财报、研报、会议纪要、金融资讯 |
+| **`medicine`** | 医疗健康 | 临床指南、病历、药品文档 |
+| **`tcm`** | 中医中药 | 医案、本草、方剂、经络 |
+| **`industry`** | 工业 | 运维日志、安全报告、技术规格 |
+| **`history`** | 历史文化 | 编年史、信札、口述历史 |
+| **`biology`** | 生物科学 | 蛋白组、代谢通路、生态调查 |
+| **`legal`** | 法律合规 | 合同协议、判决书、监管文件 |
+| **`literature`** | 文学与影视 | 剧本、小说、设定集 |
+| **`news`** | 新闻传媒 | 调查报道、突发快讯 |
+| **`agriculture`** | 农业 | 巡田报告、土壤分析 |
+| **`food`** | 美食餐饮 | 标准化食谱、菜单分析 |
+
+---
+
+## 领域详情
+
+### 1. 📚 `general` (通用)
 
 适用于无法归类或多领域交叉的文本，通过提取基础实体和SPO关系构建通用图谱。
 
@@ -114,9 +176,11 @@ print(Gallery.list_all())
 | **`PenaltyMapping`** | `AutoGraph` | 违规到结果的演变路径 | 风险溯源 |
 | **`ClauseList`** | `AutoList` | 原子化条文 | 条文检索 |
 
+[↑ 返回目录](#目录)
+
 ---
 
-### 2. 💰 `finance` (金融投资)
+### 2. 💰 `finance` (金融)
 
 专注于提取复杂的交易关系、市场观点及时间敏感事件。
 
@@ -169,9 +233,11 @@ print(Gallery.list_all())
 | **`MultiSourceSentimentHypergraph`** | `AutoHypergraph` | 多源情绪融合 | 集成评分 |
 | **`MarketNarrativeTimeline`** | `AutoTemporalGraph` | 市场叙事演变 | 主题投资 |
 
+[↑ 返回目录](#目录)
+
 ---
 
-### 3. 🏥 `medicine` (医疗健康)
+### 3. 🏥 `medicine` (医学)
 
 专注于疾病诊疗逻辑、标准化术语映射及因果关系提取。
 
@@ -216,6 +282,8 @@ print(Gallery.list_all())
 | **`ContraindicationList`** | `AutoList` | 绝对禁忌 | 处方拦截 |
 | **`AdverseReactionStats`** | `AutoList` | 不良反应及发生率 | 药物警戒 |
 
+[↑ 返回目录](#目录)
+
 ---
 
 ### 4. 🌿 `tcm` (中医中药)
@@ -252,9 +320,11 @@ print(Gallery.list_all())
 | **`AcupointLocationMap`** | `AutoGraph` | 腧穴空间定位 | 针灸教学 |
 | **`MeridianFlowGraph`** | `AutoGraph` | 十二经脉循行 | 经络理论 |
 
+[↑ 返回目录](#目录)
+
 ---
 
-### 5. ⚙️ `industry` (工业制造)
+### 5. ⚙️ `industry` (工业)
 
 专注于电力、制造、能源等行业的运维数据与日志分析。
 
@@ -300,9 +370,84 @@ print(Gallery.list_all())
 | **`IncidentCausalityMap`** | `AutoHypergraph` | 隐患→触发→违章→后果 | 事故推演 |
 | **`SafetyTimeline`** | `AutoTemporalGraph` | 操作与响应序列 | 事故复盘 |
 
+[↑ 返回目录](#目录)
+
 ---
 
-### 6. ⚖️ `legal` (法律合规)
+### 6. 📜 `history` (历史)
+
+专注于长跨度时间线梳理及人物社会网络构建。
+
+*   **历史专著**：对特定断代、事件或人物的深度分析。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`HistoricalKnowledgeGraph`** | `AutoGraph` | 人物关系、事件因果 | 社会网络分析 |
+| **`MultiParticipantEventMap`** | `AutoHypergraph` | 多方参与事件 | 事件还原 |
+
+*   **编年史**：按时间顺序记录的历史事件。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`ChronologicalEventChain`** | `AutoTemporalGraph` | 带时间戳的原子事件 | 年表生成 |
+| **`HistoricalContextGraph`** | `AutoGraph` | 静态关联（亲属、联盟）| 背景挖掘 |
+| **`PoliticalStruggleHypergraph`** | `AutoHypergraph` | 攻守方、策划者、变节者 | 派系分析 |
+
+*   **口述历史**：第一人称回忆录。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`PersonalTrajectoryHypergraph`** | `AutoHypergraph` | 人生阶段超边 | 传记编撰 |
+| **`NarrativeRelationGraph`** | `AutoGraph` | 主观视角人物互动 | 社会网络分析 |
+| **`MemoryFlashbackList`** | `AutoList` | 轶事、感悟、侧面描写 | 历史细节 |
+
+*   **档案信札**：历史人物往来书信。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`EpistolaryKnowledgeGraph`** | `AutoGraph` | 信件内容中的人物事件 | 史料挖掘 |
+
+[↑ 返回目录](#目录)
+
+---
+
+### 7. 🧬 `biology` (生物科学)
+
+从基因组扩展到蛋白质组学、代谢通路及生态学。
+
+*   **生物学专著**：物种分类、进化历史。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`SpeciesInteractionWeb`** | `AutoGraph` | 捕食、寄生、竞争、共生 | 食物网分析 |
+| **`TaxonomicTree`** | `AutoGraph` | 界门纲目科属种层级 | 分类学数据库 |
+
+*   **蛋白质结构摘要**：晶体结构、配体结合位点。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`ProteinComplexMap`** | `AutoHypergraph` | 多亚基复合物 | 蛋白数据库 |
+| **`BindingSiteModel`** | `AutoModel` | 活性位点、化学性质 | 药物设计 |
+
+*   **代谢通路描述**：生化反应级联。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`BiochemicalReactionHypergraph`** | `AutoHypergraph` | 酶+底物→产物反应 | 通路图谱 |
+| **`RegulatoryNetwork`** | `AutoGraph` | 转录因子→启动子→基因表达 | 基因调控分析 |
+
+*   **生态调查**：物种形态、分布、生境特征。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`PhylogeneticRelationGraph`** | `AutoGraph` | 亲缘关系、演化距离 | 系统发育树 |
+| **`BiodiversityRegistry`** | `AutoSet` | 观测物种及种群 | 生物多样性评估 |
+
+[↑ 返回目录](#目录)
+
+---
+
+### 8. ⚖️ `legal` (法律)
 
 专注于权利义务逻辑、条件约束及法律事实。
 
@@ -336,16 +481,119 @@ print(Gallery.list_all())
 | **`ComplianceRequirementList`** | `AutoList` | 具体义务或整改措施 | 合规分析 |
 | **`BeneficialOwnershipGraph`** | `AutoGraph` | 股权穿透至UBO | AML/KYC |
 
+[↑ 返回目录](#目录)
+
 ---
 
-## 📝 创建自定义模板
+### 9. 🎭 `literature` (文学与影视)
 
-用户可以在 `templates/customs/` 目录下创建自己的模板：
+专注于叙事结构分析、角色互动及世界观设定。
 
-```python
-# 添加自定义模板目录（自动加载）
-Gallery.add_path("/path/to/my/templates")
+*   **影视剧本**：格式严格的文本（场景、对白）。
 
-# 获取自定义模板
-config = Gallery.get("MyCustomTemplate")
-```
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`SceneEventHypergraph`** | `AutoHypergraph` | 场景超边 | 剧本统筹 |
+| **`CharacterArcTimeline`** | `AutoTemporalGraph` | 角色成长路径 | 人物分析 |
+
+*   **长篇小说**：复杂情节、众多人物。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`ComplexCharacterRelation`** | `AutoHypergraph` | 多方社会结构 | 群像分析 |
+| **`StoryEntityGraph`** | `AutoGraph` | 物品、地点归属 | 世界观设定 |
+| **`NarrativeEventChain`** | `AutoTemporalGraph` | 关键情节转折 | 梗概生成 |
+
+*   **文学评论**：主题、意象、结构分析。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`MotifAssociationNet`** | `AutoGraph` | 反复出现的意象 | 符号学分析 |
+| **`CritiqueArgumentHypergraph`** | `AutoHypergraph` | 论据→观点 | 论文分析 |
+| **`NarrativeStructureTree`** | `AutoGraph` | 叙事结构层级 | 叙事学研究 |
+
+[↑ 返回目录](#目录)
+
+---
+
+### 10. 📰 `news` (新闻传媒)
+
+专注于新闻要素 (5W1H)、事件因果链及观点分析。
+
+*   **深度调查报道**：揭示复杂社会关系的长篇报道。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`InvestigativeContextGraph`** | `AutoGraph` | 静态关系（任职、亲属）| 实体映射 |
+| **`ComplexRelationNet`** | `AutoHypergraph` | 多方社会关联 | 政商分析 |
+| **`KeyEventSequence`** | `AutoGraph` | 关键事件时间线 | 深度回顾 |
+
+*   **突发新闻与电讯**：注重时效性的短消息。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`NewsEntityGraph`** | `AutoGraph` | 核心实体及关系 | 新闻流 |
+| **`NewsSummaryModel`** | `AutoModel` | 5W1H提取 | 新闻聚合 |
+| **`LiveUpdateTimeline`** | `AutoGraph` | 分钟级更新 | 直播整理 |
+
+*   **政策解读与社论**：观点、论证逻辑分析。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`ViewpointStructure`** | `AutoHypergraph` | 观点→论据→结论 | 舆情分析 |
+| **`ImpactChain`** | `AutoGraph` | 政策→影响群体→后果 | 政策解读 |
+
+[↑ 返回目录](#目录)
+
+---
+
+### 11. 🌾 `agriculture` (农业)
+
+专注于作物全生命周期管理、田间监测及土壤健康数据。
+
+*   **农业技术手册**：种植规范、病虫害防治。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`CropGrowthCycle`** | `AutoTemporalGraph` | 各生长阶段农事操作 | 种植日历 |
+| **`PestControlHypergraph`** | `AutoHypergraph` | 作物+阶段+诱因→防治方案 | 智能植保 |
+
+*   **巡田报告**：作物生长阶段及病虫害实地观察。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`FieldObservationList`** | `AutoList` | 地块、作物、问题、建议 | 病虫害预警 |
+
+*   **土壤分析报告**：化学成分及施肥建议。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`SoilNutrientModel`** | `AutoModel` | pH、有机质、N-P-K | 配方施肥 |
+| **`AmendmentPlan`** | `AutoGraph` | 检测→限制因子→措施→目标 | 精准农业 |
+
+[↑ 返回目录](#目录)
+
+---
+
+### 12. 🍜 `food` (美食餐饮)
+
+专注于食谱标准化、食材配伍逻辑及美食评价数据。
+
+*   **标准化食谱**：配料表、烹饪步骤。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`RecipeCollection`** | `AutoSet` | 唯一菜品实体及分类 | 菜单数字化 |
+| **`StandardRecipeCard`** | `AutoModel` | 完整配料、步骤、技巧 | 后厨SOP |
+| **`IngredientCompositionHypergraph`** | `AutoHypergraph` | 菜品主料辅料调味关系 | 成本过敏原管理 |
+
+*   **美食评论与感官评价**：专业食评人或研发团队评价。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`DishReviewSummary`** | `AutoList` | 核心评价点、推荐等级 | 必吃榜单 |
+| **`SensoryEvaluationGraph`** | `AutoGraph` | 菜品→口感→食材/技法 | 风味归因 |
+
+[↑ 返回目录](#目录)
+
+---

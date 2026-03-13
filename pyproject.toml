@@ -20,9 +20,8 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache-2.0",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -38,6 +37,11 @@ dependencies = [
     "ontosight>=0.1.4",
     "python-dotenv>=1.2.1",
     "semhash>=0.3.2",
+    # cli dependencies
+    "typer>=0.13.0",
+    "rich>=13.7.0",
+    "tomli>=2.0.1",
+    "tomli-w>=1.0.0",
 ]
 
 [dependency-groups]
@@ -48,8 +52,11 @@ dev = [
     "pytest>=9.0.2",
 ]
 
-[project.optional-dependencies]
-cli = ["typer[all]>=0.13.0", "rich>=13.7.0", "tomli>=2.0.1", "tomli-w>=1.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/yifanfeng97/hyper-extract"
+Repository = "https://github.com/yifanfeng97/hyper-extract"
+Issues = "https://github.com/yifanfeng97/hyper-extract/issues"
 
 [project.scripts]
 he = "hyperextract.cli:app"
