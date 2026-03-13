@@ -1,0 +1,99 @@
+name: "IngredientCompositionHypergraph"
+autotype: hypergraph
+tag: [food]
+
+language: zh
+
+description:
+  zh: "食材配伍超图 - 建模菜品与其主料、辅料、调味品的复杂组合关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "食材名称"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "食材类别：主料/辅料/调味品"
+      required: true
+      default: ""
+
+edge_schema:
+  fields:
+    - name: dish_name
+      type: "string"
+      description:
+        zh: "菜品名称"
+      required: true
+      default: ""
+    - name: cuisine
+      type: "string"
+      description:
+        zh: "菜系"
+      required: false
+      default: ""
+    - name: main_ingredients
+      type: "array"
+      description:
+        zh: "主料列表（包含食材名称、角色、用量）"
+      required: false
+      default: ""
+    - name: auxiliary_ingredients
+      type: "array"
+      description:
+        zh: "辅料列表（包含食材名称、角色、用量）"
+      required: false
+      default: ""
+    - name: seasonings
+      type: "array"
+      description:
+        zh: "调味品列表（包含食材名称、角色、用量）"
+      required: false
+      default: ""
+    - name: combo_description
+      type: "string"
+      description:
+        zh: "配伍描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的烹饪大师，请从文本中提取菜品与食材的配伍关系，建模为超边结构。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 食材角色：主料（主要食材）、辅料（辅助食材）、调味品（调料）
+      4. 提取每个食材的用量信息
+      5. 提取配伍描述
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 食材类别：主料、辅料、调味品
+  rules_for_edges:
+    zh: |
+      1. 仅从已知食材列表中提取边，不要创建未列出的食材
+      2. 关系描述应与原文保持一致
+      3. 食材角色：主料、辅料、调味品
+
+identifiers:
+  node_id: "name"
+  edge_id: "dish_name"
+  edge_members:
+    - "main_ingredients"
+    - "auxiliary_ingredients"
+    - "seasonings"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{dish_name}"

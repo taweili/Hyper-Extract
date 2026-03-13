@@ -1,0 +1,87 @@
+name: "FactorInfluenceHypergraph"
+autotype: hypergraph
+tag: [finance]
+
+language: zh
+
+description:
+  zh: "因子影响超图 - 建模股票分析中的多因子关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "因子名称"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "因子类别：宏观、行业、公司、市场情绪"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "因子描述/说明"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: result
+      type: "string"
+      description:
+        zh: "结果/影响，如'业绩下滑'、'估值提升'、'价格上涨'，不超过10字"
+      required: true
+      default: ""
+    - name: factors
+      type: "array"
+      description:
+        zh: "导致该结果的因子列表（至少2个）"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "详细描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的金融多因子分析师，请从文本中提取因子（作为节点）和因子导致的结果（作为超边）。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的因子，禁止将多个因子合并为一个节点
+      2. 因子名称与原文保持一致
+      3. 每条超边必须连接2个或以上因子
+      4. 优先提取包含3个及以上因子的超边
+      5. 因子类别：宏观（GDP增速、CPI、PPI、利率、汇率等）、行业（景气度、政策、供需格局等）、公司（营收、ROE、PE、净利润等）、市场情绪（资金流向、风险偏好等）
+      6. 结果类型：业绩类（业绩下滑、业绩增长、盈利提升等）、估值类（估值提升、估值承压、市值增长等）、价格类（价格上涨、股价下跌、成本上升等）、需求类（需求旺盛、需求疲软、订单增加等）
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的因子，禁止将多个因子合并为一个节点
+      2. 因子名称与原文保持一致
+      3. 因子类别：宏观（GDP、CPI、利率、汇率等）、行业（景气度、政策、供需等）、公司（营收、ROE、PE等）、市场情绪（资金流向、风险偏好等）
+  rules_for_edges:
+    zh: |
+      1. 仅从已知因子列表中提取超边，不要创建未列出的因子
+      2. 每条超边必须连接至少2个因子
+      3. 优先提取包含3个及以上因子的超边
+      4. 结果描述不超过10字
+      5. 结果类型：业绩类、估值类、价格类、需求类
+
+identifiers:
+  node_id: "name"
+  edge_id: "{result}_{factors}"
+  edge_members: "factors"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{result}"

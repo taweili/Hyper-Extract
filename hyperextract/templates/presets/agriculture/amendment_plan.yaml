@@ -1,0 +1,80 @@
+name: "AmendmentPlan"
+autotype: graph
+tag: [agriculture]
+
+language: zh
+
+description:
+  zh: "改良方案图 - 从土壤改良方案报告中提取检测结果到改良措施的逻辑链条"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "节点名称（限制因子、改良措施、预期目标）"
+    - name: node_type
+      type: "string"
+      description:
+        zh: "节点类型：检测结果、限制因子、改良措施、预期目标"
+    - name: description
+      type: "string"
+      description:
+        zh: "详细描述"
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源节点"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标节点"
+    - name: relation_type
+      type: "string"
+      description:
+        zh: "关系类型：针对、达成"
+    - name: details
+      type: "string"
+      description:
+        zh: "详细描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的土壤肥料专家，请从土壤改良方案报告中提取改良方案图。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 边只能从已知实体列表中提取，不要创建未列出的实体
+      4. 关系描述应与原文保持一致
+
+  rules_for_nodes:
+    zh: |
+      - 检测结果：如pH5.2、有机质18.5g/kg、有效磷12.3mg/kg等
+      - 限制因子：如土壤酸化、磷钾缺乏、微量元素失衡、有机质不足
+      - 改良措施：如施用生石灰、增施有机肥、施用复合肥等
+      - 预期目标：如pH提高至6.0、有机质提升至22g/kg等
+
+  rules_for_edges:
+    zh: |
+      - 关系类型"针对"：表示改良措施针对某个限制因子
+      - 关系类型"达成"：表示预期目标与改良措施的关联
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relation_type}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({node_type})"
+  edge_label: "{relation_type}"

@@ -8,6 +8,84 @@
 
 ---
 
+## 📁 目录结构
+
+```
+templates/
+├── presets/              # 预设模板（系统预置）
+│   ├── agriculture/
+│   ├── biology/
+│   ├── finance/
+│   └── ...
+├── customs/              # 自定义模板（用户可自行创建）
+│   └── (用户模板)
+├── legacy/               # 废弃的 Python 模板
+│   ├── zh/
+│   └── en/
+├── README.md
+└── README_ZH.md
+```
+
+### presets vs customs
+
+| 目录 | 用途 | 说明 |
+|------|------|------|
+| `presets/` | 预设模板 | 系统预置的知识模板，用户只能读取使用 |
+| `customs/` | 自定义模板 | 用户自行创建的模板，可覆盖同名预设 |
+
+---
+
+## 🚀 使用方式
+
+### 推荐方式：使用 YAML 配置
+
+```python
+from hyperextract.utils.template_engine import Gallery, TemplateFactory
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+# 直接获取模板（自动加载 presets 和 customs）
+config = Gallery.get("KnowledgeGraph")
+
+# 创建模板
+template = TemplateFactory.create(config, llm, embedder)
+result = template.parse("您的文本内容...")
+
+# 列出所有可用模板
+print(Gallery.list_all())
+```
+
+### 创建自定义模板
+
+用户可以在 `templates/customs/` 目录下创建自己的模板：
+
+```python
+# 添加自定义模板目录（自动加载）
+Gallery.add_path("/path/to/my/templates")
+
+# 获取自定义模板
+config = Gallery.get("MyCustomTemplate")
+```
+
+### 废弃方式：使用 Python 类
+
+```python
+from hyperextract.templates.legacy.zh.general import KnowledgeGraph
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+template = KnowledgeGraph(llm_client=llm, embedder=embedder)
+result = template.parse("您的文本内容...")
+```
+
+> ⚠️ **警告**: `legacy/` 目录下的 Python 类模板已废弃，将在未来版本中删除。请迁移到基于 YAML 配置的模板。
+
+---
+
 ## 📋 目录
 
 - [📚 通用](#1-general-通用general-purpose)

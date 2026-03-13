@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有法律知识模板
-from hyperextract.templates.zh.legal import (
+from hyperextract.templates.legacy.zh.legal import (
     # 法学专著与评注
     LegalConceptOntology,
     CaseLawCitationNet,

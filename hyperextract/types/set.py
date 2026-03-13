@@ -87,7 +87,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
         ...     key_extractor=lambda x: x.term,
         ...     merge_item_strategy="field_merge"
         ... )
-        >>> keywords.extract("Python is great. Python is powerful.")
+        >>> keywords.parse("Python is great. Python is powerful.")
         >>> len(keywords)  # Only 1 item (deduplicated)
         1
     """
@@ -275,7 +275,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
     def _set_data_state(self, data: AutoSetSchema[ItemSchema]) -> None:
         """
         SET: Full Reset. Wipe OMem and refill from data (e.g., load from disk).
-        Called by extract() or load() where data IS the new state.
+        Called by parse() or load() where data IS the new state.
         """
         self._data_memory.clear()
         if data.items:

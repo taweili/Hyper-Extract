@@ -1,0 +1,77 @@
+name: "StoryEntityGraph"
+autotype: graph
+tag: [literature]
+
+language: zh
+
+description:
+  zh: "故事实体图谱 - 专注于提取关键物品、地点及其归属或位置关系，与人物关系分离"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称"
+    - name: category
+      type: "string"
+      description:
+        zh: "实体类型：物品、地点"
+    - name: description
+      type: "string"
+      description:
+        zh: "实体描述"
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "物品"
+    - name: target
+      type: "string"
+      description:
+        zh: "归属者或位置"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：归属、位于"
+    - name: description
+      type: "string"
+      description:
+        zh: "描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的小说分析师，请从文本中提取故事实体以及它们之间的关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+
+  rules_for_nodes:
+    zh: |
+      - 物品：武器、书信、信物、药材等
+      - 地点：城市、建筑、区域等
+
+  rules_for_edges:
+    zh: |
+      - 归属：物品的所有者或使用者
+      - 位于：物品的位置或地点的所在
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name}[{category}]"
+  edge_label: "{relationType}"

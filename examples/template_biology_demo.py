@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有生物科学知识模板
-from hyperextract.templates.zh.biology import (
+from hyperextract.templates.legacy.zh.biology import (
     # 生物学专著
     SpeciesInteractionWeb,
     TaxonomicTree,

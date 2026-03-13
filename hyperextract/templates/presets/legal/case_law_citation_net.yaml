@@ -1,0 +1,106 @@
+name: "CaseLawCitationNet"
+autotype: graph
+tag: [legal]
+
+language: zh
+
+description:
+  zh: "判例引用网络 - 映射案件之间的引用、先例区分或先例推翻关系"
+
+node_schema:
+  fields:
+    - name: case_name
+      type: "string"
+      description:
+        zh: "判例名称，如指导案例140号、(2020)最高法民终字第XX号"
+      required: true
+      default: ""
+    - name: case_type
+      type: "string"
+      description:
+        zh: "案件类型：指导案例、公报案例、普通案例、司法解释、法律条文"
+      required: true
+      default: ""
+    - name: court
+      type: "string"
+      description:
+        zh: "审理法院"
+      required: false
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "案件简要描述"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源判例名称"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "目标判例名称"
+      required: true
+      default: ""
+    - name: citation_type
+      type: "string"
+      description:
+        zh: "引用类型：引用、依据、先例区分、先例推翻、参考、类案"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "引用关系描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的法学专家，请从文本中提取所有判例以及它们之间的引用或关联关系。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的判例，禁止将多个判例合并为一个节点
+      2. 判例名称与原文保持一致
+      3. 仅从已知判例列表中提取边，不要创建未列出的判例
+      4. 关系描述应与原文保持一致
+      5. 案件类型：指导案例、公报案例、普通案例、司法解释、法律条文
+      6. 常见表达："根据《民法典》第X条"、"指导案例XX号"、"本案确立了..."
+      7. 关系类型：引用（后案引用前案作为裁判依据）、依据（后案以前案确立的规则为法律依据）、先例区分（后案认为前案与本案情形不同，不适用前案规则）、先例推翻（后案推翻前案确立的规则）、参考（后案参考前案的裁判思路）、类案（后案与前案属于同类案件）
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的判例，禁止将多个判例合并为一个节点
+      2. 判例名称与原文保持一致
+      3. 案件类型：指导案例、公报案例、普通案例、司法解释、法律条文
+      4. 常见表达："根据《民法典》第X条"、"指导案例XX号"、"本案确立了..."
+  rules_for_edges:
+    zh: |
+      1. 仅从已知判例列表中提取边，不要创建未列出的判例
+      2. 关系描述应与原文保持一致
+      3. 引用：后案引用前案作为裁判依据
+      4. 依据：后案以前案确立的规则为法律依据
+      5. 先例区分：后案认为前案与本案情形不同，不适用前案规则
+      6. 先例推翻：后案推翻前案确立的规则
+      7. 参考：后案参考前案的裁判思路
+      8. 类案：后案与前案属于同类案件
+
+identifiers:
+  node_id: "case_name"
+  edge_id: "{source}|{citation_type}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{case_name}({case_type})"
+  edge_label: "{citation_type}"

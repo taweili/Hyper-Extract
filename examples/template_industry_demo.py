@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有工业知识模板
-from hyperextract.templates.zh.industry import (
+from hyperextract.templates.legacy.zh.industry import (
     # 1. 管理规范 (Management Specifications)
     SafetyControlGraph,
     EmergencyResponseGraph,

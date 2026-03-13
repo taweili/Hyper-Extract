@@ -76,15 +76,37 @@
 
 ## 🚀 快速开始
 
+### 方式一：使用 YAML 配置（推荐）
+
 ```python
-from hyperextract.templates.zh.finance import ResearchNoteSummary
+from hyperextract.utils.template_engine import Gallery, TemplateFactory
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+# 直接获取模板（自动加载 presets 和 customs）
+config = Gallery.get("ResearchNoteSummary")
+
+# 创建模板
+template = TemplateFactory.create(config, llm, embedder)
+result = template.parse("苹果Q3营收达到949亿美元...")
+
+answer = template.chat("营收增长的原因是什么？")
+print(answer.content)
+```
+
+### 方式二：使用 Python 类（已废弃）
+
+```python
+from hyperextract.templates.legacy.zh.finance import ResearchNoteSummary
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 embedder = OpenAIEmbeddings()
 
 template = ResearchNoteSummary(llm_client=llm, embedder=embedder)
-result = template.extract("苹果Q3营收达到949亿美元...")
+result = template.parse("苹果Q3营收达到949亿美元...")
 
 answer = template.chat("营收增长的原因是什么？")
 print(answer.content)

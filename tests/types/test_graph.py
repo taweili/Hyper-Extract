@@ -135,7 +135,7 @@ class TestAutoGraphExtraction:
             embedder=embedder,
         )
 
-        kg2 = kg1.extract("""CEO Sarah leads Engineering where Bob manages Backend Systems. 
+        kg2 = kg1.parse("""CEO Sarah leads Engineering where Bob manages Backend Systems. 
         Bob oversees both Database Architecture (led by Alice) and API Development (led by Tom). 
         Alice collaborates with Tom on performance optimization.""")
 

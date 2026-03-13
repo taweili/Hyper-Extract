@@ -172,7 +172,7 @@ class TestAutoTemporalGraphExtraction:
             embedder=embedder,
         )
 
-        kg2 = kg1.extract("""ProjectX timeline: Q1 2023 requirements gathering with stakeholders, 
+        kg2 = kg1.parse("""ProjectX timeline: Q1 2023 requirements gathering with stakeholders, 
         Q2 2023 architecture design phase, Q3 2023 development sprint cycles, 
         Q4 2023 beta testing and Q1 2024 production launch.""")
 

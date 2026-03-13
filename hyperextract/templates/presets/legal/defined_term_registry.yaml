@@ -1,0 +1,50 @@
+name: "DefinedTermRegistry"
+autotype: set
+tag: [legal]
+
+language: zh
+
+description:
+  zh: "术语定义表 - 去重并汇总合同中定义的所有专有名词"
+
+item_schema:
+  fields:
+    - name: term
+      type: "string"
+      description:
+        zh: "术语名称，如机密信息、不可抗力、项目"
+      required: true
+      default: ""
+    - name: definition
+      type: "string"
+      description:
+        zh: "术语的定义说明"
+      required: true
+      default: ""
+    - name: source_clause
+      type: "string"
+      description:
+        zh: "定义来源的条款编号"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的合同法律师，请从文本中提取所有定义的术语，形成术语定义表。
+  rules:
+    zh: |
+      1. 识别合同中用引号或黑体定义的专有名词（如"机密信息"、"不可抗力"）
+      2. 提取术语的定义说明
+      3. 记录定义出现的条款位置
+      4. 去重：同一术语只保留一条记录
+      5. 术语名称必须与原文保持一致（包括引号）
+      6. 仅提取真正被定义的术语，不要提取普通业务词汇
+      7. 保持客观准确，不添加文本中没有的信息
+      8. 术语类型：合同标的相关的术语（项目、软件产品、技术文档）、权利义务相关的术语（投资款、服务费、违约金）、风险相关的术语（不可抗力、机密信息）、程序相关的术语（验收标准、付款条件）
+
+identifiers:
+  item_id: "term"
+
+display:
+  label: "{term}"

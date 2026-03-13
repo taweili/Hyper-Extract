@@ -167,7 +167,7 @@ class TestAutoSpatialGraphExtraction:
             embedder=embedder,
         )
 
-        kg2 = kg1.extract("""Company headquarters in San Francisco connects to regional centers: 
+        kg2 = kg1.parse("""Company headquarters in San Francisco connects to regional centers: 
         New York for East Coast operations, Chicago for Midwest, and Denver for Mountain region.
         Each regional center manages local office branches.""")
 

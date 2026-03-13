@@ -1,0 +1,96 @@
+name: "SystemCompatibilityGraph"
+autotype: hypergraph
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "系统兼容性超图 - 从技术规格书中提取设备与环境、介质的对应关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称（例如：离心泵P-101、不锈钢304、高温环境等）"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "类型：设备、材质、介质、环境、连接方式"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "描述（例如：15kW离心泵、适用于清水、适用于常温）"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: nodes
+      type: "array"
+      description:
+        zh: "参与兼容性关系的节点列表：[设备, 材质/介质/环境1, 材质/介质/环境2, ...]"
+      required: true
+      default: ""
+    - name: compatibility_type
+      type: "string"
+      description:
+        zh: "兼容性类型：材质兼容、介质适用、环境适用、连接匹配"
+      required: true
+      default: ""
+    - name: compatibility_note
+      type: "string"
+      description:
+        zh: "兼容性说明或限制条件（例如：需加装过滤器、建议使用O型圈）"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位工业设备选型专家，请从技术规格书中提取实体和设备与环境、介质的兼容性关系作为超边。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+      4. 识别设备（离心泵、压缩机、阀门、换热器）
+      5. 识别材质（不锈钢304、铸铁、铝合金、碳钢）
+      6. 识别介质（清水、污水、油品、酸碱溶液）
+      7. 识别环境（高温环境、低温环境、防爆区域、腐蚀性环境）
+      8. 识别连接方式（法兰连接、螺纹连接、焊接）
+      9. 建立设备与材质、介质、环境的兼容性关系
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 识别设备（离心泵、压缩机、阀门、换热器）
+      4. 识别材质（不锈钢304、铸铁、铝合金、碳钢）
+      5. 识别介质（清水、污水、油品、酸碱溶液）
+      6. 识别环境（高温环境、低温环境、防爆区域、腐蚀性环境）
+      7. 识别连接方式（法兰连接、螺纹连接、焊接）
+  rules_for_edges:
+    zh: |
+      1. 仅从已知实体列表中提取边，不要创建未列出的实体
+      2. 关系描述应与原文保持一致
+      3. 识别设备与材质的兼容性（不锈钢泵适用于清水）
+      4. 识别设备与介质的适用性（化工泵适用于酸碱溶液）
+      5. 识别设备对环境的要求（防爆电机适用于防爆区域）
+      6. 识别连接方式的匹配
+      7. 边的 nodes 字段应包含所有参与该兼容性关系的实体
+
+identifiers:
+  node_id: "name"
+  edge_id: "{compatibility_type}_{nodes}"
+  edge_members: "nodes"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{compatibility_type}"

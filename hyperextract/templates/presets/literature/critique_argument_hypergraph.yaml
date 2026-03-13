@@ -1,0 +1,86 @@
+name: "CritiqueArgumentHypergraph"
+autotype: hypergraph
+tag: [literature]
+
+language: zh
+
+description:
+  zh: "评论论证超图 - 建模复杂的论证逻辑：{论据1, 论据2, 引用文本} -> 核心观点"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "元素名称"
+    - name: category
+      type: "string"
+      description:
+        zh: "元素类型：论据、引用、观点"
+    - name: content
+      type: "string"
+      description:
+        zh: "内容"
+    - name: sourceText
+      type: "string"
+      description:
+        zh: "原文引用（仅引用类型需要）"
+      required: false
+
+edge_schema:
+  fields:
+    - name: conclusion
+      type: "string"
+      description:
+        zh: "核心观点"
+    - name: evidences
+      type: "array"
+      description:
+        zh: "论据列表"
+    - name: citations
+      type: "array"
+      description:
+        zh: "引用文本列表"
+      required: false
+    - name: description
+      type: "string"
+      description:
+        zh: "论证描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的文学评论家，请从文本中提取论证元素以及它们组成的论证超边。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的元素，禁止将多个元素合并为一个节点
+      2. 元素名称与原文保持一致
+      3. 超边必须包含至少一个论据或引用
+      4. 超边必须包含核心观点
+
+  rules_for_nodes:
+    zh: |
+      - 论据：支撑观点的证据或分析
+      - 引用：原文中的引用文本
+      - 观点：作者的核心论点
+
+  rules_for_edges:
+    zh: |
+      - 论据支撑观点
+      - 引用佐证论据
+
+identifiers:
+  node_id: "name"
+  edge_id: "{conclusion}"
+  edge_members: 
+    - "evidences"
+    - "citations"
+    - "conclusion"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name}[{category}]"
+  edge_label: "观点: {conclusion}"

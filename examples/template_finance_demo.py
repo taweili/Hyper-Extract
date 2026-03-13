@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有金融知识模板
-from hyperextract.templates.zh.finance import (
+from hyperextract.templates.legacy.zh.finance import (
     # SEC 文件 (10-K / 10-Q / 8-K)
     FilingFinancialSnapshot,
     MDANarrativeGraph,

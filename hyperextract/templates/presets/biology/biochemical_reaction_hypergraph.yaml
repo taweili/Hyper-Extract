@@ -1,0 +1,96 @@
+name: "BiochemicalReactionHypergraph"
+autotype: hypergraph
+tag: [biology]
+
+language: zh
+
+description:
+  zh: "生化反应超图 - 从代谢通路文献中提取生化反应的多层次关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "分子名称，如葡萄糖、ATP、丙酮酸"
+    - name: molecule_type
+      type: "string"
+      description:
+        zh: "分子类型：酶、底物、产物、辅因子"
+    - name: molecular_formula
+      type: "string"
+      description:
+        zh: "分子式，如C6H12O6"
+      required: false
+
+edge_schema:
+  fields:
+    - name: enzyme
+      type: "string"
+      description:
+        zh: "催化该反应的酶名称"
+    - name: substrates
+      type: "array"
+      description:
+        zh: "反应底物列表"
+    - name: products
+      type: "array"
+      description:
+        zh: "反应产物列表"
+    - name: cofactors
+      type: "array"
+      description:
+        zh: "辅因子列表，如NAD+、Mg2+"
+      required: false
+    - name: reaction_type
+      type: "string"
+      description:
+        zh: "反应类型：水解、氧化还原、转移、裂解、合成"
+    - name: direction
+      type: "string"
+      description:
+        zh: "反应方向：正向、逆向、可逆"
+    - name: details
+      type: "string"
+      description:
+        zh: "反应详细描述，包括反应条件或生物学意义"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的生物化学专家，请从代谢通路文献中提取生化分子及其反应关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的分子，禁止将多个分子合并为一个节点
+      2. 分子名称与原文保持一致
+      3. 超边连接酶、底物、产物等多类分子
+      4. 每条超边必须包含至少一个酶和底物
+
+  rules_for_nodes:
+    zh: |
+      - 酶：催化生化反应的蛋白质，如己糖激酶、磷酸果糖激酶
+      - 底物：被酶作用的分子
+      - 产物：反应生成的分子
+      - 辅因子：协助酶催化的分子，如NAD+、ATP、Mg2+
+      - 分子式使用标准化学式
+
+  rules_for_edges:
+    zh: |
+      - 反应类型：水解、氧化还原、转移、裂解、合成、异构
+      - 反应方向：正向、逆向、可逆
+      - 格式：{酶 + 底物A + 底物B → 产物C + 产物D}
+
+identifiers:
+  node_id: "name"
+  edge_id: "{enzyme}_{reaction_type}"
+  edge_members:
+    - "enzyme"
+    - "substrates"
+    - "products"
+    - "cofactors"
+
+display:
+  node_label: "name"
+  edge_label: "enzyme"

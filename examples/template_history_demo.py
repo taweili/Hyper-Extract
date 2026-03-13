@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有历史知识模板
-from hyperextract.templates.zh.history import (
+from hyperextract.templates.legacy.zh.history import (
     # 历史专著
     HistoricalKnowledgeGraph,
     MultiParticipantEventMap,

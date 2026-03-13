@@ -67,14 +67,10 @@ def main(
 
         try:
             from ..templates import resolve_template
-            from .feed import create_llm_client, create_embedder
 
-            template_class = resolve_template(template, lang)
-            llm = create_llm_client(config)
-            embedder = create_embedder(config)
+            kb = resolve_template(template, lang)
 
             progress.update(task, description="Loading knowledge base...")
-            kb = template_class(llm_client=llm, embedder=embedder)
             kb.load(path)
 
             progress.update(task, description="Building index...")

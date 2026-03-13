@@ -1,0 +1,44 @@
+name: "EntityRegistry"
+autotype: set
+tag: [general]
+
+language: zh
+
+description:
+  zh: "实体注册表 - 去重并汇总文本中出现的所有唯一实体"
+
+item_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称，保持与原文一致"
+    - name: category
+      type: "string"
+      description:
+        zh: "实体类型：人物、机构、地点、产品、概念、其他"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的实体识别专家，请从文本中提取所有唯一实体，形成实体注册表。
+
+  rules:
+    zh: |
+      1. 提取所有实体：人物、机构、地点、产品、概念等
+      2. 为每个实体指定类型
+      3. 保持实体名称与原文一致
+      4. 为每个实体添加简要描述
+      5. 去重：同一实体只保留一条记录
+
+identifiers:
+  item_id: "name"
+
+
+display:
+  label: "name"

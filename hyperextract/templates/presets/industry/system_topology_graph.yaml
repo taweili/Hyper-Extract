@@ -1,0 +1,102 @@
+name: "SystemTopologyGraph"
+autotype: graph
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "系统拓扑图谱 - 提取工厂的厂区、系统、子系统、设备等层级结构"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称（如：A工厂、制造车间A、数控加工系统、冷却系统等）"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "类别：厂区、系统、子系统、设备"
+      required: true
+      default: ""
+    - name: function
+      type: "string"
+      description:
+        zh: "功能描述"
+      required: false
+      default: ""
+    - name: capacity
+      type: "string"
+      description:
+        zh: "容量或规模"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "上级实体名称（厂区或系统）"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "下级实体名称（系统或子系统或设备）"
+      required: true
+      default: ""
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：包含等"
+      required: true
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位工业系统架构分析专家，请从文本中提取实体和它们之间的层级关系。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+      4. 关系描述应与原文保持一致
+      5. 识别厂区（如A工厂、B工厂）
+      6. 识别生产系统（如制造车间、加工车间）
+      7. 识别子系统（如数控加工系统、冷却系统）
+      8. 识别具体设备（如数控加工中心、机械臂、泵等）
+      9. 建立上下级的层级包含关系
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 识别厂区名称（如A工厂、B工厂）
+      4. 识别生产系统名称（如制造车间、加工车间）
+      5. 识别子系统名称（如数控加工系统、冷却系统）
+      6. 识别具体设备名称（如数控加工中心、机械臂、泵等）
+      7. 为每个实体指定类别（厂区/系统/子系统/设备）
+  rules_for_edges:
+    zh: |
+      1. 仅从已知实体列表中提取边，不要创建未列出的实体
+      2. 关系描述应与原文保持一致
+      3. 识别厂区与系统之间的包含关系
+      4. 识别系统与子系统之间的包含关系
+      5. 识别子系统与设备之间的包含关系
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

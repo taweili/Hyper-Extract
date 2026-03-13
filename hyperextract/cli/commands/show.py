@@ -21,6 +21,7 @@ def main(
 ):
     """Show knowledge base visualization."""
     from ..config import ConfigManager, load_kb_metadata
+    from ..templates import resolve_template, resolve_template_config
     
     path = Path(kb_path)
 
@@ -58,22 +59,7 @@ def main(
 
     with console.status("[bold blue]Loading knowledge base..."):
         try:
-            from ..templates import resolve_template
-
-            template_class = resolve_template(template, lang)
-            llm = None
-            embedder = None
-
-            if build_index:
-                valid, msg = config.validate()
-                if not valid:
-                    console.print(f"[yellow]Warning:[/yellow] Skipping index build: {msg}")
-                else:
-                    from .feed import create_llm_client, create_embedder
-                    llm = create_llm_client(config)
-                    embedder = create_embedder(config)
-
-            kb = template_class(llm_client=llm, embedder=embedder)
+            kb = resolve_template(template, lang)
             kb.load(path)
 
             if build_index:

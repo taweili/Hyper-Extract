@@ -142,7 +142,7 @@ class TestAutoHypergraphExtraction:
             embedder=embedder,
         )
 
-        hg2 = hg1.extract("""Annual planning conference brings together CEO, CFO, CTO, 
+        hg2 = hg1.parse("""Annual planning conference brings together CEO, CFO, CTO, 
         VP Marketing, and VP Sales to discuss Q2 revenue targets and product roadmap priorities.""")
 
         assert hg1 is not hg2

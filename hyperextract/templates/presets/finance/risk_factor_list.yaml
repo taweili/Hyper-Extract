@@ -1,0 +1,63 @@
+name: "RiskFactorList"
+autotype: list
+tag: [finance]
+
+language: zh
+
+description:
+  zh: "风险因素列表 - 从股票研究报告中提取下行风险"
+
+item_schema:
+  fields:
+    - name: risk_name
+      type: "string"
+      description:
+        zh: "风险的简洁名称（例如 '欧盟监管收紧'、'强势美元带来的汇率逆风'）"
+      required: true
+      default: ""
+    - name: risk_category
+      type: "string"
+      description:
+        zh: "类别：'监管'、'竞争'、'宏观经济'、'运营'、'汇率/货币'、'地缘政治'、'技术'、'法律/诉讼'、'ESG'、'执行'"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "风险情景的详细描述"
+      required: true
+      default: ""
+    - name: potential_impact
+      type: "string"
+      description:
+        zh: "估计的财务影响（例如 '收入下行 3-5%'、'每股收益风险 $0.50'）"
+      required: false
+      default: ""
+    - name: probability
+      type: "string"
+      description:
+        zh: "分析师的概率评估：'高'、'中等'、'低'"
+      required: false
+      default: ""
+    - name: time_horizon
+      type: "string"
+      description:
+        zh: "风险可能兑现的时间（例如 '近期'、'2025 年'、'12-18 个月'）"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的风险分析师，请从文本中提取所有下行风险和风险因素。
+  rules:
+    zh: |
+      1. 每个条目对应一个独立的实体，禁止合并
+      2. 实体名称与原文保持一致
+      3. 提取每一个不同的风险因素
+      4. 对每项风险进行适当分类
+      5. 在提供量化影响估算时予以捕获
+      6. 记录概率评估和时间范围
+
+display:
+  label: "[{risk_category}] {risk_name}"

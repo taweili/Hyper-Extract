@@ -1,0 +1,61 @@
+name: "FieldObservationList"
+autotype: list
+tag: [agriculture]
+
+language: zh
+
+description:
+  zh: "田间观测清单 - 从巡田报告中提取结构化的田间观测记录"
+
+item_schema:
+  fields:
+    - name: plot_id
+      type: "string"
+      description:
+        zh: "地块编号"
+    - name: crop
+      type: "string"
+      description:
+        zh: "作物种类和品种"
+    - name: growth_stage
+      type: "string"
+      description:
+        zh: "当前生长阶段"
+    - name: observation_date
+      type: "string"
+      description:
+        zh: "观测日期，统一格式为年-月-日（如2025-06-15）"
+    - name: issues
+      type: "array"
+      description:
+        zh: "观测到的问题列表，如杂草、虫害、病害、生长异常"
+    - name: severity_level
+      type: "string"
+      description:
+        zh: "严重等级：轻微、中等、严重"
+    - name: recommendations
+      type: "array"
+      description:
+        zh: "建议措施列表"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的农技人员，请从巡田报告中提取结构化的田间观测记录。
+
+  rules:
+    zh: |
+      1. 每个地块的观测记录提取为一个独立的条目
+      2. 问题列表和建议措施列表必须完整提取
+      3. 严重等级必须明确提取
+      4. 数据必须与原文保持一致，不得编造
+
+  rules_for_nodes:
+    zh: |
+      - 地块编号：如D-001、A-12、光明村一组北畈等
+      - 生长阶段：播种期、幼苗期、分蘖期、孕穗抽穗期、灌浆成熟期
+      - 问题类型：杂草、虫害、病害、生长异常、肥害、药害
+      - 严重等级：轻微（可忽略或轻微影响）、中等（需要关注或部分影响）、严重（必须处理或严重影响）
+
+display:
+  label: "plot_id"

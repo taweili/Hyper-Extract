@@ -16,35 +16,6 @@ app = typer.Typer(
 )
 
 
-def create_llm_client(config):
-    """Create LLM client from config."""
-    llm_config = config.get_llm_config()
-    if llm_config.provider == "openai":
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(
-            model=llm_config.model,
-            api_key=llm_config.api_key,
-            base_url=llm_config.base_url or None,
-            temperature=0,
-        )
-    else:
-        raise ValueError(f"Unsupported LLM provider: {llm_config.provider}")
-
-
-def create_embedder(config):
-    """Create embedder from config."""
-    emb_config = config.get_embedder_config()
-    if emb_config.provider == "openai":
-        from langchain_openai import OpenAIEmbeddings
-        return OpenAIEmbeddings(
-            model=emb_config.model,
-            api_key=emb_config.api_key,
-            base_url=emb_config.base_url or None,
-        )
-    else:
-        raise ValueError(f"Unsupported Embedder provider: {emb_config.provider}")
-
-
 def read_input(input_path: str) -> str:
     """Read input from file or stdin."""
     import sys
@@ -65,7 +36,7 @@ def main(
     lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language"),
 ):
     """Append knowledge to an existing directory."""
-    from ..config import ConfigManager, load_kb_metadata
+    from ..config import ConfigManager, load_kb_metadata, save_kb_metadata
     from ..templates import resolve_template
     
     config = ConfigManager()
@@ -97,24 +68,20 @@ def main(
     console.print()
 
     try:
-        template_class = resolve_template(template, lang)
-        console.print(f"[green]Template resolved:[/green] {template_class.__name__}")
+        kb = resolve_template(template, lang)
+        console.print(f"[green]Template loaded:[/green] {template}")
     except ValueError as e:
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
 
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
-        task = progress.add_task("Initializing LLM client...", total=None)
-        llm = create_llm_client(config)
-        embedder = create_embedder(config)
+        task = progress.add_task("Loading existing knowledge...", total=None)
+        
+        kb.load(output_path)
 
         progress.update(task, description="Reading input...")
         text = read_input(input)
         console.print(f"[dim]Input text: {len(text)} characters[/dim]")
-
-        progress.update(task, description="Loading existing knowledge...")
-        kb = template_class(llm_client=llm, embedder=embedder, verbose=True)
-        kb.load(output_path)
 
         progress.update(task, description="Appending knowledge...")
         kb.feed_text(text)
@@ -123,7 +90,6 @@ def main(
         kb.dump(output_path)
 
         metadata["updated_at"] = datetime.now().isoformat()
-        from ..config import save_kb_metadata
         save_kb_metadata(output_path, metadata)
 
     console.print()

@@ -22,6 +22,7 @@ def main(
 ):
     """Semantic search in knowledge base."""
     from ..config import ConfigManager, load_kb_metadata
+    from ..templates import resolve_template
     
     path = Path(kb_path)
 
@@ -62,15 +63,9 @@ def main(
         task = progress.add_task("Searching...", total=None)
 
         try:
-            from ..templates import resolve_template
-            from .feed import create_llm_client, create_embedder
-
-            template_class = resolve_template(template, lang)
-            llm = create_llm_client(config)
-            embedder = create_embedder(config)
+            kb = resolve_template(template, lang)
 
             progress.update(task, description="Loading knowledge base...")
-            kb = template_class(llm_client=llm, embedder=embedder)
             kb.load(path)
 
             progress.update(task, description="Searching...")

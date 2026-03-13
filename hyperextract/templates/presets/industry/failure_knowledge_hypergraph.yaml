@@ -1,0 +1,93 @@
+name: "FailureKnowledgeHypergraph"
+autotype: hypergraph
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "故障知识超图 - 从故障案例中提取故障现象、根因、部件、解决方案的复杂关联关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称（例如：振动异常、轴承损坏密封失效等）"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "类型：故障现象、根因、部件、解决方案"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "描述（例如：表现为轴承温度升高、由于润滑不良导致）"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: nodes
+      type: "array"
+      description:
+        zh: "参与故障推理的节点列表：[故障现象1, 故障现象2, ..., 根因, 部件, 解决方案1, 解决方案2, ...]"
+      required: true
+      default: ""
+    - name: reasoning_type
+      type: "string"
+      description:
+        zh: "推理类型：故障诊断、原因分析、解决方案"
+      required: true
+      default: ""
+    - name: failure_description
+      type: "string"
+      description:
+        zh: "故障详细描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位设备故障诊断专家，请从故障案例中提取故障知识实体和故障诊断推理作为超边。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+      4. 识别故障现象（振动异常、噪音、温度升高、泄漏、异响）
+      5. 识别故障根因（润滑不良、过载、磨损、老化、设计缺陷）
+      6. 识别故障部件（轴承、密封、电机、泵体、阀门）
+      7. 识别解决方案（更换备件、调整参数、清洁、紧固）
+      8. 建立从现象→根因→解决方案的完整推理链条
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 识别故障现象（振动异常、噪音、温度升高、泄漏、异响）
+      4. 识别故障根因（润滑不良、过载、磨损、老化、设计缺陷）
+      5. 识别故障部件（轴承、密封、电机、泵体、阀门）
+      6. 识别解决方案（更换备件、调整参数、清洁、紧固）
+  rules_for_edges:
+    zh: |
+      1. 仅从已知实体列表中提取边，不要创建未列出的实体
+      2. 关系描述应与原文保持一致
+      3. 识别故障现象（振动异常、噪音、温度升高、泄漏、异响）
+      4. 识别从现象到根因的推理
+      5. 识别从根因到解决方案的推理
+      6. 边的 nodes 字段应包含所有参与该故障推理的实体
+
+identifiers:
+  node_id: "name"
+  edge_id: "{reasoning_type}_{nodes}"
+  edge_members: "nodes"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{reasoning_type}"

@@ -9,44 +9,12 @@ import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..config import ConfigManager, save_kb_metadata
-from ..templates import resolve_template, get_auto_type_from_template
-
 console = Console()
 
 app = typer.Typer(
     name="parse",
     help="Extract knowledge from text to a new directory",
 )
-
-
-def create_llm_client(config: ConfigManager):
-    """Create LLM client from config."""
-    llm_config = config.get_llm_config()
-    if llm_config.provider == "openai":
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(
-            model=llm_config.model,
-            api_key=llm_config.api_key,
-            base_url=llm_config.base_url or None,
-            temperature=0,
-        )
-    else:
-        raise ValueError(f"Unsupported LLM provider: {llm_config.provider}")
-
-
-def create_embedder(config: ConfigManager):
-    """Create embedder from config."""
-    emb_config = config.get_embedder_config()
-    if emb_config.provider == "openai":
-        from langchain_openai import OpenAIEmbeddings
-        return OpenAIEmbeddings(
-            model=emb_config.model,
-            api_key=emb_config.api_key,
-            base_url=emb_config.base_url or None,
-        )
-    else:
-        raise ValueError(f"Unsupported Embedder provider: {emb_config.provider}")
 
 
 def read_input(input_path: str) -> str:
@@ -70,7 +38,7 @@ def main(
 ):
     """Extract knowledge from text to a new directory."""
     from ..config import ConfigManager, save_kb_metadata
-    from ..templates import resolve_template, get_auto_type_from_template
+    from ..templates import resolve_template, resolve_template_config, get_auto_type_from_template
     
     config = ConfigManager()
     valid, msg = config.validate()
@@ -94,23 +62,22 @@ def main(
     console.print()
 
     try:
-        template_class = resolve_template(template, lang)
-        console.print(f"[green]Template resolved:[/green] {template_class.__name__}")
+        template_config = resolve_template_config(template, lang)
+        if template_config is None:
+            raise ValueError(f"Template '{template}' not found")
+        console.print(f"[green]Template resolved:[/green] {template_config.name}")
     except ValueError as e:
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
 
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
-        task = progress.add_task("Initializing LLM client...", total=None)
-        llm = create_llm_client(config)
-        embedder = create_embedder(config)
-
+        task = progress.add_task("Creating template instance...", total=None)
+        
+        kb = resolve_template(template, lang)
+        
         progress.update(task, description="Reading input...")
         text = read_input(input)
         console.print(f"[dim]Input text: {len(text)} characters[/dim]")
-
-        progress.update(task, description="Initializing template...")
-        kb = template_class(llm_client=llm, embedder=embedder, verbose=True)
 
         progress.update(task, description="Extracting knowledge...")
         kb.feed_text(text)
@@ -118,11 +85,10 @@ def main(
         progress.update(task, description="Saving data...")
         kb.dump(output_path)
 
-        #TODO 后续可以考虑怎么融合进 dump 方法
         metadata = {
             "template": template,
             "lang": lang,
-            "auto_type": get_auto_type_from_template(template_class),
+            "auto_type": get_auto_type_from_template(template_config),
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
         }

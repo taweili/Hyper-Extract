@@ -1,0 +1,91 @@
+name: "RegulatoryNetwork"
+autotype: graph
+tag: [biology]
+
+language: zh
+
+description:
+  zh: "基因调控网络 - 从分子生物学文献中提取转录因子与基因之间的调控关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "基因或转录因子名称，如HIF-1α、c-Myc"
+    - name: gene_symbol
+      type: "string"
+      description:
+        zh: "基因符号，如HK2、PFKFB3"
+      required: false
+    - name: type
+      type: "string"
+      description:
+        zh: "类型：转录因子、基因、启动子"
+    - name: function
+      type: "string"
+      description:
+        zh: "功能描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "调控因子（转录因子）名称"
+    - name: target
+      type: "string"
+      description:
+        zh: "被调控基因名称"
+    - name: relation_type
+      type: "string"
+      description:
+        zh: "调控类型：激活、抑制、协同激活"
+    - name: mechanism
+      type: "string"
+      description:
+        zh: "调控机制，如结合启动子、组蛋白修饰"
+      required: false
+    - name: details
+      type: "string"
+      description:
+        zh: "详细描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的分子生物学专家，请从文本中提取基因、转录因子及其之间的调控关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的基因或转录因子，禁止将多个基因合并为一个节点
+      2. 基因名称与原文保持一致
+      3. 边只能连接已提取的基因节点
+      4. 关系描述应与原文保持一致
+
+  rules_for_nodes:
+    zh: |
+      - 转录因子：调控其他基因表达的蛋白质，如HIF-1α、c-Myc
+      - 启动子：基因转录起始区域
+      - 基因符号使用标准缩写，如HK2（己糖激酶2）、PFKFB3
+
+  rules_for_edges:
+    zh: |
+      - 调控类型：激活（促进表达）、抑制（阻止表达）、协同激活
+      - 调控机制：结合启动子、组蛋白修饰、DNA甲基化等
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relation_type}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({type})"
+  edge_label: "{relation_type}"

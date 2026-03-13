@@ -1,0 +1,103 @@
+name: "KeyEventSequence"
+autotype: graph
+tag: [news]
+
+language: zh
+
+description:
+  zh: "调查事件脉络 - 按时间顺序还原调查中揭露的关键事件节点，梳理前因后果"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "事件名称"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "事件类型：开工、销售、停工、诉讼、侦查、处罚、协调、公示"
+      required: true
+      default: ""
+    - name: time
+      type: "string"
+      description:
+        zh: "时间，格式为年-月-日（如 2023-09-15）"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "事件描述"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "前置事件名称"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "后续事件名称"
+      required: true
+      default: ""
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：紧接、导致、触发、升级、回应、协调、裁决、调查"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "因果描述，说明两事件之间的逻辑关系"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的新闻调查记者，请从调查报道文本中提取关键事件以及它们之间的关系。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的事件，禁止将多个事件合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知事件列表中提取边，不要创建未列出的事件
+      4. 关系描述应与原文保持一致
+      5. 事件类型：开工、销售、停工、诉讼、侦查、处罚、协调、公示
+      6. 时间格式：年-月-日（如 2023-09-15），精确到日
+      7. 关系类型：紧接、导致、触发、升级、回应、协调、裁决、调查
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的事件，禁止将多个事件合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 事件类型：开工、销售、停工、诉讼、侦查、处罚、协调、公示
+      4. 时间格式：年-月-日（如 2023-09-15），精确到日
+      5. 事件描述要包含简要信息
+  rules_for_edges:
+    zh: |
+      1. 仅从已知事件列表中提取边，不要创建未列出的事件
+      2. 关系描述应与原文保持一致
+      3. 关系类型：紧接（紧接着发生）、导致（直接原因）、触发（导火索/间接原因）、升级（事态扩大）、回应（对某事件的回应）、协调（多方协商处理）、裁决（法律/官方判定）、调查（正在调查阶段）
+      4. 描述两事件之间的具体逻辑关系
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({time})"
+  edge_label: "{relationType}"

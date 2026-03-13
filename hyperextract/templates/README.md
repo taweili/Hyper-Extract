@@ -8,6 +8,84 @@ This library is organized by **Domain**, ensuring that the extraction logic matc
 
 ---
 
+## 📁 Directory Structure
+
+```
+templates/
+├── presets/              # Preset templates (system-provided)
+│   ├── agriculture/
+│   ├── biology/
+│   ├── finance/
+│   └── ...
+├── customs/              # Custom templates (user-created)
+│   └── (user templates)
+├── legacy/               # Deprecated Python templates
+│   ├── zh/
+│   └── en/
+├── README.md
+└── README_ZH.md
+```
+
+### presets vs customs
+
+| Directory | Purpose | Description |
+|-----------|---------|-------------|
+| `presets/` | Preset templates | System-provided knowledge templates, read-only |
+| `customs/` | Custom templates | User-created templates, can override presets |
+
+---
+
+## 🚀 Usage
+
+### Recommended: Using YAML Config
+
+```python
+from hyperextract.utils.template_engine import Gallery, TemplateFactory
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+# Get template (auto-loaded presets and customs)
+config = Gallery.get("KnowledgeGraph")
+
+# Create template
+template = TemplateFactory.create(config, llm, embedder)
+result = template.parse("Your text here...")
+
+# List all available templates
+print(Gallery.list_all())
+```
+
+### Creating Custom Templates
+
+Users can create their own templates in `templates/customs/`:
+
+```python
+# Add custom template directory (auto-loaded)
+Gallery.add_path("/path/to/my/templates")
+
+# Get custom template
+config = Gallery.get("MyCustomTemplate")
+```
+
+### Deprecated: Using Python Class
+
+```python
+from hyperextract.templates.legacy.zh.general import KnowledgeGraph
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+template = KnowledgeGraph(llm_client=llm, embedder=embedder)
+result = template.parse("Your text here...")
+```
+
+> ⚠️ **Warning**: The Python class templates in `legacy/` are deprecated and will be removed in a future version. Please migrate to YAML config based templates.
+
+---
+
 ## 📋 Table of Contents
 
 - [📚 General](#1-general-general-purpose)

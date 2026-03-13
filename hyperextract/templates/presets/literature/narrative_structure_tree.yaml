@@ -1,0 +1,82 @@
+name: "NarrativeStructureTree"
+autotype: graph
+tag: [literature]
+
+language: zh
+
+description:
+  zh: "叙事结构树 - 构建作品的结构层级（如主线、支线、插叙部分）"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "结构单元名称"
+    - name: category
+      type: "string"
+      description:
+        zh: "类型：主线、支线、插叙、前提、结局"
+    - name: description
+      type: "string"
+      description:
+        zh: "描述"
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "上位结构"
+    - name: target
+      type: "string"
+      description:
+        zh: "下位结构"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：包含、从属、展开、转折"
+    - name: description
+      type: "string"
+      description:
+        zh: "描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的文学评论家，请从文本中提取叙事结构单元以及它们之间的层级关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的结构单元，禁止将多个单元合并为一个节点
+      2. 单元名称与原文保持一致
+      3. 仅从已知结构单元列表中提取边，不要创建未列出的单元
+
+  rules_for_nodes:
+    zh: |
+      - 主线：推动故事核心发展的情节线
+      - 支线：辅助主线或展现次要人物的情节线
+      - 插叙：中断主线叙事的回忆或补充说明
+      - 前提：故事发生的背景设定
+      - 结局：故事的最终走向和结果
+
+  rules_for_edges:
+    zh: |
+      - 包含：上位结构包含下位结构
+      - 从属：下位结构从属于上位结构
+      - 展开：上位结构展开为下位结构
+      - 转折：从一线转到另一线
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name}[{category}]"
+  edge_label: "{relationType}"

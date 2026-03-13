@@ -1,0 +1,61 @@
+name: "TumorStagingItem"
+autotype: model
+tag: [medicine]
+
+language: zh
+
+description:
+  zh: "TNM分期表 - 提取肿瘤大小(T)、淋巴结(N)、转移(M)及分期结果"
+
+schema:
+  fields:
+    - name: tStage
+      type: "string"
+      description:
+        zh: "T分期，如T1、T2、T3、T4等"
+    - name: nStage
+      type: "string"
+      description:
+        zh: "N分期，如N0、N1、N2、N3等"
+    - name: mStage
+      type: "string"
+      description:
+        zh: "M分期，如M0、M1等"
+    - name: pathologicalStage
+      type: "string"
+      description:
+        zh: "病理分期，如I期、II期、III期、IV期等"
+    - name: tDetails
+      type: "string"
+      description:
+        zh: "T分期详细描述，如肿瘤大小"
+    - name: nDetails
+      type: "string"
+      description:
+        zh: "N分期详细描述，如淋巴结转移数量"
+    - name: mDetails
+      type: "string"
+      description:
+        zh: "M分期详细描述，如远处转移部位"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的病理学家，请从文本中提取肿瘤大小(T)、淋巴结(N)、转移(M)及分期结果，构建TNM分期表。
+
+  rules:
+    zh: |
+      1. 提取T分期、N分期、M分期和病理分期
+      2. 为每个分期添加详细描述：
+         - T分期详细描述：肿瘤大小、浸润深度等
+         - N分期详细描述：淋巴结转移数量、部位等
+         - M分期详细描述：远处转移部位等
+      3. 保持信息与原文一致
+
+  rules_for_nodes:
+    zh: |
+      - TNM分期表示法保持原文，如 T1、T2、N0、M0
+      - 分期表示法保持原文，如 I期、II期、III期、IV期
+
+display:
+  label: "TNM分期: {tStage}{nStage}{mStage} ({pathologicalStage})"

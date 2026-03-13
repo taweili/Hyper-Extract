@@ -1,0 +1,85 @@
+name: "ProteinComplexMap"
+autotype: hypergraph
+tag: [biology]
+
+language: zh
+
+description:
+  zh: "蛋白质复合物超图 - 从蛋白质结构文献中提取蛋白质复合物的多亚基组成关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "蛋白质或亚基名称，如Gαs、Gβ、β2-AR"
+    - name: gene_name
+      type: "string"
+      description:
+        zh: "基因名称，如GNAS、GNB1"
+      required: false
+    - name: subunit_type
+      type: "string"
+      description:
+        zh: "亚基类型：G蛋白α亚基、G蛋白β亚基、G蛋白γ亚基、受体、效应器"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: members
+      type: "array"
+      description:
+        zh: "参与组成复合物的所有蛋白质或亚基名称列表"
+    - name: complex_name
+      type: "string"
+      description:
+        zh: "复合物名称，如G蛋白异源三聚体、β2-AR信号复合物"
+    - name: function
+      type: "string"
+      description:
+        zh: "复合物功能描述"
+    - name: assembly_details
+      type: "string"
+      description:
+        zh: "组装细节，如哪些亚基相互作用"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的结构生物学专家，请从蛋白质结构文献中提取蛋白质及其复合物组成关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的蛋白质或亚基，禁止将多个蛋白质合并为一个节点
+      2. 蛋白质名称与原文保持一致
+      3. 超边连接2个或多个蛋白质节点
+      4. 每条超边必须至少有2个成员
+
+  rules_for_nodes:
+    zh: |
+      - G蛋白异源三聚体：包括Gα、Gβ、Gγ三个亚基
+      - 受体：如β2-肾上腺素受体（β2-AR）
+      - 效应器：如腺苷酸环化酶（AC）
+      - 基因名称使用标准缩写
+
+  rules_for_edges:
+    zh: |
+      - 复合物类型：G蛋白异源三聚体、信号转导复合物、酶复合物等
+      - 组装信息：亚基之间的相互作用关系
+
+identifiers:
+  node_id: "name"
+  edge_id: "{complex_name}｜{members}"
+  edge_members: "members"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({subunit_type})"
+  edge_label: "complex_name"

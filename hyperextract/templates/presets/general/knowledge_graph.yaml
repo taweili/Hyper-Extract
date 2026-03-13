@@ -1,0 +1,81 @@
+name: "KnowledgeGraph"
+autotype: graph
+tag: [general]
+
+language: zh
+
+description:
+  zh: "通用知识图谱 - 从任意文本中提取实体与关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称，如人名、机构名、产品名"
+    - name: category
+      type: "string"
+      description:
+        zh: "实体类型：人物、机构、地点、产品、概念、其他"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源实体"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标实体"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：属于、位于、合作、竞争、发明、创建、相关等"
+    - name: details
+      type: "string"
+      description:
+        zh: "详细描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的知识图谱提取专家，请从文本中提取实体及其关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从提取的实体中创建边
+
+  rules_for_nodes:
+    zh: |
+      - 提取所有实体
+      - 为每个实体指定类型
+
+  rules_for_edges:
+    zh: |
+      - 属于：表示归属关系
+      - 位于：表示地理位置关系
+      - 合作：表示合作关系
+      - 竞争：表示竞争关系
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

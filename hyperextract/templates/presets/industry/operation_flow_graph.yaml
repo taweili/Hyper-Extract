@@ -1,0 +1,119 @@
+name: "OperationFlowGraph"
+autotype: graph
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "操作流程图谱 - 提取操作步骤、设备状态和预期结果，识别操作流程中的步骤顺序和状态变化"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "操作步骤名称（如：开启辅助电源、启动液压系统、检查状态、关闭主电源等）"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "类别：动作、设备状态。动作如开启、关闭、检查等；设备状态如运行中、待机、停止等"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "对该操作步骤的详细描述"
+      required: false
+      default: ""
+    - name: expected_result
+      type: "string"
+      description:
+        zh: "执行该步骤后的预期结果"
+      required: false
+      default: ""
+    - name: target_equipment
+      type: "string"
+      description:
+        zh: "涉及的目标设备名称"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "当前步骤名称"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "下一步骤名称"
+      required: true
+      default: ""
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：下一步、触发、导致"
+      required: true
+      default: ""
+    - name: trigger_condition
+      type: "string"
+      description:
+        zh: "触发下一步骤的条件"
+      required: false
+      default: ""
+    - name: state_change
+      type: "string"
+      description:
+        zh: "状态变化描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位工业操作流程分析专家，请从文本中提取操作步骤、设备状态和预期结果。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+      4. 关系描述应与原文保持一致
+      5. 识别各个操作步骤和执行顺序（如：开启辅助电源 → 启动液压系统 → 启动控制系统）
+      6. 识别设备状态变化（如：从待机状态切换到运行状态）
+      7. 记录每一步骤的详细操作内容、预期结果和涉及设备
+      8. 建立步骤之间的流转关系
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 识别操作步骤名称（如开启辅助电源、启动液压系统、检查状态、关闭主电源等）
+      4. 识别设备状态名称（如运行中、待机、停止、故障等）
+      5. 为每个实体指定类别（动作/设备状态）
+      6. 记录每一步骤的预期结果和涉及设备
+  rules_for_edges:
+    zh: |
+      1. 仅从已知实体列表中提取边，不要创建未列出的实体
+      2. 关系描述应与原文保持一致
+      3. 识别步骤的执行顺序（当前步骤 → 下一步骤）
+      4. 提取触发下一步骤的条件
+      5. 记录设备状态的变化
+      6. 关系类型使用：下一步、触发、导致
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

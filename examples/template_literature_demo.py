@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有文学与影视知识模板
-from hyperextract.templates.zh.literature import (
+from hyperextract.templates.legacy.zh.literature import (
     # 影视剧本模板
     SceneEventHypergraph,
     NarrativeTimeline,

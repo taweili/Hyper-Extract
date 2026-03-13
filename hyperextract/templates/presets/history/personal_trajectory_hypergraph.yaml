@@ -1,0 +1,79 @@
+name: "PersonalTrajectoryHypergraph"
+autotype: hypergraph
+tag: [history]
+
+language: zh
+
+description:
+  zh: "个人轨迹超图 - 以人生阶段为超边，关联时期、地点、同行人物、核心经历。"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "人物姓名"
+    - name: description
+      type: "string"
+      description:
+        zh: "人物描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: phase
+      type: "string"
+      description:
+        zh: "人生阶段名称，如少年求学、仕途起步、流放岁月"
+    - name: time
+      type: "string"
+      description:
+        zh: "时期"
+    - name: locations
+      type: "str"
+      description:
+        zh: "地点"
+    - name: companions
+      type: "array"
+      description:
+        zh: "同行或交往人物"
+    - name: experiences
+      type: "array"
+      description:
+        zh: "核心经历列表"
+      required: false
+    - name: description
+      type: "string"
+      description:
+        zh: "阶段描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的历史学专家，请从文本中提取人物的人生阶段轨迹。
+
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 超边必须关联一个主要人物
+      4. 仅从已知人物列表中提取边，不要创建未列出的人物
+      5. 关系描述应与原文保持一致
+
+  rules_for_edges:
+    zh: |
+      - 一个超边代表一个完整的人生阶段
+      - 需要包含时间范围、地点、关键事件
+
+identifiers:
+  node_id: "name"
+  edge_id: "{phase}|{time}|{locations}"
+  edge_members: "companions"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "name"
+  edge_label: "phaseName"

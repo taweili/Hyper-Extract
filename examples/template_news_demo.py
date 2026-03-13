@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有新闻传媒知识模板
-from hyperextract.templates.zh.news import (
+from hyperextract.templates.legacy.zh.news import (
     # 深度调查报道
     InvestigativeContextGraph,
     ComplexRelationNet,

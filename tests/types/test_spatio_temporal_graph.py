@@ -164,7 +164,7 @@ class TestAutoSpatioTemporalGraphExtraction:
             embedder=embedder,
         )
 
-        kg2 = kg1.extract("""Tech conference tour 2024: January workshop in San Francisco, 
+        kg2 = kg1.parse("""Tech conference tour 2024: January workshop in San Francisco, 
         March seminar in New York, June training in London, September workshop in Tokyo. 
         Each event has 200+ attendees sharing innovations and networking.""")
 

@@ -76,15 +76,37 @@ Transform LLM output from scattered text into **searchable, queryable, and reaso
 
 ## 🚀 Quick Start
 
+### Option 1: Using YAML Config (Recommended)
+
 ```python
-from hyperextract.templates.en.finance import ResearchNoteSummary
+from hyperextract.utils.template_engine import Gallery, TemplateFactory
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+embedder = OpenAIEmbeddings()
+
+# Get template (auto-loaded presets and customs)
+config = Gallery.get("ResearchNoteSummary")
+
+# Create template
+template = TemplateFactory.create(config, llm, embedder)
+result = template.parse("Apple Q3 revenue reached $94.9 billion...")
+
+answer = template.chat("What drove the revenue growth?")
+print(answer.content)
+```
+
+### Option 2: Using Python Class (Deprecated)
+
+```python
+from hyperextract.templates.legacy.en.finance import ResearchNoteSummary
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 embedder = OpenAIEmbeddings()
 
 template = ResearchNoteSummary(llm_client=llm, embedder=embedder)
-result = template.extract("Apple Q3 revenue reached $94.9 billion...")
+result = template.parse("Apple Q3 revenue reached $94.9 billion...")
 
 answer = template.chat("What drove the revenue growth?")
 print(answer.content)

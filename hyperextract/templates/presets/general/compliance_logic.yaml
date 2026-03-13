@@ -1,0 +1,91 @@
+name: "ComplianceLogic"
+autotype: hypergraph
+tag: [general]
+
+language: zh
+
+description:
+  zh: "合规行为超图 - 建模 '在何种条件下，何种主体，必须/禁止执行何种操作' 的复杂逻辑"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "要素名称，文本中出现的精确名称"
+    - name: category
+      type: "string"
+      description:
+        zh: "要素类型：主体、操作、条件、其他"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: ruleType
+      type: "string"
+      description:
+        zh: "规则类型：必须、禁止、允许、其他"
+    - name: participants
+      type: "array"
+      description:
+        zh: "参与要素名称列表，必须使用已提取节点的 name"
+    - name: action
+      type: "string"
+      description:
+        zh: "要求执行或禁止的操作内容"
+    - name: condition
+      type: "string"
+      description:
+        zh: "适用条件/前置要求"
+      required: false
+    - name: consequence
+      type: "string"
+      description:
+        zh: "违规后果/奖励措施"
+      required: false
+    - name: sourceClause
+      type: "string"
+      description:
+        zh: "规则来源条款"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的合规评估员，请从文本中提取合规要素和规则。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已提取节点创建规则
+
+  rules_for_nodes:
+    zh: |
+      - 主体：执行动作的实体（个人、部门、组织、角色等）
+      - 操作：具体的行为动作（提交、审批、执行、禁止等）
+      - 条件：规则适用的时间、地点、状态、数量等前提条件
+      - 其他：不属于上述类别的要素（文书、文件、状态、结果等）
+
+  rules_for_edges:
+    zh: |
+      - 必须：必须执行的动作
+      - 禁止：禁止执行的动作
+      - 允许：允许执行的动作
+      - 其他：不属于上述类别的规则
+
+identifiers:
+  node_id: "name"
+  edge_id: "{ruleType}_{action}_{participants}"
+  edge_members: "participants"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "[{ruleType}] {action}"

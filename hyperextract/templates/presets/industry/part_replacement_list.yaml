@@ -1,0 +1,70 @@
+name: "PartReplacementList"
+autotype: list
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "备件消耗清单 - 从设备维护记录中提取零件型号、数量、更换原因"
+
+item_schema:
+  fields:
+    - name: part_name
+      type: "string"
+      description:
+        zh: "备件名称（例如：轴承、密封圈、滤芯、润滑油、刀片等）"
+      required: true
+      default: ""
+    - name: part_number
+      type: "string"
+      description:
+        zh: "备件型号或编号（例如：SKF-6205、GB/T1234-2010）"
+      required: false
+      default: ""
+    - name: quantity
+      type: "string"
+      description:
+        zh: "更换数量（例如：2件、5升、1套）"
+      required: false
+      default: ""
+    - name: unit
+      type: "string"
+      description:
+        zh: "计量单位（例如：件、个、套、升、公斤）"
+      required: false
+      default: ""
+    - name: replacement_reason
+      type: "string"
+      description:
+        zh: "更换原因（例如：磨损、老化、损坏、预防性更换）"
+      required: false
+      default: ""
+    - name: equipment_name
+      type: "string"
+      description:
+        zh: "所属设备名称（例如：离心泵P-101、空压机C-001）"
+      required: false
+      default: ""
+    - name: maintenance_type
+      type: "string"
+      description:
+        zh: "维护类型：例行保养、故障维修、计划检修、抢修"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位设备维护管理专家，请从备件更换记录中提取所有备件消耗条目。
+  rules:
+    zh: |
+      1. 每个条目对应一个独立的备件，禁止合并
+      2. 备件名称和型号与原文保持一致
+      3. 提取备件名称、型号、编号
+      4. 提取更换数量和计量单位
+      5. 提取更换原因（磨损、老化、损坏、预防性更换等）
+      6. 提取所属设备名称
+      7. 识别维护类型（例行保养、故障维修、计划检修、抢修）
+
+display:
+  label: "{part_name} x{quantity} ({replacement_reason})"

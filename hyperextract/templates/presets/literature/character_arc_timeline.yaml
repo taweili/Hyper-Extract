@@ -1,0 +1,87 @@
+name: "CharacterArcTimeline"
+autotype: graph
+tag: [literature]
+
+language: zh
+
+description:
+  zh: "叙事时序图 - 提取影视剧本中的异质节点（角色、场景、情绪、事件）及它们之间的关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "元素名称"
+    - name: category
+      type: "string"
+      description:
+        zh: "元素类型：角色、场景、情绪、事件"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源节点名称"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标节点名称"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：出现、时间顺序、情绪、触发、位于"
+    - name: time
+      type: "string"
+      description:
+        zh: "时间点（如'第一集'、'第X场'），仅时间顺序关系需要"
+      required: false
+    - name: description
+      type: "string"
+      description:
+        zh: "关系描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的影视剧本分析师，请从文本中提取叙事元素以及它们之间的关系，构建异质图。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知叙事元素列表中提取边，不要创建未列出的节点
+
+  rules_for_nodes:
+    zh: |
+      - 角色：从对白和动作中识别的主要人物
+      - 场景：从场景头中提取的地点，如"碎玉轩"、"桐花台"、"万寿节宴会厅"
+      - 情绪：角色的情感状态，如"悲伤"、"愤怒"、"坚定"、"迷茫"、"绝望"
+      - 事件：关键情节，如"被陷害"、"果郡王之死"、"回宫复仇"
+
+  rules_for_edges:
+    zh: |
+      - 出现：角色出现在某场景，格式：'角色 → 场景'
+      - 时间顺序：两个场景的时间先后，格式：'前一场景 → 后一场景'，需标注时间点
+      - 情绪：角色在该场景的情绪，格式：'角色 → 情绪'
+      - 触发：场景触发的事件，格式：'场景 → 事件'
+      - 位于：角色位于某场景，格式：'角色 → 场景'
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name}[{category}]"
+  edge_label: "{relationType}"

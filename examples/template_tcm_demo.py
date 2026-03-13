@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有中医知识模板
-from hyperextract.templates.zh.tcm import (
+from hyperextract.templates.legacy.zh.tcm import (
     # 本草典籍
     HerbPropertyModel,
     ProcessingMethod,

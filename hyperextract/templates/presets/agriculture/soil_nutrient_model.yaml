@@ -1,0 +1,131 @@
+name: "SoilNutrientModel"
+autotype: model
+tag: [agriculture]
+
+language: zh
+
+description:
+  zh: "土壤养分模型 - 从土壤检测报告中提取核心理化指标"
+
+schema:
+  fields:
+    - name: plot_id
+      type: "string"
+      description:
+        zh: "地块编号"
+    - name: soil_type
+      type: "string"
+      description:
+        zh: "土壤类型"
+      required: false
+    - name: ph
+      type: "float"
+      description:
+        zh: "pH值"
+      required: false
+    - name: ph_level
+      type: "string"
+      description:
+        zh: "pH丰缺等级：酸性、弱酸性、中性、弱碱性、碱性"
+      required: false
+    - name: organic_matter
+      type: "float"
+      description:
+        zh: "有机质含量，单位g/kg"
+      required: false
+    - name: organic_matter_level
+      type: "string"
+      description:
+        zh: "有机质丰缺等级"
+      required: false
+    - name: nitrogen
+      type: "float"
+      description:
+        zh: "碱解氮含量，单位mg/kg"
+      required: false
+    - name: nitrogen_level
+      type: "string"
+      description:
+        zh: "氮素丰缺等级"
+      required: false
+    - name: phosphorus
+      type: "float"
+      description:
+        zh: "有效磷含量，单位mg/kg"
+      required: false
+    - name: phosphorus_level
+      type: "string"
+      description:
+        zh: "磷素丰缺等级"
+      required: false
+    - name: potassium
+      type: "float"
+      description:
+        zh: "速效钾含量，单位mg/kg"
+      required: false
+    - name: potassium_level
+      type: "string"
+      description:
+        zh: "钾素丰缺等级"
+      required: false
+    - name: calcium
+      type: "float"
+      description:
+        zh: "交换性钙含量，单位mg/kg"
+      required: false
+    - name: magnesium
+      type: "float"
+      description:
+        zh: "交换性镁含量，单位mg/kg"
+      required: false
+    - name: sulfur
+      type: "float"
+      description:
+        zh: "有效硫含量，单位mg/kg"
+      required: false
+    - name: iron
+      type: "float"
+      description:
+        zh: "有效铁含量，单位mg/kg"
+      required: false
+    - name: manganese
+      type: "float"
+      description:
+        zh: "有效锰含量，单位mg/kg"
+      required: false
+    - name: copper
+      type: "float"
+      description:
+        zh: "有效铜含量，单位mg/kg"
+      required: false
+    - name: zinc
+      type: "float"
+      description:
+        zh: "有效锌含量，单位mg/kg"
+      required: false
+    - name: boron
+      type: "float"
+      description:
+        zh: "有效硼含量，单位mg/kg"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的土壤肥料专家，请从土壤检测报告中提取土壤养分指标。
+
+  rules:
+    zh: |
+      1. 每个文档只提取一个土壤养分模型对象
+      2. 检测值和丰缺等级必须同时提取
+      3. 数值保留原始精度，单位按照原文
+      4. 数据必须与原文保持一致，不得编造
+
+  rules_for_nodes:
+    zh: |
+      - 土壤类型：潴育性水稻土、淹育型水稻土、潜育型水稻土、红壤、黄壤等
+      - 丰缺等级：缺乏、偏低、适宜、丰富、极丰富
+      - pH等级：酸性（<6.0）、弱酸性（6.0-6.5）、中性（6.5-7.0）、弱碱性（7.0-7.5）、碱性（>7.5）
+
+display:
+  label: "plot_id"

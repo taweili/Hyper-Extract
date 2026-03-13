@@ -1,0 +1,90 @@
+name: "PestControlHypergraph"
+autotype: hypergraph
+tag: [agriculture]
+
+language: zh
+
+description:
+  zh: "病虫害防治超图 - 从农业技术手册中提取病虫害与防治措施的复杂关联关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称（病虫害名、药剂名、作物名、生长阶段名）"
+    - name: entity_type
+      type: "string"
+      description:
+        zh: "实体类型：病虫害、药剂、作物、生长阶段"
+    - name: description
+      type: "string"
+      description:
+        zh: "详细描述"
+
+edge_schema:
+  fields:
+    - name: crop
+      type: "string"
+      description:
+        zh: "作物名称"
+    - name: stage
+      type: "string"
+      description:
+        zh: "生长阶段"
+    - name: pest
+      type: "string"
+      description:
+        zh: "病虫害名称"
+    - name: pesticide
+      type: "string"
+      description:
+        zh: "推荐药剂"
+    - name: dosage
+      type: "string"
+      description:
+        zh: "亩用量"
+    - name: safety_interval
+      type: "string"
+      description:
+        zh: "安全间隔期"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的植物保护专家，请从农业技术手册中提取病虫害防治超图。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 超边连接作物、生长阶段、病虫害、药剂等多类实体
+      4. 每条超边必须包含作物、生长阶段、病虫害、药剂等要素
+
+  rules_for_nodes:
+    zh: |
+      - 病虫害：如稻飞虱、稻纵卷叶螟、纹枯病、稻瘟病
+      - 药剂：如25%噻嗪酮可湿性粉剂、20%氯虫苯甲酰胺悬浮剂
+      - 作物：如水稻、小麦、玉米
+      - 生长阶段：如播种期、分蘖期、孕穗期、灌浆期
+
+  rules_for_edges:
+    zh: |
+      - 超边格式：《作物 + 生长阶段 + 病虫害 -> 药剂 + 剂量 + 安全间隔期》
+      - 病虫害名称保持原文
+      - 药剂名称保持原文，包括商品名和有效成分
+      - 安全间隔期：最后一次施药至收获的天数
+
+identifiers:
+  node_id: "name"
+  edge_id: "{crop}_{stage}_{pest}_{pesticide}"
+  edge_members:
+    source: "crop"
+    target: "pest"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({entity_type})"
+  edge_label: "crop"

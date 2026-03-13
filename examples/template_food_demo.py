@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有美食餐饮知识模板
-from hyperextract.templates.zh.food import (
+from hyperextract.templates.legacy.zh.food import (
     # 标准化食谱
     RecipeCollection,
     StandardRecipeCard,

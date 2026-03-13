@@ -1,0 +1,83 @@
+name: "PharmacologyGraph"
+autotype: graph
+tag: [medicine]
+
+language: zh
+
+description:
+  zh: "药理机制图 - 提取药物、受体、靶点及生理反应之间的相互作用路径"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称，如药物、受体、靶点、生理反应等"
+    - name: category
+      type: "string"
+      description:
+        zh: "实体类型：药物、受体、靶点、生理反应、信号通路等"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源实体"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标实体"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：结合、激活、抑制、调节、诱导、拮抗等"
+    - name: details
+      type: "string"
+      description:
+        zh: "详细描述，如具体的作用机制"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的药理学家，请从文本中提取药物、受体、靶点及生理反应之间的相互作用路径，构建药理机制图。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+
+  rules_for_nodes:
+    zh: |
+      - 药物名称保持原文，如二甲双胍、阿司匹林
+      - 受体名称保持原文，如胰岛素受体、肾上腺素受体
+      - 信号通路名称保持原文，如AMPK通路、PI3K/Akt通路
+
+  rules_for_edges:
+    zh: |
+      - 结合：药物与受体结合
+      - 激活：激活受体或通路
+      - 抑制：抑制受体或通路
+      - 调节：调节生理反应
+      - 诱导：诱导特定反应
+      - 拮抗：拮抗作用
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

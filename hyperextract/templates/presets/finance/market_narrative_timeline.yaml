@@ -1,0 +1,115 @@
+name: "MarketNarrativeTimeline"
+autotype: temporal_graph
+tag: [finance]
+
+language: zh
+
+description:
+  zh: "市场叙事时间线 - 追踪市场叙事随时间的演变"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "叙事名称（如'通胀恐惧'、'软着陆希望'）"
+      required: true
+      default: ""
+    - name: narrative_type
+      type: "string"
+      description:
+        zh: "叙事类型：'市场情绪'、'投资主题'、'政策预期'、'经济判断'"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "叙事描述"
+      required: true
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "先前叙事名称"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "新兴叙事名称"
+      required: true
+      default: ""
+    - name: transition_type
+      type: "string"
+      description:
+        zh: "演变类型：被替代、演变为、触发了、主导了"
+      required: true
+      default: ""
+    - name: timestamp
+      type: "string"
+      description:
+        zh: "演变时间（如'2024-03'、'2024年Q2'）"
+      required: true
+      default: ""
+    - name: catalyst
+      type: "string"
+      description:
+        zh: "触发演变的事件或数据点"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的策略师，请从财经评论中提取市场叙事以及它们随时间的演变。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的叙事，禁止将多个叙事合并为一个节点
+      2. 叙事名称与原文保持一致
+      3. 仅从已知叙事列表中提取边，不要创建新的叙事
+      4. 关系描述应与原文保持一致
+      5. 叙事是市场中的"故事"、主题、情绪
+      6. 叙事不是具体的公司、指数、政策本身
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的叙事，禁止将多个叙事合并为一个节点
+      2. 叙事名称与原文保持一致
+      3. 叙事是市场中的"故事"、主题、情绪
+      4. 叙事不是具体的公司、指数、政策本身
+      5. 叙事类型：市场情绪、投资主题、政策预期、经济判断
+  rules_for_edges:
+    zh: |
+      1. 边的 source 和 target 必须完全使用下方叙事列表中的名称，禁止创造新叙事
+      2. 仅从已知叙事列表中提取边，不要创建新的叙事
+      3. 关系描述应与原文保持一致
+      4. 演变类型：被替代、演变为、触发了、主导了
+  rules_for_time:
+    zh: |
+      当前观察日期：{observation_time}
+
+      1. 相对时间解析（基于观察日期）：
+         - "去年" → {observation_time} 的前一年
+         - "上月" → {observation_time} 的前一个月
+         - "本季度" → {observation_time} 所在季度
+         - "近期" → {observation_time} 最近 3 个月
+
+      2. 精确时间 → 保持原样
+      3. 时间缺失 → 留空
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{transition_type}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+  time_field: "timestamp"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({narrative_type})"
+  edge_label: "{transition_type} [{timestamp}]"

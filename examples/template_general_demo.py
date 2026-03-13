@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有 general 知识模板
-from hyperextract.templates.zh.general import (
+from hyperextract.templates.legacy.zh.general import (
     # 第一波：基础知识提取
     KnowledgeGraph,
     EntityRegistry,

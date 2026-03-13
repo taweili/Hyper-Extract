@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有医学知识模板
-from hyperextract.templates.zh.medicine import (
+from hyperextract.templates.legacy.zh.medicine import (
     # 医学教科书与专著
     PathologyHypergraph,
     MedicalConceptNet,

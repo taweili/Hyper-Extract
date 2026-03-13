@@ -196,7 +196,7 @@ class BaseAutoType(ABC, Generic[T]):
     def _set_data_state(self, data: T) -> None:
         """HOOK: Overwrite data state with new data (SET).
 
-        Called by extract() or load() where the data provided IS the new state.
+        Called by parse() or load() where the data provided IS the new state.
 
         Subclass Responsibilities:
         1. Replace self._data with new data (full reset)
@@ -257,9 +257,9 @@ class BaseAutoType(ABC, Generic[T]):
         merged_data = self.merge_batch_data(extracted_data_list)
         return merged_data
 
-    def extract(self, text: str) -> "BaseAutoType[T]":
+    def parse(self, text: str) -> "BaseAutoType[T]":
         """
-        Extracts knowledge into a NEW instance without modifying the current one.
+        Parses knowledge into a NEW instance without modifying the current one.
 
         Use this for previewing data or branching knowledge bases.
 
@@ -267,12 +267,12 @@ class BaseAutoType(ABC, Generic[T]):
             text: Input text.
 
         Returns:
-            A new knowledge instance containing only the extracted data.
+            A new knowledge instance containing only the parsed data.
         """
-        extracted_data = self._extract_data(text)
+        parsed_data = self._extract_data(text)
 
         new_instance = self._create_empty_instance()
-        new_instance._set_data_state(extracted_data)
+        new_instance._set_data_state(parsed_data)
 
         new_instance.metadata["created_at"] = datetime.now()
         new_instance.metadata["updated_at"] = datetime.now()

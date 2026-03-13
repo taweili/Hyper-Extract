@@ -1,0 +1,46 @@
+name: "ClauseList"
+autotype: list
+tag: [general]
+
+language: zh
+
+description:
+  zh: "规章条文清单 - 将规章制度拆解为逐条的原子化条文，方便快速索引"
+
+item_schema:
+  fields:
+    - name: clauseId
+      type: "string"
+      description:
+        zh: "条文编号，如第1条、第2.1款"
+    - name: title
+      type: "string"
+      description:
+        zh: "条目标题/主题"
+      required: false
+    - name: content
+      type: "string"
+      description:
+        zh: "条文内容"
+    - name: category
+      type: "string"
+      description:
+        zh: "条文分类：总则、权利义务、程序、处罚、附则、其他"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的规章制度条文拆解专家，请将文本拆解为逐条的原子化条文。
+
+  rules:
+    zh: |
+      1. 将规章制度按其自然结构拆解为独立的条文
+      2. 为每条条文分配编号（如第1条、第2.1款等）
+      3. 提取条文的内容
+      4. 为条文添加适当的标题或主题（如有）
+      5. 为每条条文指定分类：总则、权利义务、程序、处罚、附则、其他
+      6. 保持条文内容与原文一致，不要遗漏任何条文
+
+display:
+  label: "clauseId"

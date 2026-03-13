@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # 导入所有农业知识模板
-from hyperextract.templates.zh.agriculture import (
+from hyperextract.templates.legacy.zh.agriculture import (
     # 农业技术手册
     CropGrowthCycle,
     PestControlHypergraph,

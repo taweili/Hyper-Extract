@@ -1,0 +1,97 @@
+name: "InspectionRecordGraph"
+autotype: graph
+tag: [industry]
+
+language: zh
+
+description:
+  zh: "巡检记录图谱 - 提取设备和巡检项，构建巡检层级结构，识别设备与巡检项之间的从属关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "实体名称（如：数控加工中心、机械臂系统、电机运行状态、轴承温度检查等）"
+      required: true
+      default: ""
+    - name: category
+      type: "string"
+      description:
+        zh: "类别：设备、巡检项"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "对该实体的描述"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "父实体（整体/设备）名称"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "子实体（巡检项/部分）名称"
+      required: true
+      default: ""
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：属于、子类"
+      required: true
+      default: ""
+    - name: details
+      type: "string"
+      description:
+        zh: "关系详细说明"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位工业设备巡检分析专家，请从文本中提取设备和巡检项，构建巡检层级结构。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+      4. 关系描述应与原文保持一致
+      5. 识别大设备（如数控加工中心、机械臂系统、物料输送系统等）
+      6. 识别每个设备下的巡检项（如电机运行状态、轴承温度、冷却液位等）
+      7. 建立巡检项与设备之间的从属关系
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 识别设备名称（大类）
+      4. 识别巡检项名称（具体检查点）
+      5. 为每个实体指定类别（设备/巡检项）
+  rules_for_edges:
+    zh: |
+      1. 仅从已知实体列表中提取边，不要创建未列出的实体
+      2. 关系描述应与原文保持一致
+      3. 识别巡检项与设备之间的从属关系
+      4. 例如：电机运行状态 属于 数控加工中心
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

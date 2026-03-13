@@ -179,7 +179,7 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
     def _set_data_state(self, data: AutoListSchema) -> None:
         """
         SET: Full reset. Replace with new data (e.g., load from disk).
-        Called by extract() or load() where data IS the new state.
+        Called by parse() or load() where data IS the new state.
         """
         self._data = data
         self.clear_index()

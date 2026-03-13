@@ -1,0 +1,58 @@
+name: "ProcessingMethod"
+autotype: list
+tag: [tcm]
+
+language: zh
+
+description:
+  zh: "炮制方法列表 - 提取药物的不同炮制方法（如蜜炙、酒炒）及其对药效的影响"
+
+item_schema:
+  fields:
+    - name: herbName
+      type: "string"
+      description:
+        zh: "药物名称"
+      required: true
+      default: ""
+    - name: methodName
+      type: "string"
+      description:
+        zh: "炮制方法名称：如蜜炙、酒炒、醋制、盐制等"
+      required: true
+      default: ""
+    - name: process
+      type: "string"
+      description:
+        zh: "具体炮制工艺流程"
+      required: true
+      default: ""
+    - name: effectChange
+      type: "string"
+      description:
+        zh: "炮制对药效的影响"
+      required: true
+      default: ""
+    - name: application
+      type: "string"
+      description:
+        zh: "适用病症或方剂"
+      required: true
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的中药炮制专家，请从文本中提取药物的不同炮制方法及其对药效的影响。
+  rules:
+    zh: |
+      1. 识别文本中提到的所有药物及其炮制方法
+      2. 提取每种炮制方法的名称
+      3. 提取每种炮制方法的具体工艺流程
+      4. 提取炮制对药效的影响
+      5. 常用炮制方法：蜜炙、酒炒、醋制、盐制、炒、煅等
+      6. 每种炮制方法作为独立条目提取
+      7. 保持炮制方法描述与原文一致
+
+display:
+  label: "{herbName} - {methodName}"

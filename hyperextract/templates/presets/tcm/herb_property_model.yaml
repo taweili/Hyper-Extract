@@ -1,0 +1,98 @@
+name: "HerbPropertyModel"
+autotype: model
+tag: [tcm]
+
+language: zh
+
+description:
+  zh: "药物性味归经 - 提取单味药的四气五味、归经、毒性及推荐剂量"
+
+schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "药物正名"
+      required: true
+      default: ""
+    - name: alternativeNames
+      type: "array"
+      description:
+        zh: "别名、俗称"
+      required: false
+      default: ""
+    - name: properties
+      type: "array"
+      description:
+        zh: "四气：寒、热、温、凉、平"
+      required: false
+      default: ""
+    - name: flavors
+      type: "array"
+      description:
+        zh: "五味：酸、苦、甘、辛、咸"
+      required: false
+      default: ""
+    - name: meridians
+      type: "array"
+      description:
+        zh: "归经：如肺经、肝经、脾经等"
+      required: false
+      default: ""
+    - name: toxicity
+      type: "string"
+      description:
+        zh: "毒性：无毒、小毒、有毒、大毒"
+      required: false
+      default: "无毒"
+    - name: dosage
+      type: "string"
+      description:
+        zh: "推荐剂量"
+      required: false
+      default: ""
+    - name: collection
+      type: "string"
+      description:
+        zh: "采集时间和方法"
+      required: false
+      default: ""
+    - name: processing
+      type: "string"
+      description:
+        zh: "炮制方法"
+      required: false
+      default: ""
+    - name: indications
+      type: "array"
+      description:
+        zh: "功效主治"
+      required: false
+      default: ""
+    - name: contraindications
+      type: "array"
+      description:
+        zh: "配伍禁忌"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的中药学家，请从文本中提取单味药的性味归经、毒性及推荐剂量等信息。
+  rules:
+    zh: |
+      1. 识别文本的核心药物主体
+      2. 提取药物的正名和所有别名、俗称
+      3. 提取药物的四气（寒、热、温、凉、平）
+      4. 提取药物的五味（酸、苦、甘、辛、咸）
+      5. 提取药物的归经（如肺经、肝经、脾经等）
+      6. 提取药物的毒性（无毒、小毒、有毒、大毒）
+      7. 提取药物的推荐剂量
+      8. 句式解析：文言文常采用省略主语、并列结构、连动句式，需先理解句式结构再提取信息
+      9. 术语对应：文言术语与现代术语需正确对应（如"主"指"主治"，"疗"指"治疗"）
+      10. 连写拆分：文言中常连写多个属性（如"味甘微寒"→拆分为"味甘"、"微寒"），需分别归到对应字段
+      11. 古代剂量：文言中古代剂量单位（如两、钱、匕）可保留原文
+
+display:
+  label: "{name} ({properties}，{flavors})"

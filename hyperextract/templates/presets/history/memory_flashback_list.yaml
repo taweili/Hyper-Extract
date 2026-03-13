@@ -1,0 +1,57 @@
+name: "MemoryFlashbackList"
+autotype: list
+tag: [history]
+
+language: zh
+
+description:
+  zh: "回忆片段清单 - 提取口述中提到的具体轶事、感悟或对特定历史时刻的侧面描写"
+
+item_schema:
+  fields:
+    - name: content
+      type: "string"
+      description:
+        zh: "回忆内容原文"
+    - name: type
+      type: "string"
+      description:
+        zh: "类型：轶事、感悟、历史时刻、人物描写"
+    - name: time
+      type: "string"
+      description:
+        zh: "相关时间"
+      required: false
+    - name: location
+      type: "string"
+      description:
+        zh: "相关地点"
+      required: false
+    - name: emotion
+      type: "string"
+      description:
+        zh: "情感色彩：感慨、怀念、愤慨、欣慰"
+      required: false
+    - name: description
+      type: "string"
+      description:
+        zh: "补充描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      请从文本中提取口述历史或回忆录中的回忆片段。
+
+  rules:
+    zh: |
+      1. 每个条目对应一个独立的回忆片段
+      2. 内容应与原文保持一致
+
+  rules_for_nodes:
+    zh: |
+      - 类型：轶事、感悟、历史时刻、人物描写
+      - 情感色彩：感慨、怀念、愤慨、欣慰
+
+display:
+  label: "content"

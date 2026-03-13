@@ -1,0 +1,75 @@
+name: "MotifAssociationNet"
+autotype: graph
+tag: [literature]
+
+language: zh
+
+description:
+  zh: "意象关联网络 - 提取文本中反复出现的符号、意象之间的关联"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "意象名称"
+    - name: description
+      type: "string"
+      description:
+        zh: "意象描述"
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源意象"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标意象"
+    - name: associationType
+      type: "string"
+      description:
+        zh: "关联类型：对比、递进、因果、象征、配套"
+    - name: description
+      type: "string"
+      description:
+        zh: "关联描述"
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的文学评论家，请从文本中提取意象以及它们之间的关联关系。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的意象，禁止将多个意象合并为一个节点
+      2. 意象名称与原文保持一致
+      3. 仅从已知意象列表中提取边，不要创建未列出的意象
+
+  rules_for_nodes:
+    zh: |
+      - 意象：反复出现的符号、象征物、自然元素等
+
+  rules_for_edges:
+    zh: |
+      - 对比：两个意象形成对照或反衬
+      - 递进：一个意象引出另一个意象
+      - 因果：一个意象导致另一个意象出现
+      - 象征：一个意象代表另一个含义
+      - 配套：多个意象共同构成一个意象群
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{associationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "name"
+  edge_label: "{associationType}"

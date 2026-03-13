@@ -1,0 +1,82 @@
+name: "NewsSummaryModel"
+autotype: model
+tag: [news]
+
+language: zh
+
+description:
+  zh: "结构化摘要 - 标准化提取 5W1H 要素"
+
+schema:
+  fields:
+    - name: who
+      type: "string"
+      description:
+        zh: "核心人物/主体"
+      required: true
+      default: ""
+    - name: what
+      type: "string"
+      description:
+        zh: "发生了什么"
+      required: true
+      default: ""
+    - name: when
+      type: "string"
+      description:
+        zh: "时间"
+      required: true
+      default: ""
+    - name: where
+      type: "string"
+      description:
+        zh: "地点"
+      required: true
+      default: ""
+    - name: why
+      type: "string"
+      description:
+        zh: "原因"
+      required: true
+      default: ""
+    - name: how
+      type: "string"
+      description:
+        zh: "如何发生"
+      required: true
+      default: ""
+    - name: casualties
+      type: "string"
+      description:
+        zh: "伤亡情况"
+      required: false
+      default: ""
+    - name: response
+      type: "string"
+      description:
+        zh: "官方回应"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的新闻编辑，请从新闻文本中提取结构化的5W1H要素，构建新闻摘要。
+  rules:
+    zh: |
+      1. 识别核心人物/主体
+      2. 识别发生了什么
+      3. 识别时间
+      4. 识别地点
+      5. 识别原因
+      6. 识别如何发生
+      7. 识别伤亡情况，如无则为空白
+      8. 识别官方回应，如无则为空白
+      9. 只提取文本中明确提及的信息，不添加额外内容
+      10. 保持客观准确，符合新闻写作风格
+      11. 时间格式统一为年-月-日或具体时间点
+      12. 地点要具体到城市或区域
+
+
+display:
+  label: "{when} {where}: {what}"

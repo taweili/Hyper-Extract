@@ -1,0 +1,106 @@
+name: "LiveUpdateTimeline"
+autotype: graph
+tag: [news]
+
+language: zh
+
+description:
+  zh: "实时动态时间轴 - 针对正在发生的事件，提取分钟级更新"
+
+node_schema:
+  fields:
+    - name: time
+      type: "string"
+      description:
+        zh: "时间点，格式为HH:MM"
+      required: true
+      default: ""
+    - name: event
+      type: "string"
+      description:
+        zh: "事件内容"
+      required: true
+      default: ""
+    - name: name
+      type: "string"
+      description:
+        zh: "简短名称/摘要"
+      required: true
+      default: ""
+    - name: speaker
+      type: "string"
+      description:
+        zh: "发言人"
+      required: false
+      default: ""
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源时间点（格式为HH:MM）"
+      required: true
+      default: ""
+    - name: target
+      type: "string"
+      description:
+        zh: "目标时间点（格式为HH:MM）"
+      required: true
+      default: ""
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：开场、介绍、发布、发言、提问、回答、总结、结束"
+      required: true
+      default: ""
+    - name: description
+      type: "string"
+      description:
+        zh: "详细描述"
+      required: false
+      default: ""
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的新闻直播编辑，请从实时直播文本中提取时间更新点以及它们之间的关系。
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的时间点，禁止将多个时间点合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知时间点列表中提取边，不要创建未列出的时间点
+      4. 关系描述应与原文保持一致
+      5. 时间格式：HH: "MM（24小时制）"
+      6. 事件内容要包含详细信息
+      7. 简短名称要简洁明了
+      8. 关系类型：开场、介绍、发布、发言、提问、回答、总结、结束
+      9. 发言人如无则为空白
+  rules_for_nodes:
+    zh: |
+      1. 每个节点只能对应一个独立的时间点，禁止将多个时间点合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 时间格式：HH: "MM（24小时制）"
+      4. 事件内容要包含详细信息
+      5. 简短名称要简洁明了
+      6. 发言人如无则为空白
+  rules_for_edges:
+    zh: |
+      1. 仅从已知时间点列表中提取边，不要创建未列出的时间点
+      2. 关系描述应与原文保持一致
+      3. 关系类型：开场（会议开始）、介绍（介绍环节）、发布（正式发布）、发言（领导/发言人讲话）、提问（记者提问）、回答（回应问题）、总结（总结陈词）、结束（会议结束）
+      4. 描述两时间点之间的具体关系
+
+identifiers:
+  node_id: "time"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{time} {name}"
+  edge_label: "{relationType}"

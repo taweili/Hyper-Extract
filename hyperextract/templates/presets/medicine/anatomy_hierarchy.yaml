@@ -1,0 +1,80 @@
+name: "AnatomyHierarchy"
+autotype: graph
+tag: [medicine]
+
+language: zh
+
+description:
+  zh: "解剖层级树 - 构建解剖位置的包含和毗邻关系"
+
+node_schema:
+  fields:
+    - name: name
+      type: "string"
+      description:
+        zh: "解剖结构名称，如器官、组织、血管等"
+    - name: category
+      type: "string"
+      description:
+        zh: "解剖类型：器官、组织、血管、神经、骨骼等"
+    - name: description
+      type: "string"
+      description:
+        zh: "简要描述"
+      required: false
+
+edge_schema:
+  fields:
+    - name: source
+      type: "string"
+      description:
+        zh: "源解剖结构"
+    - name: target
+      type: "string"
+      description:
+        zh: "目标解剖结构"
+    - name: relationType
+      type: "string"
+      description:
+        zh: "关系类型：包含、毗邻、分支、供应等"
+    - name: details
+      type: "string"
+      description:
+        zh: "详细描述"
+      required: false
+
+extraction_guide:
+  target:
+    zh: |
+      你是一位专业的解剖学家，请从文本中提取解剖结构及其关系，构建解剖层级树。
+
+  rules:
+    zh: |
+      1. 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+      2. 实体名称与原文保持一致
+      3. 仅从已知实体列表中提取边，不要创建未列出的实体
+
+  rules_for_nodes:
+    zh: |
+      - 解剖学术语保持原文，如解剖结构名称（心脏、肝脏、主动脉）
+
+  rules_for_edges:
+    zh: |
+      - 包含：解剖结构之间的包含关系
+      - 毗邻：解剖结构之间的相邻关系
+      - 分支：血管或神经的分支关系
+      - 供应：血管供应区域的关系
+
+identifiers:
+  node_id: "name"
+  edge_id: "{source}|{relationType}|{target}"
+  edge_members:
+    source: "source"
+    target: "target"
+
+parameters:
+  extraction_mode: "two_stage"
+
+display:
+  node_label: "{name} ({category})"
+  edge_label: "{relationType}"

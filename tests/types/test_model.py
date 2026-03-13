@@ -66,7 +66,7 @@ class TestAutoModelExtraction:
     def test_extract_creates_new_instance(self, llm_client, embedder):
         """Test that extract() returns a new instance."""
         model1 = AutoModel(Person, llm_client, embedder)
-        model2 = model1.extract("""Dr. James Wilson, 47 years old, served as Chief Technology Officer 
+        model2 = model1.parse("""Dr. James Wilson, 47 years old, served as Chief Technology Officer 
         at Innovate Systems for 12 years before joining CloudFirst as VP of Engineering.""")
 
         # Should be different instances

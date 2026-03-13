@@ -25,18 +25,18 @@ AUTOTYPES = [
 ]
 
 DOMAINS = [
-    ("finance", "Financial documents (25+ templates)"),
-    ("medicine", "Medical documents (20+ templates)"),
-    ("legal", "Legal documents (15+ templates)"),
-    ("history", "Historical documents (12+ templates)"),
-    ("literature", "Literature works (10+ templates)"),
-    ("tcm", "Traditional Chinese Medicine (15+ templates)"),
-    ("news", "News articles (12+ templates)"),
-    ("biology", "Biological documents (10+ templates)"),
-    ("industry", "Industrial documents (18+ templates)"),
-    ("agriculture", "Agricultural documents (8+ templates)"),
-    ("food", "Food and culinary (8+ templates)"),
-    ("general", "General purpose (20+ templates)"),
+    ("finance", "Financial documents"),
+    ("medicine", "Medical documents"),
+    ("legal", "Legal documents"),
+    ("history", "Historical documents"),
+    ("literature", "Literature works"),
+    ("tcm", "Traditional Chinese Medicine"),
+    ("news", "News articles"),
+    ("biology", "Biological documents"),
+    ("industry", "Industrial documents"),
+    ("agriculture", "Agricultural documents"),
+    ("food", "Food and culinary"),
+    ("general", "General purpose"),
 ]
 
 METHODS = [
@@ -50,31 +50,13 @@ METHODS = [
 ]
 
 
-def _get_all_templates() -> list:
-    """Get all available templates from hyperextract."""
-    templates = []
+def _get_domains_from_configs() -> list:
+    """Get domains from configs directory."""
     try:
-        from hyperextract.templates import zh, en
-        for name in dir(zh):
-            if not name.startswith("_"):
-                templates.append((f"zh/{name}", name, "Chinese"))
-        for name in dir(en):
-            if not name.startswith("_"):
-                templates.append((f"en/{name}", name, "English"))
-        return templates
-    except ImportError:
+        from ..templates import get_domains
+        return get_domains()
+    except Exception:
         return []
-
-
-def _filter_items(items: list, search: Optional[str]) -> list:
-    """Filter items by search keyword."""
-    if not search:
-        return items
-    search_lower = search.lower()
-    return [
-        item for item in items
-        if any(search_lower in str(field).lower() for field in item)
-    ]
 
 
 @app.command(name="autotype")
@@ -82,37 +64,58 @@ def autotype(
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search autotypes"),
 ):
     """List all available AutoTypes."""
-    items = _filter_items(AUTOTYPES, search)
+    from hyperextract.utils.template_engine import Gallery
+    
+    autotypes = Gallery.list_autotypes()
+    
+    if search:
+        search_lower = search.lower()
+        autotypes = [a for a in autotypes if search_lower in a.lower()]
     
     table = Table(title="Available AutoTypes", show_header=True, header_style="bold magenta")
     table.add_column("AutoType", style="cyan", width=25)
     table.add_column("Description", style="green")
     
-    for name, desc in items:
+    autotype_descriptions = dict(AUTOTYPES)
+    for name in autotypes:
+        desc = autotype_descriptions.get(name, "")
         table.add_row(name, desc)
     
     console.print(table)
-    console.print(f"\n[dim]Total: {len(items)} AutoTypes[/dim]")
+    console.print(f"\n[dim]Total: {len(autotypes)} AutoTypes[/dim]")
 
 
 @app.command(name="template")
 def template(
-    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search templates"),
+    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search templates by name"),
+    autotype: Optional[str] = typer.Option(None, "--autotype", "-a", help="Filter by autotype"),
+    language: Optional[str] = typer.Option(None, "--lang", "-l", help="Filter by language"),
 ):
     """List all available templates."""
-    templates = _get_all_templates()
-    items = _filter_items(templates, search)
+    from hyperextract.utils.template_engine import Gallery
+    
+    results = Gallery.search(query=search, autotype=autotype, language=language)
+    
+    templates = []
+    for cfg in results:
+        full_name = cfg.name
+        languages = cfg.language if cfg.language else ["zh"]
+        if isinstance(languages, str):
+            languages = [languages]
+        
+        for lang in languages:
+            templates.append((full_name, full_name, lang))
     
     table = Table(title="Available Templates", show_header=True, header_style="bold magenta")
     table.add_column("Template ID", style="cyan", width=30)
     table.add_column("Name", style="green", width=30)
     table.add_column("Language", style="yellow", width=10)
     
-    for tid, name, lang in items:
+    for tid, name, lang in templates:
         table.add_row(tid, name, lang)
     
     console.print(table)
-    console.print(f"\n[dim]Total: {len(items)} templates[/dim]")
+    console.print(f"\n[dim]Total: {len(templates)} templates[/dim]")
     console.print("\n[dim]Tip: Use -t/--template to specify a template.[/dim]")
 
 
@@ -121,7 +124,21 @@ def domain(
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search domains"),
 ):
     """List all available domains."""
-    items = _filter_items(DOMAINS, search)
+    domains = _get_domains_from_configs()
+    
+    domain_descriptions = dict(DOMAINS)
+    
+    items = []
+    for name, count in domains:
+        desc = domain_descriptions.get(name, f"{name} documents")
+        items.append((name, f"{desc} ({count} templates)"))
+    
+    if search:
+        search_lower = search.lower()
+        items = [
+            item for item in items
+            if search_lower in item[0].lower() or search_lower in item[1].lower()
+        ]
     
     table = Table(title="Available Domains", show_header=True, header_style="bold magenta")
     table.add_column("Domain", style="cyan", width=20)
@@ -139,7 +156,14 @@ def method(
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search methods"),
 ):
     """List all available extraction methods."""
-    items = _filter_items(METHODS, search)
+    items = METHODS
+    
+    if search:
+        search_lower = search.lower()
+        items = [
+            item for item in items
+            if search_lower in item[0].lower() or search_lower in item[1].lower()
+        ]
     
     table = Table(title="Available Methods", show_header=True, header_style="bold magenta")
     table.add_column("Method", style="cyan", width=20)
