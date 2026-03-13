@@ -116,10 +116,10 @@ identifiers:
   node_id: "name"
   edge_id: "formulaName"
   edge_members:
-  - "junHerbs"
-  - "chenHerbs"
-  - "zuoHerbs"
-  - "shiHerbs"
+    - "junHerbs"
+    - "chenHerbs"
+    - "zuoHerbs"
+    - "shiHerbs"
 
 parameters:
   extraction_mode: "two_stage"

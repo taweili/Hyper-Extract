@@ -30,7 +30,7 @@ edge_schema:
       description:
         zh: "时期"
     - name: locations
-      type: "str"
+      type: "string"
       description:
         zh: "地点"
     - name: companions

@@ -115,7 +115,7 @@ class Identifiers(BaseModel):
     item_id: Optional[str] = None
     node_id: Optional[str] = None
     edge_id: Optional[str] = None
-    edge_members: Optional[Union[str, Dict[str, str]]] = None
+    edge_members: Optional[Union[str, Dict[str, str], List[str]]] = None
     time_field: Optional[str] = None
     location_field: Optional[str] = None
 

@@ -73,7 +73,7 @@ extraction_guide:
 identifiers:
   node_id: "name"
   edge_id: "{conclusion}"
-  edge_members: 
+  edge_members:
     - "evidences"
     - "citations"
     - "conclusion"

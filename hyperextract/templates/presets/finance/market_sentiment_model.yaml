@@ -30,13 +30,13 @@ schema:
     - name: overall_sentiment
       type: "string"
       description:
-        zh: "整体情绪："看涨"、"看跌"、"中性"、"混合""
+        zh: "整体情绪：看涨、看跌、中性、混合"
       required: false
       default: ""
     - name: sentiment_confidence
       type: "string"
       description:
-        zh: "情绪评估的置信度："高"、"中"、"低""
+        zh: "情绪评估的置信度：高、中、低"
       required: false
       default: ""
     - name: mentioned_tickers

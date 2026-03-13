@@ -5,7 +5,7 @@ tag: [tcm]
 language: zh
 
 description:
-  zh: "处方加减逻辑 - 提取基于特定证型或症状对基础方剂进行的药物加减（如"随证加减"）"
+  zh: "处方加减逻辑 - 提取基于特定证型或症状对基础方剂进行的药物加减（如'随证加减'）"
 
 node_schema:
   fields:
@@ -90,7 +90,7 @@ extraction_guide:
 identifiers:
   node_id: "name"
   edge_id: "{baseFormula}|{condition}"
-  edge_members: 
+  edge_members:
     - "baseFormula"
     - "herbs"
 

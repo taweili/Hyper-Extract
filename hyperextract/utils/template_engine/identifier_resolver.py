@@ -43,7 +43,7 @@ class IdentifierResolver:
 
     @staticmethod
     def resolve_edge_members(
-        edge_members: Union[str, Dict[str, str]]
+        edge_members: Union[str, Dict[str, str], List[str]]
     ) -> Callable[[BaseModel], Tuple[str, ...]]:
         """Generate edge member extractor (unified for binary edge/hyperedge)."""
         if isinstance(edge_members, str):
@@ -66,6 +66,19 @@ class IdentifierResolver:
                     str(source) if source is not None else "",
                     str(target) if target is not None else "",
                 )
+            return extractor
+        elif isinstance(edge_members, list):
+            def extractor(edge: BaseModel) -> Tuple[str, ...]:
+                result = []
+                for field_name in edge_members:
+                    value = getattr(edge, field_name, None)
+                    if value is None:
+                        continue
+                    if isinstance(value, (list, tuple)):
+                        result.extend(str(v) for v in value)
+                    else:
+                        result.append(str(value))
+                return tuple(result)
             return extractor
         else:
             raise ValueError(f"Invalid edge_members configuration: {edge_members}")
