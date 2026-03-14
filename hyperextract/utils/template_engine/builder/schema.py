@@ -34,6 +34,22 @@ class SchemaField(BaseModel):
         return v
 
 
+class FieldsDefinition(BaseModel):
+    """Fields definition container with description."""
+
+    description: Optional[Union[str, Dict[str, str]]] = None
+    fields: List[SchemaField] = Field(default_factory=list)
+
+
+class OutputDefinition(BaseModel):
+    """Output definition - unified data structure definition."""
+
+    description: Optional[Union[str, Dict[str, str]]] = None
+    fields: Optional[List[SchemaField]] = None
+    entities: Optional[FieldsDefinition] = None
+    relations: Optional[FieldsDefinition] = None
+
+
 class BaseSchema(BaseModel):
     """Base schema configuration."""
 
@@ -104,58 +120,91 @@ class SchemaBuilder:
             return field.description.get("zh") or field.description.get("en") or ""
         return str(field.description)
 
+    @staticmethod
+    def build_schema_description(description: Optional[Union[str, Dict[str, str]]]) -> str:
+        """Build schema-level description."""
+        if description is None:
+            return ""
+        if isinstance(description, str):
+            return description
+        if isinstance(description, dict):
+            return description.get("zh") or description.get("en") or ""
+        return str(description)
+
     @classmethod
-    def build_model_schema(cls, schema: ModelSchema) -> Type[BaseModel]:
-        """Build Model type Schema."""
-        fields = {}
-        for field in schema.fields:
+    def _build_schema_from_fields(cls, fields: List[SchemaField]) -> Type[BaseModel]:
+        """Build Pydantic schema from field list."""
+        schema_fields = {}
+        for field in fields:
             field_type = cls.build_field_type(field)
             default = cls.build_field_default(field)
             description = cls.build_field_description(field)
-            fields[field.name] = (field_type, Field(default=default, description=description))
+            schema_fields[field.name] = (field_type, Field(default=default, description=description))
+        return create_model("GeneratedSchema", **schema_fields)
 
-        return create_model("GeneratedModelSchema", **fields)
+    @classmethod
+    def build_model_schema(cls, schema: ModelSchema) -> Type[BaseModel]:
+        """Build Model type Schema."""
+        return cls._build_schema_from_fields(schema.fields)
 
     @classmethod
     def build_item_schema(cls, schema: ItemSchema) -> Type[BaseModel]:
         """Build List/Set type Item Schema."""
-        fields = {}
-        for field in schema.fields:
-            field_type = cls.build_field_type(field)
-            default = cls.build_field_default(field)
-            description = cls.build_field_description(field)
-            fields[field.name] = (field_type, Field(default=default, description=description))
-
-        return create_model("GeneratedItemSchema", **fields)
+        return cls._build_schema_from_fields(schema.fields)
 
     @classmethod
     def build_node_schema(cls, schema: NodeSchema) -> Type[BaseModel]:
         """Build Graph type Node Schema."""
-        fields = {}
-        for field in schema.fields:
-            field_type = cls.build_field_type(field)
-            default = cls.build_field_default(field)
-            description = cls.build_field_description(field)
-            fields[field.name] = (field_type, Field(default=default, description=description))
-
-        return create_model("GeneratedNodeSchema", **fields)
+        return cls._build_schema_from_fields(schema.fields)
 
     @classmethod
     def build_edge_schema(cls, schema: EdgeSchema) -> Type[BaseModel]:
         """Build Graph type Edge Schema."""
-        fields = {}
-        for field in schema.fields:
-            field_type = cls.build_field_type(field)
-            default = cls.build_field_default(field)
-            description = cls.build_field_description(field)
-            fields[field.name] = (field_type, Field(default=default, description=description))
+        return cls._build_schema_from_fields(schema.fields)
 
-        return create_model("GeneratedEdgeSchema", **fields)
+    @classmethod
+    def build_output_schema(cls, output: OutputDefinition) -> Type[BaseModel]:
+        """Build schema from OutputDefinition (for non-graph types)."""
+        if output.fields is None:
+            raise ValueError("OutputDefinition must have fields for non-graph types")
+        model = cls._build_schema_from_fields(output.fields)
+        if output.description:
+            model.__doc__ = cls.build_schema_description(output.description)
+        return model
+
+    @classmethod
+    def build_entity_schema(cls, entities: FieldsDefinition) -> Type[BaseModel]:
+        """Build entity schema from FieldsDefinition."""
+        model = cls._build_schema_from_fields(entities.fields)
+        if entities.description:
+            model.__doc__ = cls.build_schema_description(entities.description)
+        return model
+
+    @classmethod
+    def build_relation_schema(cls, relations: FieldsDefinition) -> Type[BaseModel]:
+        """Build relation schema from FieldsDefinition."""
+        model = cls._build_schema_from_fields(relations.fields)
+        if relations.description:
+            model.__doc__ = cls.build_schema_description(relations.description)
+        return model
 
     @classmethod
     def build_schema(cls, config) -> Dict[str, Type[BaseModel]]:
         """Build corresponding Schema based on configuration."""
         result = {}
+
+        if config.output is not None:
+            autotype = config.type
+
+            if autotype in ("model", "list", "set"):
+                if config.output.fields:
+                    result["schema"] = cls.build_output_schema(config.output)
+
+            elif autotype in ("graph", "hypergraph", "temporal_graph", "spatial_graph", "spatio_temporal_graph"):
+                if config.output.entities:
+                    result["entity_schema"] = cls.build_entity_schema(config.output.entities)
+                if config.output.relations:
+                    result["relation_schema"] = cls.build_relation_schema(config.output.relations)
 
         if config.model_schema is not None:
             result["schema"] = cls.build_model_schema(config.model_schema)
@@ -164,10 +213,10 @@ class SchemaBuilder:
             result["item_schema"] = cls.build_item_schema(config.item_schema)
 
         if config.node_schema is not None:
-            result["node_schema"] = cls.build_node_schema(config.node_schema)
+            result["entity_schema"] = cls.build_node_schema(config.node_schema)
 
         if config.edge_schema is not None:
-            result["edge_schema"] = cls.build_edge_schema(config.edge_schema)
+            result["relation_schema"] = cls.build_edge_schema(config.edge_schema)
 
         return result
 
@@ -175,6 +224,8 @@ class SchemaBuilder:
 __all__ = [
     "FieldDescription",
     "SchemaField",
+    "FieldsDefinition",
+    "OutputDefinition",
     "BaseSchema",
     "ModelSchema",
     "ItemSchema",

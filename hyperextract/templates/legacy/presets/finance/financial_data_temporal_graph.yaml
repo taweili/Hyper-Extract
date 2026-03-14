@@ -1,0 +1,117 @@
+language: zh
+name: FinancialDataTemporalGraph
+type: temporal_graph
+tags:
+- finance
+description:
+  zh: 财务数据时序图谱 - 跨报告期追踪财务指标变化
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体的规范名称（例如 '苹果公司'、'云服务分部'、'营业收入'、'净利润'）
+      required: true
+      default: ''
+    - name: entity_type
+      type: string
+      description:
+        zh: 类型：'公司'、'分部'、'财务指标'、'会计科目'、'外部因素'
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 简要背景说明（例如 '消费电子业务板块'、'GAAP 收入确认口径'）
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 主体（公司/分部/指标名称）
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标（指标/分部/因素名称）
+      required: true
+      default: ''
+    - name: relationship
+      type: string
+      description:
+        zh: 关系类型：'拥有'、'同比变化'、'占比'、'贡献'、'影响'
+      required: true
+      default: ''
+    - name: value
+      type: string
+      description:
+        zh: 数值（如 '3943亿美元'、'+7.8%'、'30%'）
+      required: false
+      default: ''
+    - name: fiscal_period
+      type: string
+      description:
+        zh: 财务期间（如 'FY2024'、'Q3 2024'）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的财务分析师，请从文本中提取财务实体及其跨时间的量化关系。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 将公司、业务分部和财务指标/会计科目识别为实体
+    - 对每个报告数据，创建连接报告主体与指标的边，附带精确数值和财务期间
+    - 将同比变化、衍生比率和分部贡献分别作为独立的边提取
+    - 保留源文本中的精确金额和单位
+    - 统一使用一致的财务期间标签（例如 'FY2024'、'Q3 2024'）
+  rules_for_entities:
+    zh:
+    - 每个节点对应一个独立实体
+    - 实体名称与原文保持一致
+    - 提取的节点名称要完整准确，因为边会引用这些名称
+    - 公司：申报公司及其重要子公司
+    - 分部：业务分部或区域（具体名称）
+    - 财务指标：关键财务指标（营业收入、净利润、毛利率等）
+    - 会计科目：主要会计科目
+    - 外部因素：影响财务的外部因素
+  rules_for_relations:
+    zh:
+    - source 和 target 都必须是已知实体列表中的节点
+    - 每个出现的财务数据都必须提取为一条边
+    - 节点名称必须完全匹配
+    - 关系类型：拥有、同比变化、占比、贡献、影响
+  rules_for_time:
+    zh:
+    - 当前观察日期：{observation_time}
+    - 相对时间解析（基于观察日期）：
+    - '- "去年" → {observation_time} 的前一年'
+    - '- "上月" → {observation_time} 的前一个月'
+    - '- "本季度" → {observation_time} 所在季度'
+    - '- "FY2024" → 2024财年'
+    - 精确时间 → 保持原样
+    - 时间缺失 → 留空，不要猜测
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relationship}|{target}'
+  relation_members:
+    source: source
+    target: target
+  time_field: fiscal_period
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({entity_type})'
+  relation_label: '{relationship} ({value})'

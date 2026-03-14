@@ -1,0 +1,111 @@
+language: zh
+name: ShareholderStructure
+type: graph
+tags:
+- finance
+description:
+  zh: 股东结构图谱 - 从招股说明书或委托声明文件中提取股权结构
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称（例如个人、基金、控股公司、信托）
+      required: true
+      default: ''
+    - name: entity_type
+      type: string
+      description:
+        zh: 类型：个人、机构投资者、控股公司、风险投资、私募股权、信托、政府实体、发行公司
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 附加信息（例如'联合创始人兼 CEO'、'B 轮领投机构'）
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 持有方/母公司实体名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 被持有方/子公司实体名称
+      required: true
+      default: ''
+    - name: relationship_type
+      type: string
+      description:
+        zh: 类型：直接持股、间接持股、实益所有权、投票权控制、董事会席位、母子公司
+      required: true
+      default: ''
+    - name: ownership_percentage
+      type: string
+      description:
+        zh: 持股比例（例如'15.3%'、'51%'、'控股权'）
+      required: false
+      default: ''
+    - name: share_class
+      type: string
+      description:
+        zh: 股份类别（例如'A 类普通股'、'B 类（10 倍投票权）'、'C 轮优先股'）
+      required: false
+      default: ''
+    - name: voting_power
+      type: string
+      description:
+        zh: 投票权百分比（若与持股比例不同，例如'65% 投票权'）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的公司治理分析师，请从招股说明书或委托声明文件中提取股权结构。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 识别所有重要股东（5% 以上实益所有人）
+    - 提取持股比例和股份类别
+    - 映射母子公司和控股公司结构
+    - 注意双重股权结构和投票权差异
+    - 捕捉锁定期和 IPO 后限制条款
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别个人、机构投资者、控股公司和信托
+    - 识别发行公司本身
+    - 按类型对每个实体进行分类
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 将持有方连接到其持有的资产
+    - 提取持股比例和股份类别
+    - 注意投票权差异
+    - 捕捉锁定期
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relationship_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({entity_type})'
+  relation_label: '{relationship_type} {ownership_percentage}'

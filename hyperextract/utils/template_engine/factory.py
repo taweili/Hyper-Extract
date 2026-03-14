@@ -15,6 +15,7 @@ from .builder import (
     Options,
 )
 
+
 if TYPE_CHECKING:
     from hyperextract.types import (
         AutoModel,
@@ -42,7 +43,7 @@ class TemplateFactory:
             return {}
 
         result = {}
-        autotype = config.autotype
+        autotype = config.type
         display_dict = (
             display.model_dump() if hasattr(display, "model_dump") else display
         )
@@ -59,16 +60,16 @@ class TemplateFactory:
             "spatial_graph",
             "spatio_temporal_graph",
         ):
-            node_label_field = display_dict.get("node_label")
-            if node_label_field:
-                result["node_label_extractor"] = lambda x: str(
-                    getattr(x, node_label_field, "")
+            entity_label_field = display_dict.get("entity_label")
+            if entity_label_field:
+                result["entity_label_extractor"] = lambda x: str(
+                    getattr(x, entity_label_field, "")
                 )
 
-            edge_label_field = display_dict.get("edge_label")
-            if edge_label_field:
-                result["edge_label_extractor"] = lambda x: str(
-                    getattr(x, edge_label_field, "")
+            relation_label_field = display_dict.get("relation_label")
+            if relation_label_field:
+                result["relation_label_extractor"] = lambda x: str(
+                    getattr(x, relation_label_field, "")
                 )
 
         return result
@@ -86,7 +87,7 @@ class TemplateFactory:
         schema_class = schema_dict.get("schema")
 
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guide)
+        prompt = prompt_builder.build_model_prompt(config.guideline)
 
         options = OptionsBuilder.build_model_options(config, language)
 
@@ -120,7 +121,7 @@ class TemplateFactory:
         item_schema_class = schema_dict.get("item_schema")
 
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guide)
+        prompt = prompt_builder.build_model_prompt(config.guideline)
 
         options = OptionsBuilder.build_list_options(config)
 
@@ -149,7 +150,7 @@ class TemplateFactory:
         item_id_extractor = identifiers.get("item_id_extractor")
 
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guide)
+        prompt = prompt_builder.build_model_prompt(config.guideline)
 
         options = OptionsBuilder.build_set_options(config, language)
 
@@ -175,57 +176,58 @@ class TemplateFactory:
     def create_graph(
         cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoGraph":
+        """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
         language = cls.get_language(config)
 
         schema_dict, identifiers = OptionsBuilder.validate_graph_config(config)
-        node_schema_class = schema_dict.get("node_schema")
-        edge_schema_class = schema_dict.get("edge_schema")
-        node_key_extractor = identifiers.get("node_key_extractor")
-        edge_key_extractor = identifiers.get("edge_key_extractor")
-        nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
+        entity_schema_class = schema_dict.get("entity_schema")
+        relation_schema_class = schema_dict.get("relation_schema")
+        entity_key_extractor = identifiers.get("entity_key_extractor")
+        relation_key_extractor = identifiers.get("relation_key_extractor")
+        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
 
         prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_graph_options(config, language)
 
-        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             OptionsBuilder.build_prompts(
                 config, prompt_builder, options.extraction_mode
             )
         )
 
         return AutoGraph(
-            node_schema=node_schema_class,
-            edge_schema=edge_schema_class,
-        node_key_extractor=node_key_extractor,
-        edge_key_extractor=edge_key_extractor,
-        nodes_in_edge_extractor=nodes_in_edge_extractor,
-        llm_client=llm_client,
-        embedder=embedder,
-        extraction_mode=options.extraction_mode,
-        node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-            options.node_merge_strategy,
-            node_key_extractor,
-            llm_client,
-            node_schema_class,
-        ),
-        edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-            options.edge_merge_strategy,
-            edge_key_extractor,
-            llm_client,
-            edge_schema_class,
-        ),
-        prompt=prompt,
-        prompt_for_node_extraction=prompt_for_node_extraction,
-        prompt_for_edge_extraction=prompt_for_edge_extraction,
-        chunk_size=options.chunk_size,
-        chunk_overlap=options.chunk_overlap,
-        max_workers=options.max_workers,
-        verbose=options.verbose,
-        node_fields_for_index=options.node_search_fields,
-        edge_fields_for_index=options.edge_search_fields,
-    )
+            entity_schema=entity_schema_class,
+            relation_schema=relation_schema_class,
+            entity_key_extractor=entity_key_extractor,
+            relation_key_extractor=relation_key_extractor,
+            entities_in_relation_extractor=entities_in_relation_extractor,
+            llm_client=llm_client,
+            embedder=embedder,
+            extraction_mode=options.extraction_mode,
+            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.entity_merge_strategy,
+                entity_key_extractor,
+                llm_client,
+                entity_schema_class,
+            ),
+            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.relation_merge_strategy,
+                relation_key_extractor,
+                llm_client,
+                relation_schema_class,
+            ),
+            prompt=prompt,
+            prompt_for_entity_extraction=prompt_for_entity_extraction,
+            prompt_for_relation_extraction=prompt_for_relation_extraction,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
+            entity_fields_for_index=options.entity_fields_for_search,
+            relation_fields_for_index=options.relation_fields_for_search,
+        )
 
     @classmethod
     def create_hypergraph(
@@ -244,54 +246,54 @@ class TemplateFactory:
         schema_dict, identifiers = OptionsBuilder.validate_temporal_graph_config(
             config
         )
-        node_schema_class = schema_dict.get("node_schema")
-        edge_schema_class = schema_dict.get("edge_schema")
-        node_key_extractor = identifiers.get("node_key_extractor")
-        edge_key_extractor = identifiers.get("edge_key_extractor")
-        nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
-        time_in_edge_extractor = identifiers.get("time_in_edge_extractor")
+        entity_schema_class = schema_dict.get("entity_schema")
+        relation_schema_class = schema_dict.get("relation_schema")
+        entity_key_extractor = identifiers.get("entity_key_extractor")
+        relation_key_extractor = identifiers.get("relation_key_extractor")
+        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
 
         prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_temporal_graph_options(config, language)
 
-        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             OptionsBuilder.build_prompts(
                 config, prompt_builder, options.extraction_mode
             )
         )
 
         return AutoTemporalGraph(
-            node_schema=node_schema_class,
-            edge_schema=edge_schema_class,
-            node_key_extractor=node_key_extractor,
-            edge_key_extractor=edge_key_extractor,
-            nodes_in_edge_extractor=nodes_in_edge_extractor,
-            time_in_edge_extractor=time_in_edge_extractor,
+            node_schema=entity_schema_class,
+            edge_schema=relation_schema_class,
+            node_key_extractor=entity_key_extractor,
+            edge_key_extractor=relation_key_extractor,
+            nodes_in_edge_extractor=entities_in_relation_extractor,
+            time_in_edge_extractor=time_in_relation_extractor,
             observation_time=options.observation_time,
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=options.extraction_mode,
             node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.node_merge_strategy,
-                node_key_extractor,
+                options.entity_merge_strategy,
+                entity_key_extractor,
                 llm_client,
-                node_schema_class,
+                entity_schema_class,
             ),
             edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.edge_merge_strategy,
-                edge_key_extractor,
+                options.relation_merge_strategy,
+                relation_key_extractor,
                 llm_client,
-                edge_schema_class,
+                relation_schema_class,
             ),
             prompt=prompt,
-            prompt_for_node_extraction=prompt_for_node_extraction,
-            prompt_for_edge_extraction=prompt_for_edge_extraction,
+            prompt_for_node_extraction=prompt_for_entity_extraction,
+            prompt_for_edge_extraction=prompt_for_relation_extraction,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_fields_for_index=options.node_search_fields,
-            edge_fields_for_index=options.edge_search_fields,
+            node_fields_for_index=options.entity_fields_for_search,
+            edge_fields_for_index=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -305,54 +307,54 @@ class TemplateFactory:
         schema_dict, identifiers = OptionsBuilder.validate_spatial_graph_config(
             config
         )
-        node_schema_class = schema_dict.get("node_schema")
-        edge_schema_class = schema_dict.get("edge_schema")
-        node_key_extractor = identifiers.get("node_key_extractor")
-        edge_key_extractor = identifiers.get("edge_key_extractor")
-        nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
-        location_extractor = identifiers.get("location_extractor")
+        entity_schema_class = schema_dict.get("entity_schema")
+        relation_schema_class = schema_dict.get("relation_schema")
+        entity_key_extractor = identifiers.get("entity_key_extractor")
+        relation_key_extractor = identifiers.get("relation_key_extractor")
+        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
 
         prompt_builder = PromptBuilder(language)
-        options = OptionsBuilder.build_spatial_options(config, language)
+        options = OptionsBuilder.build_spatial_graph_options(config, language)
 
-        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             OptionsBuilder.build_prompts(
                 config, prompt_builder, options.extraction_mode 
             )
         )
 
         return AutoSpatialGraph(
-            node_schema=node_schema_class,
-            edge_schema=edge_schema_class,
-            node_key_extractor=node_key_extractor,
-            edge_key_extractor=edge_key_extractor,
-            nodes_in_edge_extractor=nodes_in_edge_extractor,
-            location_extractor=location_extractor,
+            entity_schema=entity_schema_class,
+            relation_schema=relation_schema_class,
+            entity_key_extractor=entity_key_extractor,
+            relation_key_extractor=relation_key_extractor,
+            entities_in_relation_extractor=entities_in_relation_extractor,
+            location_in_relation_extractor=location_in_relation_extractor,
             observation_location=options.observation_location,
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=options.extraction_mode,
-            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.node_merge_strategy,
-                node_key_extractor,
+            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.entity_merge_strategy,
+                entity_key_extractor,
                 llm_client,
-                node_schema_class,
+                entity_schema_class,
             ),
-            edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.edge_merge_strategy,
-                edge_key_extractor,
+            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.relation_merge_strategy,
+                relation_key_extractor,
                 llm_client,
-                edge_schema_class,
+                relation_schema_class,
             ),
             prompt=prompt,
-            prompt_for_node_extraction=prompt_for_node_extraction,
-            prompt_for_edge_extraction=prompt_for_edge_extraction,
+            prompt_for_entity_extraction=prompt_for_entity_extraction,
+            prompt_for_relation_extraction=prompt_for_relation_extraction,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_fields_for_index=options.node_search_fields,
-            edge_fields_for_index=options.edge_search_fields,
+            entity_fields_for_index=options.entity_fields_for_search,
+            relation_fields_for_index=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -366,59 +368,59 @@ class TemplateFactory:
         schema_dict, identifiers = (
             OptionsBuilder.validate_spatio_temporal_graph_config(config)
         )
-        node_schema_class = schema_dict.get("node_schema")
-        edge_schema_class = schema_dict.get("edge_schema")
-        node_key_extractor = identifiers.get("node_key_extractor")
-        edge_key_extractor = identifiers.get("edge_key_extractor")
-        nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
-        time_extractor = identifiers.get("time_extractor")
-        location_extractor = identifiers.get("location_extractor")
+        entity_schema_class = schema_dict.get("entity_schema")
+        relation_schema_class = schema_dict.get("relation_schema")
+        entity_key_extractor = identifiers.get("entity_key_extractor")
+        relation_key_extractor = identifiers.get("relation_key_extractor")
+        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
+        location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
 
         prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_spatio_temporal_graph_options(
             config, language
         )
 
-        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             OptionsBuilder.build_prompts(
                 config, prompt_builder, options.extraction_mode
             )
         )
 
         return AutoSpatioTemporalGraph(
-            node_schema=node_schema_class,
-            edge_schema=edge_schema_class,
-            node_key_extractor=node_key_extractor,
-            edge_key_extractor=edge_key_extractor,
-            nodes_in_edge_extractor=nodes_in_edge_extractor,
-            time_extractor=time_extractor,
-            location_extractor=location_extractor,
+            entity_schema=entity_schema_class,
+            relation_schema=relation_schema_class,
+            entity_key_extractor=entity_key_extractor,
+            relation_key_extractor=relation_key_extractor,
+            entities_in_relation_extractor=entities_in_relation_extractor,
+            time_in_relation_extractor=time_in_relation_extractor,
+            location_in_relation_extractor=location_in_relation_extractor,
             observation_time=options.observation_time,
             observation_location=options.observation_location,
             llm_client=llm_client,
             embedder=embedder,
             extraction_mode=options.extraction_mode,
-            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-            options.node_merge_strategy,
-            node_key_extractor,
-            llm_client,
-            node_schema_class,
-        ),
-        edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-            options.edge_merge_strategy,
-            edge_key_extractor,
-            llm_client,
-            edge_schema_class,
-        ),
+            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.entity_merge_strategy,
+                entity_key_extractor,
+                llm_client,
+                entity_schema_class,
+            ),
+            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.relation_merge_strategy,
+                relation_key_extractor,
+                llm_client,
+                relation_schema_class,
+            ),
             prompt=prompt,
-            prompt_for_node_extraction=prompt_for_node_extraction,
-            prompt_for_edge_extraction=prompt_for_edge_extraction,
+            prompt_for_entity_extraction=prompt_for_entity_extraction,
+            prompt_for_relation_extraction=prompt_for_relation_extraction,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_fields_for_index=options.node_search_fields,
-            edge_fields_for_index=options.edge_search_fields,
+            entity_fields_for_index=options.entity_fields_for_search,
+            relation_fields_for_index=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -480,14 +482,14 @@ class TemplateFactory:
             "spatio_temporal_graph": cls.create_spatio_temporal_graph,
         }
 
-        creator = autotype_map.get(config.autotype)
+        creator = autotype_map.get(config.type)
         if creator is None:
-            raise ValueError(f"Unsupported autotype: {config.autotype}")
+            raise ValueError(f"Unsupported type: {config.type}")
 
         template = creator(config, llm_client, embedder)
         display_extractors = cls.resolve_display_extractors(config, {})
 
-        return TemplateWrapper(template, display_extractors, config.autotype)
+        return TemplateWrapper(template, display_extractors, config.type)
 
 
 def safe_getattr(obj, name, default):
@@ -506,8 +508,8 @@ class TemplateWrapper:
         self._display_extractors = display_extractors
         self._autotype = autotype
 
-        self._node_label_extractor = display_extractors.get("node_label_extractor")
-        self._edge_label_extractor = display_extractors.get("edge_label_extractor")
+        self._entity_label_extractor = display_extractors.get("entity_label_extractor")
+        self._relation_label_extractor = display_extractors.get("relation_label_extractor")
         self._label_extractor = display_extractors.get("label_extractor")
 
     def __getattr__(self, name):
@@ -522,9 +524,9 @@ class TemplateWrapper:
             "spatial_graph",
             "spatio_temporal_graph",
         ):
-            if self._node_label_extractor and self._edge_label_extractor:
-                kwargs.setdefault("node_label_extractor", self._node_label_extractor)
-                kwargs.setdefault("edge_label_extractor", self._edge_label_extractor)
+            if self._entity_label_extractor and self._relation_label_extractor:
+                kwargs.setdefault("entity_label_extractor", self._entity_label_extractor)
+                kwargs.setdefault("relation_label_extractor", self._relation_label_extractor)
         else:
             if self._label_extractor:
                 kwargs.setdefault("label_extractor", self._label_extractor)

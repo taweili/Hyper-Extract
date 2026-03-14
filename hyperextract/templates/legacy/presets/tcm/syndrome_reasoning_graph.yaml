@@ -1,0 +1,96 @@
+language: zh
+name: SyndromeReasoningGraph
+type: hypergraph
+tags:
+- tcm
+description:
+  zh: 辨证论治逻辑图 - 建模 {症状群} -> 证型 -> 治则 -> {处方} 的完整推理链条
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称，如症状、证型、治则、药物等
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 实体类型：症状、证型、治则、药物
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 简要描述
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: nodes
+      type: array
+      description:
+        zh: 参与推理的节点列表：[症状1, 症状2, ..., 证型, 治则, 药物1, 药物2, ...]
+      required: true
+      default: ''
+    - name: reasoningType
+      type: string
+      description:
+        zh: 推理类型：辨证论治、随证加减
+      required: true
+      default: ''
+    - name: reasoningProcess
+      type: string
+      description:
+        zh: 推理过程描述
+      required: false
+      default: ''
+    - name: source
+      type: string
+      description:
+        zh: 推理来源，如医案名称、章节等
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的中医辨证论治专家，请从文本中提取中医实体和辨证论治推理逻辑作为超边。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 症状：临床表现，如发热、汗出、恶风
+    - 证型：疾病分类，如太阳中风、太阳伤寒
+    - 治则：治疗原则，如解肌发表、调和营卫
+    - 药物：中药名称，如桂枝、麻黄、杏仁
+    - 推理类型：辨证论治、随证加减
+    - 推理链条：症状群 → 证型 → 治则 → 处方
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 症状：临床表现，如发热、汗出、恶风
+    - 证型：疾病分类，如太阳中风、太阳伤寒
+    - 治则：治疗原则，如解肌发表、调和营卫
+    - 药物：中药名称，如桂枝、麻黄、杏仁
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 推理类型：辨证论治、随证加减
+    - 推理链条：症状群 → 证型 → 治则 → 处方
+identifiers:
+  entity_id: name
+  relation_id: '{reasoningType}|{nodes}'
+  relation_members: nodes
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{reasoningType}'

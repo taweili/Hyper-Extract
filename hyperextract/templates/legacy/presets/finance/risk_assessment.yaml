@@ -1,0 +1,121 @@
+language: zh
+name: RiskAssessmentGraph
+type: graph
+tags:
+- finance
+description:
+  zh: 风险评估图谱 - 从企业披露文件中提取风险因子及其财务影响传导路径
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 实体类别：'风险因素'、'财务指标'、'运营结果'
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 实体的详细描述
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 源实体名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标实体名称
+      required: true
+      default: ''
+    - name: relation_type
+      type: string
+      description:
+        zh: 关系类型：'导致'、'影响'、'提高'、'降低'、'改善'、'削弱' 等
+      required: true
+      default: ''
+    - name: transmission_mechanism
+      type: string
+      description:
+        zh: 传导机制说明
+      required: true
+      default: ''
+    - name: likelihood
+      type: string
+      description:
+        zh: 发生可能性：高/中/低
+      required: true
+      default: ''
+    - name: severity
+      type: string
+      description:
+        zh: 影响严重程度：高/中/低，或量化影响
+      required: false
+      default: ''
+    - name: mitigation
+      type: string
+      description:
+        zh: 缓解措施或应对策略
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的金融风险分析师，请从企业披露文件中提取风险因素、财务指标、运营结果等实体，以及它们之间的风险传导关系。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 识别风险因素：运营风险、市场风险、财务风险、合规风险、外部风险
+    - 识别财务指标：营收、利润、毛利率、现金流等
+    - 识别运营结果：产能利用率、交付周期、客户流失率等
+    - 映射风险到财务影响的传导路径
+    - 提取发生可能性和影响严重程度
+    - 捕获管理层提及的缓解措施
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别风险因素：供应链中断、原材料价格波动、汇率变动等
+    - 识别财务指标：营业收入、净利润、毛利率、现金流等
+    - 识别运营结果：产能利用率、交付延迟、客户流失等
+    - 为每个实体标注正确的类别
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 边的 source 和 target 必须完全使用下方实体列表中的名称，不能创造新名称
+    - 源实体通常是风险因素，目标实体是受影响的财务指标或运营结果
+    - 描述风险传导到目标的机制（如何影响）
+    - 提取发生可能性（高/中/低）
+    - 提取影响严重程度或量化影响
+    - 捕获提及的缓解措施或应对策略
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relation_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{relation_type}'

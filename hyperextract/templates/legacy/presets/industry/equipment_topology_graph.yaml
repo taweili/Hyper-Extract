@@ -1,0 +1,117 @@
+language: zh
+name: EquipmentTopologyGraph
+type: graph
+tags:
+- industry
+description:
+  zh: 设备拓扑图谱 - 提取工业设备的实体及其相互连接关系，包括物料流向、能量传递、控制信号等
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 设备或部件名称
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 类别：主机、辅机、部件、仪表、阀门、管路、系统、电机、泵、风机、容器等
+      required: true
+      default: ''
+    - name: location
+      type: string
+      description:
+        zh: 安装位置（如：生产车间一层、主厂房二层）
+      required: false
+      default: ''
+    - name: status
+      type: string
+      description:
+        zh: 运行状态：运行、备用、检修、停运
+      required: false
+      default: ''
+    - name: specification
+      type: string
+      description:
+        zh: 规格型号或技术参数
+      required: false
+      default: ''
+    - name: manufacturer
+      type: string
+      description:
+        zh: 制造厂家
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 上游设备或源设备名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 下游设备或目标设备名称
+      required: true
+      default: ''
+    - name: connectionType
+      type: string
+      description:
+        zh: 连接类型：物料输送、能量传递、控制信号、工艺流程、电气连接、仪表监测等
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 连接关系的详细描述（如：高温物料流向、循环水回路、闭环控制系统）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位工业设备管理专家，请从文本中提取设备实体及其相互连接关系。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的设备，禁止将多个设备合并为一个节点
+    - 设备名称与原文保持一致
+    - 仅从已知设备列表中提取边，不要创建新的设备节点
+    - 关系描述应与原文保持一致
+    - 识别所有设备、部件和系统
+    - 分类设备类型（主机/辅机/部件/仪表/阀门/管路/系统/电机/泵/风机/容器等）
+    - 提取设备之间的连接关系，包括物料输送、能量传递、控制信号等
+    - 记录安装位置和运行状态
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的设备，禁止将多个设备合并为一个节点
+    - 设备名称与原文保持一致
+    - 识别设备名称和部件名称
+    - 分类设备类别（主机、辅机、部件、仪表、阀门、管路、系统、电机、泵、风机、容器等）
+    - 记录安装位置和运行状态
+  rules_for_relations:
+    zh:
+    - 仅从已知设备列表中提取边，不要创建新的设备节点
+    - 关系描述应与原文保持一致
+    - 识别物料输送关系（上游→下游）
+    - 识别能量传递关系（驱动设备→被驱动设备）
+    - 识别控制信号关系（控制设备→被控设备）
+    - 识别工艺流程关系（前一工序→后一工序）
+    - 识别电气连接和仪表监测关系
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{connectionType}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{connectionType}'

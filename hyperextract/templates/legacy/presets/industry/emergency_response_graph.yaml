@@ -1,0 +1,106 @@
+language: zh
+name: EmergencyResponseGraph
+type: graph
+tags:
+- industry
+description:
+  zh: 应急预案图谱 - 提取事故场景、响应动作和部门，构建应急响应流程，识别应急响应的流程和责任分工
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称（如：火灾、停电、报警、疏散人员、设备部等）
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 类别：事故场景、响应动作、部门
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 对该实体的描述
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 源实体名称（事故场景或响应动作）
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标实体名称（响应动作或部门）
+      required: true
+      default: ''
+    - name: relationType
+      type: string
+      description:
+        zh: 关系类型：触发、执行、负责
+      required: true
+      default: ''
+    - name: time_limit
+      type: string
+      description:
+        zh: 响应时间要求（如：5分钟内、10分钟内）
+      required: false
+      default: ''
+    - name: success_criterion
+      type: string
+      description:
+        zh: 成功标准（如：人员安全撤离、火势控制）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位工业应急管理分析专家，请从文本中提取事故场景、响应动作和部门，构建应急响应流程。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 识别事故场景（如火灾、泄漏、停电、设备故障、人员受伤等）
+    - 识别响应动作（如报警、疏散人员、关闭电源等）
+    - 识别负责部门（如安保部、设备部、急救部、后勤部等）
+    - 建立从事故场景到响应动作的流程关系
+    - 记录时间要求和成功标准
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别事故场景名称（如火灾、泄漏、停电、设备故障）
+    - 识别响应动作名称（如报警、疏散人员、关闭电源）
+    - 识别负责部门名称（如安保部、设备部、急救部）
+    - 为每个实体指定类别（事故场景/响应动作/部门）
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 识别从事故场景到响应动作的关联
+    - 识别从响应动作到负责部门的关联
+    - 记录响应时间要求
+    - 记录成功标准
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relationType}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{relationType}'

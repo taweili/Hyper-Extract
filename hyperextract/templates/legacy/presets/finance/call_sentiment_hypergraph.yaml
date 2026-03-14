@@ -1,0 +1,107 @@
+language: zh
+name: CallSentimentHypergraph
+type: hypergraph
+tags:
+- finance
+description:
+  zh: 电话会议情绪超图 - 从财报电话会议中提取多维情绪聚类
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 主题元素名称（例如'收入增长'、'CEO 蒂姆·库克'、'AI 投资周期'、'谨慎'）
+      required: true
+      default: ''
+    - name: element_type
+      type: string
+      description:
+        zh: 类型：主题、发言人、情绪、驱动因素
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 该元素的上下文或说明
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: cluster_name
+      type: string
+      description:
+        zh: 描述性名称（例如'CEO 看好 AI 收入'、'CFO 对利润率持谨慎态度'）
+      required: true
+      default: ''
+    - name: participating_elements
+      type: array
+      description:
+        zh: 此情绪聚类中所有元素的名称（主题 + 发言人 + 情绪 + 驱动因素）
+      required: true
+      default: ''
+    - name: sentiment_polarity
+      type: string
+      description:
+        zh: 整体情绪方向：看多、看空、中性、混合
+      required: true
+      default: ''
+    - name: intensity
+      type: string
+      description:
+        zh: 情绪强度：强、中等、轻微
+      required: true
+      default: ''
+    - name: evidence
+      type: string
+      description:
+        zh: 支持情绪判断的关键引述或意译
+      required: false
+      default: ''
+    - name: shift_from_prior
+      type: string
+      description:
+        zh: 与前一季度基调的变化（如显著，例如'比第二季度更为谨慎'、'从中性上调'）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的财报电话会议情绪分析师，请从文本中提取主题、发言人、情绪信号及其多维关系。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别讨论的关键主题（收入、利润率、指引、战略）
+    - 识别发言人及其角色
+    - 评估每个主题-发言人组合的情绪方向和强度
+    - 超边连接 主题 + 发言人 + 情绪 + 驱动因素
+    - 记录与前一季度基调的变化
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别讨论的财务主题
+    - 识别发言人（分析师、管理层）
+    - 识别情绪标签和驱动因素
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 每个聚类连接 主题 + 发言人 + 情绪 + 驱动因素
+    - 评估整体情绪方向和强度
+    - 捕捉支撑证据
+    - 记录与前几个季度的基调变化
+identifiers:
+  entity_id: name
+  relation_id: '{cluster_name}|{participating_elements}'
+  relation_members: participating_elements
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} [{element_type}]'
+  relation_label: '{cluster_name}'

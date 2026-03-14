@@ -1,0 +1,74 @@
+language: zh
+name: ManagementGuidanceList
+type: list
+tags:
+- finance
+description:
+  zh: 管理层业绩指引列表 - 从财报电话会议中提取管理层未来业绩指引
+output:
+  description: {}
+  fields:
+  - name: guidance_topic
+    type: string
+    description:
+      zh: 指引主题（例如'第四季度收入'、'2025 财年资本支出'、'毛利率展望'、'招聘计划'）
+    required: true
+    default: ''
+  - name: guidance_type
+    type: string
+    description:
+      zh: 类型：定量、定性、战略、运营
+    required: true
+    default: ''
+  - name: guidance_value
+    type: string
+    description:
+      zh: 指引内容或预测值（例如'950-970 亿美元'、'将拓展 5 个新市场'、'预计下半年利润率改善'）
+    required: true
+    default: ''
+  - name: prior_guidance
+    type: string
+    description:
+      zh: 同一指标的前次指引（如有修订，例如'900-930 亿美元'）
+    required: false
+    default: ''
+  - name: direction
+    type: string
+    description:
+      zh: 相对前次指引或一致预期的方向：'上调'、'下调'、'维持'、'首次发布'
+    required: false
+    default: ''
+  - name: time_period
+    type: string
+    description:
+      zh: 指引覆盖的时间段（例如'2024 年第四季度'、'2025 财年'、'未来 12 个月'）
+    required: false
+    default: ''
+  - name: confidence_language
+    type: string
+    description:
+      zh: 管理层的确信程度措辞（例如'我们预计'、'我们有信心'、'我们预期'）
+    required: false
+    default: ''
+  - name: speaker
+    type: string
+    description:
+      zh: 指引发布者（例如'CEO'、'CFO'、'COO'）
+    required: false
+    default: ''
+guideline:
+  target:
+    zh: '你是一位专业的分析师，请从财报电话会议记录中提取所有前瞻性声明和业绩指引。
+
+      '
+  rules:
+    zh:
+    - 每个条目对应一个独立的实体，禁止合并
+    - 实体名称与原文保持一致
+    - 提取每一项指引条目（定量数据、战略规划、展望声明）
+    - 注明指引相较前次是上调、下调还是维持不变
+    - 捕捉每项指引覆盖的时间段
+    - 保留管理层的确信程度措辞
+    - 识别每项指引的发布者
+display:
+  label: '{guidance_topic} [{direction}]: {guidance_value}'

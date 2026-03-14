@@ -33,7 +33,7 @@ class Gallery:
 
     def __init__(self):
         self._configs: Dict[str, TemplateConfig] = {}
-        self._configs_by_autotype: Dict[str, List[str]] = {}
+        self._configs_by_type: Dict[str, List[str]] = {}
         self._configs_by_tag: Dict[str, List[str]] = {}
 
     @classmethod
@@ -65,10 +65,10 @@ class Gallery:
             cls._instance._load_config(path)
 
     @classmethod
-    def get_by_autotype(cls, autotype: str) -> List[TemplateConfig]:
+    def get_by_type(cls, type_value: str) -> List[TemplateConfig]:
         if not cls._instance:
             return []
-        names = cls._instance._configs_by_autotype.get(autotype, [])
+        names = cls._instance._configs_by_type.get(type_value, [])
         return [cls._instance._configs[name] for name in names if name in cls._instance._configs]
 
     @classmethod
@@ -79,12 +79,12 @@ class Gallery:
         return [cls._instance._configs[name] for name in names if name in cls._instance._configs]
 
     @classmethod
-    def search(cls, query: str = None, autotype: str = None, tag: str = None, language: str = None) -> List[TemplateConfig]:
-        """Search templates by query, autotype, tag, or language.
+    def search(cls, query: str = None, type_value: str = None, tag: str = None, language: str = None) -> List[TemplateConfig]:
+        """Search templates by query, type, tag, or language.
         
         Args:
             query: Search in template name/description
-            autotype: Filter by autotype (e.g., "graph", "list")
+            type_value: Filter by type (e.g., "graph", "list")
             tag: Filter by tag
             language: Filter by language (e.g., "zh", "en")
         
@@ -105,10 +105,10 @@ class Gallery:
                 if query_lower not in name_match and (desc_value and query_lower not in str(desc_value).lower()):
                     continue
             
-            if autotype and config.autotype != autotype:
+            if type_value and config.type != type_value:
                 continue
             
-            if tag and (not config.tag or tag not in config.tag):
+            if tag and (not config.tags or tag not in config.tags):
                 continue
             
             if language:
@@ -138,11 +138,11 @@ class Gallery:
         return sorted(languages)
 
     @classmethod
-    def list_autotypes(cls) -> List[str]:
-        """List all available autotypes."""
+    def list_types(cls) -> List[str]:
+        """List all available types."""
         if not cls._instance:
             return []
-        return list(cls._instance._configs_by_autotype.keys())
+        return list(cls._instance._configs_by_type.keys())
 
     @classmethod
     def list_tags(cls) -> List[str]:
@@ -174,6 +174,7 @@ class Gallery:
         lang: str = "zh",
         llm_client=None,
         embedder=None,
+        **kwargs,
     ):
         """Create template instance.
         
@@ -182,6 +183,7 @@ class Gallery:
             lang: Language, default "zh"
             llm_client: LLM client, optional, reads from global config if not provided
             embedder: Embedder client, optional, reads from global config if not provided
+            **kwargs: Additional parameters (e.g., observation_time, observation_location)
             
         Returns:
             TemplateWrapper instance
@@ -197,6 +199,9 @@ class Gallery:
             
             # Method 3: Mixed usage
             template = Gallery.create("knowledge_graph", llm_client=my_llm)
+            
+            # Method 4: With additional parameters
+            template = Gallery.create("FinancialTemporalGraph", observation_time="2024-06-15")
         """
         config = cls._resolve_config(name, lang)
         
@@ -207,7 +212,7 @@ class Gallery:
             embedder = embedder or default_emb
         
         from .factory import TemplateFactory
-        return TemplateFactory.create(config, llm_client, embedder)
+        return TemplateFactory.create(config, llm_client, embedder, **kwargs)
 
     @classmethod
     def _resolve_config(cls, name: str, lang: str = "zh") -> TemplateConfig:
@@ -245,13 +250,13 @@ class Gallery:
     def _register(self, config: TemplateConfig) -> None:
         self._configs[config.name] = config
 
-        if config.autotype not in self._configs_by_autotype:
-            self._configs_by_autotype[config.autotype] = []
-        if config.name not in self._configs_by_autotype[config.autotype]:
-            self._configs_by_autotype[config.autotype].append(config.name)
+        if config.type not in self._configs_by_type:
+            self._configs_by_type[config.type] = []
+        if config.name not in self._configs_by_type[config.type]:
+            self._configs_by_type[config.type].append(config.name)
 
-        if config.tag:
-            for tag in config.tag:
+        if config.tags:
+            for tag in config.tags:
                 if tag not in self._configs_by_tag:
                     self._configs_by_tag[tag] = []
                 if config.name not in self._configs_by_tag[tag]:

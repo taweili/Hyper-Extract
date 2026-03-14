@@ -1,0 +1,49 @@
+language: zh
+name: PenaltyRegistry
+type: set
+tags:
+- general
+description:
+  zh: 违规处罚对照表 - 去重汇总特定的违规行为及其对应的后果，形成清晰的处罚台账
+output:
+  description: {}
+  fields:
+  - name: violation
+    type: string
+    description:
+      zh: 违规行为描述
+  - name: severity
+    type: string
+    description:
+      zh: 严重程度：轻微、一般、严重、特别严重
+  - name: penalty
+    type: string
+    description:
+      zh: 处罚措施
+  - name: applicableClause
+    type: string
+    description:
+      zh: 适用条款
+    required: false
+  - name: notes
+    type: string
+    description:
+      zh: 备注说明
+    required: false
+guideline:
+  target:
+    zh: '你是一位专业的合规分析专家，请从文本中提取所有违规行为及其对应的处罚措施，形成违规处罚对照表。
+
+      '
+  rules:
+    zh:
+    - 提取所有违规行为及其对应的处罚措施
+    - 为每条违规行为指定严重程度
+    - 保持违规行为和处罚措施的准确性
+    - 记录适用的条款（如有）
+    - 添加备注说明（如有）
+    - 去重：相同的违规行为和处罚措施组合只保留一条
+identifiers:
+  item_id: violation
+display:
+  label: violation

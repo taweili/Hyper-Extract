@@ -1,0 +1,105 @@
+language: zh
+name: BeneficialOwnershipGraph
+type: graph
+tags:
+- legal
+description:
+  zh: 受益所有权图谱 - 穿透多层股权结构，识别最终受益人和控制人
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: entity_name
+      type: string
+      description:
+        zh: 实体名称，如公司名、人名
+      required: true
+      default: ''
+    - name: entity_type
+      type: string
+      description:
+        zh: 实体类型：公司、自然人、基金、合伙企业、境外特殊目的公司
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 简要描述，如持股比例、职务
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 源实体名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标实体名称
+      required: true
+      default: ''
+    - name: relation_type
+      type: string
+      description:
+        zh: 关系类型：控股、参股、担任董事、执行事务合伙人、实际控制、配偶关系等
+      required: true
+      default: ''
+    - name: shareholding_ratio
+      type: string
+      description:
+        zh: 持股比例或出资比例，如35%、1%、XX%
+      required: false
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 关系描述，如通过多层持股结构控制
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的反洗钱合规专员，请从文本中提取股权结构和受益所有权信息。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 实体类型：公司、自然人、基金、合伙企业、境外特殊目的公司
+    - 包含股东、合伙人、高管、实际控制人等
+    - 关系类型：控股（持有50%以上股份或出资额）、参股（持有一定比例股份但不构成控股）、担任董事（在公司担任董事职务）、执行事务合伙人（执行合伙事务）、实际控制（通过协议或其他安排实现实际控制）、配偶关系（夫妻关系）、其他关系（如父子、兄弟、姐妹等）
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 实体类型：公司、自然人、基金、合伙企业、境外特殊目的公司
+    - 包含股东、合伙人、高管、实际控制人等
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 控股：持有50%以上股份或出资额
+    - 参股：持有一定比例股份但不构成控股
+    - 担任董事：在公司担任董事职务
+    - 执行事务合伙人：执行合伙事务
+    - 实际控制：通过协议或其他安排实现实际控制
+    - 配偶关系：夫妻关系
+    - 其他关系：如父子、兄弟、姐妹等
+identifiers:
+  entity_id: entity_name
+  relation_id: '{source}|{relation_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{entity_name}({entity_type})'
+  relation_label: '{relation_type} {shareholding_ratio}'

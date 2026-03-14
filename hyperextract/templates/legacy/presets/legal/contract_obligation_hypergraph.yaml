@@ -1,0 +1,105 @@
+language: zh
+name: ContractObligationHypergraph
+type: hypergraph
+tags:
+- legal
+description:
+  zh: 合同义务超图 - 建模复杂的条件性义务
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 要素名称，文本中出现的精确名称
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 要素类型：主体、义务、触发条件、例外情形、违约责任、其他
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 简要描述
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: obligation_type
+      type: string
+      description:
+        zh: 义务类型：支付义务、交付义务、保密义务、竞业限制、售后服务、其他
+      required: true
+      default: ''
+    - name: participants
+      type: array
+      description:
+        zh: 参与要素名称列表，必须使用已提取节点的 name
+      required: true
+      default: ''
+    - name: trigger_condition
+      type: string
+      description:
+        zh: 触发条件，如合同签订后、验收合格后、违约发生时等
+      required: false
+      default: ''
+    - name: exception
+      type: string
+      description:
+        zh: 例外情形，如不可抗力、对方违约在先等
+      required: false
+      default: ''
+    - name: liability
+      type: string
+      description:
+        zh: 违约责任，如支付违约金、赔偿损失、解除合同等
+      required: false
+      default: ''
+    - name: source_clause
+      type: string
+      description:
+        zh: 义务来源条款编号或名称
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的合同法律师，请从文本中提取合同要素和合同义务。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的要素，禁止将多个要素合并为一个节点
+    - 要素名称与原文保持一致
+    - 仅从已提取节点中提取边，不要创建新名称
+    - 超边必须包含 obligation_type, participants
+    - participants 应包含涉及的主体、义务及相关要素
+    - 要素类型：主体（合同的当事人）、义务（具体需要执行的行为）、触发条件（义务生效或履行的前提条件）、例外情形（义务免除或减轻的情形）、违约责任（违反义务的后果）、其他（不属于上述类别的要素）
+    - 义务类型：支付义务、交付义务、保密义务、竞业限制、售后服务、其他
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的要素，禁止将多个要素合并为一个节点
+    - 要素名称与原文保持一致
+    - 提取合同中涉及的要素作为节点
+    - 为每个要素指定类型
+    - 为每个要素添加简要描述（1-2句话）
+  rules_for_relations:
+    zh:
+    - participants 必须严格使用已知合同要素列表中的名称，不要创建新名称
+    - 超边必须包含 obligation_type, participants
+    - participants 应包含涉及的主体、义务及相关要素
+    - 义务类型：支付义务、交付义务、保密义务、竞业限制、售后服务、其他
+identifiers:
+  entity_id: name
+  relation_id: '{obligation_type}_{participants}'
+  relation_members: participants
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{obligation_type}'

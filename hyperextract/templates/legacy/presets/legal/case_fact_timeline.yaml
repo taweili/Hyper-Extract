@@ -1,0 +1,109 @@
+language: zh
+name: CaseFactTimeline
+type: temporal_graph
+tags:
+- legal
+description:
+  zh: 案件事实时序图 - 展示法律关系的变化过程
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称，如原告、被告、合同、金钱、股权等
+      required: true
+      default: ''
+    - name: entity_type
+      type: string
+      description:
+        zh: 实体类型：当事人、合同/协议、金钱、股权、证物、其他
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 简要描述
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 源实体名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标实体名称
+      required: true
+      default: ''
+    - name: event
+      type: string
+      description:
+        zh: 法律行为或事件，如签订协议、支付投资款、分配红利、提起诉讼等
+      required: true
+      default: ''
+    - name: time_info
+      type: string
+      description:
+        zh: 时间信息，统一格式为年-月-日（如2021-03-15）或年月（如2021-03）
+      required: false
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 事件详细描述
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的法律工作者，请从文本中提取案件相关的法律实体以及它们之间的法律行为。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 实体类型：当事人（原告、被告、第三人、法定代表人、委托诉讼代理人）、合同/协议（战略合作协议、补充协议、收益分配说明函等）、金钱（投资款、红利、违约金等）、股权（股份、股权等）
+    - 法律行为：签订协议、支付投资款、完成登记、召开股东会、分配红利、发送函件、提起诉讼等
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 实体类型：当事人、合同/协议、金钱、股权、证物、其他
+    - 当事人：原告、被告、第三人、法定代表人、委托诉讼代理人
+    - 合同/协议：战略合作协议、补充协议、收益分配说明函等
+    - 金钱：投资款、红利、违约金等
+    - 股权：股份、股权等
+  rules_for_relations:
+    zh:
+    - 仅从已知法律实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 常见的法律行为：签订协议、支付投资款、完成登记、召开股东会、分配红利、发送函件、提起诉讼等
+    - 每个边表示一个法律行为，连接相关实体
+  rules_for_time:
+    zh:
+    - 当前观察日期：{observation_time}
+    - 相对时间解析（基于观察日期）
+    - 精确时间 → 转换为标准格式年-月-日
+    - 时间缺失 → 留空
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{event}|{target}'
+  relation_members:
+    source: source
+    target: target
+  time_field: time_info
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name}({entity_type})'
+  relation_label: '{event} [{time_info}]'

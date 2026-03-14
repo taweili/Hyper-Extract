@@ -1,0 +1,97 @@
+language: zh
+name: LegalConceptOntology
+type: graph
+tags:
+- legal
+description:
+  zh: 法律概念本体 - 提取法律术语的定义、上下位关系及法理阐释
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 法律概念名称，如过错、故意、过失、违法性
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 概念类型：原则、规则、学说、术语、法律依据
+      required: true
+      default: ''
+    - name: definition
+      type: string
+      description:
+        zh: 概念的简要定义
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: source
+      type: string
+      description:
+        zh: 源概念名称
+      required: true
+      default: ''
+    - name: target
+      type: string
+      description:
+        zh: 目标概念名称
+      required: true
+      default: ''
+    - name: relationType
+      type: string
+      description:
+        zh: 关系类型：上位概念、下位概念、相关联、对立、包含、依据
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 关系描述
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位专业的法学专家，请从文本中提取所有法律概念以及它们之间的关系。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的概念，禁止将多个概念合并为一个节点
+    - 概念名称与原文保持一致
+    - 仅从已知概念列表中提取边，不要创建未列出的概念
+    - 关系描述应与原文保持一致
+    - 法律概念类型包括：原则、规则、学说、术语、法律依据
+    - 关系类型：上位概念、下位概念、相关联、对立、包含、依据
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的概念，禁止将多个概念合并为一个节点
+    - 概念名称与原文保持一致
+    - 法律概念类型包括：原则、规则、学说、术语、法律依据
+    - 常见的法律概念：过错、故意、过失、违法性、因果关系、举证责任等
+  rules_for_relations:
+    zh:
+    - 仅从已知法律概念列表中提取边，不要创建未列出的概念
+    - 关系描述应与原文保持一致
+    - 上位概念：概念之间的层级包含关系
+    - 下位概念：概念之间的层级包含关系
+    - 相关联：概念之间存在逻辑关联
+    - 对立：概念之间存在对立关系
+    - 包含：一个概念包含另一个概念
+    - 依据：一个概念是另一个概念的依据
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relationType}|{target}'
+  relation_members:
+    source: source
+    target: target
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name}({category})'
+  relation_label: '{relationType}'

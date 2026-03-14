@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-from .prompt import Guide
+from .prompt import Guideline
 from .identifiers import Identifiers
-from .schema import ModelSchema, ItemSchema, NodeSchema, EdgeSchema
+from .schema import ModelSchema, ItemSchema, NodeSchema, EdgeSchema, OutputDefinition
 from .options import Options
 
 
@@ -15,26 +15,27 @@ class Display(BaseModel):
     """Display configuration."""
 
     label: Optional[str] = None
-    node_label: Optional[str] = None
-    edge_label: Optional[str] = None
+    entity_label: Optional[str] = None
+    relation_label: Optional[str] = None
 
 
 class TemplateConfig(BaseModel):
     """Template configuration top-level model."""
 
+    language: Optional[Union[str, List[str]]] = "zh"
     name: str
-    autotype: Literal[
+    type: Literal[
         "model", "list", "set", "graph", "hypergraph",
         "temporal_graph", "spatial_graph", "spatio_temporal_graph"
     ]
-    tag: Optional[List[str]] = None
-    language: Optional[Union[str, List[str]]] = "zh"
+    tags: Optional[List[str]] = None
     description: Optional[Union[str, Dict[str, str]]] = None
+    output: Optional[OutputDefinition] = None
     model_schema: Optional[ModelSchema] = Field(None, alias="schema")
     item_schema: Optional[ItemSchema] = None
     node_schema: Optional[NodeSchema] = None
     edge_schema: Optional[EdgeSchema] = None
-    guide: Optional[Guide] = None
+    guideline: Optional[Guideline] = None
     identifiers: Optional[Identifiers] = None
     options: Optional[Options] = None
     display: Optional[Display] = None
@@ -91,13 +92,13 @@ class ConfigLoader:
         return None
 
     @staticmethod
-    def validate_autotype(autotype: str) -> bool:
-        """Validate if autotype is valid."""
+    def validate_type(type_value: str) -> bool:
+        """Validate if type is valid."""
         valid_types = {
             "model", "list", "set", "graph", "hypergraph",
             "temporal_graph", "spatial_graph", "spatio_temporal_graph"
         }
-        return autotype in valid_types
+        return type_value in valid_types
 
 
 __all__ = [

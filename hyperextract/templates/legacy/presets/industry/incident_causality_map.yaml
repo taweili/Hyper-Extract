@@ -1,0 +1,100 @@
+language: zh
+name: IncidentCausalityMap
+type: hypergraph
+tags:
+- industry
+description:
+  zh: 事故因果链超图 - 从事故调查报告中提取隐患、触发条件、违章行为、事故后果的因果关系
+output:
+  description: {}
+  entities:
+    description: {}
+    fields:
+    - name: name
+      type: string
+      description:
+        zh: 实体名称（例如：违章操作、泄漏积累、点火源等）
+      required: true
+      default: ''
+    - name: category
+      type: string
+      description:
+        zh: 类型：隐患、触发条件、违章行为、事故后果
+      required: true
+      default: ''
+    - name: description
+      type: string
+      description:
+        zh: 描述（例如：未佩戴安全带、管道腐蚀破裂）
+      required: false
+      default: ''
+    - name: severity
+      type: string
+      description:
+        zh: 严重程度：轻微、一般、严重、重大
+      required: false
+      default: ''
+  relations:
+    description: {}
+    fields:
+    - name: nodes
+      type: array
+      description:
+        zh: 参与因果链条的节点列表：[隐患1, 隐患2, ..., 触发条件, 违章行为, 事故后果1, 事故后果2, ...]
+      required: true
+      default: ''
+    - name: causality_type
+      type: string
+      description:
+        zh: 因果类型：隐患积累、触发导致、违章促成、后果扩展
+      required: true
+      default: ''
+    - name: causality_description
+      type: string
+      description:
+        zh: 因果关系详细描述（例如：由于管道腐蚀导致泄漏，遇火源引发火灾）
+      required: false
+      default: ''
+guideline:
+  target:
+    zh: '你是一位工业安全事故调查专家，请从事故调查报告中提取实体和事故因果链条作为超边。
+
+      '
+  rules:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 识别隐患（设备老化、防护缺失、管理漏洞、安全培训不足）
+    - 识别触发条件（点火源、静电、明火、高温）
+    - 识别违章行为（违章操作、违章指挥、违反劳动纪律）
+    - 识别事故后果（人员伤亡、设备损坏、环境污染、停产损失）
+    - 建立完整的因果链条：隐患 → 触发条件 → 违章行为 → 事故后果
+  rules_for_entities:
+    zh:
+    - 每个节点只能对应一个独立的实体，禁止将多个实体合并为一个节点
+    - 实体名称与原文保持一致
+    - 识别隐患（设备老化、防护缺失、管理漏洞、安全培训不足）
+    - 识别触发条件（点火源、静电、明火、高温）
+    - 识别违章行为（违章操作、违章指挥、违反劳动纪律）
+    - 识别事故后果（人员伤亡、设备损坏、环境污染、停产损失）
+    - 为实体指定严重程度
+  rules_for_relations:
+    zh:
+    - 仅从已知实体列表中提取边，不要创建未列出的实体
+    - 关系描述应与原文保持一致
+    - 识别隐患积累过程
+    - 识别触发条件的作用
+    - 识别违章行为的促成作用
+    - 识别事故后果的扩展
+    - 建立完整的因果链条：隐患 → 触发条件 → 违章行为 → 事故后果
+    - 边的 nodes 字段应包含所有参与该因果链条的实体
+identifiers:
+  entity_id: name
+  relation_id: '{causality_type}_{nodes}'
+  relation_members: nodes
+options:
+  extraction_mode: two_stage
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{causality_type}'

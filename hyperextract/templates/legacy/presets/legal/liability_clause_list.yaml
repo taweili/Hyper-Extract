@@ -1,0 +1,57 @@
+language: zh
+name: LiabilityClauseList
+type: list
+tags:
+- legal
+description:
+  zh: 责任条款清单 - 提取关于赔偿、责任限制、保证及免责声明的具体条款
+output:
+  description: {}
+  fields:
+  - name: clause_type
+    type: string
+    description:
+      zh: 条款类型：赔偿条款、责任限制、保证条款、免责声明、违约金、连带责任、其他
+    required: true
+    default: ''
+  - name: clause_title
+    type: string
+    description:
+      zh: 条款标题或简要名称
+    required: true
+    default: ''
+  - name: content
+    type: string
+    description:
+      zh: 条款的具体内容
+    required: true
+    default: ''
+  - name: liability_amount
+    type: string
+    description:
+      zh: 涉及的责任金额或计算方式，如合同总价的10%、人民币20万元等
+    required: false
+    default: ''
+  - name: source_clause
+    type: string
+    description:
+      zh: 条款来源的章节编号
+    required: false
+    default: ''
+guideline:
+  target:
+    zh: '你是一位专业的合同法律师，请从文本中提取所有关于责任、赔偿、保证的条款。
+
+      '
+  rules:
+    zh:
+    - 提取文本中所有关于责任分配的具体条款
+    - 为每一条款指定类型：赔偿条款、责任限制、保证条款、免责声明、违约金、连带责任、其他
+    - 记录条款的具体内容和涉及的责任金额
+    - 记录条款来源的章节编号
+    - 条款类型说明：赔偿条款（约定一方给另一方造成损失时的赔偿方式）、责任限制（限制某方承担责任的最高限额）、保证条款（一方对某事项的保证承诺）、免责声明（免除或限制某方责任的条款）、违约金（约定违约时支付的违约金）、连带责任（约定多方承担连带责任）、其他（不属于上述类别的责任条款）
+    - 每项责任条款作为独立条目提取
+    - 保持条款内容与原文一致
+    - 不要遗漏任何责任相关条款
+display:
+  label: '[{clause_type}] {clause_title}'

@@ -10,11 +10,11 @@ from .identifiers import IdentifierResolver
 
 
 class Options(BaseModel):
-    """运行时选项配置 - 排除 LLM、Embedder、Schema、Prompt 之外的所有配置"""
+    """Runtime options configuration - excludes LLM, Embedder, Schema, Prompt."""
 
     merge_strategy: Optional[str] = None
-    node_merge_strategy: Optional[str] = None
-    edge_merge_strategy: Optional[str] = None
+    entity_merge_strategy: Optional[str] = None
+    relation_merge_strategy: Optional[str] = None
     extraction_mode: Optional[str] = None
     observation_time: Optional[str] = None
     observation_location: Optional[str] = None
@@ -22,13 +22,13 @@ class Options(BaseModel):
     chunk_overlap: int = 256
     max_workers: int = 10
     verbose: bool = False
-    search_fields: Optional[List[str]] = None
-    node_search_fields: Optional[List[str]] = None
-    edge_search_fields: Optional[List[str]] = None
+    fields_for_search: Optional[List[str]] = None
+    entity_fields_for_search: Optional[List[str]] = None
+    relation_fields_for_search: Optional[List[str]] = None
 
     def get_merge_strategy(self) -> Optional[str]:
         """Get merge strategy."""
-        return self.merge_strategy or self.node_merge_strategy
+        return self.merge_strategy or self.entity_merge_strategy
 
 
 class ModelOptions:
@@ -89,24 +89,24 @@ class GraphOptions:
     def __init__(
         self,
         extraction_mode: str = "two_stage",
-        node_merge_strategy: str = "llm_balanced",
-        edge_merge_strategy: str = "llm_balanced",
+        entity_merge_strategy: str = "llm_balanced",
+        relation_merge_strategy: str = "llm_balanced",
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        node_search_fields: Optional[List[str]] = None,
-        edge_search_fields: Optional[List[str]] = None,
+        entity_fields_for_search: Optional[List[str]] = None,
+        relation_fields_for_search: Optional[List[str]] = None,
     ):
         self.extraction_mode = extraction_mode
-        self.node_merge_strategy = node_merge_strategy
-        self.edge_merge_strategy = edge_merge_strategy
+        self.entity_merge_strategy = entity_merge_strategy
+        self.relation_merge_strategy = relation_merge_strategy
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_workers = max_workers
         self.verbose = verbose
-        self.node_search_fields = node_search_fields
-        self.edge_search_fields = edge_search_fields
+        self.entity_fields_for_search = entity_fields_for_search
+        self.relation_fields_for_search = relation_fields_for_search
 
 
 class TemporalGraphOptions(GraphOptions):
@@ -115,26 +115,26 @@ class TemporalGraphOptions(GraphOptions):
     def __init__(
         self,
         extraction_mode: str = "two_stage",
-        node_merge_strategy: str = "llm_balanced",
-        edge_merge_strategy: str = "llm_balanced",
+        entity_merge_strategy: str = "llm_balanced",
+        relation_merge_strategy: str = "llm_balanced",
         observation_time: Optional[str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        node_search_fields: Optional[List[str]] = None,
-        edge_search_fields: Optional[List[str]] = None,
+        entity_fields_for_search: Optional[List[str]] = None,
+        relation_fields_for_search: Optional[List[str]] = None,
     ):
         super().__init__(
             extraction_mode=extraction_mode,
-            node_merge_strategy=node_merge_strategy,
-            edge_merge_strategy=edge_merge_strategy,
+            entity_merge_strategy=entity_merge_strategy,
+            relation_merge_strategy=relation_merge_strategy,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            node_search_fields=node_search_fields,
-            edge_search_fields=edge_search_fields,
+            entity_fields_for_search=entity_fields_for_search,
+            relation_fields_for_search=relation_fields_for_search,
         )
         self.observation_time = observation_time
 
@@ -145,26 +145,26 @@ class SpatialGraphOptions(GraphOptions):
     def __init__(
         self,
         extraction_mode: str = "two_stage",
-        node_merge_strategy: str = "llm_balanced",
-        edge_merge_strategy: str = "llm_balanced",
+        entity_merge_strategy: str = "llm_balanced",
+        relation_merge_strategy: str = "llm_balanced",
         observation_location: Optional[str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        node_search_fields: Optional[List[str]] = None,
-        edge_search_fields: Optional[List[str]] = None,
+        entity_fields_for_search: Optional[List[str]] = None,
+        relation_fields_for_search: Optional[List[str]] = None,
     ):
         super().__init__(
             extraction_mode=extraction_mode,
-            node_merge_strategy=node_merge_strategy,
-            edge_merge_strategy=edge_merge_strategy,
+            entity_merge_strategy=entity_merge_strategy,
+            relation_merge_strategy=relation_merge_strategy,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            node_search_fields=node_search_fields,
-            edge_search_fields=edge_search_fields,
+            entity_fields_for_search=entity_fields_for_search,
+            relation_fields_for_search=relation_fields_for_search,
         )
         self.observation_location = observation_location
 
@@ -175,34 +175,34 @@ class SpatioTemporalGraphOptions(TemporalGraphOptions):
     def __init__(
         self,
         extraction_mode: str = "two_stage",
-        node_merge_strategy: str = "llm_balanced",
-        edge_merge_strategy: str = "llm_balanced",
+        entity_merge_strategy: str = "llm_balanced",
+        relation_merge_strategy: str = "llm_balanced",
         observation_time: Optional[str] = None,
         observation_location: Optional[str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
         verbose: bool = False,
-        node_search_fields: Optional[List[str]] = None,
-        edge_search_fields: Optional[List[str]] = None,
+        entity_fields_for_search: Optional[List[str]] = None,
+        relation_fields_for_search: Optional[List[str]] = None,
     ):
         super().__init__(
             extraction_mode=extraction_mode,
-            node_merge_strategy=node_merge_strategy,
-            edge_merge_strategy=edge_merge_strategy,
+            entity_merge_strategy=entity_merge_strategy,
+            relation_merge_strategy=relation_merge_strategy,
             observation_time=observation_time,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
-            node_search_fields=node_search_fields,
-            edge_search_fields=edge_search_fields,
+            entity_fields_for_search=entity_fields_for_search,
+            relation_fields_for_search=relation_fields_for_search,
         )
         self.observation_location = observation_location
 
 
 class OptionsBuilder:
-    """Options Builder - 负责选项解析、验证、merge strategy 解析"""
+    """Options Builder - handles option parsing, validation, merge strategy resolution."""
 
     @staticmethod
     def get_language(config) -> str:
@@ -241,7 +241,12 @@ class OptionsBuilder:
                     f"Invalid merge strategy '{strategy_name}'. "
                     f"Valid options: {OptionsBuilder.VALID_MERGE_STRATEGIES}"
                 )
-            if '.' in strategy_name:
+            # 处理下划线格式，转换为点格式
+            if '_' in strategy_name and '.' not in strategy_name:
+                parts = strategy_name.split('_')
+                if len(parts) == 2 and parts[0] in ['llm']:
+                    return getattr(getattr(MergeStrategy, parts[0].upper()), parts[1].upper())
+            elif '.' in strategy_name:
                 parts = strategy_name.split('.')
                 return getattr(getattr(MergeStrategy, parts[0].upper()), parts[1].upper())
             else:
@@ -290,14 +295,14 @@ class OptionsBuilder:
         extraction_mode = cls.get_extraction_mode(config)
         return GraphOptions(
             extraction_mode=extraction_mode,
-            node_merge_strategy=options.node_merge_strategy or "llm_balanced",
-            edge_merge_strategy=options.edge_merge_strategy or "llm_balanced",
+            entity_merge_strategy=options.entity_merge_strategy or "llm_balanced",
+            relation_merge_strategy=options.relation_merge_strategy or "llm_balanced",
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_search_fields=options.node_search_fields,
-            edge_search_fields=options.edge_search_fields,
+            entity_fields_for_search=options.entity_fields_for_search,
+            relation_fields_for_search=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -307,15 +312,15 @@ class OptionsBuilder:
         extraction_mode = cls.get_extraction_mode(config)
         return TemporalGraphOptions(
             extraction_mode=extraction_mode,
-            node_merge_strategy=options.node_merge_strategy or "llm_balanced",
-            edge_merge_strategy=options.edge_merge_strategy or "llm_balanced",
+            entity_merge_strategy=options.entity_merge_strategy or "llm_balanced",
+            relation_merge_strategy=options.relation_merge_strategy or "llm_balanced",
             observation_time=options.observation_time,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_search_fields=options.node_search_fields,
-            edge_search_fields=options.edge_search_fields,
+            entity_fields_for_search=options.entity_fields_for_search,
+            relation_fields_for_search=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -325,15 +330,15 @@ class OptionsBuilder:
         extraction_mode = cls.get_extraction_mode(config)
         return SpatialGraphOptions(
             extraction_mode=extraction_mode,
-            node_merge_strategy=options.node_merge_strategy or "llm_balanced",
-            edge_merge_strategy=options.edge_merge_strategy or "llm_balanced",
+            entity_merge_strategy=options.entity_merge_strategy or "llm_balanced",
+            relation_merge_strategy=options.relation_merge_strategy or "llm_balanced",
             observation_location=options.observation_location,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_search_fields=options.node_search_fields,
-            edge_search_fields=options.edge_search_fields,
+            entity_fields_for_search=options.entity_fields_for_search,
+            relation_fields_for_search=options.relation_fields_for_search,
         )
 
     @classmethod
@@ -343,105 +348,105 @@ class OptionsBuilder:
         extraction_mode = cls.get_extraction_mode(config)
         return SpatioTemporalGraphOptions(
             extraction_mode=extraction_mode,
-            node_merge_strategy=options.node_merge_strategy or "llm_balanced",
-            edge_merge_strategy=options.edge_merge_strategy or "llm_balanced",
+            entity_merge_strategy=options.entity_merge_strategy or "llm_balanced",
+            relation_merge_strategy=options.relation_merge_strategy or "llm_balanced",
             observation_time=options.observation_time,
             observation_location=options.observation_location,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,
             max_workers=options.max_workers,
             verbose=options.verbose,
-            node_search_fields=options.node_search_fields,
-            edge_search_fields=options.edge_search_fields,
+            entity_fields_for_search=options.entity_fields_for_search,
+            relation_fields_for_search=options.relation_fields_for_search,
         )
 
     @classmethod
     def build_prompts(cls, config, prompt_builder, extraction_mode: str = None):
-        """Build prompts based on extraction mode and autotype."""
+        """Build prompts based on extraction mode and type."""
         if extraction_mode is None:
             extraction_mode = cls.get_extraction_mode(config)
 
-        guide = config.guide
-        autotype = config.autotype
+        guideline = config.guideline
+        autotype = config.type
 
         if autotype in ("model", "list", "set"):
-            return prompt_builder.build_model_prompt(guide), "", ""
+            return prompt_builder.build_model_prompt(guideline), "", ""
 
         if autotype == "graph":
             if extraction_mode == "one_stage":
                 return (
-                    prompt_builder.build_graph_main_prompt(guide),
+                    prompt_builder.build_graph_main_prompt(guideline),
                     "",
                     "",
                 )
             else:
                 return (
                     "",
-                    prompt_builder.build_graph_node_prompt(guide),
-                    prompt_builder.build_graph_edge_prompt(guide),
+                    prompt_builder.build_graph_entity_prompt(guideline),
+                    prompt_builder.build_graph_relation_prompt(guideline),
                 )
 
         if autotype in ("hypergraph",):
             if extraction_mode == "one_stage":
                 return (
-                    prompt_builder.build_graph_main_prompt(guide),
+                    prompt_builder.build_graph_main_prompt(guideline),
                     "",
                     "",
                 )
             else:
                 return (
                     "",
-                    prompt_builder.build_graph_node_prompt(guide),
-                    prompt_builder.build_graph_edge_prompt(guide),
+                    prompt_builder.build_graph_entity_prompt(guideline),
+                    prompt_builder.build_graph_relation_prompt(guideline),
                 )
 
         if autotype == "temporal_graph":
             if extraction_mode == "one_stage":
                 return (
-                    prompt_builder.build_graph_main_prompt(guide),
+                    prompt_builder.build_graph_main_prompt(guideline),
                     "",
                     "",
                 )
             else:
                 return (
                     "",
-                    prompt_builder.build_temporal_graph_node_prompt(guide),
-                    prompt_builder.build_graph_edge_prompt(guide),
+                    prompt_builder.build_temporal_graph_entity_prompt(guideline),
+                    prompt_builder.build_graph_relation_prompt(guideline),
                 )
 
         if autotype == "spatial_graph":
             if extraction_mode == "one_stage":
                 return (
-                    prompt_builder.build_graph_main_prompt(guide),
+                    prompt_builder.build_graph_main_prompt(guideline),
                     "",
                     "",
                 )
             else:
                 return (
                     "",
-                    prompt_builder.build_spatial_graph_node_prompt(guide),
-                    prompt_builder.build_graph_edge_prompt(guide),
+                    prompt_builder.build_spatial_graph_entity_prompt(guideline),
+                    prompt_builder.build_graph_relation_prompt(guideline),
                 )
 
         if autotype == "spatio_temporal_graph":
             if extraction_mode == "one_stage":
                 return (
-                    prompt_builder.build_graph_main_prompt(guide),
+                    prompt_builder.build_graph_main_prompt(guideline),
                     "",
                     "",
                 )
             else:
                 return (
                     "",
-                    prompt_builder.build_spatio_temporal_graph_node_prompt(guide),
-                    prompt_builder.build_graph_edge_prompt(guide),
+                    prompt_builder.build_spatio_temporal_graph_entity_prompt(guideline),
+                    prompt_builder.build_graph_relation_prompt(guideline),
                 )
 
         return "", "", ""
 
     @classmethod
     def validate_model_config(cls, config):
-        """验证 AutoModel 配置"""
+        """Validate AutoModel configuration."""
         schema_dict = SchemaBuilder.build_schema(config)
         if schema_dict.get("schema") is None:
             raise ValueError(f"AutoModel requires schema definition: {config.name}")
@@ -449,7 +454,7 @@ class OptionsBuilder:
 
     @classmethod
     def validate_list_config(cls, config):
-        """验证 AutoList 配置"""
+        """Validate AutoList configuration."""
         schema_dict = SchemaBuilder.build_schema(config)
         if schema_dict.get("item_schema") is None:
             raise ValueError(f"AutoList requires item_schema definition: {config.name}")
@@ -457,7 +462,7 @@ class OptionsBuilder:
 
     @classmethod
     def validate_set_config(cls, config):
-        """验证 AutoSet 配置"""
+        """Validate AutoSet configuration."""
         schema_dict = SchemaBuilder.build_schema(config)
         if schema_dict.get("item_schema") is None:
             raise ValueError(f"AutoSet requires item_schema definition: {config.name}")
@@ -470,13 +475,13 @@ class OptionsBuilder:
 
     @classmethod
     def validate_graph_config(cls, config):
-        """验证 AutoGraph/AutoHypergraph 配置"""
+        """Validate AutoGraph/AutoHypergraph configuration."""
         schema_dict = SchemaBuilder.build_schema(config)
-        if schema_dict.get("node_schema") is None or schema_dict.get("edge_schema") is None:
-            raise ValueError(f"AutoGraph requires node_schema and edge_schema definition: {config.name}")
+        if schema_dict.get("entity_schema") is None or schema_dict.get("relation_schema") is None:
+            raise ValueError(f"AutoGraph requires entity_schema and relation_schema definition: {config.name}")
 
         identifiers = IdentifierResolver.resolve_all(config)
-        required = ["node_key_extractor", "edge_key_extractor", "nodes_in_edge_extractor"]
+        required = ["entity_key_extractor", "relation_key_extractor", "entities_in_relation_extractor"]
         if not all(identifiers.get(k) for k in required):
             raise ValueError(f"AutoGraph requires complete identifiers configuration: {config.name}")
 
@@ -484,30 +489,30 @@ class OptionsBuilder:
 
     @classmethod
     def validate_temporal_graph_config(cls, config):
-        """验证 AutoTemporalGraph 配置"""
+        """Validate AutoTemporalGraph configuration."""
         schema_dict, identifiers = cls.validate_graph_config(config)
 
-        if identifiers.get("time_in_edge_extractor") is None:
+        if identifiers.get("time_in_relation_extractor") is None:
             raise ValueError(f"AutoTemporalGraph requires time_field in identifiers: {config.name}")
 
         return schema_dict, identifiers
 
     @classmethod
     def validate_spatial_graph_config(cls, config):
-        """验证 AutoSpatialGraph 配置"""
+        """Validate AutoSpatialGraph configuration."""
         schema_dict, identifiers = cls.validate_graph_config(config)
 
-        if identifiers.get("location_extractor") is None:
+        if identifiers.get("location_in_relation_extractor") is None:
             raise ValueError(f"AutoSpatialGraph requires location_field in identifiers: {config.name}")
 
         return schema_dict, identifiers
 
     @classmethod
     def validate_spatio_temporal_graph_config(cls, config):
-        """验证 AutoSpatioTemporalGraph 配置"""
+        """Validate AutoSpatioTemporalGraph configuration."""
         schema_dict, identifiers = cls.validate_graph_config(config)
 
-        if not identifiers.get("time_extractor") or not identifiers.get("location_extractor"):
+        if not identifiers.get("time_in_relation_extractor") or not identifiers.get("location_in_relation_extractor"):
             raise ValueError(f"AutoSpatioTemporalGraph requires time_field and location_field in identifiers: {config.name}")
 
         return schema_dict, identifiers
