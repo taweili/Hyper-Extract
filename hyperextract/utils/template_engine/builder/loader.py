@@ -1,49 +1,14 @@
-"""Config loader, parameters and display models."""
+"""Config loader and template configuration models."""
 
-from typing import Any, Dict, List, Literal, Optional, Union
-from pathlib import Path
-from pydantic import BaseModel, Field, field_validator, ConfigDict
 import yaml
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Union
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-from .schema import ModelSchema, ItemSchema, NodeSchema, EdgeSchema
-from .extraction import Guide
+from .prompt import Guide
 from .identifiers import Identifiers
-
-
-class Parameters(BaseModel):
-    """Runtime parameters configuration."""
-
-    merge_strategy: Optional[str] = None
-    custom_merge_rule: Optional[Union[str, Dict[str, str]]] = None
-    node_merge_strategy: Optional[str] = None
-    node_custom_merge_rule: Optional[Union[str, Dict[str, str]]] = None
-    edge_merge_strategy: Optional[str] = None
-    edge_custom_merge_rule: Optional[Union[str, Dict[str, str]]] = None
-    extraction_mode: Optional[str] = None
-    observation_time: Optional[str] = None
-    observation_location: Optional[str] = None
-    chunk_size: int = 2048
-    chunk_overlap: int = 256
-    max_workers: int = 10
-    verbose: bool = False
-    search_fields: Optional[List[str]] = None
-    node_search_fields: Optional[List[str]] = None
-    edge_search_fields: Optional[List[str]] = None
-
-    def get_merge_strategy(self) -> Optional[str]:
-        """Get merge strategy."""
-        return self.merge_strategy or self.node_merge_strategy
-
-    def get_custom_merge_rule(self, language: str = "zh") -> Optional[str]:
-        """Get custom merge rule."""
-        rule = self.custom_merge_rule or self.node_custom_merge_rule
-        if rule is None:
-            return None
-        if isinstance(rule, str):
-            return rule
-        if isinstance(rule, dict):
-            return rule.get(language) or rule.get("zh") or ""
-        return None
+from .schema import ModelSchema, ItemSchema, NodeSchema, EdgeSchema
+from .options import Options
 
 
 class Display(BaseModel):
@@ -71,7 +36,7 @@ class TemplateConfig(BaseModel):
     edge_schema: Optional[EdgeSchema] = None
     guide: Optional[Guide] = None
     identifiers: Optional[Identifiers] = None
-    parameters: Optional[Parameters] = None
+    options: Optional[Options] = None
     display: Optional[Display] = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -136,7 +101,6 @@ class ConfigLoader:
 
 
 __all__ = [
-    "Parameters",
     "Display",
     "TemplateConfig",
     "ConfigLoader",

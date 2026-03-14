@@ -113,7 +113,7 @@ identifiers:
   edge_id: "fusion_name"
   edge_members: "participating_sources"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

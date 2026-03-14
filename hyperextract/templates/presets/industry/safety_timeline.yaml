@@ -112,7 +112,7 @@ identifiers:
     target: "target"
   time_field: "timestamp"
 
-parameters:
+options:
   extraction_mode: "two_stage"
   # observation_time 和 observation_location 由用户在运行时提供
   # 示例：TemplateFactory.create(config, llm, embedder, observation_time="2024-06-15")

@@ -100,7 +100,7 @@ identifiers:
     target: "target"
   time_field: "time"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

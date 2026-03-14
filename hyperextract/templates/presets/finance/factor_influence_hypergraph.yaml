@@ -79,7 +79,7 @@ identifiers:
   edge_id: "{result}_{factors}"
   edge_members: "factors"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

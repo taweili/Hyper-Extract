@@ -121,7 +121,7 @@ identifiers:
     - "zuoHerbs"
     - "shiHerbs"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

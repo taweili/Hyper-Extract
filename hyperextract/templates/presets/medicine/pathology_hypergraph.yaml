@@ -74,7 +74,7 @@ identifiers:
   edge_id: "mechanism_name"
   edge_members: "participating_entities"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

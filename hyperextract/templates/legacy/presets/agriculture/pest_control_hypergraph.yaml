@@ -82,7 +82,7 @@ identifiers:
     source: "crop"
     target: "pest"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

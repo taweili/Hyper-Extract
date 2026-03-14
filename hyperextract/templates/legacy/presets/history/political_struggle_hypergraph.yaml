@@ -96,7 +96,7 @@ identifiers:
     - "planners"
     - "turncoats"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

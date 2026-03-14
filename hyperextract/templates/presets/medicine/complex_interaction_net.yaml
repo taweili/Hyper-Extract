@@ -69,7 +69,7 @@ identifiers:
   edge_id: "name"
   edge_members: "nodes"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

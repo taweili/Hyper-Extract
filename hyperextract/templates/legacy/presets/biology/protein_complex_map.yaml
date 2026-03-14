@@ -77,7 +77,7 @@ identifiers:
   edge_id: "{complex_name}｜{members}"
   edge_members: "members"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

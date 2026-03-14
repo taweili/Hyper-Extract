@@ -89,7 +89,7 @@ identifiers:
     target: "target"
   time_field: "eventDate"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

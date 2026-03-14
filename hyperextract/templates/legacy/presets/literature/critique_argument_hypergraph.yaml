@@ -78,7 +78,7 @@ identifiers:
     - "citations"
     - "conclusion"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

@@ -76,7 +76,7 @@ identifiers:
     source: "source"
     target: "target"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

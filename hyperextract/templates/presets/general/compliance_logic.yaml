@@ -83,7 +83,7 @@ identifiers:
   edge_id: "{ruleType}_{action}_{participants}"
   edge_members: "participants"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

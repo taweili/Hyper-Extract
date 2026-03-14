@@ -94,7 +94,7 @@ identifiers:
   edge_id: "{causality_type}_{nodes}"
   edge_members: "nodes"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

@@ -85,7 +85,7 @@ identifiers:
   edge_id: "{reasoning_type}_{nodes}"
   edge_members: "nodes"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

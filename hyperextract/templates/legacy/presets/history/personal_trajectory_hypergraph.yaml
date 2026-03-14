@@ -71,7 +71,7 @@ identifiers:
   edge_id: "{phase}|{time}|{locations}"
   edge_members: "companions"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

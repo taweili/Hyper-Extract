@@ -8,24 +8,21 @@ import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from ..utils import (
+    read_input,
+    validate_config,
+    validate_kb_path,
+    create_template,
+    get_template_from_kb,
+)
+from ..config import load_kb_metadata, save_kb_metadata
+
 console = Console()
 
 app = typer.Typer(
     name="feed",
     help="Append knowledge to an existing directory",
 )
-
-
-def read_input(input_path: str) -> str:
-    """Read input from file or stdin."""
-    import sys
-    if input_path == "-":
-        return sys.stdin.read()
-    path = Path(input_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Input file not found: {input_path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
 
 
 @app.command()
@@ -36,20 +33,9 @@ def main(
     lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language"),
 ):
     """Append knowledge to an existing directory."""
-    from ..config import ConfigManager, load_kb_metadata, save_kb_metadata
-    from ..templates import resolve_template
-    
-    config = ConfigManager()
-    valid, msg = config.validate()
-    if not valid:
-        console.print(f"[red]Error:[/red] {msg}")
-        raise typer.Exit(1)
+    validate_config()
 
-    output_path = Path(output)
-
-    if not output_path.exists():
-        console.print(f"[red]Error:[/red] Output directory does not exist: {output}")
-        raise typer.Exit(1)
+    output_path = validate_kb_path(output)
 
     metadata = load_kb_metadata(output_path)
     if not metadata:
@@ -68,7 +54,7 @@ def main(
     console.print()
 
     try:
-        kb = resolve_template(template, lang)
+        kb = create_template(template, lang)
         console.print(f"[green]Template loaded:[/green] {template}")
     except ValueError as e:
         console.print(f"[red]Error:[/red] {e}")

@@ -5,6 +5,14 @@ from rich.console import Console
 from rich.table import Table
 import typer
 
+from hyperextract.utils.template_engine import Gallery, Template
+
+from ..utils import (
+    get_autotype_description,
+    get_domain_description,
+    AUTOTYPE_MAP,
+)
+
 console = Console()
 
 app = typer.Typer(
@@ -12,32 +20,6 @@ app = typer.Typer(
     help="List available resources",
 )
 
-
-AUTOTYPES = [
-    ("AutoModel", "Extract into a complete data model"),
-    ("AutoList", "Extract as a list (keywords, items)"),
-    ("AutoSet", "Extract and deduplicate (entity registry)"),
-    ("AutoGraph", "Extract as a knowledge graph (relations)"),
-    ("AutoTemporalGraph", "Extract as timeline (events over time)"),
-    ("AutoSpatialGraph", "Extract as spatial graph (locations)"),
-    ("AutoSpatioTemporalGraph", "Extract as spatiotemporal graph (time + space)"),
-    ("AutoHypergraph", "Extract as hypergraph (multi-party relations)"),
-]
-
-DOMAINS = [
-    ("finance", "Financial documents"),
-    ("medicine", "Medical documents"),
-    ("legal", "Legal documents"),
-    ("history", "Historical documents"),
-    ("literature", "Literature works"),
-    ("tcm", "Traditional Chinese Medicine"),
-    ("news", "News articles"),
-    ("biology", "Biological documents"),
-    ("industry", "Industrial documents"),
-    ("agriculture", "Agricultural documents"),
-    ("food", "Food and culinary"),
-    ("general", "General purpose"),
-]
 
 METHODS = [
     ("kg_gen", "Knowledge Graph Generation"),
@@ -50,22 +32,11 @@ METHODS = [
 ]
 
 
-def _get_domains_from_configs() -> list:
-    """Get domains from configs directory."""
-    try:
-        from ..templates import get_domains
-        return get_domains()
-    except Exception:
-        return []
-
-
 @app.command(name="autotype")
 def autotype(
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search autotypes"),
 ):
     """List all available AutoTypes."""
-    from hyperextract.utils.template_engine import Gallery
-    
     autotypes = Gallery.list_autotypes()
     
     if search:
@@ -76,10 +47,10 @@ def autotype(
     table.add_column("AutoType", style="cyan", width=25)
     table.add_column("Description", style="green")
     
-    autotype_descriptions = dict(AUTOTYPES)
     for name in autotypes:
-        desc = autotype_descriptions.get(name, "")
-        table.add_row(name, desc)
+        display_name = AUTOTYPE_MAP.get(name, name)
+        desc = get_autotype_description(display_name)
+        table.add_row(display_name, desc)
     
     console.print(table)
     console.print(f"\n[dim]Total: {len(autotypes)} AutoTypes[/dim]")
@@ -92,8 +63,6 @@ def template(
     language: Optional[str] = typer.Option(None, "--lang", "-l", help="Filter by language"),
 ):
     """List all available templates."""
-    from hyperextract.utils.template_engine import Gallery
-    
     results = Gallery.search(query=search, autotype=autotype, language=language)
     
     templates = []
@@ -124,13 +93,11 @@ def domain(
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search domains"),
 ):
     """List all available domains."""
-    domains = _get_domains_from_configs()
-    
-    domain_descriptions = dict(DOMAINS)
+    domains = Template.domains()
     
     items = []
     for name, count in domains:
-        desc = domain_descriptions.get(name, f"{name} documents")
+        desc = get_domain_description(name)
         items.append((name, f"{desc} ({count} templates)"))
     
     if search:

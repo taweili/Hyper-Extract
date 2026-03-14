@@ -113,7 +113,7 @@ identifiers:
     target: "target"
   time_field: "fiscal_period"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

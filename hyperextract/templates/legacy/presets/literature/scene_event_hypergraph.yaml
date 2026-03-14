@@ -86,7 +86,7 @@ identifiers:
     - "actions"
     - "timeOfDay"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

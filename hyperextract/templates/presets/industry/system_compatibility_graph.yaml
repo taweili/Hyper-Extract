@@ -88,7 +88,7 @@ identifiers:
   edge_id: "{compatibility_type}_{nodes}"
   edge_members: "nodes"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

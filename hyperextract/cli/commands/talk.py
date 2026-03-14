@@ -1,11 +1,17 @@
 """Talk command for Hyper-Extract CLI."""
 
-from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from ..utils import (
+    validate_config,
+    validate_kb_with_index,
+    create_template,
+    get_template_from_kb,
+)
 
 console = Console()
 
@@ -15,7 +21,7 @@ app = typer.Typer(
 )
 
 
-def chat_loop(kb, config):
+def chat_loop(kb):
     """Interactive chat loop."""
     console.print("\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n")
     while True:
@@ -45,38 +51,10 @@ def main(
     interactive: bool = typer.Option(False, "--interactive", "-i", help="Interactive mode"),
 ):
     """Chat with knowledge base."""
-    from ..config import ConfigManager, load_kb_metadata
-    from ..templates import resolve_template
-    
-    path = Path(kb_path)
+    validate_config()
 
-    if not path.exists():
-        console.print(f"[red]Error:[/red] Knowledge base not found: {kb_path}")
-        raise typer.Exit(1)
-
-    if not path.is_dir():
-        console.print(f"[red]Error:[/red] Not a directory: {kb_path}")
-        raise typer.Exit(1)
-
-    index_dir = path / "index"
-    if not index_dir.exists() or not any(index_dir.iterdir()):
-        console.print(f"[red]Error:[/red] Index not found. Please run 'he build-index {kb_path}' first.")
-        raise typer.Exit(1)
-
-    metadata = load_kb_metadata(path)
-    if not metadata:
-        console.print(f"[yellow]Warning:[/yellow] No metadata found, assuming knowledge_graph")
-        template = "knowledge_graph"
-        lang = "zh"
-    else:
-        template = metadata.get("template", "knowledge_graph")
-        lang = metadata.get("lang", "zh")
-
-    config = ConfigManager()
-    valid, msg = config.validate()
-    if not valid:
-        console.print(f"[red]Error:[/red] {msg}")
-        raise typer.Exit(1)
+    path = validate_kb_with_index(kb_path)
+    template, lang = get_template_from_kb(path)
 
     if interactive:
         console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
@@ -96,7 +74,7 @@ def main(
         task = progress.add_task("Loading...", total=None)
 
         try:
-            kb = resolve_template(template, lang)
+            kb = create_template(template, lang)
 
             progress.update(task, description="Loading knowledge base...")
             kb.load(path)
@@ -106,7 +84,7 @@ def main(
             raise typer.Exit(1)
 
     if interactive:
-        chat_loop(kb, config)
+        chat_loop(kb)
     else:
         with console.status("[bold blue]Thinking..."):
             try:

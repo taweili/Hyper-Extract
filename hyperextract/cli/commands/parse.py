@@ -1,13 +1,20 @@
 """Parse command for Hyper-Extract CLI."""
 
-import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from ..utils import (
+    read_input,
+    validate_config,
+    create_template,
+    get_template_config,
+    get_auto_type_from_config,
+)
+from ..config import save_kb_metadata
 
 console = Console()
 
@@ -15,17 +22,6 @@ app = typer.Typer(
     name="parse",
     help="Extract knowledge from text to a new directory",
 )
-
-
-def read_input(input_path: str) -> str:
-    """Read input from file or stdin."""
-    if input_path == "-":
-        return sys.stdin.read()
-    path = Path(input_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Input file not found: {input_path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
 
 
 @app.command()
@@ -37,14 +33,7 @@ def main(
     force: bool = typer.Option(False, "--force", "-f", help="Force overwrite"),
 ):
     """Extract knowledge from text to a new directory."""
-    from ..config import ConfigManager, save_kb_metadata
-    from ..templates import resolve_template, resolve_template_config, get_auto_type_from_template
-    
-    config = ConfigManager()
-    valid, msg = config.validate()
-    if not valid:
-        console.print(f"[red]Error:[/red] {msg}")
-        raise typer.Exit(1)
+    validate_config()
 
     output_path = Path(output)
 
@@ -62,7 +51,7 @@ def main(
     console.print()
 
     try:
-        template_config = resolve_template_config(template, lang)
+        template_config = get_template_config(template, lang)
         if template_config is None:
             raise ValueError(f"Template '{template}' not found")
         console.print(f"[green]Template resolved:[/green] {template_config.name}")
@@ -73,7 +62,7 @@ def main(
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Creating template instance...", total=None)
         
-        kb = resolve_template(template, lang)
+        kb = create_template(template, lang)
         
         progress.update(task, description="Reading input...")
         text = read_input(input)
@@ -88,7 +77,7 @@ def main(
         metadata = {
             "template": template,
             "lang": lang,
-            "auto_type": get_auto_type_from_template(template_config),
+            "auto_type": get_auto_type_from_config(template_config),
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
         }

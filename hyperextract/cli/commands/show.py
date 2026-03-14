@@ -1,10 +1,16 @@
 """Show command for Hyper-Extract CLI."""
 
-from pathlib import Path
 import json
 
 import typer
 from rich.console import Console
+
+from ..utils import (
+    validate_config,
+    validate_kb_with_data,
+    create_template,
+    get_template_from_kb,
+)
 
 console = Console()
 
@@ -20,46 +26,20 @@ def main(
     build_index: bool = typer.Option(False, "--build-index", "-b", help="Build index"),
 ):
     """Show knowledge base visualization."""
-    from ..config import ConfigManager, load_kb_metadata
-    from ..templates import resolve_template, resolve_template_config
-    
-    path = Path(kb_path)
+    path = validate_kb_with_data(kb_path)
 
-    if not path.exists():
-        console.print(f"[red]Error:[/red] Knowledge base not found: {kb_path}")
-        raise typer.Exit(1)
-
-    if not path.is_dir():
-        console.print(f"[red]Error:[/red] Not a directory: {kb_path}")
-        raise typer.Exit(1)
-
-    data_file = path / "data.json"
-    if not data_file.exists():
-        console.print(f"[red]Error:[/red] Not a valid knowledge base: {kb_path} (no data.json)")
-        raise typer.Exit(1)
-
-    metadata = load_kb_metadata(path)
-    if not metadata:
-        console.print(f"[yellow]Warning:[/yellow] No metadata found, assuming knowledge_graph")
-        template = "knowledge_graph"
-        lang = "zh"
-    else:
-        template = metadata.get("template", "knowledge_graph")
-        lang = metadata.get("lang", "zh")
+    template, lang = get_template_from_kb(path)
 
     console.print(f"[blue]Template:[/blue] {template}")
     console.print(f"[blue]Language:[/blue] {lang}")
     console.print()
 
-    config = ConfigManager()
-    valid, msg = config.validate()
-    if not valid and build_index:
-        console.print(f"[red]Error:[/red] {msg}")
-        raise typer.Exit(1)
+    if build_index:
+        validate_config()
 
     with console.status("[bold blue]Loading knowledge base..."):
         try:
-            kb = resolve_template(template, lang)
+            kb = create_template(template, lang)
             kb.load(path)
 
             if build_index:
@@ -71,6 +51,7 @@ def main(
             console.print(f"[red]Error loading knowledge base:[/red] {e}")
             raise typer.Exit(1)
 
+    data_file = path / "data.json"
     with open(data_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 

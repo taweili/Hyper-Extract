@@ -3,42 +3,36 @@
 Supports all 8 AutoType dynamic generation.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Type, Union
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
-from hyperextract.types import (
-    AutoModel,
-    AutoList,
-    AutoSet,
-    AutoGraph,
-    AutoHypergraph,
-    AutoTemporalGraph,
-    AutoSpatialGraph,
-    AutoSpatioTemporalGraph,
-)
-
 from .builder import (
     TemplateConfig,
-    Parameters,
-    SchemaBuilder,
-    IdentifierResolver,
     PromptBuilder,
+    OptionsBuilder,
+    Options,
 )
+
+if TYPE_CHECKING:
+    from hyperextract.types import (
+        AutoModel,
+        AutoList,
+        AutoSet,
+        AutoGraph,
+        AutoHypergraph,
+        AutoTemporalGraph,
+        AutoSpatialGraph,
+        AutoSpatioTemporalGraph,
+    )
 
 
 class TemplateFactory:
-
     @staticmethod
     def get_language(config: TemplateConfig) -> str:
         """Get language setting."""
-        lang = config.language
-        if isinstance(lang, list):
-            return lang[0] if lang else "zh"
-        return lang or "zh"
+        return OptionsBuilder.get_language(config)
 
     @staticmethod
     def resolve_display_extractors(config: TemplateConfig, schema_dict: dict):
@@ -49,277 +43,222 @@ class TemplateFactory:
 
         result = {}
         autotype = config.autotype
-        display_dict = display.model_dump() if hasattr(display, 'model_dump') else display
+        display_dict = (
+            display.model_dump() if hasattr(display, "model_dump") else display
+        )
 
         if autotype in ("model", "list", "set"):
             label_field = display_dict.get("label")
             if label_field:
                 result["label_extractor"] = lambda x: str(getattr(x, label_field, ""))
 
-        elif autotype in ("graph", "hypergraph", "temporal_graph", "spatial_graph", "spatio_temporal_graph"):
+        elif autotype in (
+            "graph",
+            "hypergraph",
+            "temporal_graph",
+            "spatial_graph",
+            "spatio_temporal_graph",
+        ):
             node_label_field = display_dict.get("node_label")
             if node_label_field:
-                result["node_label_extractor"] = lambda x: str(getattr(x, node_label_field, ""))
+                result["node_label_extractor"] = lambda x: str(
+                    getattr(x, node_label_field, "")
+                )
 
             edge_label_field = display_dict.get("edge_label")
             if edge_label_field:
-                result["edge_label_extractor"] = lambda x: str(getattr(x, edge_label_field, ""))
+                result["edge_label_extractor"] = lambda x: str(
+                    getattr(x, edge_label_field, "")
+                )
 
         return result
 
-    @staticmethod
-    def resolve_merge_strategy(
-        strategy_name: Optional[str],
-        custom_rule: Optional[str],
-        key_extractor: Callable,
-        llm_client: BaseChatModel,
-        item_schema: Type,
-    ) -> Union[MergeStrategy, BaseMerger]:
-        """Resolve merge strategy."""
-        if custom_rule:
-            return MergeStrategy.LLM.BALANCED
-        if strategy_name:
-            strategy_name = strategy_name.lower()
-            if '.' in strategy_name:
-                parts = strategy_name.split('.')
-                return getattr(getattr(MergeStrategy, parts[0].upper()), parts[1].upper())
-            else:
-                try:
-                    return MergeStrategy[strategy_name.upper()]
-                except KeyError:
-                    return MergeStrategy.LLM.BALANCED
-        return MergeStrategy.LLM.BALANCED
-
     @classmethod
-    def create_model(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoModel:
+    def create_model(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoModel":
         """Create AutoModel template."""
+        from hyperextract.types import AutoModel
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OptionsBuilder.validate_model_config(config)
         schema_class = schema_dict.get("schema")
 
-        if schema_class is None:
-            raise ValueError(f"AutoModel requires schema definition: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(guide)
+        prompt = prompt_builder.build_model_prompt(config.guide)
 
-        parameters = config.parameters or Parameters()
-        merge_strategy = parameters.merge_strategy or "llm_balanced"
-        custom_merge_rule = parameters.get_custom_merge_rule(language)
+        options = OptionsBuilder.build_model_options(config, language)
 
         return AutoModel(
             data_schema=schema_class,
             llm_client=llm_client,
             embedder=embedder,
-            strategy_or_merger=cls.resolve_merge_strategy(
-                merge_strategy,
-                custom_merge_rule,
+            strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.merge_strategy,
                 lambda x: str(x),
                 llm_client,
                 schema_class,
             ),
             prompt=prompt,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
         )
 
     @classmethod
-    def create_list(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoList:
+    def create_list(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoList":
         """Create AutoList template."""
+        from hyperextract.types import AutoList
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OptionsBuilder.validate_list_config(config)
         item_schema_class = schema_dict.get("item_schema")
 
-        if item_schema_class is None:
-            raise ValueError(f"AutoList requires item_schema definition: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(guide)
+        prompt = prompt_builder.build_model_prompt(config.guide)
 
-        parameters = config.parameters or Parameters()
+        options = OptionsBuilder.build_list_options(config)
 
         return AutoList(
             item_schema=item_schema_class,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
         )
 
     @classmethod
-    def create_set(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoSet:
+    def create_set(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoSet":
         """Create AutoSet template."""
+        from hyperextract.types import AutoSet
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict, identifiers = OptionsBuilder.validate_set_config(config)
         item_schema_class = schema_dict.get("item_schema")
-
-        if item_schema_class is None:
-            raise ValueError(f"AutoSet requires item_schema definition: {config.name}")
-
-        identifiers = IdentifierResolver.resolve_all(config)
         item_id_extractor = identifiers.get("item_id_extractor")
 
-        if item_id_extractor is None:
-            raise ValueError(f"AutoSet requires item_id configuration: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(guide)
+        prompt = prompt_builder.build_model_prompt(config.guide)
 
-        parameters = config.parameters or Parameters()
-        merge_strategy = parameters.merge_strategy or "llm_balanced"
-        custom_merge_rule = parameters.get_custom_merge_rule(language)
+        options = OptionsBuilder.build_set_options(config, language)
 
         return AutoSet(
             item_schema=item_schema_class,
             item_key_extractor=item_id_extractor,
             llm_client=llm_client,
             embedder=embedder,
-            strategy_or_merger=cls.resolve_merge_strategy(
-                merge_strategy,
-                custom_merge_rule,
+            strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.merge_strategy,
                 item_id_extractor,
                 llm_client,
                 item_schema_class,
             ),
             prompt=prompt,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
         )
 
     @classmethod
-    def create_graph(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoGraph:
-        """Create AutoGraph template."""
+    def create_graph(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoGraph":
+        from hyperextract.types import AutoGraph
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict, identifiers = OptionsBuilder.validate_graph_config(config)
         node_schema_class = schema_dict.get("node_schema")
         edge_schema_class = schema_dict.get("edge_schema")
-
-        if node_schema_class is None or edge_schema_class is None:
-            raise ValueError(f"AutoGraph requires node_schema and edge_schema definition: {config.name}")
-
-        identifiers = IdentifierResolver.resolve_all(config)
         node_key_extractor = identifiers.get("node_key_extractor")
         edge_key_extractor = identifiers.get("edge_key_extractor")
         nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
 
-        if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
-            raise ValueError(f"AutoGraph requires complete identifiers configuration: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
+        options = OptionsBuilder.build_graph_options(config, language)
 
-        extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
-
-        if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(guide)
-            prompt_for_node_extraction = ""
-            prompt_for_edge_extraction = ""
-        else:
-            prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_graph_node_prompt(guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
-
-        parameters = config.parameters or Parameters()
-
-        node_merge_strategy = parameters.node_merge_strategy or "llm_balanced"
-        node_custom_merge_rule = parameters.node_custom_merge_rule
-        edge_merge_strategy = parameters.edge_merge_strategy or "llm_balanced"
-        edge_custom_merge_rule = parameters.edge_custom_merge_rule
+        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+            OptionsBuilder.build_prompts(
+                config, prompt_builder, options.extraction_mode
+            )
+        )
 
         return AutoGraph(
             node_schema=node_schema_class,
             edge_schema=edge_schema_class,
-            node_key_extractor=node_key_extractor,
-            edge_key_extractor=edge_key_extractor,
-            nodes_in_edge_extractor=nodes_in_edge_extractor,
-            llm_client=llm_client,
-            embedder=embedder,
-            extraction_mode=extraction_mode,
-            node_strategy_or_merger=cls.resolve_merge_strategy(
-                node_merge_strategy,
-                node_custom_merge_rule,
-                node_key_extractor,
-                llm_client,
-                node_schema_class,
-            ),
-            edge_strategy_or_merger=cls.resolve_merge_strategy(
-                edge_merge_strategy,
-                edge_custom_merge_rule,
-                edge_key_extractor,
-                llm_client,
-                edge_schema_class,
-            ),
-            prompt=prompt,
-            prompt_for_node_extraction=prompt_for_node_extraction,
-            prompt_for_edge_extraction=prompt_for_edge_extraction,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
-            node_fields_for_index=parameters.node_search_fields,
-            edge_fields_for_index=parameters.edge_search_fields,
-        )
+        node_key_extractor=node_key_extractor,
+        edge_key_extractor=edge_key_extractor,
+        nodes_in_edge_extractor=nodes_in_edge_extractor,
+        llm_client=llm_client,
+        embedder=embedder,
+        extraction_mode=options.extraction_mode,
+        node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+            options.node_merge_strategy,
+            node_key_extractor,
+            llm_client,
+            node_schema_class,
+        ),
+        edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+            options.edge_merge_strategy,
+            edge_key_extractor,
+            llm_client,
+            edge_schema_class,
+        ),
+        prompt=prompt,
+        prompt_for_node_extraction=prompt_for_node_extraction,
+        prompt_for_edge_extraction=prompt_for_edge_extraction,
+        chunk_size=options.chunk_size,
+        chunk_overlap=options.chunk_overlap,
+        max_workers=options.max_workers,
+        verbose=options.verbose,
+        node_fields_for_index=options.node_search_fields,
+        edge_fields_for_index=options.edge_search_fields,
+    )
 
     @classmethod
-    def create_hypergraph(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoHypergraph:
-        """Create AutoHypergraph template."""
+    def create_hypergraph(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoHypergraph":
         return cls.create_graph(config, llm_client, embedder)
 
     @classmethod
-    def create_temporal_graph(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoTemporalGraph:
-        """Create AutoTemporalGraph template."""
+    def create_temporal_graph(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoTemporalGraph":
+        from hyperextract.types import AutoTemporalGraph
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict, identifiers = OptionsBuilder.validate_temporal_graph_config(
+            config
+        )
         node_schema_class = schema_dict.get("node_schema")
         edge_schema_class = schema_dict.get("edge_schema")
-
-        if node_schema_class is None or edge_schema_class is None:
-            raise ValueError(f"AutoTemporalGraph requires node_schema and edge_schema definition: {config.name}")
-
-        identifiers = IdentifierResolver.resolve_all(config)
         node_key_extractor = identifiers.get("node_key_extractor")
         edge_key_extractor = identifiers.get("edge_key_extractor")
         nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
         time_in_edge_extractor = identifiers.get("time_in_edge_extractor")
 
-        if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
-            raise ValueError(f"AutoTemporalGraph requires complete identifiers configuration: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
+        options = OptionsBuilder.build_temporal_graph_options(config, language)
 
-        extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
-
-        if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(guide)
-            prompt_for_node_extraction = ""
-            prompt_for_edge_extraction = ""
-        else:
-            prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_temporal_graph_node_prompt(guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
-
-        parameters = config.parameters or Parameters()
-
-        node_merge_strategy = parameters.node_merge_strategy or "llm_balanced"
-        node_custom_merge_rule = parameters.node_custom_merge_rule
-        edge_merge_strategy = parameters.edge_merge_strategy or "llm_balanced"
-        edge_custom_merge_rule = parameters.edge_custom_merge_rule
+        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+            OptionsBuilder.build_prompts(
+                config, prompt_builder, options.extraction_mode
+            )
+        )
 
         return AutoTemporalGraph(
             node_schema=node_schema_class,
@@ -328,20 +267,18 @@ class TemplateFactory:
             edge_key_extractor=edge_key_extractor,
             nodes_in_edge_extractor=nodes_in_edge_extractor,
             time_in_edge_extractor=time_in_edge_extractor,
-            observation_time=parameters.observation_time,
+            observation_time=options.observation_time,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=extraction_mode,
-            node_strategy_or_merger=cls.resolve_merge_strategy(
-                node_merge_strategy,
-                node_custom_merge_rule,
+            extraction_mode=options.extraction_mode,
+            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.node_merge_strategy,
                 node_key_extractor,
                 llm_client,
                 node_schema_class,
             ),
-            edge_strategy_or_merger=cls.resolve_merge_strategy(
-                edge_merge_strategy,
-                edge_custom_merge_rule,
+            edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.edge_merge_strategy,
                 edge_key_extractor,
                 llm_client,
                 edge_schema_class,
@@ -349,55 +286,40 @@ class TemplateFactory:
             prompt=prompt,
             prompt_for_node_extraction=prompt_for_node_extraction,
             prompt_for_edge_extraction=prompt_for_edge_extraction,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
-            node_fields_for_index=parameters.node_search_fields,
-            edge_fields_for_index=parameters.edge_search_fields,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
+            node_fields_for_index=options.node_search_fields,
+            edge_fields_for_index=options.edge_search_fields,
         )
 
     @classmethod
-    def create_spatial_graph(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoSpatialGraph:
-        """Create AutoSpatialGraph template."""
+    def create_spatial_graph(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoSpatialGraph":
+        from hyperextract.types import AutoSpatialGraph
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict, identifiers = OptionsBuilder.validate_spatial_graph_config(
+            config
+        )
         node_schema_class = schema_dict.get("node_schema")
         edge_schema_class = schema_dict.get("edge_schema")
-
-        if node_schema_class is None or edge_schema_class is None:
-            raise ValueError(f"AutoSpatialGraph requires node_schema and edge_schema definition: {config.name}")
-
-        identifiers = IdentifierResolver.resolve_all(config)
         node_key_extractor = identifiers.get("node_key_extractor")
         edge_key_extractor = identifiers.get("edge_key_extractor")
         nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
         location_extractor = identifiers.get("location_extractor")
 
-        if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
-            raise ValueError(f"AutoSpatialGraph requires complete identifiers configuration: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
+        options = OptionsBuilder.build_spatial_options(config, language)
 
-        extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
-
-        if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(guide)
-            prompt_for_node_extraction = ""
-            prompt_for_edge_extraction = ""
-        else:
-            prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_spatial_graph_node_prompt(guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
-
-        parameters = config.parameters or Parameters()
-
-        node_merge_strategy = parameters.node_merge_strategy or "llm_balanced"
-        node_custom_merge_rule = parameters.node_custom_merge_rule
-        edge_merge_strategy = parameters.edge_merge_strategy or "llm_balanced"
-        edge_custom_merge_rule = parameters.edge_custom_merge_rule
+        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+            OptionsBuilder.build_prompts(
+                config, prompt_builder, options.extraction_mode 
+            )
+        )
 
         return AutoSpatialGraph(
             node_schema=node_schema_class,
@@ -406,20 +328,18 @@ class TemplateFactory:
             edge_key_extractor=edge_key_extractor,
             nodes_in_edge_extractor=nodes_in_edge_extractor,
             location_extractor=location_extractor,
-            observation_location=parameters.observation_location,
+            observation_location=options.observation_location,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=extraction_mode,
-            node_strategy_or_merger=cls.resolve_merge_strategy(
-                node_merge_strategy,
-                node_custom_merge_rule,
+            extraction_mode=options.extraction_mode,
+            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.node_merge_strategy,
                 node_key_extractor,
                 llm_client,
                 node_schema_class,
             ),
-            edge_strategy_or_merger=cls.resolve_merge_strategy(
-                edge_merge_strategy,
-                edge_custom_merge_rule,
+            edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+                options.edge_merge_strategy,
                 edge_key_extractor,
                 llm_client,
                 edge_schema_class,
@@ -427,56 +347,43 @@ class TemplateFactory:
             prompt=prompt,
             prompt_for_node_extraction=prompt_for_node_extraction,
             prompt_for_edge_extraction=prompt_for_edge_extraction,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
-            node_fields_for_index=parameters.node_search_fields,
-            edge_fields_for_index=parameters.edge_search_fields,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
+            node_fields_for_index=options.node_search_fields,
+            edge_fields_for_index=options.edge_search_fields,
         )
 
     @classmethod
-    def create_spatio_temporal_graph(cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings) -> AutoSpatioTemporalGraph:
-        """Create AutoSpatioTemporalGraph template."""
+    def create_spatio_temporal_graph(
+        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+    ) -> "AutoSpatioTemporalGraph":
+        from hyperextract.types import AutoSpatioTemporalGraph
+
         language = cls.get_language(config)
 
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict, identifiers = (
+            OptionsBuilder.validate_spatio_temporal_graph_config(config)
+        )
         node_schema_class = schema_dict.get("node_schema")
         edge_schema_class = schema_dict.get("edge_schema")
-
-        if node_schema_class is None or edge_schema_class is None:
-            raise ValueError(f"AutoSpatioTemporalGraph requires node_schema and edge_schema definition: {config.name}")
-
-        identifiers = IdentifierResolver.resolve_all(config)
         node_key_extractor = identifiers.get("node_key_extractor")
         edge_key_extractor = identifiers.get("edge_key_extractor")
         nodes_in_edge_extractor = identifiers.get("nodes_in_edge_extractor")
         time_extractor = identifiers.get("time_extractor")
         location_extractor = identifiers.get("location_extractor")
 
-        if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
-            raise ValueError(f"AutoSpatioTemporalGraph requires complete identifiers configuration: {config.name}")
-
-        guide = config.guide
         prompt_builder = PromptBuilder(language)
+        options = OptionsBuilder.build_spatio_temporal_graph_options(
+            config, language
+        )
 
-        extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
-
-        if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(guide)
-            prompt_for_node_extraction = ""
-            prompt_for_edge_extraction = ""
-        else:
-            prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_spatio_temporal_graph_node_prompt(guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
-
-        parameters = config.parameters or Parameters()
-
-        node_merge_strategy = parameters.node_merge_strategy or "llm_balanced"
-        node_custom_merge_rule = parameters.node_custom_merge_rule
-        edge_merge_strategy = parameters.edge_merge_strategy or "llm_balanced"
-        edge_custom_merge_rule = parameters.edge_custom_merge_rule
+        prompt, prompt_for_node_extraction, prompt_for_edge_extraction = (
+            OptionsBuilder.build_prompts(
+                config, prompt_builder, options.extraction_mode
+            )
+        )
 
         return AutoSpatioTemporalGraph(
             node_schema=node_schema_class,
@@ -486,34 +393,32 @@ class TemplateFactory:
             nodes_in_edge_extractor=nodes_in_edge_extractor,
             time_extractor=time_extractor,
             location_extractor=location_extractor,
-            observation_time=parameters.observation_time,
-            observation_location=parameters.observation_location,
+            observation_time=options.observation_time,
+            observation_location=options.observation_location,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=extraction_mode,
-            node_strategy_or_merger=cls.resolve_merge_strategy(
-                node_merge_strategy,
-                node_custom_merge_rule,
-                node_key_extractor,
-                llm_client,
-                node_schema_class,
-            ),
-            edge_strategy_or_merger=cls.resolve_merge_strategy(
-                edge_merge_strategy,
-                edge_custom_merge_rule,
-                edge_key_extractor,
-                llm_client,
-                edge_schema_class,
-            ),
+            extraction_mode=options.extraction_mode,
+            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+            options.node_merge_strategy,
+            node_key_extractor,
+            llm_client,
+            node_schema_class,
+        ),
+        edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
+            options.edge_merge_strategy,
+            edge_key_extractor,
+            llm_client,
+            edge_schema_class,
+        ),
             prompt=prompt,
             prompt_for_node_extraction=prompt_for_node_extraction,
             prompt_for_edge_extraction=prompt_for_edge_extraction,
-            chunk_size=parameters.chunk_size,
-            chunk_overlap=parameters.chunk_overlap,
-            max_workers=parameters.max_workers,
-            verbose=parameters.verbose,
-            node_fields_for_index=parameters.node_search_fields,
-            edge_fields_for_index=parameters.edge_search_fields,
+            chunk_size=options.chunk_size,
+            chunk_overlap=options.chunk_overlap,
+            max_workers=options.max_workers,
+            verbose=options.verbose,
+            node_fields_for_index=options.node_search_fields,
+            edge_fields_for_index=options.edge_search_fields,
         )
 
     @classmethod
@@ -522,7 +427,7 @@ class TemplateFactory:
         config: TemplateConfig,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        **kwargs
+        **kwargs,
     ):
         """Create template instance based on configuration.
 
@@ -558,12 +463,11 @@ class TemplateFactory:
                 max_workers=20
             )
         """
-        # Merge parameters: user-provided kwargs have highest priority
         if kwargs:
-            base_params = config.parameters or Parameters()
-            params_dict = base_params.model_dump()
-            params_dict.update(kwargs)
-            config.parameters = Parameters(**params_dict)
+            base_options = config.options or Options()
+            options_dict = base_options.model_dump()
+            options_dict.update(kwargs)
+            config.options = Options(**options_dict)
 
         autotype_map = {
             "model": cls.create_model,
@@ -611,7 +515,13 @@ class TemplateWrapper:
 
     def show(self, **kwargs):
         """Automatically pass label_extractor parameters."""
-        if self._autotype in ("graph", "hypergraph", "temporal_graph", "spatial_graph", "spatio_temporal_graph"):
+        if self._autotype in (
+            "graph",
+            "hypergraph",
+            "temporal_graph",
+            "spatial_graph",
+            "spatio_temporal_graph",
+        ):
             if self._node_label_extractor and self._edge_label_extractor:
                 kwargs.setdefault("node_label_extractor", self._node_label_extractor)
                 kwargs.setdefault("edge_label_extractor", self._edge_label_extractor)

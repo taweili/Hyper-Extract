@@ -123,7 +123,7 @@ identifiers:
     target: "target"
   time_field: "start_timestamp"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

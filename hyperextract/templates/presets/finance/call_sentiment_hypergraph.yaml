@@ -101,7 +101,7 @@ identifiers:
   edge_id: "{cluster_name}|{participating_elements}"
   edge_members: "participating_elements"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:

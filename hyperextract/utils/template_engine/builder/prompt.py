@@ -30,23 +30,27 @@ class Guide(BaseModel):
     """Guide configuration."""
 
     target: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
-    rules: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_nodes: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_edges: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_time: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_location: Optional[Union[List[str], Dict[str, List[str]]]] = None
+    rules: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
+    rules_for_nodes: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
+    rules_for_edges: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
+    rules_for_time: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
+    rules_for_location: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
 
     def get_field(self, field_name: str, language: str = "zh") -> Optional[str]:
         """Get specified field content for specified language."""
         value = getattr(self, field_name, None)
         if value is None:
             return None
+        if isinstance(value, str):
+            return value
         if isinstance(value, list):
             return "\n".join(f"{i+1}. {item}" for i, item in enumerate(value))
         if isinstance(value, dict):
             dict_value = value.get(language) or value.get("zh")
             if dict_value is None:
                 return None
+            if isinstance(dict_value, str):
+                return dict_value
             if isinstance(dict_value, list):
                 return "\n".join(f"{i+1}. {item}" for i, item in enumerate(dict_value))
         return None
@@ -85,16 +89,20 @@ class PromptBuilder:
         self.labels = LABEL_MAPPING.get(language, LABEL_MAPPING["zh"])
 
     @staticmethod
-    def _get_text(value: Optional[Union[List[str], Dict[str, List[str]]]], language: str = "zh") -> Optional[str]:
+    def _get_text(value: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]], language: str = "zh") -> Optional[str]:
         """Get multilingual text value, supports list format."""
         if value is None:
             return None
+        if isinstance(value, str):
+            return value
         if isinstance(value, list):
             return "\n".join(f"{i+1}. {item}" for i, item in enumerate(value))
         if isinstance(value, dict):
             dict_value = value.get(language) or value.get("zh")
             if dict_value is None:
                 return None
+            if isinstance(dict_value, str):
+                return dict_value
             if isinstance(dict_value, list):
                 return "\n".join(f"{i+1}. {item}" for i, item in enumerate(dict_value))
         return None

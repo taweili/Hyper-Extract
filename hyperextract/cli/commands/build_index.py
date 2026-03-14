@@ -1,10 +1,15 @@
 """Build-index command for Hyper-Extract CLI."""
 
-from pathlib import Path
-
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from ..utils import (
+    validate_config,
+    validate_kb_with_data,
+    create_template,
+    get_template_from_kb,
+)
 
 console = Console()
 
@@ -20,43 +25,17 @@ def main(
     force: bool = typer.Option(False, "--force", "-f", help="Force rebuild"),
 ):
     """Build vector index for knowledge base."""
-    from ..config import ConfigManager, load_kb_metadata
-    
-    path = Path(kb_path)
+    validate_config()
 
-    if not path.exists():
-        console.print(f"[red]Error:[/red] Knowledge base not found: {kb_path}")
-        raise typer.Exit(1)
-
-    if not path.is_dir():
-        console.print(f"[red]Error:[/red] Not a directory: {kb_path}")
-        raise typer.Exit(1)
-
-    data_file = path / "data.json"
-    if not data_file.exists():
-        console.print(f"[red]Error:[/red] Not a valid knowledge base: {kb_path} (no data.json)")
-        raise typer.Exit(1)
-
-    metadata = load_kb_metadata(path)
-    if not metadata:
-        console.print(f"[yellow]Warning:[/yellow] No metadata found, assuming knowledge_graph")
-        template = "knowledge_graph"
-        lang = "zh"
-    else:
-        template = metadata.get("template", "knowledge_graph")
-        lang = metadata.get("lang", "zh")
-
-    config = ConfigManager()
-    valid, msg = config.validate()
-    if not valid:
-        console.print(f"[red]Error:[/red] {msg}")
-        raise typer.Exit(1)
+    path = validate_kb_with_data(kb_path)
 
     index_dir = path / "index"
     if index_dir.exists() and any(index_dir.iterdir()) and not force:
         console.print(f"[yellow]Warning:[/yellow] Index already exists. Use --force to rebuild.")
         console.print(f"[dim]Index location: {index_dir}[/dim]")
         raise typer.Exit(0)
+
+    template, lang = get_template_from_kb(path)
 
     console.print(f"[blue]Template:[/blue] {template}")
     console.print(f"[blue]Language:[/blue] {lang}")
@@ -66,9 +45,7 @@ def main(
         task = progress.add_task("Initializing...", total=None)
 
         try:
-            from ..templates import resolve_template
-
-            kb = resolve_template(template, lang)
+            kb = create_template(template, lang)
 
             progress.update(task, description="Loading knowledge base...")
             kb.load(path)

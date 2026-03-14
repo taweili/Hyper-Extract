@@ -93,7 +93,7 @@ identifiers:
   edge_id: "name"
   edge_members: "participantNames"
 
-parameters:
+options:
   extraction_mode: "two_stage"
 
 display:
