@@ -1,7 +1,7 @@
 """Builder module - Configuration models, loaders and builders."""
 
 from .schema import SchemaBuilder
-from .prompt import PromptBuilder
+from .prompt import PromptParser
 from .identifiers import IdentifierResolver
 from .loader import TemplateConfig, ConfigLoader
 from .options import (
@@ -15,7 +15,7 @@ __all__ = [
     "ConfigLoader",
     "Options",
     "SchemaBuilder",
-    "PromptBuilder",
+    "PromptParser",
     "IdentifierResolver",
     "OptionsBuilder",
 ]

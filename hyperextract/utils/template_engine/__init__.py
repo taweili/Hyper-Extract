@@ -7,7 +7,7 @@ Main Components:
 - TemplateConfig: Configuration model
 - ConfigLoader: Loads YAML configuration
 - SchemaBuilder: Dynamically generates Pydantic Schema
-- PromptBuilder: Builds extraction prompts
+- PromptParser: Parses prompts based on template type
 - IdentifierResolver: Resolves identifier extractors
 """
 
@@ -18,7 +18,7 @@ from .builder import (
     TemplateConfig,
     ConfigLoader,
     SchemaBuilder,
-    PromptBuilder,
+    PromptParser,
     IdentifierResolver,
     OptionsBuilder,
 )
@@ -34,7 +34,7 @@ __all__ = [
     "TemplateConfig",
     "ConfigLoader",
     "SchemaBuilder",
-    "PromptBuilder",
+    "PromptParser",
     "IdentifierResolver",
     "OptionsBuilder",
     "Guideline",

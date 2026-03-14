@@ -10,10 +10,10 @@ from langchain_core.embeddings import Embeddings
 
 from .builder import (
     TemplateConfig,
-    PromptBuilder,
     OptionsBuilder,
     Options,
 )
+from .builder.prompt import PromptParser
 
 
 if TYPE_CHECKING:
@@ -86,8 +86,7 @@ class TemplateFactory:
         schema_dict = OptionsBuilder.validate_model_config(config)
         schema_class = schema_dict.get("schema")
 
-        prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guideline)
+        prompt, _, _ = PromptParser(config, language)
 
         options = OptionsBuilder.build_model_options(config, language)
 
@@ -120,8 +119,7 @@ class TemplateFactory:
         schema_dict = OptionsBuilder.validate_list_config(config)
         item_schema_class = schema_dict.get("item_schema")
 
-        prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guideline)
+        prompt, _, _ = PromptParser(config, language)
 
         options = OptionsBuilder.build_list_options(config)
 
@@ -149,8 +147,7 @@ class TemplateFactory:
         item_schema_class = schema_dict.get("item_schema")
         item_id_extractor = identifiers.get("item_id_extractor")
 
-        prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(config.guideline)
+        prompt, _, _ = PromptParser(config, language)
 
         options = OptionsBuilder.build_set_options(config, language)
 
@@ -188,14 +185,9 @@ class TemplateFactory:
         relation_key_extractor = identifiers.get("relation_key_extractor")
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
 
-        prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            OptionsBuilder.build_prompts(
-                config, prompt_builder, options.extraction_mode
-            )
-        )
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
 
         return AutoGraph(
             entity_schema=entity_schema_class,
@@ -253,14 +245,9 @@ class TemplateFactory:
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
         time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
 
-        prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_temporal_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            OptionsBuilder.build_prompts(
-                config, prompt_builder, options.extraction_mode
-            )
-        )
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
 
         return AutoTemporalGraph(
             node_schema=entity_schema_class,
@@ -314,14 +301,9 @@ class TemplateFactory:
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
         location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
 
-        prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_spatial_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            OptionsBuilder.build_prompts(
-                config, prompt_builder, options.extraction_mode 
-            )
-        )
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
 
         return AutoSpatialGraph(
             entity_schema=entity_schema_class,
@@ -376,16 +358,11 @@ class TemplateFactory:
         time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
         location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
 
-        prompt_builder = PromptBuilder(language)
         options = OptionsBuilder.build_spatio_temporal_graph_options(
             config, language
         )
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            OptionsBuilder.build_prompts(
-                config, prompt_builder, options.extraction_mode
-            )
-        )
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
 
         return AutoSpatioTemporalGraph(
             entity_schema=entity_schema_class,
