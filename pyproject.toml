@@ -40,7 +40,6 @@ dependencies = [
     # cli dependencies
     "typer>=0.13.0",
     "rich>=13.7.0",
-    "tomli>=2.0.1",
     "tomli-w>=1.0.0",
 ]
 
@@ -52,6 +51,13 @@ dev = [
     "pytest>=9.0.2",
 ]
 
+
+[project.optional-dependencies]
+anthropic = ["langchain-anthropic>=0.3.0"]
+google = ["langchain-google-genai>=2.1.0"]
+all = [
+    "hyperextract[anthropic,google]",
+]
 
 [project.urls]
 Homepage = "https://github.com/yifanfeng97/hyper-extract"

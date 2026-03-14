@@ -52,7 +52,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的财务分析师，请从 SEC 申报文件中提取每个业务板块或地理区域的业绩数据。

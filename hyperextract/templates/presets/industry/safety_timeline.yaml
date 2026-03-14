@@ -67,7 +67,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业安全事故调查专家，请从事故调查报告中提取时间线，还原事故发生前后的操作与响应序列。

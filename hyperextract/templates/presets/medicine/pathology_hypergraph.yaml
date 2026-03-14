@@ -46,7 +46,7 @@ edge_schema:
       description:
         zh: "该机制导致的结果或效应"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的病理学家，请从文本中提取与疾病病理机制相关的实体和它们之间的复杂关联关系，构建多因素病理机制图。

@@ -7,6 +7,16 @@ Architecture:
 - types: Core data structure primitives (AutoModel, AutoList, AutoSet, AutoGraph, etc.)
 - methods: Algorithms and strategies (rag, typical graph construction methods)
 - templates: Domain-specific extraction templates
+
+Usage:
+    from hyperextract import Template
+    
+    # Search templates
+    Template.list()
+    Template.search("知识图谱")
+    
+    # Create template (auto reads config from ~/.he/config.toml)
+    template = Template.create("knowledge_graph")
 """
 
 # Core AutoType primitives
@@ -21,6 +31,10 @@ from .types import (
     AutoSpatialGraph,
     AutoSpatioTemporalGraph,
 )
+
+# Template engine API
+from .utils.template_engine import Template
+
 
 __version__ = "0.1.0"
 __author__ = "Yifan Feng"
@@ -39,4 +53,6 @@ __all__ = [
     "AutoTemporalGraph",
     "AutoSpatialGraph",
     "AutoSpatioTemporalGraph",
+    # Template engine
+    "Template",
 ]

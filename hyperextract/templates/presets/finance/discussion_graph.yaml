@@ -55,7 +55,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的财报会议分析师，请从文本中提取讨论中出现的实体以及它们之间的关系。

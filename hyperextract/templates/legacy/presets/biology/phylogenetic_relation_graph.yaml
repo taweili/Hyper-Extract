@@ -53,7 +53,7 @@ edge_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的进化生物学专家，请从生物学文献中提取物种或分类单元及其系统发育关系。

@@ -52,7 +52,7 @@ item_schema:
       required: false
       default: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的监管申报分析师，请从 SEC 申报文件的风险因素章节中提取并归类所有单项风险因素。

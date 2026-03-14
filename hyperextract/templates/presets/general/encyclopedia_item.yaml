@@ -48,7 +48,7 @@ schema:
         zh: "相关概念/条目"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的百科全书编辑，请从文本中提取单一主体的结构化属性信息，构建百科条目信息框。

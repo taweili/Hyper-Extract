@@ -27,7 +27,7 @@ item_schema:
         zh: "特征描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的病理学家，请从文本中提取免疫组化指标（如 HER2+, Ki67）及基因突变状态，构建微观特征集。

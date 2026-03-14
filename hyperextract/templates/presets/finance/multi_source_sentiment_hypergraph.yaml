@@ -79,7 +79,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的多源情绪融合分析师，请从不同来源提取情绪信号并创建聚合情绪视图。

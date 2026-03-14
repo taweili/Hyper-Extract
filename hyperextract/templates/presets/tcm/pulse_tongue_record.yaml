@@ -46,7 +46,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的中医诊断专家，请从文本中提取舌象和脉象的特征信息。

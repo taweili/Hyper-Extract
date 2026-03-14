@@ -67,7 +67,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的公司治理分析师，请从招股说明书或委托声明文件中提取股权结构。

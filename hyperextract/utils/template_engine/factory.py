@@ -21,10 +21,13 @@ from hyperextract.types import (
     AutoSpatioTemporalGraph,
 )
 
-from .config_loader import TemplateConfig, Parameters
-from .schema_builder import SchemaBuilder
-from .identifier_resolver import IdentifierResolver
-from .prompt_builder import PromptBuilder
+from .builder import (
+    TemplateConfig,
+    Parameters,
+    SchemaBuilder,
+    IdentifierResolver,
+    PromptBuilder,
+)
 
 
 class TemplateFactory:
@@ -98,9 +101,9 @@ class TemplateFactory:
         if schema_class is None:
             raise ValueError(f"AutoModel requires schema definition: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(extraction_guide)
+        prompt = prompt_builder.build_model_prompt(guide)
 
         parameters = config.parameters or Parameters()
         merge_strategy = parameters.merge_strategy or "llm_balanced"
@@ -135,9 +138,9 @@ class TemplateFactory:
         if item_schema_class is None:
             raise ValueError(f"AutoList requires item_schema definition: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(extraction_guide)
+        prompt = prompt_builder.build_model_prompt(guide)
 
         parameters = config.parameters or Parameters()
 
@@ -169,9 +172,9 @@ class TemplateFactory:
         if item_id_extractor is None:
             raise ValueError(f"AutoSet requires item_id configuration: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
-        prompt = prompt_builder.build_model_prompt(extraction_guide)
+        prompt = prompt_builder.build_model_prompt(guide)
 
         parameters = config.parameters or Parameters()
         merge_strategy = parameters.merge_strategy or "llm_balanced"
@@ -216,19 +219,19 @@ class TemplateFactory:
         if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
             raise ValueError(f"AutoGraph requires complete identifiers configuration: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
 
         extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
 
         if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(extraction_guide)
+            prompt = prompt_builder.build_graph_main_prompt(guide)
             prompt_for_node_extraction = ""
             prompt_for_edge_extraction = ""
         else:
             prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_graph_node_prompt(extraction_guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(extraction_guide)
+            prompt_for_node_extraction = prompt_builder.build_graph_node_prompt(guide)
+            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
 
         parameters = config.parameters or Parameters()
 
@@ -297,19 +300,19 @@ class TemplateFactory:
         if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
             raise ValueError(f"AutoTemporalGraph requires complete identifiers configuration: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
 
         extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
 
         if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(extraction_guide)
+            prompt = prompt_builder.build_graph_main_prompt(guide)
             prompt_for_node_extraction = ""
             prompt_for_edge_extraction = ""
         else:
             prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_temporal_graph_node_prompt(extraction_guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(extraction_guide)
+            prompt_for_node_extraction = prompt_builder.build_temporal_graph_node_prompt(guide)
+            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
 
         parameters = config.parameters or Parameters()
 
@@ -375,19 +378,19 @@ class TemplateFactory:
         if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
             raise ValueError(f"AutoSpatialGraph requires complete identifiers configuration: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
 
         extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
 
         if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(extraction_guide)
+            prompt = prompt_builder.build_graph_main_prompt(guide)
             prompt_for_node_extraction = ""
             prompt_for_edge_extraction = ""
         else:
             prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_spatial_graph_node_prompt(extraction_guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(extraction_guide)
+            prompt_for_node_extraction = prompt_builder.build_spatial_graph_node_prompt(guide)
+            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
 
         parameters = config.parameters or Parameters()
 
@@ -454,19 +457,19 @@ class TemplateFactory:
         if not all([node_key_extractor, edge_key_extractor, nodes_in_edge_extractor]):
             raise ValueError(f"AutoSpatioTemporalGraph requires complete identifiers configuration: {config.name}")
 
-        extraction_guide = config.extraction_guide
+        guide = config.guide
         prompt_builder = PromptBuilder(language)
 
         extraction_mode = config.parameters.extraction_mode if config.parameters else "two_stage"
 
         if extraction_mode == "one_stage":
-            prompt = prompt_builder.build_graph_main_prompt(extraction_guide)
+            prompt = prompt_builder.build_graph_main_prompt(guide)
             prompt_for_node_extraction = ""
             prompt_for_edge_extraction = ""
         else:
             prompt = ""
-            prompt_for_node_extraction = prompt_builder.build_spatio_temporal_graph_node_prompt(extraction_guide)
-            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(extraction_guide)
+            prompt_for_node_extraction = prompt_builder.build_spatio_temporal_graph_node_prompt(guide)
+            prompt_for_edge_extraction = prompt_builder.build_graph_edge_prompt(guide)
 
         parameters = config.parameters or Parameters()
 
@@ -557,7 +560,6 @@ class TemplateFactory:
         """
         # Merge parameters: user-provided kwargs have highest priority
         if kwargs:
-            from .config_loader import Parameters
             base_params = config.parameters or Parameters()
             params_dict = base_params.model_dump()
             params_dict.update(kwargs)

@@ -41,7 +41,7 @@ edge_schema:
       description:
         zh: "关系描述"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的农业技术专家，请从农业技术手册中提取作物生长周期图。

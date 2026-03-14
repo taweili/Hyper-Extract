@@ -58,7 +58,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的金融分析师，请从文本中提取所有财务预测和估算。

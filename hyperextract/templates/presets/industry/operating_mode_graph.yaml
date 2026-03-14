@@ -67,7 +67,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业设备工况分析专家，请从文本中提取工况和条件实体，以及它们之间的关系。

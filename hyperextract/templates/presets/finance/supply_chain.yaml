@@ -55,7 +55,7 @@ edge_schema:
       required: true
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的供应链分析师，请从文本中提取供应链实体及其关系。

@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的公司历史分析师，请从文本中提取公司相关的实体以及里程碑事件。

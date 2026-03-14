@@ -48,7 +48,7 @@ edge_schema:
         zh: "阶段描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的历史学专家，请从文本中提取人物的人生阶段轨迹。

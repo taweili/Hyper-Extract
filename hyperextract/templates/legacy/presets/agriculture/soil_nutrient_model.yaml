@@ -109,7 +109,7 @@ schema:
         zh: "有效硼含量，单位mg/kg"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的土壤肥料专家，请从土壤检测报告中提取土壤养分指标。

@@ -38,7 +38,7 @@ item_schema:
         zh: "补充描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       请从文本中提取口述历史或回忆录中的回忆片段。

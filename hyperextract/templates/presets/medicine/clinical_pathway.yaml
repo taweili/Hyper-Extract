@@ -43,7 +43,7 @@ edge_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的临床医生，请从文本中提取"如果症状A则检查B否则治疗C"的决策树结构，构建临床路径图。

@@ -58,7 +58,7 @@ edge_schema:
       description:
         zh: "信件内容摘要"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的历史学专家，请从文本中提取书信中的人物以及书信内容关系。

@@ -124,7 +124,7 @@ schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业设备技术专家，请从技术规格书中提取所有关键技术参数。

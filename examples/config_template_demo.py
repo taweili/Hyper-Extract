@@ -20,7 +20,7 @@ from hyperextract.utils.template_engine import Gallery, TemplateFactory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 
-TEST_SAMPLES_ROOT = Path(__file__).parent.parent / "tests" / "fixtures" / "test_samples" / "zh" / "general"
+TEST_SAMPLES_ROOT = Path(__file__).parent.parent / "tests" / "test_data" / "test_samples" / "zh" / "general"
 INPUT_FILE = TEST_SAMPLES_ROOT / "biography_scientist.md"
 
 

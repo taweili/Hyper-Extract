@@ -100,7 +100,7 @@ schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的股票研究分析师，请从研究报告中提取核心投资论点、评级、目标价和关键论据。

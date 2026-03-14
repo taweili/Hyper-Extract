@@ -55,7 +55,7 @@ edge_schema:
       required: true
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业系统架构分析专家，请从文本中提取实体和它们之间的层级关系。

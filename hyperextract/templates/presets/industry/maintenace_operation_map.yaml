@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位设备维修管理专家，请从维修作业指导书中提取实体和维修作业中的复杂关联作为超边。

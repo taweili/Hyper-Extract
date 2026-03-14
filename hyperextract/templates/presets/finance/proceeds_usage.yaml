@@ -46,7 +46,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的 IPO 分析师，请从招股说明书中提取所有募集资金用途分配信息。

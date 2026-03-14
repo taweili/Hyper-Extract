@@ -43,7 +43,7 @@ edge_schema:
         zh: "引用上下文描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的知识网络分析专家，请从文本中提取概念/条目及其相互引用关系。

@@ -34,7 +34,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的餐饮知识专家，请从文本中提取所有独立菜品实体，形成菜谱名录。

@@ -42,7 +42,7 @@ edge_schema:
       description:
         zh: "详细描述，如具体的相互作用机制"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的临床药师，请从文本中提取药物相互作用信息，构建条件性相互作用网。

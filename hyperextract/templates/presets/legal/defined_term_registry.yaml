@@ -28,7 +28,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的合同法律师，请从文本中提取所有定义的术语，形成术语定义表。

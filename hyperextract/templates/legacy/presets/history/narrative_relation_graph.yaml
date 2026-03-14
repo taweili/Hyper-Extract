@@ -42,7 +42,7 @@ edge_schema:
       description:
         zh: "互动内容或评价具体描述"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的历史学专家，请从文本中提取口述历史或回忆录中的人物以及他们之间的互动与评价关系。

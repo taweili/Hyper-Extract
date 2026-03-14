@@ -53,7 +53,7 @@ edge_schema:
         zh: "规则来源条款"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的合规评估员，请从文本中提取合规要素和规则。

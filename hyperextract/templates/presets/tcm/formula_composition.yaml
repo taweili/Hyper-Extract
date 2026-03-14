@@ -91,7 +91,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的方剂学专家，请从文本中提取方剂的君臣佐使结构。

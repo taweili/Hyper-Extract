@@ -1,14 +1,22 @@
-"""Identifier Resolver - Generates extraction functions for nodes and edges.
-
-Converts identifier definitions in configuration to callable functions.
-"""
+"""Identifier models and resolver."""
 
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from pydantic import BaseModel
 
 
+class Identifiers(BaseModel):
+    """Identifier configuration."""
+
+    item_id: Optional[str] = None
+    node_id: Optional[str] = None
+    edge_id: Optional[str] = None
+    edge_members: Optional[Union[str, Dict[str, str], List[str]]] = None
+    time_field: Optional[str] = None
+    location_field: Optional[str] = None
+
+
 class IdentifierResolver:
-    """Identifier Resolver."""
+    """Identifier Resolver - Generates extraction functions for nodes and edges."""
 
     @staticmethod
     def resolve_item_id(field_name: str) -> Callable[[BaseModel], str]:
@@ -136,3 +144,9 @@ class IdentifierResolver:
                 result["location_in_edge_extractor"] = cls.resolve_location(identifiers_dict["location_field"])
 
         return result
+
+
+__all__ = [
+    "Identifiers",
+    "IdentifierResolver",
+]

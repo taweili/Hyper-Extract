@@ -41,7 +41,7 @@ edge_schema:
       description:
         zh: "描述"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的文学评论家，请从文本中提取叙事结构单元以及它们之间的层级关系。

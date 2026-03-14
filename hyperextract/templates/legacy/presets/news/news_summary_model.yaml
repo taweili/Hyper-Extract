@@ -58,7 +58,7 @@ schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的新闻编辑，请从新闻文本中提取结构化的5W1H要素，构建新闻摘要。

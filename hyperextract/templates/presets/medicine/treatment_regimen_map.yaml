@@ -42,7 +42,7 @@ edge_schema:
       description:
         zh: "详细描述，如具体的治疗方案内容"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的临床医生，请从文本中提取由"药物组合+理疗+生活干预"构成的多因素治疗方案，构建综合治疗方案图。

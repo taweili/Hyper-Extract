@@ -42,7 +42,7 @@ edge_schema:
       description:
         zh: "详细描述，如具体的作用机制"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的药理学家，请从文本中提取药物、受体、靶点及生理反应之间的相互作用路径，构建药理机制图。

@@ -51,7 +51,7 @@ edge_schema:
       description:
         zh: "参与者列表，与节点对应"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的历史学专家，请从文本中提取历史事件中的参与者以及他们组成的事件超边。

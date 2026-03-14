@@ -1,127 +1,13 @@
-"""Config Loader - Loads and validates YAML configuration files.
-
-Provides configuration schema definition, multilingual field parsing, and configuration validation.
-"""
+"""Config loader, parameters and display models."""
 
 from typing import Any, Dict, List, Literal, Optional, Union
 from pathlib import Path
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 import yaml
 
-
-class FieldDescription(BaseModel):
-    """Field description with multilingual support."""
-
-    zh: Optional[str] = None
-    en: Optional[str] = None
-
-    def get(self, language: str = "zh") -> str:
-        """Get description for specified language."""
-        if isinstance(self, str):
-            return self
-        return getattr(self, language) or self.zh or ""
-
-
-class SchemaField(BaseModel):
-    """Schema field definition."""
-
-    name: str
-    type: Literal["string", "int", "float", "bool", "array"]
-    description: Optional[Union[str, Dict[str, str]]] = None
-    required: bool = False
-    default: Optional[Any] = None
-    item_type: Optional[str] = None
-
-    @field_validator("description", mode="before")
-    @classmethod
-    def parse_description(cls, v):
-        """Parse description field, supports plain string or multilingual dict."""
-        return v
-
-
-class BaseSchema(BaseModel):
-    """Base schema configuration."""
-
-    fields: List[SchemaField] = Field(default_factory=list)
-
-
-class ModelSchema(BaseSchema):
-    """Model type schema."""
-    pass
-
-
-class ItemSchema(BaseSchema):
-    """List/Set type item schema."""
-    pass
-
-
-class NodeSchema(BaseSchema):
-    """Graph type node schema."""
-    pass
-
-
-class EdgeSchema(BaseSchema):
-    """Graph type edge schema."""
-    pass
-
-
-class ExtractionGuideTarget(BaseModel):
-    """Extraction target with role definition and content description."""
-
-    zh: Optional[str] = None
-    en: Optional[str] = None
-
-    @classmethod
-    def from_value(cls, value: Union[str, Dict[str, str], None]) -> Optional["ExtractionGuideTarget"]:
-        """Create instance from string or dict."""
-        if value is None:
-            return None
-        if isinstance(value, str):
-            return cls(zh=value)
-        if isinstance(value, dict):
-            return cls(**value)
-        return None
-
-    def get(self, language: str = "zh") -> str:
-        """Get content for specified language."""
-        return getattr(self, language) or self.zh or ""
-
-
-class ExtractionGuide(BaseModel):
-    """Extraction guide configuration."""
-
-    target: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
-    rules: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_nodes: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_edges: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_time: Optional[Union[List[str], Dict[str, List[str]]]] = None
-    rules_for_location: Optional[Union[List[str], Dict[str, List[str]]]] = None
-
-    def get_field(self, field_name: str, language: str = "zh") -> Optional[str]:
-        """Get specified field content for specified language."""
-        value = getattr(self, field_name, None)
-        if value is None:
-            return None
-        if isinstance(value, list):
-            return "\n".join(f"{i+1}. {item}" for i, item in enumerate(value))
-        if isinstance(value, dict):
-            dict_value = value.get(language) or value.get("zh")
-            if dict_value is None:
-                return None
-            if isinstance(dict_value, list):
-                return "\n".join(f"{i+1}. {item}" for i, item in enumerate(dict_value))
-        return None
-
-
-class Identifiers(BaseModel):
-    """Identifier configuration."""
-
-    item_id: Optional[str] = None
-    node_id: Optional[str] = None
-    edge_id: Optional[str] = None
-    edge_members: Optional[Union[str, Dict[str, str], List[str]]] = None
-    time_field: Optional[str] = None
-    location_field: Optional[str] = None
+from .schema import ModelSchema, ItemSchema, NodeSchema, EdgeSchema
+from .extraction import Guide
+from .identifiers import Identifiers
 
 
 class Parameters(BaseModel):
@@ -183,7 +69,7 @@ class TemplateConfig(BaseModel):
     item_schema: Optional[ItemSchema] = None
     node_schema: Optional[NodeSchema] = None
     edge_schema: Optional[EdgeSchema] = None
-    extraction_guide: Optional[ExtractionGuide] = None
+    guide: Optional[Guide] = None
     identifiers: Optional[Identifiers] = None
     parameters: Optional[Parameters] = None
     display: Optional[Display] = None
@@ -247,3 +133,11 @@ class ConfigLoader:
             "temporal_graph", "spatial_graph", "spatio_temporal_graph"
         }
         return autotype in valid_types
+
+
+__all__ = [
+    "Parameters",
+    "Display",
+    "TemplateConfig",
+    "ConfigLoader",
+]

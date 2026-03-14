@@ -44,7 +44,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 # ==========================================
 
 # 测试文件根目录
-TEST_SAMPLES_ROOT = Path(__file__).parent.parent / "tests" / "fixtures" / "test_samples" / "zh" / "history"
+TEST_SAMPLES_ROOT = Path(__file__).parent.parent / "tests" / "test_data" / "test_samples" / "zh" / "history"
 
 # 模板到输入文件的映射关系（根据 README 中的典型应用场景）
 TEMPLATE_TO_INPUT = {

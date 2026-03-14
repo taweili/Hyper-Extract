@@ -27,7 +27,7 @@ item_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的临床药师，请从文本中提取各系统的不良反应表现及其发生率描述，构建不良反应统计。

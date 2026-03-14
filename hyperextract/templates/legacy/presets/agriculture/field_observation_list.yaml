@@ -38,7 +38,7 @@ item_schema:
       description:
         zh: "建议措施列表"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的农技人员，请从巡田报告中提取结构化的田间观测记录。

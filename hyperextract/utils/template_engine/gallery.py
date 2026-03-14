@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .config_loader import TemplateConfig, ConfigLoader
+from .builder import TemplateConfig, ConfigLoader
 
 
 class Gallery:
@@ -166,6 +166,74 @@ class Gallery:
                     count = len(list(item.glob("*.yaml")))
                     domains.append((item.name, count))
         return domains
+
+    @classmethod
+    def create(
+        cls,
+        name: str,
+        lang: str = "zh",
+        llm_client=None,
+        embedder=None,
+    ):
+        """Create template instance.
+        
+        Args:
+            name: Template name (e.g., "knowledge_graph", "zh/finance/risk_assessment")
+            lang: Language, default "zh"
+            llm_client: LLM client, optional, reads from global config if not provided
+            embedder: Embedder client, optional, reads from global config if not provided
+            
+        Returns:
+            TemplateWrapper instance
+            
+        Examples:
+            # Method 1: Use global config (recommended)
+            template = Gallery.create("knowledge_graph")
+            
+            # Method 2: Custom client
+            from hyperextract.utils import get_client
+            llm, emb = get_client()
+            template = Gallery.create("knowledge_graph", llm_client=llm, embedder=emb)
+            
+            # Method 3: Mixed usage
+            template = Gallery.create("knowledge_graph", llm_client=my_llm)
+        """
+        config = cls._resolve_config(name, lang)
+        
+        if llm_client is None or embedder is None:
+            from hyperextract.utils import get_client
+            default_llm, default_emb = get_client()
+            llm_client = llm_client or default_llm
+            embedder = embedder or default_emb
+        
+        from .factory import TemplateFactory
+        return TemplateFactory.create(config, llm_client, embedder)
+
+    @classmethod
+    def _resolve_config(cls, name: str, lang: str = "zh") -> TemplateConfig:
+        """Resolve template name to config object."""
+        config = cls.get(name)
+        if config is not None:
+            return config
+        
+        parts = name.split("/")
+        if len(parts) == 1:
+            search_name = f"{lang}/{name}"
+            config = cls.get(search_name)
+            if config is not None:
+                return config
+        else:
+            template_lang = parts[0]
+            if template_lang not in ["zh", "en"]:
+                template_lang = lang
+            template_name = parts[-1]
+            full_name = f"{template_lang}/{template_name}"
+            config = cls.get(full_name)
+            if config is not None:
+                return config
+        
+        available = cls.list_all()
+        raise ValueError(f"Template '{name}' not found. Available: {available[:10]}...")
 
     def _load_config(self, file_path: Path) -> None:
         try:

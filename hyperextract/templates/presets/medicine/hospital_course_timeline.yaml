@@ -47,7 +47,7 @@ edge_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的医院管理人员，请从文本中严格按时间顺序提取入院、检查、治疗、转归等节点，构建住院病程时间轴。

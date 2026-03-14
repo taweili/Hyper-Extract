@@ -55,7 +55,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的政策分析师，请从文本中提取论证元素以及它们组成的观点聚合超边。

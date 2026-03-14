@@ -47,7 +47,7 @@ edge_schema:
       description:
         zh: "详细描述，如手术过程"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的外科医生，请从文本中提取手术事件及其相关实体，构建手术事件超图。

@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业设备故障分析专家，请从文本中提取故障现象、原因、处理措施和经验教训。

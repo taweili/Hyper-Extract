@@ -23,7 +23,7 @@ item_schema:
         zh: "关键词简要描述或上下文说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的关键词提取专家，请从文本中提取所有关键词并附带分类和描述信息。

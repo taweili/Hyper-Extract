@@ -47,7 +47,7 @@ edge_schema:
         zh: "来源情节"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的小说分析师，请从文本中提取人物以及它们之间的复杂关系超边。

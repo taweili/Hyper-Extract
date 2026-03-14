@@ -2,6 +2,8 @@
 
 import os
 import json
+import tomllib
+import tomli_w
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
@@ -79,11 +81,6 @@ class ConfigManager:
         if not self.config_path.exists():
             return
 
-        try:
-            import tomli as tomllib
-        except ImportError:
-            import tomllib
-
         with open(self.config_path, "rb") as f:
             data = tomllib.load(f)
 
@@ -95,9 +92,6 @@ class ConfigManager:
     def _save(self) -> None:
         """Save configuration to file."""
         DEFAULT_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-
-        import tomli as tomllib
-        import tomli_w
 
         data = {
             "llm": self.llm.to_dict(),

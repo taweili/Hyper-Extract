@@ -73,7 +73,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业操作流程分析专家，请从文本中提取操作步骤、设备状态和预期结果。

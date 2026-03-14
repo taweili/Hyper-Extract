@@ -48,7 +48,7 @@ edge_schema:
         zh: "关系详细说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的社会关系分析专家，请从文本中提取人物、组织及其相互关系。

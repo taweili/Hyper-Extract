@@ -43,7 +43,7 @@ edge_schema:
         zh: "关系详细说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的概念结构分析专家，请从文本中提取概念及其层级关系。

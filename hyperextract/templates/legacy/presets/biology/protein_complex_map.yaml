@@ -48,7 +48,7 @@ edge_schema:
         zh: "组装细节，如哪些亚基相互作用"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的结构生物学专家，请从蛋白质结构文献中提取蛋白质及其复合物组成关系。

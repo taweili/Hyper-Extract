@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的法律工作者，请从裁判文书中提取裁判要素和裁判逻辑。

@@ -67,7 +67,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业安全管理分析专家，请从文本中提取危险源、风险点和管控措施，构建安全管控关系。

@@ -53,7 +53,7 @@ edge_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的分子生物学专家，请从文本中提取基因、转录因子及其之间的调控关系。

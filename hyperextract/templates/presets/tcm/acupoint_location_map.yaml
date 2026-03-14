@@ -61,7 +61,7 @@ edge_schema:
       required: true
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的针灸学专家，请从文本中提取穴位的相对位置关系。

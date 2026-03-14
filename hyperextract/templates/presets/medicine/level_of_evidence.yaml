@@ -35,7 +35,7 @@ item_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的循证医学专家，请从文本中提取指南中的具体推荐意见及其对应的证据等级，构建证据评级表。

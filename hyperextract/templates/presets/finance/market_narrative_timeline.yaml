@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的策略师，请从财经评论中提取市场叙事以及它们随时间的演变。

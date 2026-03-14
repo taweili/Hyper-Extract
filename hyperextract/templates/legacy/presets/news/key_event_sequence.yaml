@@ -61,7 +61,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的新闻调查记者，请从调查报道文本中提取关键事件以及它们之间的关系。

@@ -1,10 +1,55 @@
-"""Prompt Builder - Builds extraction prompts for various AutoType.
-
-Supports extraction_guide target field, automatically adds titles to rules.
-"""
+"""Extraction models and prompt builder."""
 
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from .config_loader import ExtractionGuide
+from pydantic import BaseModel
+
+
+class GuideTarget(BaseModel):
+    """Extraction target with role definition and content description."""
+
+    zh: Optional[str] = None
+    en: Optional[str] = None
+
+    @classmethod
+    def from_value(cls, value: Union[str, Dict[str, str], None]) -> Optional["GuideTarget"]:
+        """Create instance from string or dict."""
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return cls(zh=value)
+        if isinstance(value, dict):
+            return cls(**value)
+        return None
+
+    def get(self, language: str = "zh") -> str:
+        """Get content for specified language."""
+        return getattr(self, language) or self.zh or ""
+
+
+class Guide(BaseModel):
+    """Guide configuration."""
+
+    target: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None
+    rules: Optional[Union[List[str], Dict[str, List[str]]]] = None
+    rules_for_nodes: Optional[Union[List[str], Dict[str, List[str]]]] = None
+    rules_for_edges: Optional[Union[List[str], Dict[str, List[str]]]] = None
+    rules_for_time: Optional[Union[List[str], Dict[str, List[str]]]] = None
+    rules_for_location: Optional[Union[List[str], Dict[str, List[str]]]] = None
+
+    def get_field(self, field_name: str, language: str = "zh") -> Optional[str]:
+        """Get specified field content for specified language."""
+        value = getattr(self, field_name, None)
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return "\n".join(f"{i+1}. {item}" for i, item in enumerate(value))
+        if isinstance(value, dict):
+            dict_value = value.get(language) or value.get("zh")
+            if dict_value is None:
+                return None
+            if isinstance(dict_value, list):
+                return "\n".join(f"{i+1}. {item}" for i, item in enumerate(dict_value))
+        return None
 
 
 LABEL_MAPPING = {
@@ -32,7 +77,7 @@ LABEL_MAPPING = {
 
 
 class PromptBuilder:
-    """Prompt Builder."""
+    """Prompt Builder - Builds extraction prompts for various AutoType."""
 
     def __init__(self, language: str = "zh"):
         """Initialize Prompt Builder."""
@@ -59,57 +104,57 @@ class PromptBuilder:
         title = self.labels.get(title_key, title_key)
         return f"### {title}\n{text}"
 
-    def build_target(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_target(self, guide: Guide) -> Optional[str]:
         """Build target field (role definition + extraction content description)."""
-        target = extraction_guide.target
+        target = guide.target
         if target is None:
             return None
         return self._get_text(target, self.language)
 
-    def build_rules(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_rules(self, guide: Guide) -> Optional[str]:
         """Build rules field (with title)."""
-        rules = self._get_text(extraction_guide.rules, self.language)
+        rules = self._get_text(guide.rules, self.language)
         if rules:
             return self._add_title(rules, "extraction_rules")
         return None
 
-    def build_rules_for_nodes(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_rules_for_nodes(self, guide: Guide) -> Optional[str]:
         """Build rules_for_nodes field (with title)."""
-        rules = self._get_text(extraction_guide.rules_for_nodes, self.language)
+        rules = self._get_text(guide.rules_for_nodes, self.language)
         if rules:
             return self._add_title(rules, "node_extraction_rules")
         return None
 
-    def build_rules_for_edges(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_rules_for_edges(self, guide: Guide) -> Optional[str]:
         """Build rules_for_edges field (with title)."""
-        rules = self._get_text(extraction_guide.rules_for_edges, self.language)
+        rules = self._get_text(guide.rules_for_edges, self.language)
         if rules:
             return self._add_title(rules, "edge_extraction_rules")
         return None
 
-    def build_rules_for_time(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_rules_for_time(self, guide: Guide) -> Optional[str]:
         """Build rules_for_time field (with title)."""
-        rules = self._get_text(extraction_guide.rules_for_time, self.language)
+        rules = self._get_text(guide.rules_for_time, self.language)
         if rules:
             return self._add_title(rules, "time_rules")
         return None
 
-    def build_rules_for_location(self, extraction_guide: ExtractionGuide) -> Optional[str]:
+    def build_rules_for_location(self, guide: Guide) -> Optional[str]:
         """Build rules_for_location field (with title)."""
-        rules = self._get_text(extraction_guide.rules_for_location, self.language)
+        rules = self._get_text(guide.rules_for_location, self.language)
         if rules:
             return self._add_title(rules, "location_rules")
         return None
 
-    def build_model_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_model_prompt(self, guide: Guide) -> str:
         """Build Model/List/Set type Prompt."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules = self.build_rules(extraction_guide)
+        rules = self.build_rules(guide)
         if rules:
             parts.append(rules)
 
@@ -118,19 +163,19 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_graph_main_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_graph_main_prompt(self, guide: Guide) -> str:
         """Build Graph type main Prompt (single-stage mode)."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_nodes = self.build_rules_for_nodes(extraction_guide)
+        rules_for_nodes = self.build_rules_for_nodes(guide)
         if rules_for_nodes:
             parts.append(rules_for_nodes)
 
-        rules_for_edges = self.build_rules_for_edges(extraction_guide)
+        rules_for_edges = self.build_rules_for_edges(guide)
         if rules_for_edges:
             parts.append(rules_for_edges)
 
@@ -139,15 +184,15 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_graph_node_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_graph_node_prompt(self, guide: Guide) -> str:
         """Build Graph type node extraction Prompt (two-stage mode)."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_nodes = self.build_rules_for_nodes(extraction_guide)
+        rules_for_nodes = self.build_rules_for_nodes(guide)
         if rules_for_nodes:
             parts.append(rules_for_nodes)
 
@@ -156,15 +201,15 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_graph_edge_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_graph_edge_prompt(self, guide: Guide) -> str:
         """Build Graph type edge extraction Prompt (two-stage mode)."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_edges = self.build_rules_for_edges(extraction_guide)
+        rules_for_edges = self.build_rules_for_edges(guide)
         if rules_for_edges:
             parts.append(rules_for_edges)
 
@@ -176,19 +221,19 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_temporal_graph_node_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_temporal_graph_node_prompt(self, guide: Guide) -> str:
         """Build TemporalGraph node extraction Prompt."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_nodes = self.build_rules_for_nodes(extraction_guide)
+        rules_for_nodes = self.build_rules_for_nodes(guide)
         if rules_for_nodes:
             parts.append(rules_for_nodes)
 
-        rules_for_time = self.build_rules_for_time(extraction_guide)
+        rules_for_time = self.build_rules_for_time(guide)
         if rules_for_time:
             parts.append(rules_for_time)
 
@@ -197,19 +242,19 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_spatial_graph_node_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_spatial_graph_node_prompt(self, guide: Guide) -> str:
         """Build SpatialGraph node extraction Prompt."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_nodes = self.build_rules_for_nodes(extraction_guide)
+        rules_for_nodes = self.build_rules_for_nodes(guide)
         if rules_for_nodes:
             parts.append(rules_for_nodes)
 
-        rules_for_location = self.build_rules_for_location(extraction_guide)
+        rules_for_location = self.build_rules_for_location(guide)
         if rules_for_location:
             parts.append(rules_for_location)
 
@@ -218,23 +263,23 @@ class PromptBuilder:
 
         return "\n\n".join(parts)
 
-    def build_spatio_temporal_graph_node_prompt(self, extraction_guide: ExtractionGuide) -> str:
+    def build_spatio_temporal_graph_node_prompt(self, guide: Guide) -> str:
         """Build SpatioTemporalGraph node extraction Prompt."""
         parts = []
 
-        target = self.build_target(extraction_guide)
+        target = self.build_target(guide)
         if target:
             parts.append(target)
 
-        rules_for_nodes = self.build_rules_for_nodes(extraction_guide)
+        rules_for_nodes = self.build_rules_for_nodes(guide)
         if rules_for_nodes:
             parts.append(rules_for_nodes)
 
-        rules_for_time = self.build_rules_for_time(extraction_guide)
+        rules_for_time = self.build_rules_for_time(guide)
         if rules_for_time:
             parts.append(rules_for_time)
 
-        rules_for_location = self.build_rules_for_location(extraction_guide)
+        rules_for_location = self.build_rules_for_location(guide)
         if rules_for_location:
             parts.append(rules_for_location)
 
@@ -242,3 +287,10 @@ class PromptBuilder:
         parts.append(f"## {source_label}:\n{{source_text}}")
 
         return "\n\n".join(parts)
+
+
+__all__ = [
+    "GuideTarget",
+    "Guide",
+    "PromptBuilder",
+]

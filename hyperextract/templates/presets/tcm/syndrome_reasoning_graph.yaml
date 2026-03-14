@@ -55,7 +55,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的中医辨证论治专家，请从文本中提取中医实体和辨证论治推理逻辑作为超边。

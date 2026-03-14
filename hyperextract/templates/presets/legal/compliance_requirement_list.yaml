@@ -52,7 +52,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的合规顾问，请从法规或政策文件中提取所有合规义务。

@@ -23,7 +23,7 @@ item_schema:
         zh: "简要描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的实体识别专家，请从文本中提取所有唯一实体，形成实体注册表。

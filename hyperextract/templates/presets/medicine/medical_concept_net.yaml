@@ -43,7 +43,7 @@ edge_schema:
         zh: "详细描述"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的医学术语专家，请从文本中提取医学术语及其关联属性，构建医学概念网络。

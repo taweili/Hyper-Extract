@@ -1,19 +1,63 @@
-"""Schema Builder - Dynamically generates Pydantic Schema.
+"""Schema models and builder."""
 
-Converts Schema definitions in configuration files to Pydantic models.
-"""
+from typing import Any, Dict, List, Literal, Optional, Union, Type
+from pydantic import BaseModel, Field, field_validator, create_model
 
-from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
-from pydantic import BaseModel, Field, create_model
-from pydantic.fields import FieldInfo
 
-from .config_loader import (
-    SchemaField,
-    ModelSchema,
-    ItemSchema,
-    NodeSchema,
-    EdgeSchema,
-)
+class FieldDescription(BaseModel):
+    """Field description with multilingual support."""
+
+    zh: Optional[str] = None
+    en: Optional[str] = None
+
+    def get(self, language: str = "zh") -> str:
+        """Get description for specified language."""
+        if isinstance(self, str):
+            return self
+        return getattr(self, language) or self.zh or ""
+
+
+class SchemaField(BaseModel):
+    """Schema field definition."""
+
+    name: str
+    type: Literal["string", "int", "float", "bool", "array"]
+    description: Optional[Union[str, Dict[str, str]]] = None
+    required: bool = False
+    default: Optional[Any] = None
+    item_type: Optional[str] = None
+
+    @field_validator("description", mode="before")
+    @classmethod
+    def parse_description(cls, v):
+        """Parse description field, supports plain string or multilingual dict."""
+        return v
+
+
+class BaseSchema(BaseModel):
+    """Base schema configuration."""
+
+    fields: List[SchemaField] = Field(default_factory=list)
+
+
+class ModelSchema(BaseSchema):
+    """Model type schema."""
+    pass
+
+
+class ItemSchema(BaseSchema):
+    """List/Set type item schema."""
+    pass
+
+
+class NodeSchema(BaseSchema):
+    """Graph type node schema."""
+    pass
+
+
+class EdgeSchema(BaseSchema):
+    """Graph type edge schema."""
+    pass
 
 
 TYPE_MAPPING = {
@@ -26,7 +70,7 @@ TYPE_MAPPING = {
 
 
 class SchemaBuilder:
-    """Schema Builder."""
+    """Schema Builder - Dynamically generates Pydantic Schema."""
 
     @staticmethod
     def build_field_type(field: SchemaField) -> Type:
@@ -126,3 +170,15 @@ class SchemaBuilder:
             result["edge_schema"] = cls.build_edge_schema(config.edge_schema)
 
         return result
+
+
+__all__ = [
+    "FieldDescription",
+    "SchemaField",
+    "BaseSchema",
+    "ModelSchema",
+    "ItemSchema",
+    "NodeSchema",
+    "EdgeSchema",
+    "SchemaBuilder",
+]

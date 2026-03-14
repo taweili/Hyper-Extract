@@ -46,7 +46,7 @@ item_schema:
       required: true
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的美食评论家，请从文本中提取每道菜品的核心评价信息，形成食评摘要清单。

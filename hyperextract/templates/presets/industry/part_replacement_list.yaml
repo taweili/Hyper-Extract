@@ -52,7 +52,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位设备维护管理专家，请从备件更换记录中提取所有备件消耗条目。

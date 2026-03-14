@@ -64,7 +64,7 @@ edge_schema:
       description:
         zh: "结果描述"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的历史学专家，请从文本中提取政治博弈或战役中的人物以及他们组成的博弈事件超边。

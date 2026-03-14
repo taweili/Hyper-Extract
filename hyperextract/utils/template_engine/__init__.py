@@ -2,54 +2,36 @@
 
 This module provides functionality to dynamically generate HyperExtract templates from YAML configuration files.
 
-Usage Examples:
-    >>> from hyperextract.utils.template_engine import Gallery, TemplateFactory
-    >>>
-    >>> # Get template (auto-loaded presets and customs)
-    >>> config = Gallery.get("KnowledgeGraph")
-    >>> template = TemplateFactory.create(config, llm_client, embedder)
-    >>>
-    >>> # List all templates
-    >>> print(Gallery.list_all())
-    >>>
-    >>> # Add custom template directory (auto-loaded)
-    >>> Gallery.add_path("/path/to/my/templates")
+Usage:
+    # Recommended: use Template class
+    from hyperextract.utils import Template
+    
+    Template.list()
+    Template.search("知识图谱")
+    template = Template.create("knowledge_graph")
+    
+    # Advanced: use Gallery and Factory directly
+    from hyperextract.utils.template_engine import Gallery, TemplateFactory
 """
 
-from .config_loader import (
+from .template import Template
+from .gallery import Gallery
+from .factory import TemplateFactory
+from .builder import (
     TemplateConfig,
     ConfigLoader,
-    FieldDescription,
-    SchemaField,
-    ExtractionGuide,
-    Identifiers,
-    Parameters,
-    Display,
+    SchemaBuilder,
+    PromptBuilder,
+    IdentifierResolver,
 )
 
-from .schema_builder import SchemaBuilder
-
-from .identifier_resolver import IdentifierResolver
-
-from .prompt_builder import PromptBuilder
-
-from .template_factory import TemplateFactory
-
-from .template_gallery import Gallery
-
-
 __all__ = [
+    "Template",
+    "Gallery",
+    "TemplateFactory",
     "TemplateConfig",
     "ConfigLoader",
-    "FieldDescription",
-    "SchemaField",
-    "ExtractionGuide",
-    "Identifiers",
-    "Parameters",
-    "Display",
     "SchemaBuilder",
-    "IdentifierResolver",
     "PromptBuilder",
-    "TemplateFactory",
-    "Gallery",
+    "IdentifierResolver",
 ]

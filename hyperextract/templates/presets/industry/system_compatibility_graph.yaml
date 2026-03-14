@@ -49,7 +49,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业设备选型专家，请从技术规格书中提取实体和设备与环境、介质的兼容性关系作为超边。

@@ -32,7 +32,7 @@ item_schema:
         zh: "备注说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的合规分析专家，请从文本中提取所有违规行为及其对应的处罚措施，形成违规处罚对照表。

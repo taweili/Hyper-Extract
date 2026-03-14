@@ -106,7 +106,7 @@ schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的分析师，请从财报电话会议记录中提取关键财务指标、业绩指引和整体基调。

@@ -73,7 +73,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位工业设备管理专家，请从文本中提取设备实体及其相互连接关系。

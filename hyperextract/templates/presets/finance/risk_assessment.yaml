@@ -73,7 +73,7 @@ edge_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的金融风险分析师，请从企业披露文件中提取风险因素、财务指标、运营结果等实体，以及它们之间的风险传导关系。

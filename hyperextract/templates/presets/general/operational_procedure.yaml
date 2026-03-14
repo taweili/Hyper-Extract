@@ -58,7 +58,7 @@ edge_schema:
         zh: "详细说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的流程分析专家，请从文本中提取执行程序的步骤和转换关系。

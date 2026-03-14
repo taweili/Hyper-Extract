@@ -42,7 +42,7 @@ edge_schema:
         zh: "详细说明"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的处罚逻辑分析专家，请从文本中提取违规处罚的因果链。

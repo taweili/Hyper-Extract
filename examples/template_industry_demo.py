@@ -54,7 +54,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 TEST_SAMPLES_ROOT = (
     Path(__file__).parent.parent
     / "tests"
-    / "fixtures"
+    / "test_data"
     / "test_samples"
     / "zh"
     / "industry"

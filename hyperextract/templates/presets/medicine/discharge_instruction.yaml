@@ -40,7 +40,7 @@ schema:
         zh: "其他注意事项列表"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的医生，请从文本中提取出院带药、复诊计划及康复建议的结构化信息，构建出院医嘱摘要。

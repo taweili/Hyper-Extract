@@ -46,7 +46,7 @@ item_schema:
       required: false
       default: ""
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的风险分析师，请从文本中提取所有下行风险和风险因素。

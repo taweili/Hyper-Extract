@@ -38,7 +38,7 @@ schema:
       description:
         zh: "M分期详细描述，如远处转移部位"
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的病理学家，请从文本中提取肿瘤大小(T)、淋巴结(N)、转移(M)及分期结果，构建TNM分期表。

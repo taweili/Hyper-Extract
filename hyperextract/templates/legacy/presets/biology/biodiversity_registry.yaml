@@ -42,7 +42,7 @@ item_schema:
         zh: "观测详情，包括观测时间、地点和数量记录"
       required: false
 
-extraction_guide:
+guide:
   target:
     zh: |
       你是一位专业的生态学专家，请从调查报告中提取所有物种观测记录，构建物种名录。
