@@ -38,7 +38,7 @@ output:
       required: true
       default: ''
     - name: factors
-      type: array
+      type: list
       description:
         zh: 导致该结果的因子列表（至少2个）
       required: true

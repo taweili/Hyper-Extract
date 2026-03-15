@@ -34,7 +34,7 @@ edge_schema:
       description:
         zh: "关系类型：三角恋、结盟、敌对、背叛、竞争、家族"
     - name: participants
-      type: "array"
+      type: "list"
       description:
         zh: "参与方列表（3人或以上）"
     - name: description

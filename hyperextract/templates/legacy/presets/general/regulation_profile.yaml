@@ -38,12 +38,12 @@ output:
       zh: 失效日期
     required: false
   - name: scope
-    type: array
+    type: list
     description:
       zh: 适用范围
     required: false
   - name: targetAudience
-    type: array
+    type: list
     description:
       zh: 适用对象
     required: false
@@ -53,12 +53,12 @@ output:
       zh: 核心宗旨/目的
     required: false
   - name: keywords
-    type: array
+    type: list
     description:
       zh: 关键词/标签
     required: false
   - name: relatedRegulations
-    type: array
+    type: list
     description:
       zh: 关联规章
     required: false

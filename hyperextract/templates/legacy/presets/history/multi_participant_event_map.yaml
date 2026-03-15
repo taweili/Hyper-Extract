@@ -47,7 +47,7 @@ edge_schema:
       description:
         zh: "事件概述，描述事件背景、经过和结果"
     - name: participants
-      type: "array"
+      type: "list"
       description:
         zh: "参与者列表，与节点对应"
 

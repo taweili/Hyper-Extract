@@ -39,19 +39,19 @@ output:
     required: false
     default: ''
   - name: mentioned_tickers
-    type: array
+    type: list
     description:
       zh: 提及的股票代码（例如 ['AAPL', 'MSFT', 'GOOGL']）
     required: false
     default: ''
   - name: mentioned_sectors
-    type: array
+    type: list
     description:
       zh: 涉及的行业板块（例如 ['科技', '金融', '能源']）
     required: false
     default: ''
   - name: key_events
-    type: array
+    type: list
     description:
       zh: 驱动情绪的关键事件（例如 ['美联储利率决议', 'NVDA 财报超预期']）
     required: false
@@ -69,7 +69,7 @@ output:
     required: false
     default: ''
   - name: contrarian_signals
-    type: array
+    type: list
     description:
       zh: 任何逆向或不同意见的观点
     required: false

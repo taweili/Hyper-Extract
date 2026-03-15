@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: nodes
-      type: array
+      type: list
       description:
         zh: 参与推理的节点列表：[症状1, 症状2, ..., 证型, 治则, 药物1, 药物2, ...]
       required: true

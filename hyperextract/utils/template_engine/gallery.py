@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .builder import RawTemplateCfg, ConfigLoader
+from .parsers import RawTemplateCfg, ConfigLoader
 
 
 class Gallery:

@@ -117,7 +117,7 @@ output:
     required: false
     default: ''
   - name: other_parameters
-    type: array
+    type: list
     description:
       zh: 其他关键技术参数列表（如适用）
     required: false

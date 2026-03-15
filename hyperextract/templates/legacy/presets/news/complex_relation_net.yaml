@@ -37,7 +37,7 @@ edge_schema:
       required: true
       default: ""
     - name: participants
-      type: "array"
+      type: "list"
       description:
         zh: "参与者列表（3个及以上）"
       required: true

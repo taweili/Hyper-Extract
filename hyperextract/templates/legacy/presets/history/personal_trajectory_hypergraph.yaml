@@ -34,11 +34,11 @@ edge_schema:
       description:
         zh: "地点"
     - name: companions
-      type: "array"
+      type: "list"
       description:
         zh: "同行或交往人物"
     - name: experiences
-      type: "array"
+      type: "list"
       description:
         zh: "核心经历列表"
       required: false

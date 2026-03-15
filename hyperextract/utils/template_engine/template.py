@@ -9,7 +9,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
 from .gallery import Gallery
-from .builder import RawTemplateCfg
+from .parsers import RawTemplateCfg
 
 
 class Template:

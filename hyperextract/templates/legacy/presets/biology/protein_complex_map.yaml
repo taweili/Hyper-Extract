@@ -31,7 +31,7 @@ node_schema:
 edge_schema:
   fields:
     - name: members
-      type: "array"
+      type: "list"
       description:
         zh: "参与组成复合物的所有蛋白质或亚基名称列表"
     - name: complex_name

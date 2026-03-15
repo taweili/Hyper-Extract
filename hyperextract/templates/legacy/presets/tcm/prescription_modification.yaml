@@ -44,7 +44,7 @@ output:
       required: true
       default: ''
     - name: herbs
-      type: array
+      type: list
       description:
         zh: 加减药物列表
       required: true

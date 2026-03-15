@@ -34,11 +34,11 @@ edge_schema:
       description:
         zh: "核心观点"
     - name: evidences
-      type: "array"
+      type: "list"
       description:
         zh: "论据列表"
     - name: citations
-      type: "array"
+      type: "list"
       description:
         zh: "引用文本列表"
       required: false

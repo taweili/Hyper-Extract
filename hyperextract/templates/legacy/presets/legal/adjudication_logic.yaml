@@ -38,7 +38,7 @@ output:
       required: true
       default: ''
     - name: participants
-      type: array
+      type: list
       description:
         zh: 参与要素名称列表，必须使用已提取节点的 name
       required: true

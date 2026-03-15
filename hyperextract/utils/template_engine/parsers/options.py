@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from ontomem.merger import MergeStrategy
 
-from .output import SchemaBuilder
+from .output import OutputParser
 from .identifiers import IdentifierResolver
 
 
@@ -363,7 +363,7 @@ class OptionsBuilder:
     @classmethod
     def validate_model_config(cls, config):
         """Validate AutoModel configuration."""
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OutputParser(config)
         if schema_dict.get("schema") is None:
             raise ValueError(f"AutoModel requires schema definition: {config.name}")
         return schema_dict
@@ -371,7 +371,7 @@ class OptionsBuilder:
     @classmethod
     def validate_list_config(cls, config):
         """Validate AutoList configuration."""
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OutputParser(config)
         if schema_dict.get("item_schema") is None:
             raise ValueError(f"AutoList requires item_schema definition: {config.name}")
         return schema_dict
@@ -379,7 +379,7 @@ class OptionsBuilder:
     @classmethod
     def validate_set_config(cls, config):
         """Validate AutoSet configuration."""
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OutputParser(config)
         if schema_dict.get("item_schema") is None:
             raise ValueError(f"AutoSet requires item_schema definition: {config.name}")
 
@@ -392,7 +392,7 @@ class OptionsBuilder:
     @classmethod
     def validate_graph_config(cls, config):
         """Validate AutoGraph/AutoHypergraph configuration."""
-        schema_dict = SchemaBuilder.build_schema(config)
+        schema_dict = OutputParser(config)
         if schema_dict.get("entity_schema") is None or schema_dict.get("relation_schema") is None:
             raise ValueError(f"AutoGraph requires entity_schema and relation_schema definition: {config.name}")
 

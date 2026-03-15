@@ -22,13 +22,13 @@ item_schema:
       required: true
       default: ""
     - name: highlights
-      type: "array"
+      type: "list"
       description:
         zh: "亮点列表"
       required: true
       default: ""
     - name: improvements
-      type: "array"
+      type: "list"
       description:
         zh: "改进空间列表"
       required: true

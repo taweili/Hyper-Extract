@@ -1,7 +1,7 @@
 """Extraction prompt parser from guideline."""
 
 from typing import Tuple
-from .loader import parse_multi_lang, GuidelineSchemaMono
+from .loader import NaiveGuidelineSchema, GraphGuidelineSchema
 
 
 LABEL_MAPPING = {
@@ -29,7 +29,7 @@ LABEL_MAPPING = {
 
 
 def GuidelineParser(
-    template: GuidelineSchemaMono, language: str = "en"
+    template: NaiveGuidelineSchema | GraphGuidelineSchema, language: str = "en"
 ) -> Tuple[str, str, str]:
     """Parse guideline and return prompts based on autotype.
 
@@ -43,7 +43,7 @@ def GuidelineParser(
         - For graph types in two_stage mode: returns (main_prompt, node_prompt, edge_prompt)
     """
     labels = LABEL_MAPPING.get(language, LABEL_MAPPING["en"])
-    guideline: GuidelineSchemaMono = template
+    guideline: NaiveGuidelineSchema | GraphGuidelineSchema = template
 
     prefix_prompt = (
         f"# {labels.get('role_and_task')}:\n{guideline.target}"

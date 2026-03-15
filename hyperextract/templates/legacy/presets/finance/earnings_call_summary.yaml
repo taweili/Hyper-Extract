@@ -75,19 +75,19 @@ output:
     required: false
     default: ''
   - name: key_highlights
-    type: array
+    type: list
     description:
       zh: 管理层准备发言中的 3-5 项核心亮点
     required: false
     default: ''
   - name: key_concerns
-    type: array
+    type: list
     description:
       zh: 管理层或分析师在问答环节提出的主要关切
     required: false
     default: ''
   - name: strategic_priorities
-    type: array
+    type: list
     description:
       zh: 管理层强调的战略重点
     required: false

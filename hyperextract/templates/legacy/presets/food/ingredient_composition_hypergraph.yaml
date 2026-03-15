@@ -37,19 +37,19 @@ edge_schema:
       required: false
       default: ""
     - name: main_ingredients
-      type: "array"
+      type: "list"
       description:
         zh: "主料列表（包含食材名称、角色、用量）"
       required: false
       default: ""
     - name: auxiliary_ingredients
-      type: "array"
+      type: "list"
       description:
         zh: "辅料列表（包含食材名称、角色、用量）"
       required: false
       default: ""
     - name: seasonings
-      type: "array"
+      type: "list"
       description:
         zh: "调味品列表（包含食材名称、角色、用量）"
       required: false

@@ -31,7 +31,7 @@ output:
       description:
         zh: 超边名称，如治疗方案、康复计划等
     - name: nodes
-      type: array
+      type: list
       description:
         zh: 参与超边的节点列表
     - name: disease

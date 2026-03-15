@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Union
 
 
 def convert_rules_to_array(rules_value: Union[str, List[str], Dict[str, Union[str, List[str]]]]) -> Union[List[str], Dict[str, List[str]]]:
-    """Convert string format rules to array format."""
+    """Convert string format rules to list format."""
     if rules_value is None:
         return None
     

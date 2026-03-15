@@ -44,12 +44,12 @@ edge_schema:
       description:
         zh: "信件主题或主要议题"
     - name: mentionedPersons
-      type: "array"
+      type: "list"
       description:
         zh: "信中提及的人物"
       required: false
     - name: mentionedEvents
-      type: "array"
+      type: "list"
       description:
         zh: "信中提及的事件"
       required: false

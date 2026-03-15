@@ -81,7 +81,7 @@ output:
     required: false
     default: ''
   - name: key_metrics
-    type: array
+    type: list
     description:
       zh: 其他关键财务指标列表（如毛利率、ROE、市盈率等）
     required: false

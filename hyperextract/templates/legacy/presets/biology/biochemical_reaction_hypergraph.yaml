@@ -30,15 +30,15 @@ edge_schema:
       description:
         zh: "催化该反应的酶名称"
     - name: substrates
-      type: "array"
+      type: "list"
       description:
         zh: "反应底物列表"
     - name: products
-      type: "array"
+      type: "list"
       description:
         zh: "反应产物列表"
     - name: cofactors
-      type: "array"
+      type: "list"
       description:
         zh: "辅因子列表，如NAD+、Mg2+"
       required: false

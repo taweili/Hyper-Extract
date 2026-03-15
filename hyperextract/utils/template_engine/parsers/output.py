@@ -9,7 +9,7 @@ TYPE_MAPPING = {
     "int": int,
     "float": float,
     "bool": bool,
-    "array": list,
+    "list": list,
 }
 
 
@@ -37,7 +37,7 @@ def build_field_type(field) -> Type:
     else:
         field_type_str = field.type
 
-    if field_type_str == "array":
+    if field_type_str == "list":
         if isinstance(field, dict):
             item_type_str = field.get("item_type")
         else:
@@ -64,7 +64,7 @@ def build_field_default(field) -> Any:
         return ...
     if default_val is not None:
         return default_val
-    if field_type == "array":
+    if field_type == "list":
         return []
     return None
 
@@ -193,7 +193,7 @@ def _build_graph_schemas(config, language: str) -> Tuple[Type, Type]:
     raise ValueError(f"No schema definition found for graph type: {config.name}")
 
 
-def SchemaParser(
+def OutputParser(
     config,
     language: str = "zh"
 ) -> Union[Type, Tuple[Type, Type]]:
@@ -215,19 +215,7 @@ def SchemaParser(
         return _build_graph_schemas(config, language)
 
 
-class SchemaBuilder:
-    """Schema Builder - kept for backward compatibility."""
-
-    @staticmethod
-    def build_schema(config):
-        """Deprecated: Use SchemaParser instead."""
-        return SchemaParser(config, "zh")
-
 
 __all__ = [
-    "SchemaParser",
-    "SchemaBuilder",
-    "build_field_type",
-    "build_field_default",
-    "build_field_description",
+    "OutputParser",
 ]

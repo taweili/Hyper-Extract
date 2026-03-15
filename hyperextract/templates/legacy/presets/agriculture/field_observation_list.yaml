@@ -26,7 +26,7 @@ item_schema:
       description:
         zh: "观测日期，统一格式为年-月-日（如2025-06-15）"
     - name: issues
-      type: "array"
+      type: "list"
       description:
         zh: "观测到的问题列表，如杂草、虫害、病害、生长异常"
     - name: severity_level
@@ -34,7 +34,7 @@ item_schema:
       description:
         zh: "严重等级：轻微、中等、严重"
     - name: recommendations
-      type: "array"
+      type: "list"
       description:
         zh: "建议措施列表"
 

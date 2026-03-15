@@ -38,7 +38,7 @@ output:
     description: {}
     fields:
     - name: nodes
-      type: array
+      type: list
       description:
         zh: 参与因果链条的节点列表：[隐患1, 隐患2, ..., 触发条件, 违章行为, 事故后果1, 事故后果2, ...]
       required: true

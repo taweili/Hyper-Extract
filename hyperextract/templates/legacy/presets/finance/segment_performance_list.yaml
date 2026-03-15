@@ -39,7 +39,7 @@ output:
     required: false
     default: ''
   - name: key_metrics
-    type: array
+    type: list
     description:
       zh: 板块特定的关键绩效指标（例如 ['订阅用户：2.3亿', 'ARPU：$14.99', '流失率：2.1%']）
     required: false

@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: nodes
-      type: array
+      type: list
       description:
         zh: 参与作业的节点列表：[操作人员, 工具1, 工具2, 设备, 材料1, ...]
       required: true

@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: nodes
-      type: array
+      type: list
       description:
         zh: 参与兼容性关系的节点列表：[设备, 材质/介质/环境1, 材质/介质/环境2, ...]
       required: true

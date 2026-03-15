@@ -43,7 +43,7 @@ edge_schema:
       required: true
       default: ""
     - name: participantNames
-      type: "array"
+      type: "list"
       description:
         zh: "参与此观点论证的所有元素名称列表，必须从已提取的节点中选择"
       required: true

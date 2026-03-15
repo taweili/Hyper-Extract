@@ -75,13 +75,13 @@ output:
     required: false
     default: ''
   - name: key_catalysts
-    type: array
+    type: list
     description:
       zh: 已识别的近期催化剂（例如 ['Q4 业绩超预期', '新产品发布', '监管审批']）
     required: false
     default: ''
   - name: key_risks
-    type: array
+    type: list
     description:
       zh: 分析师强调的主要风险
     required: false

@@ -9,32 +9,32 @@ output:
   description: {}
   fields:
   - name: medications
-    type: array
+    type: list
     description:
       zh: 出院带药列表，每个药物包含名称、剂量、用法、频次等信息
     required: false
   - name: followUp
-    type: array
+    type: list
     description:
       zh: 复诊计划列表，每个复诊包含时间、科室、检查项目等信息
     required: false
   - name: rehabilitation
-    type: array
+    type: list
     description:
       zh: 康复建议列表
     required: false
   - name: diet
-    type: array
+    type: list
     description:
       zh: 饮食建议列表
     required: false
   - name: activity
-    type: array
+    type: list
     description:
       zh: 活动建议列表
     required: false
   - name: notes
-    type: array
+    type: list
     description:
       zh: 其他注意事项列表
     required: false

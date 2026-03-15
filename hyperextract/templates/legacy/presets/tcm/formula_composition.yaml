@@ -50,37 +50,37 @@ output:
       required: false
       default: ''
     - name: junHerbs
-      type: array
+      type: list
       description:
         zh: 君药列表（包含药物名称、剂量、炮制方法）
       required: false
       default: ''
     - name: chenHerbs
-      type: array
+      type: list
       description:
         zh: 臣药列表（包含药物名称、剂量、炮制方法）
       required: false
       default: ''
     - name: zuoHerbs
-      type: array
+      type: list
       description:
         zh: 佐药列表（包含药物名称、剂量、炮制方法）
       required: false
       default: ''
     - name: shiHerbs
-      type: array
+      type: list
       description:
         zh: 使药列表（包含药物名称、剂量、炮制方法）
       required: false
       default: ''
     - name: functions
-      type: array
+      type: list
       description:
         zh: 方剂功能，如：解肌发表、调和营卫
       required: false
       default: ''
     - name: indications
-      type: array
+      type: list
       description:
         zh: 主治证候，如：外感风寒表虚证
       required: false

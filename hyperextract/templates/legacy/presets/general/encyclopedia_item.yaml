@@ -17,12 +17,12 @@ output:
     description:
       zh: 实体类型：人物、地点、组织、事件、概念、物品、其他
   - name: alternativeNames
-    type: array
+    type: list
     description:
       zh: 别名、俗称、外文名称
     required: false
   - name: category
-    type: array
+    type: list
     description:
       zh: 分类标签
     required: false
@@ -32,17 +32,17 @@ output:
       zh: 摘要/简介
     required: false
   - name: attributes
-    type: array
+    type: list
     description:
       zh: '关键属性列表，每个元素格式为''属性名: 属性值'''
     required: false
   - name: keyEvents
-    type: array
+    type: list
     description:
       zh: 重要事件/里程碑
     required: false
   - name: relatedConcepts
-    type: array
+    type: list
     description:
       zh: 相关概念/条目
     required: false

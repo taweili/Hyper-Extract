@@ -31,7 +31,7 @@ output:
       description:
         zh: 机制名称，简短描述性名称
     - name: participating_entities
-      type: array
+      type: list
       description:
         zh: 参与此病理机制的所有实体名称列表
     - name: relationType

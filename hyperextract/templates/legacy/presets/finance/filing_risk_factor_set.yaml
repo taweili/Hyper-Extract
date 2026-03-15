@@ -33,7 +33,7 @@ output:
     required: false
     default: ''
   - name: affected_areas
-    type: array
+    type: list
     description:
       zh: 受影响的业务板块或职能（例如 ['国际业务', '供应链']）
     required: false

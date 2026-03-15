@@ -15,25 +15,25 @@ output:
     required: true
     default: ''
   - name: alternativeNames
-    type: array
+    type: list
     description:
       zh: 别名、俗称
     required: false
     default: ''
   - name: properties
-    type: array
+    type: list
     description:
       zh: 四气：寒、热、温、凉、平
     required: false
     default: ''
   - name: flavors
-    type: array
+    type: list
     description:
       zh: 五味：酸、苦、甘、辛、咸
     required: false
     default: ''
   - name: meridians
-    type: array
+    type: list
     description:
       zh: 归经：如肺经、肝经、脾经等
     required: false
@@ -63,13 +63,13 @@ output:
     required: false
     default: ''
   - name: indications
-    type: array
+    type: list
     description:
       zh: 功效主治
     required: false
     default: ''
   - name: contraindications
-    type: array
+    type: list
     description:
       zh: 配伍禁忌
     required: false

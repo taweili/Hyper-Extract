@@ -4,9 +4,9 @@ Main Components:
 - Template: Unified API for template operations
 - Gallery: Template library management
 - TemplateFactory: Creates template instances from configuration
-- RawTemplateCfg: Raw YAML config (multilingual) for validation
-- TemplateCfg: Single-language config for actual use
+- TemplateCfg: Template config (supports multilingual)
 - ConfigLoader: Loads YAML configuration
+- localize_template: Converts multilingual config to single-language config
 - SchemaParser: Parses output schemas based on template type
 - GuidelineParser: Parses prompts based on template type
 - IdentifierResolver: Resolves identifier extractors
@@ -15,26 +15,15 @@ Main Components:
 from .template import Template
 from .gallery import Gallery
 from .factory import TemplateFactory, TemplateWrapper
-from .builder import (
-    RawTemplateCfg,
+from .parsers import (
     TemplateCfg,
-    ConfigLoader,
-    SchemaBuilder,
-    SchemaParser,
+    OutputParser,
     GuidelineParser,
     PromptParser,
     IdentifierResolver,
     OptionsBuilder,
-    parse_multi_lang,
-    GuidelineSchema,
-    GuidelineSchemaMono,
-    OutputSchema,
-    OutputSchemaMono,
-    DisplaySchema,
-    DisplaySchemaMono,
-    IdentifiersSchema,
-    FieldSchema,
-    FieldsDefinition,
+    _localize_data,
+    localize_template,
 )
 
 
@@ -43,23 +32,12 @@ __all__ = [
     "Gallery",
     "TemplateFactory",
     "TemplateWrapper",
-    "RawTemplateCfg",
     "TemplateCfg",
-    "ConfigLoader",
-    "SchemaBuilder",
-    "SchemaParser",
+    "OutputParser",
     "GuidelineParser",
     "PromptParser",
     "IdentifierResolver",
     "OptionsBuilder",
-    "parse_multi_lang",
-    "GuidelineSchema",
-    "GuidelineSchemaMono",
-    "OutputSchema",
-    "OutputSchemaMono",
-    "DisplaySchema",
-    "DisplaySchemaMono",
-    "IdentifiersSchema",
-    "FieldSchema",
-    "FieldsDefinition",
+    "_localize_data",
+    "localize_template",
 ]

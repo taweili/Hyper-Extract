@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
-from .builder import (
-    RawTemplateCfg,
+from .parsers import (
+    TemplateCfg,
     OptionsBuilder,
     Options,
-    SchemaParser,
+    OutputParser,
     IdentifierResolver,
+    PromptParser,
 )
-from .builder.guideline import PromptParser
 
 
 if TYPE_CHECKING:
@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 
 class TemplateFactory:
     @staticmethod
-    def get_language(config: RawTemplateCfg) -> str:
+    def get_language(config: TemplateCfg) -> str:
         """Get language setting."""
         return OptionsBuilder.get_language(config)
 
     @staticmethod
-    def resolve_display_extractors(config: RawTemplateCfg, schema_dict: dict = None):
+    def resolve_display_extractors(config: TemplateCfg, schema_dict: dict = None):
         """Generate label_extractor function based on display configuration."""
         display = config.display
         if not display:
@@ -78,14 +78,14 @@ class TemplateFactory:
 
     @classmethod
     def create_model(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoModel":
         """Create AutoModel template."""
         from hyperextract.types import AutoModel
 
         language = cls.get_language(config)
 
-        data_schema = SchemaParser(config, language)
+        data_schema = OutputParser(config, language)
 
         config_mono = config.for_language(language)
         prompt, _, _ = PromptParser(config_mono, language)
@@ -111,14 +111,14 @@ class TemplateFactory:
 
     @classmethod
     def create_list(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoList":
         """Create AutoList template."""
         from hyperextract.types import AutoList
 
         language = cls.get_language(config)
 
-        data_schema = SchemaParser(config, language)
+        data_schema = OutputParser(config, language)
 
         config_mono = config.for_language(language)
         prompt, _, _ = PromptParser(config_mono, language)
@@ -138,14 +138,14 @@ class TemplateFactory:
 
     @classmethod
     def create_set(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSet":
         """Create AutoSet template."""
         from hyperextract.types import AutoSet
 
         language = cls.get_language(config)
 
-        data_schema = SchemaParser(config, language)
+        data_schema = OutputParser(config, language)
         identifiers = IdentifierResolver.resolve_all(config)
         item_id_extractor = identifiers.get("item_id_extractor")
 
@@ -174,23 +174,27 @@ class TemplateFactory:
 
     @classmethod
     def create_graph(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoGraph":
         """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
         language = cls.get_language(config)
 
-        entity_schema, relation_schema = SchemaParser(config, language)
+        entity_schema, relation_schema = OutputParser(config, language)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        entities_in_relation_extractor = identifiers.get(
+            "entities_in_relation_extractor"
+        )
 
         options = OptionsBuilder.build_graph_options(config, language)
 
         config_mono = config.for_language(language)
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            PromptParser(config_mono, language)
+        )
 
         return AutoGraph(
             entity_schema=entity_schema,
@@ -226,29 +230,33 @@ class TemplateFactory:
 
     @classmethod
     def create_hypergraph(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoHypergraph":
         return cls.create_graph(config, llm_client, embedder)
 
     @classmethod
     def create_temporal_graph(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoTemporalGraph":
         from hyperextract.types import AutoTemporalGraph
 
         language = cls.get_language(config)
 
-        entity_schema, relation_schema = SchemaParser(config, language)
+        entity_schema, relation_schema = OutputParser(config, language)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        entities_in_relation_extractor = identifiers.get(
+            "entities_in_relation_extractor"
+        )
         time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
 
         options = OptionsBuilder.build_temporal_graph_options(config, language)
 
         config_mono = config.for_language(language)
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            PromptParser(config_mono, language)
+        )
 
         return AutoTemporalGraph(
             node_schema=entity_schema,
@@ -286,23 +294,29 @@ class TemplateFactory:
 
     @classmethod
     def create_spatial_graph(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSpatialGraph":
         from hyperextract.types import AutoSpatialGraph
 
         language = cls.get_language(config)
 
-        entity_schema, relation_schema = SchemaParser(config, language)
+        entity_schema, relation_schema = OutputParser(config, language)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
-        location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
+        entities_in_relation_extractor = identifiers.get(
+            "entities_in_relation_extractor"
+        )
+        location_in_relation_extractor = identifiers.get(
+            "location_in_relation_extractor"
+        )
 
         options = OptionsBuilder.build_spatial_graph_options(config, language)
 
         config_mono = config.for_language(language)
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            PromptParser(config_mono, language)
+        )
 
         return AutoSpatialGraph(
             entity_schema=entity_schema,
@@ -340,26 +354,30 @@ class TemplateFactory:
 
     @classmethod
     def create_spatio_temporal_graph(
-        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSpatioTemporalGraph":
         from hyperextract.types import AutoSpatioTemporalGraph
 
         language = cls.get_language(config)
 
-        entity_schema, relation_schema = SchemaParser(config, language)
+        entity_schema, relation_schema = OutputParser(config, language)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
+        entities_in_relation_extractor = identifiers.get(
+            "entities_in_relation_extractor"
+        )
         time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
-        location_in_relation_extractor = identifiers.get("location_in_relation_extractor")
-
-        options = OptionsBuilder.build_spatio_temporal_graph_options(
-            config, language
+        location_in_relation_extractor = identifiers.get(
+            "location_in_relation_extractor"
         )
 
+        options = OptionsBuilder.build_spatio_temporal_graph_options(config, language)
+
         config_mono = config.for_language(language)
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            PromptParser(config_mono, language)
+        )
 
         return AutoSpatioTemporalGraph(
             entity_schema=entity_schema,
@@ -400,7 +418,7 @@ class TemplateFactory:
     @classmethod
     def create(
         cls,
-        config: RawTemplateCfg,
+        config: TemplateCfg,
         llm_client: BaseChatModel,
         embedder: Embeddings,
         **kwargs,
@@ -483,7 +501,9 @@ class TemplateWrapper:
         self._autotype = autotype
 
         self._entity_label_extractor = display_extractors.get("entity_label_extractor")
-        self._relation_label_extractor = display_extractors.get("relation_label_extractor")
+        self._relation_label_extractor = display_extractors.get(
+            "relation_label_extractor"
+        )
         self._label_extractor = display_extractors.get("label_extractor")
 
     def __getattr__(self, name):
@@ -499,8 +519,12 @@ class TemplateWrapper:
             "spatio_temporal_graph",
         ):
             if self._entity_label_extractor and self._relation_label_extractor:
-                kwargs.setdefault("entity_label_extractor", self._entity_label_extractor)
-                kwargs.setdefault("relation_label_extractor", self._relation_label_extractor)
+                kwargs.setdefault(
+                    "entity_label_extractor", self._entity_label_extractor
+                )
+                kwargs.setdefault(
+                    "relation_label_extractor", self._relation_label_extractor
+                )
         else:
             if self._label_extractor:
                 kwargs.setdefault("label_extractor", self._label_extractor)

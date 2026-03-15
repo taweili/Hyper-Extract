@@ -34,20 +34,20 @@ edge_schema:
       description:
         zh: "事件名称"
     - name: attackers
-      type: "array"
+      type: "list"
       description:
         zh: "攻方列表"
     - name: defenders
-      type: "array"
+      type: "list"
       description:
         zh: "守方列表"
     - name: planners
-      type: "array"
+      type: "list"
       description:
         zh: "策划者列表"
       required: false
     - name: turncoats
-      type: "array"
+      type: "list"
       description:
         zh: "变节者列表"
       required: false

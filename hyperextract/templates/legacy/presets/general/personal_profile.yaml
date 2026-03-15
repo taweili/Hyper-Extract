@@ -38,27 +38,27 @@ output:
       zh: 出生地
     required: false
   - name: education
-    type: array
+    type: list
     description:
       zh: 教育经历
     required: false
   - name: occupations
-    type: array
+    type: list
     description:
       zh: 职业/身份
     required: false
   - name: coreIdentity
-    type: array
+    type: list
     description:
       zh: 核心身份/标签
     required: false
   - name: majorAchievements
-    type: array
+    type: list
     description:
       zh: 主要成就
     required: false
   - name: affiliations
-    type: array
+    type: list
     description:
       zh: 所属组织/机构
     required: false

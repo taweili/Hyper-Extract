@@ -52,31 +52,31 @@ schema:
       required: false
       default: ""
     - name: main_ingredients
-      type: "array"
+      type: "list"
       description:
         zh: "主料列表"
       required: false
       default: ""
     - name: auxiliary_ingredients
-      type: "array"
+      type: "list"
       description:
         zh: "辅料列表"
       required: false
       default: ""
     - name: seasonings
-      type: "array"
+      type: "list"
       description:
         zh: "调味品列表"
       required: false
       default: ""
     - name: steps
-      type: "array"
+      type: "list"
       description:
         zh: "烹饪步骤列表"
       required: false
       default: ""
     - name: tips
-      type: "array"
+      type: "list"
       description:
         zh: "关键控制点TIPS"
       required: false

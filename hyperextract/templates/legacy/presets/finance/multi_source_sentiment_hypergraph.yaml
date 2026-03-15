@@ -44,7 +44,7 @@ output:
       required: true
       default: ''
     - name: participating_sources
-      type: array
+      type: list
       description:
         zh: 参与此融合的所有来源和受影响实体的名称
       required: true

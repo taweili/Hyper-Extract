@@ -22,7 +22,7 @@ schema:
       description:
         zh: "关键残基编号范围，如Asp169-Lys210"
     - name: residue_details
-      type: "array"
+      type: "list"
       description:
         zh: "关键残基详情列表"
     - name: chemical_properties

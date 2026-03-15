@@ -38,7 +38,7 @@ output:
       required: true
       default: ''
     - name: participating_elements
-      type: array
+      type: list
       description:
         zh: 此情绪聚类中所有元素的名称（主题 + 发言人 + 情绪 + 驱动因素）
       required: true

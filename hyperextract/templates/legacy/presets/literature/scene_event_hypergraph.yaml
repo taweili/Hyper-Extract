@@ -29,7 +29,7 @@ edge_schema:
       description:
         zh: "场景名称，如'第一场：桐花台夜话'"
     - name: characters
-      type: "array"
+      type: "list"
       description:
         zh: "出场角色列表"
     - name: location
@@ -37,12 +37,12 @@ edge_schema:
       description:
         zh: "场景地点"
     - name: props
-      type: "array"
+      type: "list"
       description:
         zh: "关键道具列表"
       required: false
     - name: actions
-      type: "array"
+      type: "list"
       description:
         zh: "核心动作列表"
     - name: timeOfDay
