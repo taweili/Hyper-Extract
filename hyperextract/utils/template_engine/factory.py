@@ -9,11 +9,13 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
 from .builder import (
-    TemplateConfig,
+    RawTemplateCfg,
     OptionsBuilder,
     Options,
+    SchemaParser,
+    IdentifierResolver,
 )
-from .builder.prompt import PromptParser
+from .builder.guideline import PromptParser
 
 
 if TYPE_CHECKING:
@@ -31,12 +33,12 @@ if TYPE_CHECKING:
 
 class TemplateFactory:
     @staticmethod
-    def get_language(config: TemplateConfig) -> str:
+    def get_language(config: RawTemplateCfg) -> str:
         """Get language setting."""
         return OptionsBuilder.get_language(config)
 
     @staticmethod
-    def resolve_display_extractors(config: TemplateConfig, schema_dict: dict):
+    def resolve_display_extractors(config: RawTemplateCfg, schema_dict: dict = None):
         """Generate label_extractor function based on display configuration."""
         display = config.display
         if not display:
@@ -76,29 +78,29 @@ class TemplateFactory:
 
     @classmethod
     def create_model(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoModel":
         """Create AutoModel template."""
         from hyperextract.types import AutoModel
 
         language = cls.get_language(config)
 
-        schema_dict = OptionsBuilder.validate_model_config(config)
-        schema_class = schema_dict.get("schema")
+        data_schema = SchemaParser(config, language)
 
-        prompt, _, _ = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, _, _ = PromptParser(config_mono, language)
 
         options = OptionsBuilder.build_model_options(config, language)
 
         return AutoModel(
-            data_schema=schema_class,
+            data_schema=data_schema,
             llm_client=llm_client,
             embedder=embedder,
             strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
                 options.merge_strategy,
                 lambda x: str(x),
                 llm_client,
-                schema_class,
+                data_schema,
             ),
             prompt=prompt,
             chunk_size=options.chunk_size,
@@ -109,22 +111,22 @@ class TemplateFactory:
 
     @classmethod
     def create_list(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoList":
         """Create AutoList template."""
         from hyperextract.types import AutoList
 
         language = cls.get_language(config)
 
-        schema_dict = OptionsBuilder.validate_list_config(config)
-        item_schema_class = schema_dict.get("item_schema")
+        data_schema = SchemaParser(config, language)
 
-        prompt, _, _ = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, _, _ = PromptParser(config_mono, language)
 
         options = OptionsBuilder.build_list_options(config)
 
         return AutoList(
-            item_schema=item_schema_class,
+            item_schema=data_schema,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt,
@@ -136,23 +138,24 @@ class TemplateFactory:
 
     @classmethod
     def create_set(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSet":
         """Create AutoSet template."""
         from hyperextract.types import AutoSet
 
         language = cls.get_language(config)
 
-        schema_dict, identifiers = OptionsBuilder.validate_set_config(config)
-        item_schema_class = schema_dict.get("item_schema")
+        data_schema = SchemaParser(config, language)
+        identifiers = IdentifierResolver.resolve_all(config)
         item_id_extractor = identifiers.get("item_id_extractor")
 
-        prompt, _, _ = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, _, _ = PromptParser(config_mono, language)
 
         options = OptionsBuilder.build_set_options(config, language)
 
         return AutoSet(
-            item_schema=item_schema_class,
+            item_schema=data_schema,
             item_key_extractor=item_id_extractor,
             llm_client=llm_client,
             embedder=embedder,
@@ -160,7 +163,7 @@ class TemplateFactory:
                 options.merge_strategy,
                 item_id_extractor,
                 llm_client,
-                item_schema_class,
+                data_schema,
             ),
             prompt=prompt,
             chunk_size=options.chunk_size,
@@ -171,27 +174,27 @@ class TemplateFactory:
 
     @classmethod
     def create_graph(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoGraph":
         """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
         language = cls.get_language(config)
 
-        schema_dict, identifiers = OptionsBuilder.validate_graph_config(config)
-        entity_schema_class = schema_dict.get("entity_schema")
-        relation_schema_class = schema_dict.get("relation_schema")
+        entity_schema, relation_schema = SchemaParser(config, language)
+        identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
 
         options = OptionsBuilder.build_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
 
         return AutoGraph(
-            entity_schema=entity_schema_class,
-            relation_schema=relation_schema_class,
+            entity_schema=entity_schema,
+            relation_schema=relation_schema,
             entity_key_extractor=entity_key_extractor,
             relation_key_extractor=relation_key_extractor,
             entities_in_relation_extractor=entities_in_relation_extractor,
@@ -202,13 +205,13 @@ class TemplateFactory:
                 options.entity_merge_strategy,
                 entity_key_extractor,
                 llm_client,
-                entity_schema_class,
+                entity_schema,
             ),
             relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
                 options.relation_merge_strategy,
                 relation_key_extractor,
                 llm_client,
-                relation_schema_class,
+                relation_schema,
             ),
             prompt=prompt,
             prompt_for_entity_extraction=prompt_for_entity_extraction,
@@ -223,23 +226,20 @@ class TemplateFactory:
 
     @classmethod
     def create_hypergraph(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoHypergraph":
         return cls.create_graph(config, llm_client, embedder)
 
     @classmethod
     def create_temporal_graph(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoTemporalGraph":
         from hyperextract.types import AutoTemporalGraph
 
         language = cls.get_language(config)
 
-        schema_dict, identifiers = OptionsBuilder.validate_temporal_graph_config(
-            config
-        )
-        entity_schema_class = schema_dict.get("entity_schema")
-        relation_schema_class = schema_dict.get("relation_schema")
+        entity_schema, relation_schema = SchemaParser(config, language)
+        identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
@@ -247,11 +247,12 @@ class TemplateFactory:
 
         options = OptionsBuilder.build_temporal_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
 
         return AutoTemporalGraph(
-            node_schema=entity_schema_class,
-            edge_schema=relation_schema_class,
+            node_schema=entity_schema,
+            edge_schema=relation_schema,
             node_key_extractor=entity_key_extractor,
             edge_key_extractor=relation_key_extractor,
             nodes_in_edge_extractor=entities_in_relation_extractor,
@@ -264,13 +265,13 @@ class TemplateFactory:
                 options.entity_merge_strategy,
                 entity_key_extractor,
                 llm_client,
-                entity_schema_class,
+                entity_schema,
             ),
             edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
                 options.relation_merge_strategy,
                 relation_key_extractor,
                 llm_client,
-                relation_schema_class,
+                relation_schema,
             ),
             prompt=prompt,
             prompt_for_node_extraction=prompt_for_entity_extraction,
@@ -285,17 +286,14 @@ class TemplateFactory:
 
     @classmethod
     def create_spatial_graph(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSpatialGraph":
         from hyperextract.types import AutoSpatialGraph
 
         language = cls.get_language(config)
 
-        schema_dict, identifiers = OptionsBuilder.validate_spatial_graph_config(
-            config
-        )
-        entity_schema_class = schema_dict.get("entity_schema")
-        relation_schema_class = schema_dict.get("relation_schema")
+        entity_schema, relation_schema = SchemaParser(config, language)
+        identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
@@ -303,11 +301,12 @@ class TemplateFactory:
 
         options = OptionsBuilder.build_spatial_graph_options(config, language)
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
 
         return AutoSpatialGraph(
-            entity_schema=entity_schema_class,
-            relation_schema=relation_schema_class,
+            entity_schema=entity_schema,
+            relation_schema=relation_schema,
             entity_key_extractor=entity_key_extractor,
             relation_key_extractor=relation_key_extractor,
             entities_in_relation_extractor=entities_in_relation_extractor,
@@ -320,13 +319,13 @@ class TemplateFactory:
                 options.entity_merge_strategy,
                 entity_key_extractor,
                 llm_client,
-                entity_schema_class,
+                entity_schema,
             ),
             relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
                 options.relation_merge_strategy,
                 relation_key_extractor,
                 llm_client,
-                relation_schema_class,
+                relation_schema,
             ),
             prompt=prompt,
             prompt_for_entity_extraction=prompt_for_entity_extraction,
@@ -341,17 +340,14 @@ class TemplateFactory:
 
     @classmethod
     def create_spatio_temporal_graph(
-        cls, config: TemplateConfig, llm_client: BaseChatModel, embedder: Embeddings
+        cls, config: RawTemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
     ) -> "AutoSpatioTemporalGraph":
         from hyperextract.types import AutoSpatioTemporalGraph
 
         language = cls.get_language(config)
 
-        schema_dict, identifiers = (
-            OptionsBuilder.validate_spatio_temporal_graph_config(config)
-        )
-        entity_schema_class = schema_dict.get("entity_schema")
-        relation_schema_class = schema_dict.get("relation_schema")
+        entity_schema, relation_schema = SchemaParser(config, language)
+        identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
         entities_in_relation_extractor = identifiers.get("entities_in_relation_extractor")
@@ -362,11 +358,12 @@ class TemplateFactory:
             config, language
         )
 
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config, language)
+        config_mono = config.for_language(language)
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = PromptParser(config_mono, language)
 
         return AutoSpatioTemporalGraph(
-            entity_schema=entity_schema_class,
-            relation_schema=relation_schema_class,
+            entity_schema=entity_schema,
+            relation_schema=relation_schema,
             entity_key_extractor=entity_key_extractor,
             relation_key_extractor=relation_key_extractor,
             entities_in_relation_extractor=entities_in_relation_extractor,
@@ -381,13 +378,13 @@ class TemplateFactory:
                 options.entity_merge_strategy,
                 entity_key_extractor,
                 llm_client,
-                entity_schema_class,
+                entity_schema,
             ),
             relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
                 options.relation_merge_strategy,
                 relation_key_extractor,
                 llm_client,
-                relation_schema_class,
+                relation_schema,
             ),
             prompt=prompt,
             prompt_for_entity_extraction=prompt_for_entity_extraction,
@@ -403,7 +400,7 @@ class TemplateFactory:
     @classmethod
     def create(
         cls,
-        config: TemplateConfig,
+        config: RawTemplateCfg,
         llm_client: BaseChatModel,
         embedder: Embeddings,
         **kwargs,

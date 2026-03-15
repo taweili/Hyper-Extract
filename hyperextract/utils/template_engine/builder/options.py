@@ -1,11 +1,11 @@
 """Options models and builder."""
 
-from typing import Any, Callable, List, Optional, Type
-from pydantic import BaseModel, Field
+from typing import Callable, List, Optional, Type
+from pydantic import BaseModel
 
 from ontomem.merger import MergeStrategy
 
-from .schema import SchemaBuilder
+from .output import SchemaBuilder
 from .identifiers import IdentifierResolver
 
 

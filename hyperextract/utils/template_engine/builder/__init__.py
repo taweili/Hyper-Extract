@@ -1,9 +1,25 @@
 """Builder module - Configuration models, loaders and builders."""
 
-from .schema import SchemaBuilder
-from .prompt import PromptParser
+from .loader import (
+    RawTemplateCfg,
+    TemplateCfg,
+    ConfigLoader,
+    parse_multi_lang,
+    GuidelineSchema,
+    GuidelineSchemaMono,
+    FieldSchema,
+    FieldsDefinition,
+    OutputSchema,
+    OutputSchemaMono,
+    OptionsSchema,
+    DisplaySchema,
+    DisplaySchemaMono,
+    IdentifiersSchema,
+    TemplateSchema,
+)
+from .output import SchemaParser, SchemaBuilder
+from .guideline import GuidelineParser, PromptParser
 from .identifiers import IdentifierResolver
-from .loader import TemplateConfig, ConfigLoader
 from .options import (
     Options,
     OptionsBuilder,
@@ -11,11 +27,26 @@ from .options import (
 
 
 __all__ = [
-    "TemplateConfig",
+    "RawTemplateCfg",
+    "TemplateCfg",
     "ConfigLoader",
-    "Options",
+    "parse_multi_lang",
+    "GuidelineSchema",
+    "GuidelineSchemaMono",
+    "FieldSchema",
+    "FieldsDefinition",
+    "OutputSchema",
+    "OutputSchemaMono",
+    "OptionsSchema",
+    "DisplaySchema",
+    "DisplaySchemaMono",
+    "IdentifiersSchema",
+    "TemplateSchema",
+    "SchemaParser",
     "SchemaBuilder",
+    "GuidelineParser",
     "PromptParser",
     "IdentifierResolver",
+    "Options",
     "OptionsBuilder",
 ]

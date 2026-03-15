@@ -6,7 +6,7 @@ from pathlib import Path
 from rich.console import Console
 from typing import Optional, Tuple
 
-from hyperextract.utils.template_engine import Template, TemplateConfig
+from hyperextract.utils.template_engine import Template, TemplateCfg
 from .config import ConfigManager
 
 console = Console()
@@ -192,7 +192,7 @@ def create_template(template: str, lang: str = "zh"):
     return Template.create(template, lang)
 
 
-def get_template_config(template: str, lang: str = "zh") -> Optional[TemplateConfig]:
+def get_template_config(template: str, lang: str = "zh") -> Optional[TemplateCfg]:
     """Get template config.
 
     Args:
@@ -200,16 +200,16 @@ def get_template_config(template: str, lang: str = "zh") -> Optional[TemplateCon
         lang: Language (zh/en)
 
     Returns:
-        TemplateConfig if found
+        TemplateCfg if found
     """
     return Template.get(template, lang)
 
 
-def get_auto_type_from_config(config: TemplateConfig) -> str:
+def get_auto_type_from_config(config: TemplateCfg) -> str:
     """Infer AutoType from template config.
 
     Args:
-        config: TemplateConfig instance
+        config: TemplateCfg instance
 
     Returns:
         AutoType string (e.g., "AutoGraph")

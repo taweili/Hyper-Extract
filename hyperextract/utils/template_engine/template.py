@@ -9,7 +9,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
 from .gallery import Gallery
-from .builder import TemplateConfig
+from .builder import RawTemplateCfg
 
 
 class Template:
@@ -50,7 +50,7 @@ class Template:
         type_value: Optional[str] = None,
         tag: Optional[str] = None,
         language: Optional[str] = None,
-    ) -> List[TemplateConfig]:
+    ) -> List[RawTemplateCfg]:
         """Search templates by various criteria.
 
         Args:
@@ -60,7 +60,7 @@ class Template:
             language: Filter by language (e.g., "zh", "en")
 
         Returns:
-            List of matching TemplateConfig objects
+            List of matching RawTemplateCfg objects
         """
         return Gallery.search(
             query=query,
@@ -70,7 +70,7 @@ class Template:
         )
 
     @staticmethod
-    def get(name: str, lang: str = "zh") -> Optional[TemplateConfig]:
+    def get(name: str, lang: str = "zh") -> Optional[RawTemplateCfg]:
         """Get template configuration by name.
 
         Args:
@@ -78,7 +78,7 @@ class Template:
             lang: Language, default "zh"
 
         Returns:
-            TemplateConfig or None if not found
+            RawTemplateCfg or None if not found
         """
         return Gallery.get(name)
 
