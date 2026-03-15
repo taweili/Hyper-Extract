@@ -254,7 +254,7 @@ class OptionsBuilder:
         return MergeStrategy.LLM.BALANCED
 
     @classmethod
-    def build_model_options(cls, config, language: str = "zh"):
+    def build_model_options(cls, config):
         """Build options for AutoModel."""
         options = config.options or Options()
         return ModelOptions(
@@ -277,7 +277,7 @@ class OptionsBuilder:
         )
 
     @classmethod
-    def build_set_options(cls, config, language: str = "zh"):
+    def build_set_options(cls, config):
         """Build options for AutoSet."""
         options = config.options or Options()
         return SetOptions(
@@ -289,7 +289,7 @@ class OptionsBuilder:
         )
 
     @classmethod
-    def build_graph_options(cls, config, language: str = "zh"):
+    def build_graph_options(cls, config):
         """Build options for AutoGraph/AutoHypergraph."""
         options = config.options or Options()
         extraction_mode = cls.get_extraction_mode(config)
@@ -306,7 +306,7 @@ class OptionsBuilder:
         )
 
     @classmethod
-    def build_temporal_graph_options(cls, config, language: str = "zh"):
+    def build_temporal_graph_options(cls, config):
         """Build options for AutoTemporalGraph."""
         options = config.options or Options()
         extraction_mode = cls.get_extraction_mode(config)
@@ -324,7 +324,7 @@ class OptionsBuilder:
         )
 
     @classmethod
-    def build_spatial_graph_options(cls, config, language: str = "zh"):
+    def build_spatial_graph_options(cls, config):
         """Build options for AutoSpatialGraph."""
         options = config.options or Options()
         extraction_mode = cls.get_extraction_mode(config)
@@ -342,7 +342,7 @@ class OptionsBuilder:
         )
 
     @classmethod
-    def build_spatio_temporal_graph_options(cls, config, language: str = "zh"):
+    def build_spatio_temporal_graph_options(cls, config):
         """Build options for AutoSpatioTemporalGraph."""
         options = config.options or Options()
         extraction_mode = cls.get_extraction_mode(config)

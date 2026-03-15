@@ -14,7 +14,8 @@ from .parsers import (
     Options,
     OutputParser,
     IdentifierResolver,
-    PromptParser,
+    GuidelineParser,
+    localize_template,
 )
 
 
@@ -32,11 +33,6 @@ if TYPE_CHECKING:
 
 
 class TemplateFactory:
-    @staticmethod
-    def get_language(config: TemplateCfg) -> str:
-        """Get language setting."""
-        return OptionsBuilder.get_language(config)
-
     @staticmethod
     def resolve_display_extractors(config: TemplateCfg, schema_dict: dict = None):
         """Generate label_extractor function based on display configuration."""
@@ -83,14 +79,11 @@ class TemplateFactory:
         """Create AutoModel template."""
         from hyperextract.types import AutoModel
 
-        language = cls.get_language(config)
+        data_schema = OutputParser(config)
 
-        data_schema = OutputParser(config, language)
+        prompt, _, _ = GuidelineParser(config.guideline, config.type)
 
-        config_mono = config.for_language(language)
-        prompt, _, _ = PromptParser(config_mono, language)
-
-        options = OptionsBuilder.build_model_options(config, language)
+        options = OptionsBuilder.build_model_options(config)
 
         return AutoModel(
             data_schema=data_schema,
@@ -116,12 +109,9 @@ class TemplateFactory:
         """Create AutoList template."""
         from hyperextract.types import AutoList
 
-        language = cls.get_language(config)
+        data_schema = OutputParser(config)
 
-        data_schema = OutputParser(config, language)
-
-        config_mono = config.for_language(language)
-        prompt, _, _ = PromptParser(config_mono, language)
+        prompt, _, _ = GuidelineParser(config.guideline, config.type)
 
         options = OptionsBuilder.build_list_options(config)
 
@@ -143,16 +133,13 @@ class TemplateFactory:
         """Create AutoSet template."""
         from hyperextract.types import AutoSet
 
-        language = cls.get_language(config)
-
-        data_schema = OutputParser(config, language)
+        data_schema = OutputParser(config)
         identifiers = IdentifierResolver.resolve_all(config)
         item_id_extractor = identifiers.get("item_id_extractor")
 
-        config_mono = config.for_language(language)
-        prompt, _, _ = PromptParser(config_mono, language)
+        prompt, _, _ = GuidelineParser(config.guideline, config.type)
 
-        options = OptionsBuilder.build_set_options(config, language)
+        options = OptionsBuilder.build_set_options(config)
 
         return AutoSet(
             item_schema=data_schema,
@@ -179,9 +166,7 @@ class TemplateFactory:
         """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
-        language = cls.get_language(config)
-
-        entity_schema, relation_schema = OutputParser(config, language)
+        entity_schema, relation_schema = OutputParser(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -189,11 +174,10 @@ class TemplateFactory:
             "entities_in_relation_extractor"
         )
 
-        options = OptionsBuilder.build_graph_options(config, language)
+        options = OptionsBuilder.build_graph_options(config)
 
-        config_mono = config.for_language(language)
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            PromptParser(config_mono, language)
+            GuidelineParser(config.guideline, config.type)
         )
 
         return AutoGraph(
@@ -240,9 +224,7 @@ class TemplateFactory:
     ) -> "AutoTemporalGraph":
         from hyperextract.types import AutoTemporalGraph
 
-        language = cls.get_language(config)
-
-        entity_schema, relation_schema = OutputParser(config, language)
+        entity_schema, relation_schema = OutputParser(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -251,11 +233,10 @@ class TemplateFactory:
         )
         time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
 
-        options = OptionsBuilder.build_temporal_graph_options(config, language)
+        options = OptionsBuilder.build_temporal_graph_options(config)
 
-        config_mono = config.for_language(language)
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            PromptParser(config_mono, language)
+            GuidelineParser(config.guideline, config.type)
         )
 
         return AutoTemporalGraph(
@@ -298,9 +279,7 @@ class TemplateFactory:
     ) -> "AutoSpatialGraph":
         from hyperextract.types import AutoSpatialGraph
 
-        language = cls.get_language(config)
-
-        entity_schema, relation_schema = OutputParser(config, language)
+        entity_schema, relation_schema = OutputParser(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -311,11 +290,10 @@ class TemplateFactory:
             "location_in_relation_extractor"
         )
 
-        options = OptionsBuilder.build_spatial_graph_options(config, language)
+        options = OptionsBuilder.build_spatial_graph_options(config)
 
-        config_mono = config.for_language(language)
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            PromptParser(config_mono, language)
+            GuidelineParser(config.guideline, config.type)
         )
 
         return AutoSpatialGraph(
@@ -358,9 +336,7 @@ class TemplateFactory:
     ) -> "AutoSpatioTemporalGraph":
         from hyperextract.types import AutoSpatioTemporalGraph
 
-        language = cls.get_language(config)
-
-        entity_schema, relation_schema = OutputParser(config, language)
+        entity_schema, relation_schema = OutputParser(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -372,11 +348,10 @@ class TemplateFactory:
             "location_in_relation_extractor"
         )
 
-        options = OptionsBuilder.build_spatio_temporal_graph_options(config, language)
+        options = OptionsBuilder.build_spatio_temporal_graph_options(config)
 
-        config_mono = config.for_language(language)
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            PromptParser(config_mono, language)
+            GuidelineParser(config.guideline, config.type)
         )
 
         return AutoSpatioTemporalGraph(
@@ -421,6 +396,7 @@ class TemplateFactory:
         config: TemplateCfg,
         llm_client: BaseChatModel,
         embedder: Embeddings,
+        language: str = "zh",
         **kwargs,
     ):
         """Create template instance based on configuration.
@@ -429,6 +405,7 @@ class TemplateFactory:
             config: Template configuration
             llm_client: LLM client
             embedder: Embedding model
+            language: Language code for localization (e.g., 'zh', 'en')
             **kwargs: Additional parameters to override config parameters
                 e.g., observation_time="2024-06-15", observation_location="Beijing"
 
@@ -439,11 +416,15 @@ class TemplateFactory:
             # Basic usage
             template = TemplateFactory.create(config, llm, embedder)
 
+            # For specific language
+            template = TemplateFactory.create(config, llm, embedder, language="en")
+
             # For spatio-temporal templates, pass observation_time etc.
             template = TemplateFactory.create(
                 config,
                 llm,
                 embedder,
+                language="zh",
                 observation_time="2024-06-15",
                 observation_location="Beijing"
             )
@@ -453,15 +434,18 @@ class TemplateFactory:
                 config,
                 llm,
                 embedder,
+                language="zh",
                 chunk_size=4096,
                 max_workers=20
             )
         """
+        config_mono = localize_template(config, language)
+
         if kwargs:
-            base_options = config.options or Options()
+            base_options = config_mono.options or Options()
             options_dict = base_options.model_dump()
             options_dict.update(kwargs)
-            config.options = Options(**options_dict)
+            config_mono.options = Options(**options_dict)
 
         autotype_map = {
             "model": cls.create_model,
@@ -474,14 +458,14 @@ class TemplateFactory:
             "spatio_temporal_graph": cls.create_spatio_temporal_graph,
         }
 
-        creator = autotype_map.get(config.type)
+        creator = autotype_map.get(config_mono.type)
         if creator is None:
-            raise ValueError(f"Unsupported type: {config.type}")
+            raise ValueError(f"Unsupported type: {config_mono.type}")
 
-        template = creator(config, llm_client, embedder)
-        display_extractors = cls.resolve_display_extractors(config, {})
+        template = creator(config_mono, llm_client, embedder)
+        display_extractors = cls.resolve_display_extractors(config_mono, {})
 
-        return TemplateWrapper(template, display_extractors, config.type)
+        return TemplateWrapper(template, display_extractors, config_mono.type)
 
 
 def safe_getattr(obj, name, default):

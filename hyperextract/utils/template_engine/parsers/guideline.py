@@ -1,7 +1,6 @@
 """Extraction prompt parser from guideline."""
 
 from typing import Tuple
-from .loader import NaiveGuidelineSchema, GraphGuidelineSchema
 
 
 LABEL_MAPPING = {
@@ -28,37 +27,28 @@ LABEL_MAPPING = {
 }
 
 
-def GuidelineParser(
-    template: NaiveGuidelineSchema | GraphGuidelineSchema, language: str = "en"
-) -> Tuple[str, str, str]:
-    """Parse guideline and return prompts based on autotype.
+def GuidelineParser(guideline, autotype: str = "model") -> Tuple[str, str, str]:
+    """Parse guideline and return prompts based on autotype (config is already localized).
 
     Args:
-        template: Guideline Configuration instance (mono-language version)
-        language: Language code (default: "en")
+        guideline: Guideline instance (single-language, all fields are strings)
+        autotype: Template type (default: "model")
 
     Returns:
         tuple: main_prompt or (main_prompt, node_prompt, edge_prompt)
         - For non-graph types: returns main_prompt
         - For graph types in two_stage mode: returns (main_prompt, node_prompt, edge_prompt)
     """
-    labels = LABEL_MAPPING.get(language, LABEL_MAPPING["en"])
-    guideline: NaiveGuidelineSchema | GraphGuidelineSchema = template
+    labels = LABEL_MAPPING.get("zh", LABEL_MAPPING["en"])
 
-    prefix_prompt = (
-        f"# {labels.get('role_and_task')}:\n{guideline.target}"
-    )
+    prefix_prompt = f"# {labels.get('role_and_task')}:\n{guideline.target}"
 
-    autotype = getattr(template, 'type', None) or "model"
-    
     if autotype in ("model", "list", "set"):
         parts = [prefix_prompt]
         if guideline.rules:
-            parts.append(
-                f"## {labels.get('rules')}:\n{guideline.rules}"
-            )
+            parts.append(f"## {labels.get('rules')}:\n{guideline.rules}")
         parts.append(f"## {labels.get('source_text')}:\n{{source_text}}")
-        return "\n\n".join(parts)
+        return "\n\n".join(parts), "", ""
     else:
         main_parts = [prefix_prompt]
         if guideline.rules_for_entities:
@@ -109,10 +99,8 @@ def GuidelineParser(
         return "\n\n".join(main_parts), "\n\n".join(node_parts), "\n\n".join(edge_parts)
 
 
-PromptParser = GuidelineParser
 
 
 __all__ = [
     "GuidelineParser",
-    "PromptParser",
 ]

@@ -14,15 +14,10 @@ Main Components:
 
 from .template import Template
 from .gallery import Gallery
-from .factory import TemplateFactory, TemplateWrapper
+from .factory import TemplateFactory
 from .parsers import (
     TemplateCfg,
-    OutputParser,
-    GuidelineParser,
-    PromptParser,
-    IdentifierResolver,
-    OptionsBuilder,
-    _localize_data,
+    load_template,
     localize_template,
 )
 
@@ -31,13 +26,7 @@ __all__ = [
     "Template",
     "Gallery",
     "TemplateFactory",
-    "TemplateWrapper",
     "TemplateCfg",
-    "OutputParser",
-    "GuidelineParser",
-    "PromptParser",
-    "IdentifierResolver",
-    "OptionsBuilder",
-    "_localize_data",
+    "load_template",
     "localize_template",
 ]
