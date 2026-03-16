@@ -51,6 +51,7 @@ class AutoModel(BaseAutoType[T]):
         *,
         strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
+        label_extractor: Callable[[T], str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -68,6 +69,7 @@ class AutoModel(BaseAutoType[T]):
                 - Custom BaseMerger instance
                 Default: MergeStrategy.LLM.BALANCED (LLM intelligently synthesizes both versions)
             prompt: Custom extraction prompt (defaults to generic prompt).
+            label_extractor: Optional function to extract label from model instance for visualization.
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
@@ -76,6 +78,9 @@ class AutoModel(BaseAutoType[T]):
         # Store strategy before calling super().__init__
         self._strategy_or_merger = strategy_or_merger
         self._constructor_kwargs = kwargs
+
+        # Store label extractor for visualization
+        self._label_extractor = label_extractor
 
         super().__init__(
             data_schema,
@@ -305,16 +310,19 @@ class AutoModel(BaseAutoType[T]):
 
     def show(
         self,
-        label_extractor: Callable[[T], str],
+        label_extractor: Callable[[T], str] = None,
         *,
         top_k: int = 3,
     ) -> None:
         """Visualize the model using OntoSight.
 
         Args:
-            label_extractor: A function that takes a model instance and returns a string label for visualization.
+            label_extractor: Optional function to extract label from model instance for visualization.
+                If not provided, uses the one from __init__.
             top_k: Number of items to retrieve for chat callback (default: 3).
         """
+        if label_extractor is None:
+            label_extractor = self._label_extractor
 
         if self._index is not None:
             logger.info(

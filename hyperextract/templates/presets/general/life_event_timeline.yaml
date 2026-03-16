@@ -84,10 +84,10 @@ guideline:
 identifiers:
   entity_id: name
   relation_id: '{source}|{eventType}|{details}'
-  relation_members:
+  relation_members: 
     source: source
     target: target
-  time_field: eventDate
+  time_field: 'eventDate'
 
 options:
   extraction_mode: two_stage

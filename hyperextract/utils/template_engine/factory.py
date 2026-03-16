@@ -10,12 +10,12 @@ from langchain_core.embeddings import Embeddings
 
 from .parsers import (
     TemplateCfg,
-    Options,
-    parse_output,
-    IdentifierResolver,
-    parse_guideline,
     localize_template,
+    parse_output,
+    parse_identifiers,
+    parse_guideline,
     parse_option,
+    parse_display,
 )
 
 
@@ -33,355 +33,322 @@ if TYPE_CHECKING:
 
 
 class TemplateFactory:
-    @staticmethod
-    def resolve_display_extractors(config: TemplateCfg, schema_dict: dict = None):
-        """Generate label_extractor function based on display configuration."""
-        display = config.display
-        if not display:
-            return {}
-
-        result = {}
-        autotype = config.type
-        display_dict = (
-            display.model_dump() if hasattr(display, "model_dump") else display
-        )
-
-        if autotype in ("model", "list", "set"):
-            label_field = display_dict.get("label")
-            if label_field:
-                result["label_extractor"] = lambda x: str(getattr(x, label_field, ""))
-
-        elif autotype in (
-            "graph",
-            "hypergraph",
-            "temporal_graph",
-            "spatial_graph",
-            "spatio_temporal_graph",
-        ):
-            entity_label_field = display_dict.get("entity_label")
-            if entity_label_field:
-                result["entity_label_extractor"] = lambda x: str(
-                    getattr(x, entity_label_field, "")
-                )
-
-            relation_label_field = display_dict.get("relation_label")
-            if relation_label_field:
-                result["relation_label_extractor"] = lambda x: str(
-                    getattr(x, relation_label_field, "")
-                )
-
-        return result
-
     @classmethod
     def create_model(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoModel":
         """Create AutoModel template."""
         from hyperextract.types import AutoModel
 
-        data_schema = parse_output(config)
+        data_schema = parse_output(config.output, config.type)
 
-        prompt, _, _ = parse_guideline(config.guideline, config.type)
+        prompt = parse_guideline(config.guideline, config.type)
 
-        options = OptionsBuilder.build_model_options(config)
+        options = parse_option(config.options, config.type, override=kwargs)
+
+        label_extractor = parse_display(config.display, config.type)
 
         return AutoModel(
             data_schema=data_schema,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
+            label_extractor=label_extractor,
+            **options,
         )
 
     @classmethod
     def create_list(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoList":
         """Create AutoList template."""
         from hyperextract.types import AutoList
 
-        data_schema = parse_output(config)
+        data_schema = parse_output(config.output, config.type)
 
-        prompt, _, _ = parse_guideline(config.guideline, config.type)
+        prompt = parse_guideline(config.guideline, config.type)
 
-        options = OptionsBuilder.build_list_options(config)
+        options = parse_option(config.options, config.type, override=kwargs)
+
+        item_label_extractor = parse_display(config.display, config.type)
 
         return AutoList(
             item_schema=data_schema,
             llm_client=llm_client,
             embedder=embedder,
             prompt=prompt,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
+            item_label_extractor=item_label_extractor,
+            **options,
         )
 
     @classmethod
     def create_set(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoSet":
         """Create AutoSet template."""
         from hyperextract.types import AutoSet
 
-        data_schema = parse_output(config)
-        identifiers = IdentifierResolver.resolve_all(config)
-        item_id_extractor = identifiers.get("item_id_extractor")
+        data_schema = parse_output(config.output, config.type)
 
-        prompt, _, _ = parse_guideline(config.guideline, config.type)
+        item_id_extractor = parse_identifiers(config.identifiers, config.type)
 
-        options = OptionsBuilder.build_set_options(config)
+        prompt = parse_guideline(config.guideline, config.type)
+
+        options = parse_option(config.options, config.type, override=kwargs)
+
+        item_label_extractor = parse_display(config.display, config.type)
 
         return AutoSet(
             item_schema=data_schema,
-            item_key_extractor=item_id_extractor,
             llm_client=llm_client,
             embedder=embedder,
-            strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.merge_strategy,
-                item_id_extractor,
-                llm_client,
-                data_schema,
-            ),
+            key_extractor=item_id_extractor,
+            item_label_extractor=item_label_extractor,
             prompt=prompt,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
+            **options,
         )
 
     @classmethod
     def create_graph(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoGraph":
         """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
-        entity_schema, relation_schema = parse_output(config)
-        identifiers = IdentifierResolver.resolve_all(config)
-        entity_key_extractor = identifiers.get("entity_key_extractor")
-        relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get(
-            "entities_in_relation_extractor"
-        )
+        entity_schema, relation_schema = parse_output(config.output, config.type)
 
-        options = OptionsBuilder.build_graph_options(config)
+        identifiers = parse_identifiers(config.identifiers, config.type)
+        entity_key_extractor, relation_key_extractor, entities_in_relation_extractor = (
+            identifiers
+        )
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
+
+        node_label_extractor, edge_label_extractor = parse_display(
+            config.display, config.type
+        )
+
+        options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoGraph(
-            entity_schema=entity_schema,
-            relation_schema=relation_schema,
-            entity_key_extractor=entity_key_extractor,
-            relation_key_extractor=relation_key_extractor,
-            entities_in_relation_extractor=entities_in_relation_extractor,
-            llm_client=llm_client,
-            embedder=embedder,
-            extraction_mode=options.extraction_mode,
-            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.entity_merge_strategy,
-                entity_key_extractor,
-                llm_client,
-                entity_schema,
-            ),
-            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.relation_merge_strategy,
-                relation_key_extractor,
-                llm_client,
-                relation_schema,
-            ),
-            prompt=prompt,
-            prompt_for_entity_extraction=prompt_for_entity_extraction,
-            prompt_for_relation_extraction=prompt_for_relation_extraction,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
-            entity_fields_for_index=options.entity_fields_for_search,
-            relation_fields_for_index=options.relation_fields_for_search,
-        )
-
-    @classmethod
-    def create_hypergraph(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
-    ) -> "AutoHypergraph":
-        return cls.create_graph(config, llm_client, embedder)
-
-    @classmethod
-    def create_temporal_graph(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
-    ) -> "AutoTemporalGraph":
-        from hyperextract.types import AutoTemporalGraph
-
-        entity_schema, relation_schema = parse_output(config)
-        identifiers = IdentifierResolver.resolve_all(config)
-        entity_key_extractor = identifiers.get("entity_key_extractor")
-        relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get(
-            "entities_in_relation_extractor"
-        )
-        time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
-
-        options = OptionsBuilder.build_temporal_graph_options(config)
-
-        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            parse_guideline(config.guideline, config.type)
-        )
-
-        return AutoTemporalGraph(
             node_schema=entity_schema,
             edge_schema=relation_schema,
             node_key_extractor=entity_key_extractor,
             edge_key_extractor=relation_key_extractor,
             nodes_in_edge_extractor=entities_in_relation_extractor,
-            time_in_edge_extractor=time_in_relation_extractor,
-            observation_time=options.observation_time,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=options.extraction_mode,
-            node_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.entity_merge_strategy,
-                entity_key_extractor,
-                llm_client,
-                entity_schema,
-            ),
-            edge_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.relation_merge_strategy,
-                relation_key_extractor,
-                llm_client,
-                relation_schema,
-            ),
             prompt=prompt,
             prompt_for_node_extraction=prompt_for_entity_extraction,
             prompt_for_edge_extraction=prompt_for_relation_extraction,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
-            node_fields_for_index=options.entity_fields_for_search,
-            edge_fields_for_index=options.relation_fields_for_search,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            **options,
+        )
+
+    @classmethod
+    def create_hypergraph(
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
+    ) -> "AutoHypergraph":
+        """Create AutoHypergraph template."""
+        from hyperextract.types import AutoHypergraph
+
+        entity_schema, relation_schema = parse_output(config.output, config.type)
+
+        identifiers = parse_identifiers(config.identifiers, config.type)
+        entity_key_extractor, relation_key_extractor, entities_in_relation_extractor = (
+            identifiers
+        )
+
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            parse_guideline(config.guideline, config.type)
+        )
+
+        node_label_extractor, edge_label_extractor = parse_display(
+            config.display, config.type
+        )
+
+        options = parse_option(config.options, config.type, override=kwargs)
+
+        return AutoHypergraph(
+            node_schema=entity_schema,
+            edge_schema=relation_schema,
+            node_key_extractor=entity_key_extractor,
+            edge_key_extractor=relation_key_extractor,
+            nodes_in_edge_extractor=entities_in_relation_extractor,
+            llm_client=llm_client,
+            embedder=embedder,
+            prompt=prompt,
+            prompt_for_node_extraction=prompt_for_entity_extraction,
+            prompt_for_edge_extraction=prompt_for_relation_extraction,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            **options,
+        )
+
+    @classmethod
+    def create_temporal_graph(
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
+    ) -> "AutoTemporalGraph":
+        from hyperextract.types import AutoTemporalGraph
+
+        entity_schema, relation_schema = parse_output(config.output)
+        (
+            entity_key_extractor,
+            relation_key_extractor,
+            entities_in_relation_extractor,
+            time_in_edge_extractor,
+        ) = parse_identifiers(config.identifiers, config.type)
+
+        prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
+            parse_guideline(config.guideline, config.type)
+        )
+
+        node_label_extractor, edge_label_extractor = parse_display(
+            config.display, config.type
+        )
+
+        options = parse_option(config.options, config.type, override=kwargs)
+
+        return AutoTemporalGraph(
+            node_schema=entity_schema,
+            edge_schema=relation_schema,
+            llm_client=llm_client,
+            embedder=embedder,
+            node_key_extractor=entity_key_extractor,
+            edge_key_extractor=relation_key_extractor,
+            nodes_in_edge_extractor=entities_in_relation_extractor,
+            time_in_edge_extractor=time_in_edge_extractor,
+            prompt=prompt,
+            prompt_for_node_extraction=prompt_for_entity_extraction,
+            prompt_for_edge_extraction=prompt_for_relation_extraction,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            **options,
         )
 
     @classmethod
     def create_spatial_graph(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoSpatialGraph":
+        """Create AutoSpatialGraph template."""
         from hyperextract.types import AutoSpatialGraph
 
-        entity_schema, relation_schema = parse_output(config)
-        identifiers = IdentifierResolver.resolve_all(config)
-        entity_key_extractor = identifiers.get("entity_key_extractor")
-        relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get(
-            "entities_in_relation_extractor"
-        )
-        location_in_relation_extractor = identifiers.get(
-            "location_in_relation_extractor"
-        )
+        entity_schema, relation_schema = parse_output(config.output, config.type)
 
-        options = OptionsBuilder.build_spatial_graph_options(config)
+        identifiers = parse_identifiers(config.identifiers, config.type)
+        (
+            entity_key_extractor,
+            relation_key_extractor,
+            entities_in_relation_extractor,
+            location_in_edge_extractor,
+        ) = identifiers
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
 
+        node_label_extractor, edge_label_extractor = parse_display(
+            config.display, config.type
+        )
+
+        options = parse_option(config.options, config.type, override=kwargs)
+
         return AutoSpatialGraph(
-            entity_schema=entity_schema,
-            relation_schema=relation_schema,
-            entity_key_extractor=entity_key_extractor,
-            relation_key_extractor=relation_key_extractor,
-            entities_in_relation_extractor=entities_in_relation_extractor,
-            location_in_relation_extractor=location_in_relation_extractor,
-            observation_location=options.observation_location,
+            node_schema=entity_schema,
+            edge_schema=relation_schema,
+            node_key_extractor=entity_key_extractor,
+            edge_key_extractor=relation_key_extractor,
+            location_in_edge_extractor=location_in_edge_extractor,
+            nodes_in_edge_extractor=entities_in_relation_extractor,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=options.extraction_mode,
-            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.entity_merge_strategy,
-                entity_key_extractor,
-                llm_client,
-                entity_schema,
-            ),
-            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.relation_merge_strategy,
-                relation_key_extractor,
-                llm_client,
-                relation_schema,
-            ),
             prompt=prompt,
-            prompt_for_entity_extraction=prompt_for_entity_extraction,
-            prompt_for_relation_extraction=prompt_for_relation_extraction,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
-            entity_fields_for_index=options.entity_fields_for_search,
-            relation_fields_for_index=options.relation_fields_for_search,
+            prompt_for_node_extraction=prompt_for_entity_extraction,
+            prompt_for_edge_extraction=prompt_for_relation_extraction,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            **options,
         )
 
     @classmethod
     def create_spatio_temporal_graph(
-        cls, config: TemplateCfg, llm_client: BaseChatModel, embedder: Embeddings
+        cls,
+        config: TemplateCfg,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
     ) -> "AutoSpatioTemporalGraph":
+        """Create AutoSpatioTemporalGraph template."""
         from hyperextract.types import AutoSpatioTemporalGraph
 
-        entity_schema, relation_schema = parse_output(config)
-        identifiers = IdentifierResolver.resolve_all(config)
-        entity_key_extractor = identifiers.get("entity_key_extractor")
-        relation_key_extractor = identifiers.get("relation_key_extractor")
-        entities_in_relation_extractor = identifiers.get(
-            "entities_in_relation_extractor"
-        )
-        time_in_relation_extractor = identifiers.get("time_in_relation_extractor")
-        location_in_relation_extractor = identifiers.get(
-            "location_in_relation_extractor"
-        )
+        entity_schema, relation_schema = parse_output(config.output, config.type)
 
-        options = OptionsBuilder.build_spatio_temporal_graph_options(config)
+        identifiers = parse_identifiers(config.identifiers, config.type)
+        (
+            entity_key_extractor,
+            relation_key_extractor,
+            entities_in_relation_extractor,
+            time_in_edge_extractor,
+            location_in_edge_extractor,
+        ) = identifiers
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
 
+        node_label_extractor, edge_label_extractor = parse_display(
+            config.display, config.type
+        )
+
+        options = parse_option(config.options, config.type, override=kwargs)
+
         return AutoSpatioTemporalGraph(
-            entity_schema=entity_schema,
-            relation_schema=relation_schema,
-            entity_key_extractor=entity_key_extractor,
-            relation_key_extractor=relation_key_extractor,
-            entities_in_relation_extractor=entities_in_relation_extractor,
-            time_in_relation_extractor=time_in_relation_extractor,
-            location_in_relation_extractor=location_in_relation_extractor,
-            observation_time=options.observation_time,
-            observation_location=options.observation_location,
+            node_schema=entity_schema,
+            edge_schema=relation_schema,
+            node_key_extractor=entity_key_extractor,
+            edge_key_extractor=relation_key_extractor,
+            nodes_in_edge_extractor=entities_in_relation_extractor,
+            time_in_edge_extractor=time_in_edge_extractor,
+            location_in_edge_extractor=location_in_edge_extractor,
             llm_client=llm_client,
             embedder=embedder,
-            extraction_mode=options.extraction_mode,
-            entity_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.entity_merge_strategy,
-                entity_key_extractor,
-                llm_client,
-                entity_schema,
-            ),
-            relation_strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.relation_merge_strategy,
-                relation_key_extractor,
-                llm_client,
-                relation_schema,
-            ),
             prompt=prompt,
-            prompt_for_entity_extraction=prompt_for_entity_extraction,
-            prompt_for_relation_extraction=prompt_for_relation_extraction,
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-            max_workers=options.max_workers,
-            verbose=options.verbose,
-            entity_fields_for_index=options.entity_fields_for_search,
-            relation_fields_for_index=options.relation_fields_for_search,
+            prompt_for_node_extraction=prompt_for_entity_extraction,
+            prompt_for_edge_extraction=prompt_for_relation_extraction,
+            node_label_extractor=node_label_extractor,
+            edge_label_extractor=edge_label_extractor,
+            **options,
         )
 
     @classmethod
@@ -433,13 +400,7 @@ class TemplateFactory:
                 max_workers=20
             )
         """
-        config_mono = localize_template(config, language)
-
-        if kwargs:
-            base_options = config_mono.options or Options()
-            options_dict = base_options.model_dump()
-            options_dict.update(kwargs)
-            config_mono.options = Options(**options_dict)
+        template = localize_template(config, language)
 
         autotype_map = {
             "model": cls.create_model,
@@ -452,65 +413,58 @@ class TemplateFactory:
             "spatio_temporal_graph": cls.create_spatio_temporal_graph,
         }
 
-        creator = autotype_map.get(config_mono.type)
-        if creator is None:
-            raise ValueError(f"Unsupported type: {config_mono.type}")
+        creator = autotype_map.get(template.type)
+        template = creator(template, llm_client, embedder, **kwargs)
+        return template
 
-        template = creator(config_mono, llm_client, embedder)
-        display_extractors = cls.resolve_display_extractors(config_mono, {})
+    @classmethod
+    def create_from_name(
+        cls,
+        name: str,
+        lang: str = "zh",
+        llm_client=None,
+        embedder=None,
+        **kwargs,
+    ):
+        """Create template instance by template name.
 
-        return TemplateWrapper(template, display_extractors, config_mono.type)
+        Args:
+            name: Template name (e.g., "knowledge_graph", "zh/finance/risk_assessment")
+            lang: Language, default "zh"
+            llm_client: LLM client, optional, reads from global config if not provided
+            embedder: Embedder client, optional, reads from global config if not provided
+            **kwargs: Additional parameters (e.g., observation_time, observation_location)
 
+        Returns:
+            AutoType instance
 
-def safe_getattr(obj, name, default):
-    """Safely get attribute."""
-    try:
-        return getattr(obj, name)
-    except AttributeError:
-        return default
+        Examples:
+            # Use global config (recommended)
+            template = TemplateFactory.create_from_name("knowledge_graph")
 
+            # Custom client
+            template = TemplateFactory.create_from_name("knowledge_graph", llm_client=llm, embedder=emb)
 
-class TemplateWrapper:
-    """Template wrapper - automatically handles label_extractor parameters."""
+            # With additional parameters
+            template = TemplateFactory.create_from_name("FinancialTemporalGraph", observation_time="2024-06-15")
+        """
+        from .gallery import Gallery
 
-    def __init__(self, template, display_extractors: dict, autotype: str = None):
-        self._template = template
-        self._display_extractors = display_extractors
-        self._autotype = autotype
+        config = Gallery.get(name)
+        if config is None:
+            config = Gallery.get(f"{lang}/{name}")
 
-        self._entity_label_extractor = display_extractors.get("entity_label_extractor")
-        self._relation_label_extractor = display_extractors.get(
-            "relation_label_extractor"
-        )
-        self._label_extractor = display_extractors.get("label_extractor")
+        if config is None:
+            available = Gallery.list_all()
+            raise ValueError(
+                f"Template '{name}' not found. Available: {available[:10]}..."
+            )
 
-    def __getattr__(self, name):
-        return getattr(self._template, name)
+        if llm_client is None or embedder is None:
+            from hyperextract.utils import get_client
 
-    def show(self, **kwargs):
-        """Automatically pass label_extractor parameters."""
-        if self._autotype in (
-            "graph",
-            "hypergraph",
-            "temporal_graph",
-            "spatial_graph",
-            "spatio_temporal_graph",
-        ):
-            if self._entity_label_extractor and self._relation_label_extractor:
-                kwargs.setdefault(
-                    "entity_label_extractor", self._entity_label_extractor
-                )
-                kwargs.setdefault(
-                    "relation_label_extractor", self._relation_label_extractor
-                )
-        else:
-            if self._label_extractor:
-                kwargs.setdefault("label_extractor", self._label_extractor)
+            default_llm, default_emb = get_client()
+            llm_client = llm_client or default_llm
+            embedder = embedder or default_emb
 
-        return self._template.show(**kwargs)
-
-    def search(self, **kwargs):
-        return self._template.search(**kwargs)
-
-    def chat(self, **kwargs):
-        return self._template.chat(**kwargs)
+        return cls.create(config, llm_client, embedder, language=lang, **kwargs)

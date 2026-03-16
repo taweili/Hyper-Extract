@@ -105,6 +105,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
         *,
         strategy_or_merger: MergeStrategy | BaseMerger = MergeStrategy.LLM.BALANCED,
         prompt: str = "",
+        item_label_extractor: Callable[[ItemSchema], str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -123,6 +124,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
                                 1. A MergeStrategy enum value (e.g., MergeStrategy.LLM.BALANCED)
                                 2. A pre-configured BaseMerger instance (for full control)
             prompt: Custom extraction prompt.
+            item_label_extractor: Optional function to extract label from item for visualization.
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
@@ -183,6 +185,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
             verbose=verbose,
             fields_for_index=fields_for_index,  # Pass field selection to OMem
         )
+        # Store label extractor for visualization
+        self._item_label_extractor = item_label_extractor
 
         super().__init__(
             data_schema=self.item_set_schema,
@@ -368,7 +372,7 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
 
     def show(
         self,
-        item_label_extractor: Callable[[ItemSchema], str],
+        item_label_extractor: Callable[[ItemSchema], str] = None,
         *,
         top_k_for_search: int = 3,
         top_k_for_chat: int = 3,
@@ -376,10 +380,13 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
         """Visualize the set using OntoSight.
 
         Args:
-            item_label_extractor: A function that takes an ItemSchema and returns a string label for visualization.
+            item_label_extractor: Optional function to extract label from item for visualization.
+                If not provided, uses the one from __init__.
             top_k_for_search: Number of items to retrieve for search callback (default: 3).
             top_k_for_chat: Number of items to retrieve for chat callback (default: 3).
         """
+        if item_label_extractor is None:
+            item_label_extractor = self._item_label_extractor
 
         if self._data_memory.has_index():
             logger.info(

@@ -7,8 +7,9 @@ from .loader import (
 )
 from .output import parse_output
 from .guideline import parse_guideline
-from .identifiers import IdentifierResolver
+from .identifiers import parse_identifiers
 from .options import parse_option
+from .display import parse_display
 
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "localize_template",
     "parse_output",
     "parse_guideline",
-    "IdentifierResolver",
+    "parse_identifiers",
     "parse_option",
+    "parse_display",
 ]

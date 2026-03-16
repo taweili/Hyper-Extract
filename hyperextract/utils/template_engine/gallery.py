@@ -152,6 +152,14 @@ class Gallery:
         return list(cls._instance._configs_by_tag.keys())
 
     @classmethod
+    def list_autotypes(cls) -> List[str]:
+        """List all available autotypes."""
+        return [
+            "model", "list", "set", "graph", "hypergraph",
+            "temporal_graph", "spatial_graph", "spatio_temporal_graph"
+        ]
+
+    @classmethod
     def list_domains(cls) -> List[tuple]:
         """List all available domains with template count.
         
@@ -168,77 +176,10 @@ class Gallery:
         return domains
 
     @classmethod
-    def create(
-        cls,
-        name: str,
-        lang: str = "zh",
-        llm_client=None,
-        embedder=None,
-        **kwargs,
-    ):
-        """Create template instance.
-        
-        Args:
-            name: Template name (e.g., "knowledge_graph", "zh/finance/risk_assessment")
-            lang: Language, default "zh"
-            llm_client: LLM client, optional, reads from global config if not provided
-            embedder: Embedder client, optional, reads from global config if not provided
-            **kwargs: Additional parameters (e.g., observation_time, observation_location)
-            
-        Returns:
-            TemplateWrapper instance
-            
-        Examples:
-            # Method 1: Use global config (recommended)
-            template = Gallery.create("knowledge_graph")
-            
-            # Method 2: Custom client
-            from hyperextract.utils import get_client
-            llm, emb = get_client()
-            template = Gallery.create("knowledge_graph", llm_client=llm, embedder=emb)
-            
-            # Method 3: Mixed usage
-            template = Gallery.create("knowledge_graph", llm_client=my_llm)
-            
-            # Method 4: With additional parameters
-            template = Gallery.create("FinancialTemporalGraph", observation_time="2024-06-15")
-        """
-        config = cls._resolve_config(name, lang)
-        
-        if llm_client is None or embedder is None:
-            from hyperextract.utils import get_client
-            default_llm, default_emb = get_client()
-            llm_client = llm_client or default_llm
-            embedder = embedder or default_emb
-        
+    def create(cls, name: str, lang: str = "zh", llm_client=None, embedder=None, **kwargs):
+        """Create template instance (delegate to TemplateFactory)."""
         from .factory import TemplateFactory
-        return TemplateFactory.create(config, llm_client, embedder, **kwargs)
-
-    @classmethod
-    def _resolve_config(cls, name: str, lang: str = "zh") -> TemplateCfg:
-        """Resolve template name to config object."""
-        config = cls.get(name)
-        if config is not None:
-            return config
-        
-        parts = name.split("/")
-        if len(parts) == 1:
-            search_name = f"{lang}/{name}"
-            config = cls.get(search_name)
-            if config is not None:
-                return config
-        else:
-            template_lang = parts[0]
-            if template_lang not in ["zh", "en"]:
-                template_lang = lang
-            template_name = parts[-1]
-            full_name = f"{template_lang}/{template_name}"
-            config = cls.get(full_name)
-            if config is not None:
-                return config
-        
-        available = cls.list_all()
-        raise ValueError(f"Template '{name}' not found. Available: {available[:10]}...")
+        return TemplateFactory.create_from_name(name, lang, llm_client, embedder, **kwargs)
 
     def _load_config(self, file_path: Path) -> None:
         try:

@@ -70,6 +70,7 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
         embedder: Embeddings,
         *,
         prompt: str = "",
+        item_label_extractor: Callable[[ItemSchema], str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -83,6 +84,7 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
             llm_client: Language model client for extraction.
             embedder: Embedding model for vector indexing.
             prompt: Custom extraction prompt (defaults to list-oriented prompt).
+            item_label_extractor: Optional function to extract label from item for visualization.
             chunk_size: Maximum characters per chunk for long texts.
             chunk_overlap: Overlapping characters between adjacent chunks.
             max_workers: Maximum concurrent extraction tasks.
@@ -109,6 +111,8 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
                     raise ValueError(
                         f"Field '{field_name}' not found in item schema '{item_schema.__name__}'"
                     )
+        # Store label extractor for visualization
+        self._item_label_extractor = item_label_extractor
 
         super().__init__(
             data_schema=self.item_list_schema,
@@ -320,7 +324,7 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
 
     def show(
         self,
-        item_label_extractor: Callable[[ItemSchema], str],
+        item_label_extractor: Callable[[ItemSchema], str] = None,
         *,
         top_k_for_search: int = 3,
         top_k_for_chat: int = 3,
@@ -328,10 +332,13 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
         """Visualize the list using OntoSight.
 
         Args:
-            item_label_extractor: A function that takes an ItemSchema and returns a string label for visualization.
+            item_label_extractor: Optional function to extract label from item for visualization.
+                If not provided, uses the one from __init__.
             top_k_for_search: Number of items to retrieve for search callback (default: 3).
             top_k_for_chat: Number of items to retrieve for chat callback (default: 3).
         """
+        if item_label_extractor is None:
+            item_label_extractor = self._item_label_extractor
 
         if self._index is not None:
             logger.info(

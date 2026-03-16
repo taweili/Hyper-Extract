@@ -165,6 +165,8 @@ class AutoHypergraph(
         prompt: str = "",
         prompt_for_node_extraction: str = "",
         prompt_for_edge_extraction: str = "",
+        node_label_extractor: Callable[[NodeSchema], str] = None,
+        edge_label_extractor: Callable[[EdgeSchema], str] = None,
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
@@ -196,6 +198,8 @@ class AutoHypergraph(
             prompt: Custom extraction prompt for one-stage mode.
             prompt_for_node_extraction: Custom extraction prompt for node extraction.
             prompt_for_edge_extraction: Custom extraction prompt for hyperedge extraction.
+            node_label_extractor: Optional function to extract label from node for visualization.
+            edge_label_extractor: Optional function to extract label from edge for visualization.
             chunk_size: Maximum characters per chunk.
             chunk_overlap: Overlapping characters between chunks.
             max_workers: Maximum concurrent extraction tasks.
@@ -208,6 +212,7 @@ class AutoHypergraph(
                                    Example: ['summary', 'type'] (only index these edge fields)
             **kwargs: Additional arguments for merger creation.
         """
+
         # Store schemas and extractors
         self.node_schema = node_schema
         self.edge_schema = edge_schema
@@ -289,6 +294,10 @@ class AutoHypergraph(
             verbose=verbose,
             fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
+        
+        # Store label extractors for visualization
+        self.node_label_extractor = node_label_extractor
+        self.edge_label_extractor = edge_label_extractor
 
         # Initialize Base Class
         super().__init__(
@@ -818,8 +827,8 @@ class AutoHypergraph(
 
     def show(
         self,
-        node_label_extractor: Callable[[NodeSchema], str],
-        edge_label_extractor: Callable[[EdgeSchema], str],
+        node_label_extractor: Callable[[NodeSchema], str] = None,
+        edge_label_extractor: Callable[[EdgeSchema], str] = None,
         *,
         top_k_nodes_for_search: int = 3,
         top_k_edges_for_search: int = 3,
@@ -829,13 +838,19 @@ class AutoHypergraph(
         """Visualize the hypergraph using OntoSight.
 
         Args:
-            node_label_extractor: A function that takes a NodeSchema and returns a string label for visualization.
-            edge_label_extractor: A function that takes an EdgeSchema and returns a string label for visualization.
+            node_label_extractor: Optional function to extract label from node for visualization.
+                If not provided, uses the one from __init__.
+            edge_label_extractor: Optional function to extract label from edge for visualization.
+                If not provided, uses the one from __init__.
             top_k_nodes_for_search: Number of nodes to retrieve for search callback (default: 3).
             top_k_edges_for_search: Number of edges to retrieve for search callback (default: 3).
             top_k_nodes_for_chat: Number of nodes to retrieve for chat callback (default: 3).
             top_k_edges_for_chat: Number of edges to retrieve for chat callback (default: 3).
         """
+        if node_label_extractor is None:
+            node_label_extractor = self._node_label_extractor
+        if edge_label_extractor is None:
+            edge_label_extractor = self._edge_label_extractor
 
         if self._node_memory.has_index() and self._edge_memory.has_index():
             logger.info(

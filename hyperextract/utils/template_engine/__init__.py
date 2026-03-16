@@ -9,7 +9,7 @@ Main Components:
 - localize_template: Converts multilingual config to single-language config
 - SchemaParser: Parses output schemas based on template type
 - GuidelineParser: Parses prompts based on template type
-- IdentifierResolver: Resolves identifier extractors
+- parse_identifiers: Parses identifier extractors from config
 """
 
 from .template import Template

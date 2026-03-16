@@ -5,7 +5,6 @@ from .schemas import (
     FieldSchema,
     NaiveOutputSchema,
     GraphOutputSchema,
-    NaiveOutputSchema,
 )
 from pydantic import Field, create_model, BaseModel
 
