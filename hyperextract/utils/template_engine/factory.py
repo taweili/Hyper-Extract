@@ -3,7 +3,8 @@
 Supports all 8 AutoType dynamic generation.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
+from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -45,11 +46,8 @@ class TemplateFactory:
         from hyperextract.types import AutoModel
 
         data_schema = parse_output(config.output, config.type)
-
         prompt = parse_guideline(config.guideline, config.type)
-
         options = parse_option(config.options, config.type, override=kwargs)
-
         label_extractor = parse_display(config.display, config.type)
 
         return AutoModel(
@@ -73,11 +71,8 @@ class TemplateFactory:
         from hyperextract.types import AutoList
 
         data_schema = parse_output(config.output, config.type)
-
         prompt = parse_guideline(config.guideline, config.type)
-
         options = parse_option(config.options, config.type, override=kwargs)
-
         item_label_extractor = parse_display(config.display, config.type)
 
         return AutoList(
@@ -101,13 +96,9 @@ class TemplateFactory:
         from hyperextract.types import AutoSet
 
         data_schema = parse_output(config.output, config.type)
-
         item_id_extractor = parse_identifiers(config.identifiers, config.type)
-
         prompt = parse_guideline(config.guideline, config.type)
-
         options = parse_option(config.options, config.type, override=kwargs)
-
         item_label_extractor = parse_display(config.display, config.type)
 
         return AutoSet(
@@ -132,20 +123,16 @@ class TemplateFactory:
         from hyperextract.types import AutoGraph
 
         entity_schema, relation_schema = parse_output(config.output, config.type)
-
         identifiers = parse_identifiers(config.identifiers, config.type)
         entity_key_extractor, relation_key_extractor, entities_in_relation_extractor = (
             identifiers
         )
-
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
-
         node_label_extractor, edge_label_extractor = parse_display(
             config.display, config.type
         )
-
         options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoGraph(
@@ -176,20 +163,16 @@ class TemplateFactory:
         from hyperextract.types import AutoHypergraph
 
         entity_schema, relation_schema = parse_output(config.output, config.type)
-
         identifiers = parse_identifiers(config.identifiers, config.type)
         entity_key_extractor, relation_key_extractor, entities_in_relation_extractor = (
             identifiers
         )
-
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
-
         node_label_extractor, edge_label_extractor = parse_display(
             config.display, config.type
         )
-
         options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoHypergraph(
@@ -229,11 +212,9 @@ class TemplateFactory:
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
-
         node_label_extractor, edge_label_extractor = parse_display(
             config.display, config.type
         )
-
         options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoTemporalGraph(
@@ -265,7 +246,6 @@ class TemplateFactory:
         from hyperextract.types import AutoSpatialGraph
 
         entity_schema, relation_schema = parse_output(config.output, config.type)
-
         identifiers = parse_identifiers(config.identifiers, config.type)
         (
             entity_key_extractor,
@@ -273,15 +253,12 @@ class TemplateFactory:
             entities_in_relation_extractor,
             location_in_edge_extractor,
         ) = identifiers
-
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
-
         node_label_extractor, edge_label_extractor = parse_display(
             config.display, config.type
         )
-
         options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoSpatialGraph(
@@ -313,7 +290,6 @@ class TemplateFactory:
         from hyperextract.types import AutoSpatioTemporalGraph
 
         entity_schema, relation_schema = parse_output(config.output, config.type)
-
         identifiers = parse_identifiers(config.identifiers, config.type)
         (
             entity_key_extractor,
@@ -322,15 +298,12 @@ class TemplateFactory:
             time_in_edge_extractor,
             location_in_edge_extractor,
         ) = identifiers
-
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
             parse_guideline(config.guideline, config.type)
         )
-
         node_label_extractor, edge_label_extractor = parse_display(
             config.display, config.type
         )
-
         options = parse_option(config.options, config.type, override=kwargs)
 
         return AutoSpatioTemporalGraph(
@@ -354,7 +327,7 @@ class TemplateFactory:
     @classmethod
     def create(
         cls,
-        config: TemplateCfg,
+        source: Union[str, Path, TemplateCfg],
         llm_client: BaseChatModel,
         embedder: Embeddings,
         language: str = "zh",
@@ -363,7 +336,10 @@ class TemplateFactory:
         """Create template instance based on configuration.
 
         Args:
-            config: Template configuration
+            source: Template source - can be:
+                - str: Template name (e.g., "knowledge_graph") or file path
+                - Path: YAML file path
+                - TemplateCfg: Template configuration instance
             llm_client: LLM client
             embedder: Embedding model
             language: Language code for localization (e.g., 'zh', 'en')
@@ -371,18 +347,24 @@ class TemplateFactory:
                 e.g., observation_time="2024-06-15", observation_location="Beijing"
 
         Returns:
-            TemplateWrapper: Wrapped template instance
+            AutoType instance
 
         Examples:
-            # Basic usage
+            # By name (search via Gallery)
+            template = TemplateFactory.create("knowledge_graph", llm, embedder)
+
+            # By file path
+            template = TemplateFactory.create("/path/to/template.yaml", llm, embedder)
+
+            # By TemplateCfg instance
             template = TemplateFactory.create(config, llm, embedder)
 
             # For specific language
-            template = TemplateFactory.create(config, llm, embedder, language="en")
+            template = TemplateFactory.create("knowledge_graph", llm, embedder, language="en")
 
             # For spatio-temporal templates, pass observation_time etc.
             template = TemplateFactory.create(
-                config,
+                "FinancialTemporalGraph",
                 llm,
                 embedder,
                 language="zh",
@@ -392,7 +374,7 @@ class TemplateFactory:
 
             # Can also override other parameters
             template = TemplateFactory.create(
-                config,
+                "knowledge_graph",
                 llm,
                 embedder,
                 language="zh",
@@ -400,71 +382,50 @@ class TemplateFactory:
                 max_workers=20
             )
         """
+        from .gallery import Gallery
+        from .parsers import load_template
+
+        match source:
+            case str() as s if Path(s).exists():
+                config = load_template(s)
+            case str() as s:
+                config = Gallery.get(s)
+                if config is None:
+                    config = Gallery.get(f"{language}/{s}")
+                if config is None:
+                    raise ValueError(f"Template '{s}' not found")
+            case Path() as p if p.exists():
+                config = load_template(p)
+            case TemplateCfg() as cfg:
+                config = cfg
+            case _:
+                raise ValueError(f"Invalid source type: {type(source)}")
+
         template = localize_template(config, language)
 
-        autotype_map = {
-            "model": cls.create_model,
-            "list": cls.create_list,
-            "set": cls.create_set,
-            "graph": cls.create_graph,
-            "hypergraph": cls.create_hypergraph,
-            "temporal_graph": cls.create_temporal_graph,
-            "spatial_graph": cls.create_spatial_graph,
-            "spatio_temporal_graph": cls.create_spatio_temporal_graph,
-        }
-
-        creator = autotype_map.get(template.type)
-        template = creator(template, llm_client, embedder, **kwargs)
+        match template.type:
+            case "model":
+                template = cls.create_model(template, llm_client, embedder, **kwargs)
+            case "list":
+                template = cls.create_list(template, llm_client, embedder, **kwargs)
+            case "set":
+                template = cls.create_set(template, llm_client, embedder, **kwargs)
+            case "graph":
+                template = cls.create_graph(template, llm_client, embedder, **kwargs)
+            case "hypergraph":
+                template = cls.create_hypergraph(
+                    template, llm_client, embedder, **kwargs
+                )
+            case "temporal_graph":
+                template = cls.create_temporal_graph(
+                    template, llm_client, embedder, **kwargs
+                )
+            case "spatial_graph":
+                template = cls.create_spatial_graph(
+                    template, llm_client, embedder, **kwargs
+                )
+            case "spatio_temporal_graph":
+                template = cls.create_spatio_temporal_graph(
+                    template, llm_client, embedder, **kwargs
+                )
         return template
-
-    @classmethod
-    def create_from_name(
-        cls,
-        name: str,
-        lang: str = "zh",
-        llm_client=None,
-        embedder=None,
-        **kwargs,
-    ):
-        """Create template instance by template name.
-
-        Args:
-            name: Template name (e.g., "knowledge_graph", "zh/finance/risk_assessment")
-            lang: Language, default "zh"
-            llm_client: LLM client, optional, reads from global config if not provided
-            embedder: Embedder client, optional, reads from global config if not provided
-            **kwargs: Additional parameters (e.g., observation_time, observation_location)
-
-        Returns:
-            AutoType instance
-
-        Examples:
-            # Use global config (recommended)
-            template = TemplateFactory.create_from_name("knowledge_graph")
-
-            # Custom client
-            template = TemplateFactory.create_from_name("knowledge_graph", llm_client=llm, embedder=emb)
-
-            # With additional parameters
-            template = TemplateFactory.create_from_name("FinancialTemporalGraph", observation_time="2024-06-15")
-        """
-        from .gallery import Gallery
-
-        config = Gallery.get(name)
-        if config is None:
-            config = Gallery.get(f"{lang}/{name}")
-
-        if config is None:
-            available = Gallery.list_all()
-            raise ValueError(
-                f"Template '{name}' not found. Available: {available[:10]}..."
-            )
-
-        if llm_client is None or embedder is None:
-            from hyperextract.utils import get_client
-
-            default_llm, default_emb = get_client()
-            llm_client = llm_client or default_llm
-            embedder = embedder or default_emb
-
-        return cls.create(config, llm_client, embedder, language=lang, **kwargs)
