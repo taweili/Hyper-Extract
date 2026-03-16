@@ -27,7 +27,7 @@ LABEL_MAPPING = {
 }
 
 
-def GuidelineParser(guideline, autotype: str = "model") -> Tuple[str, str, str]:
+def parse_guideline(guideline, autotype: str) -> str | Tuple[str, str, str]:
     """Parse guideline and return prompts based on autotype (config is already localized).
 
     Args:
@@ -48,7 +48,7 @@ def GuidelineParser(guideline, autotype: str = "model") -> Tuple[str, str, str]:
         if guideline.rules:
             parts.append(f"## {labels.get('rules')}:\n{guideline.rules}")
         parts.append(f"## {labels.get('source_text')}:\n{{source_text}}")
-        return "\n\n".join(parts), "", ""
+        return "\n\n".join(parts)
     else:
         main_parts = [prefix_prompt]
         if guideline.rules_for_entities:
@@ -102,5 +102,5 @@ def GuidelineParser(guideline, autotype: str = "model") -> Tuple[str, str, str]:
 
 
 __all__ = [
-    "GuidelineParser",
+    "parse_guideline",
 ]

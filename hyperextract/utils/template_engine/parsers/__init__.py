@@ -5,8 +5,8 @@ from .loader import (
     load_template,
     localize_template,
 )
-from .output import OutputParser
-from .guideline import GuidelineParser
+from .output import parse_output
+from .guideline import parse_guideline
 from .identifiers import IdentifierResolver
 from .options import (
     Options,
@@ -18,8 +18,8 @@ __all__ = [
     "TemplateCfg",
     "load_template",
     "localize_template",
-    "OutputParser",
-    "GuidelineParser",
+    "parse_output",
+    "parse_guideline",
     "IdentifierResolver",
     "Options",
     "OptionsBuilder",

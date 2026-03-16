@@ -12,9 +12,9 @@ from .parsers import (
     TemplateCfg,
     OptionsBuilder,
     Options,
-    OutputParser,
+    parse_output,
     IdentifierResolver,
-    GuidelineParser,
+    parse_guideline,
     localize_template,
 )
 
@@ -79,9 +79,9 @@ class TemplateFactory:
         """Create AutoModel template."""
         from hyperextract.types import AutoModel
 
-        data_schema = OutputParser(config)
+        data_schema = parse_output(config)
 
-        prompt, _, _ = GuidelineParser(config.guideline, config.type)
+        prompt, _, _ = parse_guideline(config.guideline, config.type)
 
         options = OptionsBuilder.build_model_options(config)
 
@@ -109,9 +109,9 @@ class TemplateFactory:
         """Create AutoList template."""
         from hyperextract.types import AutoList
 
-        data_schema = OutputParser(config)
+        data_schema = parse_output(config)
 
-        prompt, _, _ = GuidelineParser(config.guideline, config.type)
+        prompt, _, _ = parse_guideline(config.guideline, config.type)
 
         options = OptionsBuilder.build_list_options(config)
 
@@ -133,11 +133,11 @@ class TemplateFactory:
         """Create AutoSet template."""
         from hyperextract.types import AutoSet
 
-        data_schema = OutputParser(config)
+        data_schema = parse_output(config)
         identifiers = IdentifierResolver.resolve_all(config)
         item_id_extractor = identifiers.get("item_id_extractor")
 
-        prompt, _, _ = GuidelineParser(config.guideline, config.type)
+        prompt, _, _ = parse_guideline(config.guideline, config.type)
 
         options = OptionsBuilder.build_set_options(config)
 
@@ -166,7 +166,7 @@ class TemplateFactory:
         """Create AutoGraph template."""
         from hyperextract.types import AutoGraph
 
-        entity_schema, relation_schema = OutputParser(config)
+        entity_schema, relation_schema = parse_output(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -177,7 +177,7 @@ class TemplateFactory:
         options = OptionsBuilder.build_graph_options(config)
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            GuidelineParser(config.guideline, config.type)
+            parse_guideline(config.guideline, config.type)
         )
 
         return AutoGraph(
@@ -224,7 +224,7 @@ class TemplateFactory:
     ) -> "AutoTemporalGraph":
         from hyperextract.types import AutoTemporalGraph
 
-        entity_schema, relation_schema = OutputParser(config)
+        entity_schema, relation_schema = parse_output(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -236,7 +236,7 @@ class TemplateFactory:
         options = OptionsBuilder.build_temporal_graph_options(config)
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            GuidelineParser(config.guideline, config.type)
+            parse_guideline(config.guideline, config.type)
         )
 
         return AutoTemporalGraph(
@@ -279,7 +279,7 @@ class TemplateFactory:
     ) -> "AutoSpatialGraph":
         from hyperextract.types import AutoSpatialGraph
 
-        entity_schema, relation_schema = OutputParser(config)
+        entity_schema, relation_schema = parse_output(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -293,7 +293,7 @@ class TemplateFactory:
         options = OptionsBuilder.build_spatial_graph_options(config)
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            GuidelineParser(config.guideline, config.type)
+            parse_guideline(config.guideline, config.type)
         )
 
         return AutoSpatialGraph(
@@ -336,7 +336,7 @@ class TemplateFactory:
     ) -> "AutoSpatioTemporalGraph":
         from hyperextract.types import AutoSpatioTemporalGraph
 
-        entity_schema, relation_schema = OutputParser(config)
+        entity_schema, relation_schema = parse_output(config)
         identifiers = IdentifierResolver.resolve_all(config)
         entity_key_extractor = identifiers.get("entity_key_extractor")
         relation_key_extractor = identifiers.get("relation_key_extractor")
@@ -351,7 +351,7 @@ class TemplateFactory:
         options = OptionsBuilder.build_spatio_temporal_graph_options(config)
 
         prompt, prompt_for_entity_extraction, prompt_for_relation_extraction = (
-            GuidelineParser(config.guideline, config.type)
+            parse_guideline(config.guideline, config.type)
         )
 
         return AutoSpatioTemporalGraph(
