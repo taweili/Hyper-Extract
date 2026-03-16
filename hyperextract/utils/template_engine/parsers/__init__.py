@@ -8,10 +8,7 @@ from .loader import (
 from .output import parse_output
 from .guideline import parse_guideline
 from .identifiers import IdentifierResolver
-from .options import (
-    Options,
-    OptionsBuilder,
-)
+from .options import parse_option
 
 
 __all__ = [
@@ -21,6 +18,5 @@ __all__ = [
     "parse_output",
     "parse_guideline",
     "IdentifierResolver",
-    "Options",
-    "OptionsBuilder",
+    "parse_option",
 ]

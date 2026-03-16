@@ -10,12 +10,12 @@ from langchain_core.embeddings import Embeddings
 
 from .parsers import (
     TemplateCfg,
-    OptionsBuilder,
     Options,
     parse_output,
     IdentifierResolver,
     parse_guideline,
     localize_template,
+    parse_option,
 )
 
 
@@ -89,12 +89,6 @@ class TemplateFactory:
             data_schema=data_schema,
             llm_client=llm_client,
             embedder=embedder,
-            strategy_or_merger=OptionsBuilder.resolve_merge_strategy(
-                options.merge_strategy,
-                lambda x: str(x),
-                llm_client,
-                data_schema,
-            ),
             prompt=prompt,
             chunk_size=options.chunk_size,
             chunk_overlap=options.chunk_overlap,

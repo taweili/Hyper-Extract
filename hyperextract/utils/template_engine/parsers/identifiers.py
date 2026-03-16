@@ -1,6 +1,6 @@
 """Identifier models and resolver."""
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from pydantic import BaseModel
 
 
