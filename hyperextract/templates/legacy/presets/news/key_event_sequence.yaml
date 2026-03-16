@@ -10,25 +10,25 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "事件名称"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "事件类型：开工、销售、停工、诉讼、侦查、处罚、协调、公示"
       required: true
       default: ""
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间，格式为年-月-日（如 2023-09-15）"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "事件描述"
       required: false
@@ -37,25 +37,25 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "前置事件名称"
       required: true
       default: ""
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "后续事件名称"
       required: true
       default: ""
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：紧接、导致、触发、升级、回应、协调、裁决、调查"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "因果描述，说明两事件之间的逻辑关系"
       required: false

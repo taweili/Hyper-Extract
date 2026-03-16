@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "实体名称"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "实体类型：人物、机构、资金、项目、地点"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
       required: false
@@ -31,25 +31,25 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源实体"
       required: true
       default: ""
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标实体"
       required: true
       default: ""
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：任职、持股、交易、关联、合作、担保、亲属"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
       required: false

@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: type
-      type: string
+      type: str
       description:
         zh: 实体类型：参会人员、公司、产品、指标、行业
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 实体描述/说明
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体
       required: true
       default: ''
     - name: relation_type
-      type: string
+      type: str
       description:
         zh: 关系类型
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false

@@ -10,15 +10,15 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "分类单元名称，如绿藻门、鲤科、鲢鱼"
     - name: rank
-      type: "string"
+      type: "str"
       description:
         zh: "分类等级：界、门、纲、目、科、属、种"
     - name: latin_name
-      type: "string"
+      type: "str"
       description:
         zh: "拉丁学名"
       required: false
@@ -26,19 +26,19 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源分类单元（较高等级，如门）"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标分类单元（较低等级，如种）"
     - name: relation_type
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：包含于"
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述，包含具体的分类路径信息"
       required: false

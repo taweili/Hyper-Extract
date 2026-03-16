@@ -5,7 +5,7 @@ from pydantic import Field, create_model
 
 
 TYPE_MAPPING = {
-    "string": str,
+    "str": str,
     "int": int,
     "float": float,
     "bool": bool,
@@ -14,9 +14,9 @@ TYPE_MAPPING = {
 
 
 def build_field_type(field) -> Type:
-    """Build field type from field."""
+    """Build field type from field definition."""
     if isinstance(field, dict):
-        field_type_str = field.get("type", "string")
+        field_type_str = field.get("type", "str")
     else:
         field_type_str = field.type
 
@@ -24,7 +24,7 @@ def build_field_type(field) -> Type:
         if isinstance(field, dict):
             item_type_str = field.get("item_type")
         else:
-            item_type_str = field.item_type
+            item_type_str = getattr(field, "item_type", None)
         if item_type_str:
             item_type = TYPE_MAPPING.get(item_type_str, str)
             return List[item_type]
@@ -38,24 +38,24 @@ def build_field_default(field) -> Any:
         is_required = field.get("required", False)
         default_val = field.get("default")
     else:
-        is_required = field.required
-        default_val = field.default
+        is_required = getattr(field, "required", False)
+        default_val = getattr(field, "default", None)
 
     if is_required:
         return ...
     if default_val is not None:
         return default_val
-    field_type = field.get("type", "string") if isinstance(field, dict) else field.type
+    field_type = field.get("type", "str") if isinstance(field, dict) else getattr(field, "type", "str")
     if field_type == "list":
         return []
     return None
 
 
 def build_field_description(field) -> str:
-    """Get field description (config is already localized, just return string)."""
+    """Get field description (config is already localized)."""
     if isinstance(field, dict):
         return field.get("description", "") or ""
-    return field.description or ""
+    return getattr(field, "description", "") or ""
 
 
 def _build_schema_from_fields(
@@ -68,7 +68,7 @@ def _build_schema_from_fields(
         if isinstance(field, dict):
             field_name = field.get("name")
         else:
-            field_name = field.name
+            field_name = getattr(field, "name", None)
 
         if not field_name:
             continue
@@ -80,19 +80,8 @@ def _build_schema_from_fields(
     return create_model(schema_name, **schema_fields)
 
 
-def _get_schema_fields(schema):
-    """Get fields from schema."""
-    if schema is None:
-        return None
-    if isinstance(schema, dict):
-        return schema.get("fields")
-    if hasattr(schema, "fields"):
-        return schema.fields
-    return None
-
-
 def _get_output_value(output, attr: str):
-    """Get value from output."""
+    """Get value from output object."""
     if output is None:
         return None
     if isinstance(output, dict):
@@ -100,37 +89,20 @@ def _get_output_value(output, attr: str):
     return getattr(output, attr, None)
 
 
-def _build_non_graph_schema(config) -> Type:
+def _build_naive_schema(config) -> Type:
     """Build schema for non-graph types (model, list, set)."""
-    autotype = config.type
-
     output = config.output
     output_fields = _get_output_value(output, "fields") if output else None
+    
     if output_fields:
         schema_name = f"{config.name}Schema"
         return _build_schema_from_fields(output_fields, schema_name)
 
-    if autotype == "model":
-        model_schema = getattr(config, "model_schema", None)
-        if model_schema:
-            fields = _get_schema_fields(model_schema)
-            if fields:
-                schema_name = f"{getattr(model_schema, '__name__', config.name)}Schema"
-                return _build_schema_from_fields(fields, schema_name)
-
-    if autotype in ("list", "set"):
-        item_schema = getattr(config, "item_schema", None)
-        if item_schema:
-            fields = _get_schema_fields(item_schema)
-            if fields:
-                schema_name = f"{getattr(item_schema, '__name__', config.name)}Schema"
-                return _build_schema_from_fields(fields, schema_name)
-
-    raise ValueError(f"No schema definition found for {autotype} type: {config.name}")
+    raise ValueError(f"No fields definition found for {config.type} type: {config.name}")
 
 
 def _build_graph_schemas(config) -> Tuple[Type, Type]:
-    """Build schemas for graph types."""
+    """Build schemas for graph types (graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph)."""
     output = config.output
     entities = _get_output_value(output, "entities")
     relations = _get_output_value(output, "relations")
@@ -149,27 +121,14 @@ def _build_graph_schemas(config) -> Tuple[Type, Type]:
             )
             return entity_schema, relation_schema
 
-    node_schema = getattr(config, "node_schema", None)
-    edge_schema = getattr(config, "edge_schema", None)
-    if node_schema and edge_schema:
-        entity_schema = _build_schema_from_fields(
-            node_schema.fields if hasattr(node_schema, 'fields') else node_schema.get('fields'),
-            f"{getattr(node_schema, '__name__', node_schema.get('__name__', 'Node'))}Entity",
-        )
-        relation_schema = _build_schema_from_fields(
-            edge_schema.fields if hasattr(edge_schema, 'fields') else edge_schema.get('fields'),
-            f"{getattr(edge_schema, '__name__', edge_schema.get('__name__', 'Edge'))}Relation",
-        )
-        return entity_schema, relation_schema
-
     raise ValueError(f"No schema definition found for graph type: {config.name}")
 
 
 def OutputParser(config) -> Union[Type, Tuple[Type, Type]]:
-    """Parse template and return schemas based on autotype (config is already localized).
+    """Parse template and return schemas based on autotype.
 
     Args:
-        config: Template Configuration instance (single-language)
+        config: TemplateCfg instance (single-language, all fields are strings)
 
     Returns:
         - For non-graph types (model, list, set): returns data_schema
@@ -178,7 +137,7 @@ def OutputParser(config) -> Union[Type, Tuple[Type, Type]]:
     autotype = config.type
 
     if autotype in ("model", "list", "set"):
-        return _build_non_graph_schema(config)
+        return _build_naive_schema(config)
     else:
         return _build_graph_schemas(config)
 

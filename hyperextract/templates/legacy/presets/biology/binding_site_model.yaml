@@ -10,15 +10,15 @@ description:
 schema:
   fields:
     - name: protein_name
-      type: "string"
+      type: "str"
       description:
         zh: "蛋白质名称，如β2-肾上腺素受体"
     - name: site_type
-      type: "string"
+      type: "str"
       description:
         zh: "位点类型：活性位点、结合位点、修饰位点、别构位点"
     - name: residue_numbers
-      type: "string"
+      type: "str"
       description:
         zh: "关键残基编号范围，如Asp169-Lys210"
     - name: residue_details
@@ -26,15 +26,15 @@ schema:
       description:
         zh: "关键残基详情列表"
     - name: chemical_properties
-      type: "string"
+      type: "str"
       description:
         zh: "化学性质描述，如疏水口袋、氢键网络、金属离子结合位点"
     - name: function_annotation
-      type: "string"
+      type: "str"
       description:
         zh: "功能注解，如配体识别、底物特异性、信号转导"
     - name: ligand_info
-      type: "string"
+      type: "str"
       description:
         zh: "配体信息，如结合的配体分子或药物"
       required: false

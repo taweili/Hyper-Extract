@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 概念名称，如医学术语、疾病名称、解剖部位等
     - name: category
-      type: string
+      type: str
       description:
         zh: 概念类型：疾病、解剖部位、生理过程、药物、症状、体征等
     - name: definition
-      type: string
+      type: str
       description:
         zh: 概念定义
       required: false
@@ -27,19 +27,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源概念
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标概念
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：属于、定义为、包含、组成、位于、导致、治疗等
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述
       required: false

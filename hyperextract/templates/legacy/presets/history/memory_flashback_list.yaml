@@ -10,30 +10,30 @@ description:
 item_schema:
   fields:
     - name: content
-      type: "string"
+      type: "str"
       description:
         zh: "回忆内容原文"
     - name: type
-      type: "string"
+      type: "str"
       description:
         zh: "类型：轶事、感悟、历史时刻、人物描写"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "相关时间"
       required: false
     - name: location
-      type: "string"
+      type: "str"
       description:
         zh: "相关地点"
       required: false
     - name: emotion
-      type: "string"
+      type: "str"
       description:
         zh: "情感色彩：感慨、怀念、愤慨、欣慰"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "补充描述"
       required: false

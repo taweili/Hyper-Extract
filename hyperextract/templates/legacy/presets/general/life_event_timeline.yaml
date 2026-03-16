@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
     - name: type
-      type: string
+      type: str
       description:
         zh: 实体类型：人物、地点、组织、物品、概念、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,24 +27,24 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 事件主体/相关实体
     - name: target
-      type: string
+      type: str
       description:
         zh: 事件对象/相关实体
     - name: eventType
-      type: string
+      type: str
       description:
         zh: 事件类型：出生、逝世、教育、工作、成就、交往、旅行、其他
     - name: eventDate
-      type: string
+      type: str
       description:
         zh: 事件日期，格式为年-月-日或年份
       required: false
     - name: details
-      type: string
+      type: str
       description:
         zh: 事件详细描述
       required: false

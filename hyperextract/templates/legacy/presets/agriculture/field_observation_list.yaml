@@ -10,19 +10,19 @@ description:
 item_schema:
   fields:
     - name: plot_id
-      type: "string"
+      type: "str"
       description:
         zh: "地块编号"
     - name: crop
-      type: "string"
+      type: "str"
       description:
         zh: "作物种类和品种"
     - name: growth_stage
-      type: "string"
+      type: "str"
       description:
         zh: "当前生长阶段"
     - name: observation_date
-      type: "string"
+      type: "str"
       description:
         zh: "观测日期，统一格式为年-月-日（如2025-06-15）"
     - name: issues
@@ -30,7 +30,7 @@ item_schema:
       description:
         zh: "观测到的问题列表，如杂草、虫害、病害、生长异常"
     - name: severity_level
-      type: "string"
+      type: "str"
       description:
         zh: "严重等级：轻微、中等、严重"
     - name: recommendations

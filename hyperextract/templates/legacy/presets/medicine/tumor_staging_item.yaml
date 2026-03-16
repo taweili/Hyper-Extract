@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: tStage
-    type: string
+    type: str
     description:
       zh: T分期，如T1、T2、T3、T4等
   - name: nStage
-    type: string
+    type: str
     description:
       zh: N分期，如N0、N1、N2、N3等
   - name: mStage
-    type: string
+    type: str
     description:
       zh: M分期，如M0、M1等
   - name: pathologicalStage
-    type: string
+    type: str
     description:
       zh: 病理分期，如I期、II期、III期、IV期等
   - name: tDetails
-    type: string
+    type: str
     description:
       zh: T分期详细描述，如肿瘤大小
   - name: nDetails
-    type: string
+    type: str
     description:
       zh: N分期详细描述，如淋巴结转移数量
   - name: mDetails
-    type: string
+    type: str
     description:
       zh: M分期详细描述，如远处转移部位
 guideline:

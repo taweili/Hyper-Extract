@@ -10,25 +10,25 @@ description:
 item_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "菜品名称，保持与原文一致"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "菜品分类：凉菜、热菜、主食、甜品、小吃、饮品等"
       required: true
       default: ""
     - name: price
-      type: "string"
+      type: "str"
       description:
         zh: "价格，如 ¥68、18元"
       required: false
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
       required: false

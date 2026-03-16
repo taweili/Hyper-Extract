@@ -10,25 +10,25 @@ description:
 node_schema:
   fields:
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间点，格式为HH:MM"
       required: true
       default: ""
     - name: event
-      type: "string"
+      type: "str"
       description:
         zh: "事件内容"
       required: true
       default: ""
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "简短名称/摘要"
       required: true
       default: ""
     - name: speaker
-      type: "string"
+      type: "str"
       description:
         zh: "发言人"
       required: false
@@ -37,25 +37,25 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源时间点（格式为HH:MM）"
       required: true
       default: ""
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标时间点（格式为HH:MM）"
       required: true
       default: ""
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：开场、介绍、发布、发言、提问、回答、总结、结束"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
       required: false

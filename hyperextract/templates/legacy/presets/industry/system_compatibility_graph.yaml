@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如：离心泵P-101、不锈钢304、高温环境等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类型：设备、材质、介质、环境、连接方式
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 描述（例如：15kW离心泵、适用于清水、适用于常温）
       required: false
@@ -38,13 +38,13 @@ output:
       required: true
       default: ''
     - name: compatibility_type
-      type: string
+      type: str
       description:
         zh: 兼容性类型：材质兼容、介质适用、环境适用、连接匹配
       required: true
       default: ''
     - name: compatibility_note
-      type: string
+      type: str
       description:
         zh: 兼容性说明或限制条件（例如：需加装过滤器、建议使用O型圈）
       required: false

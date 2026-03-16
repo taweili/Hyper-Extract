@@ -11,20 +11,20 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 名称
     - name: type
-      type: string
+      type: str
       description:
         zh: 节点类型：人物、组织、机构、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
     - name: role
-      type: string
+      type: str
       description:
         zh: 角色/身份
       required: false
@@ -32,19 +32,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源节点
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标节点
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：亲属、朋友、同事、师生、上下级、合作、竞争、隶属、其他
     - name: details
-      type: string
+      type: str
       description:
         zh: 关系详细说明
       required: false

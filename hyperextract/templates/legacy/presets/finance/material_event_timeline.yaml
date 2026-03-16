@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如 公司名称、高管姓名、监管机构）
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 类型：'公司'、'高管'、'监管机构'、'交易对手'、'子公司'、'审计师'
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 角色或背景（例如 '首席执行官'、'收购方'、'SEC'）
       required: false
@@ -32,43 +32,43 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 行为实体名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 受影响实体名称
       required: true
       default: ''
     - name: event_type
-      type: string
+      type: str
       description:
         zh: 类型：'高管任命'、'高管离职'、'收购'、'资产剥离'、'财务重述'、'破产'、'退市'、'重大协议'、'股息宣派'、'股票拆分'、'监管行动'
       required: true
       default: ''
     - name: start_timestamp
-      type: string
+      type: str
       description:
         zh: 事件发生或公告的日期（例如 '2024-03-15'、'2024年3月15日'）
       required: false
       default: ''
     - name: end_timestamp
-      type: string
+      type: str
       description:
         zh: 如适用的结束日期（例如 生效日期、交割日期）
       required: false
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 重大事件的详细信息，包括财务条款、条件或监管背景
       required: false
       default: ''
     - name: sec_item
-      type: string
+      type: str
       description:
         zh: 8-K 条目编号（例如 'Item 5.02'、'Item 1.01'、'Item 2.01'）
       required: false

@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如：振动异常、轴承损坏密封失效等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类型：故障现象、根因、部件、解决方案
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 描述（例如：表现为轴承温度升高、由于润滑不良导致）
       required: false
@@ -38,13 +38,13 @@ output:
       required: true
       default: ''
     - name: reasoning_type
-      type: string
+      type: str
       description:
         zh: 推理类型：故障诊断、原因分析、解决方案
       required: true
       default: ''
     - name: failure_description
-      type: string
+      type: str
       description:
         zh: 故障详细描述
       required: false

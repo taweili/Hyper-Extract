@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 概念/条目名称
     - name: type
-      type: string
+      type: str
       description:
         zh: 节点类型：条目、章节、概念、人物、地点、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,19 +27,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源条目/概念
     - name: target
-      type: string
+      type: str
       description:
         zh: 被引用条目/概念
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：Hyperlink（超链接）、Reference（引用）、SeeAlso（参见）、Related（相关）、Other（其他）
     - name: context
-      type: string
+      type: str
       description:
         zh: 引用上下文描述
       required: false

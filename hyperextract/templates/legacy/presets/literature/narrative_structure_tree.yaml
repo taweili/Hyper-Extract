@@ -10,34 +10,34 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "结构单元名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "类型：主线、支线、插叙、前提、结局"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "上位结构"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "下位结构"
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：包含、从属、展开、转折"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "描述"
 

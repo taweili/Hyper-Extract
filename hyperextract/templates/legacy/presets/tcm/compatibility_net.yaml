@@ -11,13 +11,13 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 药物名称
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -26,25 +26,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源药物
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标药物
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 配伍关系类型：相须、相使、相畏、相杀、相恶、相反、十八反、十九畏
       required: true
       default: ''
     - name: effect
-      type: string
+      type: str
       description:
         zh: 配伍效果描述
       required: false

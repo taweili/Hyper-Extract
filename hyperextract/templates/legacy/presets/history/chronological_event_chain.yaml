@@ -10,38 +10,38 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "事件名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "事件类型：战争、政治、外交、军事"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "事件简要描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "前置事件名称"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "后续事件名称"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间，格式为年份或朝代年份，如208年，建安十三年"
     - name: location
-      type: "string"
+      type: "str"
       description:
         zh: "地点"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "事件因果描述，说明两事件之间的逻辑关系"
 

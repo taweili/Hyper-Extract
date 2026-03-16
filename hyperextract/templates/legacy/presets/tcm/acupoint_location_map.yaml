@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 穴位名称：如合谷、足三里、三阴交等
       required: true
       default: ''
     - name: meridian
-      type: string
+      type: str
       description:
         zh: 所属经脉
       required: false
       default: ''
     - name: location
-      type: string
+      type: str
       description:
         zh: 位置描述：如脐旁2寸、腕横纹上3寸等
       required: false
       default: ''
     - name: indications
-      type: string
+      type: str
       description:
         zh: 主治功能
       required: false
@@ -38,25 +38,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源穴位或解剖标志名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标穴位名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：位于
       required: true
       default: ''
     - name: relativePosition
-      type: string
+      type: str
       description:
         zh: 相对位置描述：如脐旁2寸、腕横纹上3寸等
       required: true

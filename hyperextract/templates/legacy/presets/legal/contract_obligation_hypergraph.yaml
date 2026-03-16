@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 要素名称，文本中出现的精确名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 要素类型：主体、义务、触发条件、例外情形、违约责任、其他
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: obligation_type
-      type: string
+      type: str
       description:
         zh: 义务类型：支付义务、交付义务、保密义务、竞业限制、售后服务、其他
       required: true
@@ -44,25 +44,25 @@ output:
       required: true
       default: ''
     - name: trigger_condition
-      type: string
+      type: str
       description:
         zh: 触发条件，如合同签订后、验收合格后、违约发生时等
       required: false
       default: ''
     - name: exception
-      type: string
+      type: str
       description:
         zh: 例外情形，如不可抗力、对方违约在先等
       required: false
       default: ''
     - name: liability
-      type: string
+      type: str
       description:
         zh: 违约责任，如支付违约金、赔偿损失、解除合同等
       required: false
       default: ''
     - name: source_clause
-      type: string
+      type: str
       description:
         zh: 义务来源条款编号或名称
       required: false

@@ -9,20 +9,20 @@ output:
   description: {}
   fields:
   - name: clauseId
-    type: string
+    type: str
     description:
       zh: 条文编号，如第1条、第2.1款
   - name: title
-    type: string
+    type: str
     description:
       zh: 条目标题/主题
     required: false
   - name: content
-    type: string
+    type: str
     description:
       zh: 条文内容
   - name: category
-    type: string
+    type: str
     description:
       zh: 条文分类：总则、权利义务、程序、处罚、附则、其他
     required: false

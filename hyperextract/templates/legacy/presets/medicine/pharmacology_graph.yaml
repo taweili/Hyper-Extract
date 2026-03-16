@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如药物、受体、靶点、生理反应等
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：药物、受体、靶点、生理反应、信号通路等
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,19 +27,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：结合、激活、抑制、调节、诱导、拮抗等
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述，如具体的作用机制
 guideline:

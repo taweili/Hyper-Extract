@@ -10,15 +10,15 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "物种或分类单元名称"
     - name: taxon_level
-      type: "string"
+      type: "str"
       description:
         zh: "分类水平：界、门、纲、目、科、属、种"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述，包含演化位置或特征"
       required: false
@@ -26,29 +26,29 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源物种或分类单元"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标物种或分类单元"
     - name: relation_type
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：亲缘关系、演化距离、分支、姐妹群"
     - name: evolutionary_distance
-      type: "string"
+      type: "str"
       description:
         zh: "演化距离或分支时间估算"
       required: false
     - name: branch_point
-      type: "string"
+      type: "str"
       description:
         zh: "分支点信息，如共同的祖先年代"
       required: false
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
       required: false

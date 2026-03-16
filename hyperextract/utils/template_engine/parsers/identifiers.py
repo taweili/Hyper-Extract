@@ -36,7 +36,7 @@ class IdentifierResolver:
 
     @staticmethod
     def resolve_relation_id(template: str) -> Callable[[BaseModel], str]:
-        """Generate relation ID extractor (supports template string)."""
+        """Generate relation ID extractor (supports template str)."""
         def extractor(relation: BaseModel) -> str:
             try:
                 return template.format(**relation.model_dump())

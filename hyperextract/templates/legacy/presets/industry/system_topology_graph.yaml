@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（如：A工厂、制造车间A、数控加工系统、冷却系统等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：厂区、系统、子系统、设备
       required: true
       default: ''
     - name: function
-      type: string
+      type: str
       description:
         zh: 功能描述
       required: false
       default: ''
     - name: capacity
-      type: string
+      type: str
       description:
         zh: 容量或规模
       required: false
@@ -38,19 +38,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 上级实体名称（厂区或系统）
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 下级实体名称（系统或子系统或设备）
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：包含等
       required: true

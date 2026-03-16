@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如个人、基金、控股公司、信托）
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 类型：个人、机构投资者、控股公司、风险投资、私募股权、信托、政府实体、发行公司
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 附加信息（例如'联合创始人兼 CEO'、'B 轮领投机构'）
       required: false
@@ -32,37 +32,37 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 持有方/母公司实体名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 被持有方/子公司实体名称
       required: true
       default: ''
     - name: relationship_type
-      type: string
+      type: str
       description:
         zh: 类型：直接持股、间接持股、实益所有权、投票权控制、董事会席位、母子公司
       required: true
       default: ''
     - name: ownership_percentage
-      type: string
+      type: str
       description:
         zh: 持股比例（例如'15.3%'、'51%'、'控股权'）
       required: false
       default: ''
     - name: share_class
-      type: string
+      type: str
       description:
         zh: 股份类别（例如'A 类普通股'、'B 类（10 倍投票权）'、'C 轮优先股'）
       required: false
       default: ''
     - name: voting_power
-      type: string
+      type: str
       description:
         zh: 投票权百分比（若与持股比例不同，例如'65% 投票权'）
       required: false

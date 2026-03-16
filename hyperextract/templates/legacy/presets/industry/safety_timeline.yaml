@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 类型：人员、设备、设施等
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 描述
       required: false
@@ -32,37 +32,37 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称
       required: true
       default: ''
     - name: action
-      type: string
+      type: str
       description:
         zh: 操作动作
       required: true
       default: ''
     - name: timestamp
-      type: string
+      type: str
       description:
         zh: 动作发生时间
       required: false
       default: ''
     - name: location
-      type: string
+      type: str
       description:
         zh: 发生位置
       required: false
       default: ''
     - name: status
-      type: string
+      type: str
       description:
         zh: 状态描述
       required: false

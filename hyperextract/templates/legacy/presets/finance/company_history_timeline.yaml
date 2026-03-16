@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: type
-      type: string
+      type: str
       description:
         zh: 实体类型：公司、创始人、投资机构等
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -32,31 +32,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 事件主体/相关实体
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 事件对象/相关实体
       required: true
       default: ''
     - name: eventType
-      type: string
+      type: str
       description:
         zh: 事件类型：成立、融资、并购、IPO、裁员、发布产品、管理层变更、股权变更、获得专利、获奖
       required: true
       default: ''
     - name: eventDate
-      type: string
+      type: str
       description:
         zh: 事件日期，格式为年-月-日或年份
       required: false
       default: ''
     - name: details
-      type: string
+      type: str
       description:
         zh: 事件详细描述
       required: false

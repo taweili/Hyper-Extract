@@ -10,20 +10,20 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "参与者姓名或名称"
     - name: role
-      type: "string"
+      type: "str"
       description:
         zh: "角色定位，如主将、谋士、使者、参战方"
     - name: faction
-      type: "string"
+      type: "str"
       description:
         zh: "所属阵营"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "参与者描述，包括身份背景和在事件中的角色说明"
       required: false
@@ -31,19 +31,19 @@ node_schema:
 edge_schema:
   fields:
     - name: eventName
-      type: "string"
+      type: "str"
       description:
         zh: "事件名称，如赤壁之战、鸿门宴"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "发生时间，如建安十三年冬"
     - name: location
-      type: "string"
+      type: "str"
       description:
         zh: "发生地点"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "事件概述，描述事件背景、经过和结果"
     - name: participants

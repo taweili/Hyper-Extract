@@ -11,13 +11,13 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：基础方、药物、证型、症状
       required: true
@@ -26,19 +26,19 @@ output:
     description: {}
     fields:
     - name: baseFormula
-      type: string
+      type: str
       description:
         zh: 基础方剂名称
       required: true
       default: ''
     - name: condition
-      type: string
+      type: str
       description:
         zh: 加减条件（证型或症状）
       required: true
       default: ''
     - name: modificationType
-      type: string
+      type: str
       description:
         zh: 加减类型：加、减、替换
       required: true
@@ -50,13 +50,13 @@ output:
       required: true
       default: ''
     - name: reason
-      type: string
+      type: str
       description:
         zh: 加减原因
       required: false
       default: ''
     - name: dosage
-      type: string
+      type: str
       description:
         zh: 调整后的剂量
       required: false

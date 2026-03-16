@@ -11,29 +11,29 @@ output:
     description: {}
     fields:
     - name: stepId
-      type: string
+      type: str
       description:
         zh: 步骤编号，如步骤1、步骤2
     - name: name
-      type: string
+      type: str
       description:
         zh: 步骤名称
     - name: description
-      type: string
+      type: str
       description:
         zh: 步骤详细描述
     - name: role
-      type: string
+      type: str
       description:
         zh: 执行角色
       required: false
     - name: inputRequired
-      type: string
+      type: str
       description:
         zh: 所需输入/材料
       required: false
     - name: outputResult
-      type: string
+      type: str
       description:
         zh: 输出/结果
       required: false
@@ -41,20 +41,20 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源步骤编号
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标步骤编号
     - name: condition
-      type: string
+      type: str
       description:
         zh: 转换条件
       required: false
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细说明
       required: false

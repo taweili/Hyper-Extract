@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 要素名称，文本中出现的精确名称
     - name: category
-      type: string
+      type: str
       description:
         zh: 要素类型：主体、操作、条件、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,7 +27,7 @@ output:
     description: {}
     fields:
     - name: ruleType
-      type: string
+      type: str
       description:
         zh: 规则类型：必须、禁止、允许、其他
     - name: participants
@@ -35,21 +35,21 @@ output:
       description:
         zh: 参与要素名称列表，必须使用已提取节点的 name
     - name: action
-      type: string
+      type: str
       description:
         zh: 要求执行或禁止的操作内容
     - name: condition
-      type: string
+      type: str
       description:
         zh: 适用条件/前置要求
       required: false
     - name: consequence
-      type: string
+      type: str
       description:
         zh: 违规后果/奖励措施
       required: false
     - name: sourceClause
-      type: string
+      type: str
       description:
         zh: 规则来源条款
       required: false

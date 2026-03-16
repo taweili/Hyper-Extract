@@ -10,30 +10,30 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "事件名称"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "事件描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "前置事件"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "后续事件"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "故事内部时间点，如'第X章'、'第X日'、'第X年'"
     - name: causeEffect
-      type: "string"
+      type: "str"
       description:
         zh: "因果关系描述"
 

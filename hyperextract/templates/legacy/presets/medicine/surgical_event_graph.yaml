@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如医生、部位、术式、器械等
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：医生、部位、术式、器械、麻醉方式等
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,7 +27,7 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 超边名称，如手术名称
     - name: nodes
@@ -35,16 +35,16 @@ output:
       description:
         zh: 参与超边的节点列表
     - name: date
-      type: string
+      type: str
       description:
         zh: 手术日期
     - name: duration
-      type: string
+      type: str
       description:
         zh: 手术时长
       required: false
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述，如手术过程
 guideline:

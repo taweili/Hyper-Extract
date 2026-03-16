@@ -9,67 +9,67 @@ output:
   description: {}
   fields:
   - name: company_name
-    type: string
+    type: str
     description:
       zh: 公司名称
     required: false
     default: ''
   - name: ticker
-    type: string
+    type: str
     description:
       zh: 股票代码
     required: false
     default: ''
   - name: quarter
-    type: string
+    type: str
     description:
       zh: 报告季度（例如'Q3 FY2024'、'2024 年第四季度'）
     required: false
     default: ''
   - name: call_date
-    type: string
+    type: str
     description:
       zh: 财报电话会议日期
     required: false
     default: ''
   - name: reported_revenue
-    type: string
+    type: str
     description:
       zh: 本季度报告收入（例如'948 亿美元'）
     required: false
     default: ''
   - name: revenue_vs_consensus
-    type: string
+    type: str
     description:
       zh: 收入与市场一致预期对比（例如'超出 12 亿美元'、'符合预期'、'低于预期 5 亿美元'）
     required: false
     default: ''
   - name: reported_eps
-    type: string
+    type: str
     description:
       zh: 报告的稀释每股收益（例如'1.46 美元'）
     required: false
     default: ''
   - name: eps_vs_consensus
-    type: string
+    type: str
     description:
       zh: 每股收益与一致预期对比（例如'超出 0.05 美元'）
     required: false
     default: ''
   - name: guidance_revenue
-    type: string
+    type: str
     description:
       zh: 前瞻性收入指引（例如'第四季度 950-970 亿美元'、'2025 财年收入 3800-3900 亿美元'）
     required: false
     default: ''
   - name: guidance_eps
-    type: string
+    type: str
     description:
       zh: 前瞻性每股收益指引（如有提供）
     required: false
     default: ''
   - name: overall_tone
-    type: string
+    type: str
     description:
       zh: 电话会议整体基调：'积极'、'审慎乐观'、'中性'、'谨慎'、'消极'
     required: false
@@ -93,13 +93,13 @@ output:
     required: false
     default: ''
   - name: ceo_name
-    type: string
+    type: str
     description:
       zh: CEO 或主要发言人姓名
     required: false
     default: ''
   - name: cfo_name
-    type: string
+    type: str
     description:
       zh: CFO 姓名
     required: false

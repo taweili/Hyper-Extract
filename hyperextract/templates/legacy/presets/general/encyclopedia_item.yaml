@@ -9,11 +9,11 @@ output:
   description: {}
   fields:
   - name: title
-    type: string
+    type: str
     description:
       zh: 条目标题
   - name: entityType
-    type: string
+    type: str
     description:
       zh: 实体类型：人物、地点、组织、事件、概念、物品、其他
   - name: alternativeNames
@@ -27,7 +27,7 @@ output:
       zh: 分类标签
     required: false
   - name: summary
-    type: string
+    type: str
     description:
       zh: 摘要/简介
     required: false

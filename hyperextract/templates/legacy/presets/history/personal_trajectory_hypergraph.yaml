@@ -10,11 +10,11 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物描述"
       required: false
@@ -22,15 +22,15 @@ node_schema:
 edge_schema:
   fields:
     - name: phase
-      type: "string"
+      type: "str"
       description:
         zh: "人生阶段名称，如少年求学、仕途起步、流放岁月"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时期"
     - name: locations
-      type: "string"
+      type: "str"
       description:
         zh: "地点"
     - name: companions
@@ -43,7 +43,7 @@ edge_schema:
         zh: "核心经历列表"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "阶段描述"
       required: false

@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 经脉名称：如手太阴肺经、手阳明大肠经等
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 经脉类别：阴经、阳经
       required: true
       default: ''
     - name: associatedOrgan
-      type: string
+      type: str
       description:
         zh: 关联脏腑
       required: false
       default: ''
     - name: circulationPath
-      type: string
+      type: str
       description:
         zh: 循行路线
       required: false
@@ -38,19 +38,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源经脉名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标经脉名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：流注
       required: true
@@ -62,7 +62,7 @@ output:
       required: true
       default: '0'
     - name: connectionPoint
-      type: string
+      type: str
       description:
         zh: 连接部位
       required: false

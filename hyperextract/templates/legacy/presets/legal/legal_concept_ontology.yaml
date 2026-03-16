@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 法律概念名称，如过错、故意、过失、违法性
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 概念类型：原则、规则、学说、术语、法律依据
       required: true
       default: ''
     - name: definition
-      type: string
+      type: str
       description:
         zh: 概念的简要定义
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源概念名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标概念名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：上位概念、下位概念、相关联、对立、包含、依据
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 关系描述
       required: false

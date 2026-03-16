@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（如：数控加工中心、烫伤风险、佩戴防护用品、安全主管等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：危险源、风险点、管控措施、责任人
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该实体的描述
       required: false
       default: ''
     - name: risk_level
-      type: string
+      type: str
       description:
         zh: 风险等级：重大风险、较大风险、一般风险，仅对风险点类别有效
       required: false
@@ -38,31 +38,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称（危险源或风险点或管控措施）
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称（风险点或管控措施或责任人）
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：导致、需要、管控、负责
       required: true
       default: ''
     - name: hazard_factor
-      type: string
+      type: str
       description:
         zh: 危险因素（如：高温部件、旋转部件、高压液体等）
       required: false
       default: ''
     - name: possible_consequence
-      type: string
+      type: str
       description:
         zh: 可能导致后果（如：烫伤、机械伤害、触电等）
       required: false

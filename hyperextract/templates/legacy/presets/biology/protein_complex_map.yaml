@@ -10,20 +10,20 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "蛋白质或亚基名称，如Gαs、Gβ、β2-AR"
     - name: gene_name
-      type: "string"
+      type: "str"
       description:
         zh: "基因名称，如GNAS、GNB1"
       required: false
     - name: subunit_type
-      type: "string"
+      type: "str"
       description:
         zh: "亚基类型：G蛋白α亚基、G蛋白β亚基、G蛋白γ亚基、受体、效应器"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
       required: false
@@ -35,15 +35,15 @@ edge_schema:
       description:
         zh: "参与组成复合物的所有蛋白质或亚基名称列表"
     - name: complex_name
-      type: "string"
+      type: "str"
       description:
         zh: "复合物名称，如G蛋白异源三聚体、β2-AR信号复合物"
     - name: function
-      type: "string"
+      type: "str"
       description:
         zh: "复合物功能描述"
     - name: assembly_details
-      type: "string"
+      type: "str"
       description:
         zh: "组装细节，如哪些亚基相互作用"
       required: false

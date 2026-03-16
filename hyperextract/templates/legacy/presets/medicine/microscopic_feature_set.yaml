@@ -9,19 +9,19 @@ output:
   description: {}
   fields:
   - name: featureName
-    type: string
+    type: str
     description:
       zh: 特征名称，如免疫组化指标、基因突变等
   - name: featureType
-    type: string
+    type: str
     description:
       zh: 特征类型：免疫组化、基因突变、其他等
   - name: value
-    type: string
+    type: str
     description:
       zh: 特征值，如阳性、阴性、百分比等
   - name: description
-    type: string
+    type: str
     description:
       zh: 特征描述
     required: false

@@ -9,49 +9,49 @@ output:
   description: {}
   fields:
   - name: metric
-    type: string
+    type: str
     description:
       zh: 被预测的财务指标（例如 '收入'、'每股收益'、'EBITDA'、'营业利润率'、'自由现金流'）
     required: true
     default: ''
   - name: period
-    type: string
+    type: str
     description:
       zh: 预测期间（例如 'FY2025E'、'Q1 2025E'、'CY2026E'）
     required: true
     default: ''
   - name: estimate
-    type: string
+    type: str
     description:
       zh: 预测值（例如 '$120.5B'、'$6.25'、'35.2%'）
     required: true
     default: ''
   - name: prior_estimate
-    type: string
+    type: str
     description:
       zh: 如有修订，之前的预测值（例如 '$115.0B'）
     required: false
     default: ''
   - name: consensus
-    type: string
+    type: str
     description:
       zh: 用于对比的市场一致性预期（例如 '$118.2B'）
     required: false
     default: ''
   - name: growth_rate
-    type: string
+    type: str
     description:
       zh: 隐含增长率（例如 '同比+15%'、'持平'）
     required: false
     default: ''
   - name: assumptions
-    type: string
+    type: str
     description:
       zh: 预测所依据的关键假设（例如 '假设销量增加 500 万台'）
     required: false
     default: ''
   - name: source_firm
-    type: string
+    type: str
     description:
       zh: 提供该预测的研究机构
     required: false

@@ -9,7 +9,7 @@ from langchain_core.runnables import RunnableSerializable, RunnableConfig
 
 
 class MockEmbeddings(Embeddings):
-    """Mock Embeddings that returns deterministic vectors based on string hash."""
+    """Mock Embeddings that returns deterministic vectors based on str hash."""
 
     def __init__(self, dim: int = 768):
         self.dim = dim

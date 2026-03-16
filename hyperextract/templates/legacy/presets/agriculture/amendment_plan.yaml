@@ -10,34 +10,34 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "节点名称（限制因子、改良措施、预期目标）"
     - name: node_type
-      type: "string"
+      type: "str"
       description:
         zh: "节点类型：检测结果、限制因子、改良措施、预期目标"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源节点"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标节点"
     - name: relation_type
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：针对、达成"
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
 

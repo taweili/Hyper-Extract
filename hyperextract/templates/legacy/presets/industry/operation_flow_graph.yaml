@@ -11,31 +11,31 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 操作步骤名称（如：开启辅助电源、启动液压系统、检查状态、关闭主电源等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：动作、设备状态。动作如开启、关闭、检查等；设备状态如运行中、待机、停止等
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该操作步骤的详细描述
       required: false
       default: ''
     - name: expected_result
-      type: string
+      type: str
       description:
         zh: 执行该步骤后的预期结果
       required: false
       default: ''
     - name: target_equipment
-      type: string
+      type: str
       description:
         zh: 涉及的目标设备名称
       required: false
@@ -44,31 +44,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 当前步骤名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 下一步骤名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：下一步、触发、导致
       required: true
       default: ''
     - name: trigger_condition
-      type: string
+      type: str
       description:
         zh: 触发下一步骤的条件
       required: false
       default: ''
     - name: state_change
-      type: string
+      type: str
       description:
         zh: 状态变化描述
       required: false

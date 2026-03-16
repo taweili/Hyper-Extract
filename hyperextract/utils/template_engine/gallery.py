@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .parsers import RawTemplateCfg, ConfigLoader
+from .parsers import TemplateCfg, load_template
 
 
 class Gallery:
@@ -32,12 +32,12 @@ class Gallery:
     _instance: Optional["Gallery"] = None
 
     def __init__(self):
-        self._configs: Dict[str, RawTemplateCfg] = {}
+        self._configs: Dict[str, TemplateCfg] = {}
         self._configs_by_type: Dict[str, List[str]] = {}
         self._configs_by_tag: Dict[str, List[str]] = {}
 
     @classmethod
-    def get(cls, name: str) -> Optional[RawTemplateCfg]:
+    def get(cls, name: str) -> Optional[TemplateCfg]:
         return cls._instance._configs.get(name) if cls._instance else None
 
     @classmethod
@@ -65,21 +65,21 @@ class Gallery:
             cls._instance._load_config(path)
 
     @classmethod
-    def get_by_type(cls, type_value: str) -> List[RawTemplateCfg]:
+    def get_by_type(cls, type_value: str) -> List[TemplateCfg]:
         if not cls._instance:
             return []
         names = cls._instance._configs_by_type.get(type_value, [])
         return [cls._instance._configs[name] for name in names if name in cls._instance._configs]
 
     @classmethod
-    def get_by_tag(cls, tag: str) -> List[RawTemplateCfg]:
+    def get_by_tag(cls, tag: str) -> List[TemplateCfg]:
         if not cls._instance:
             return []
         names = cls._instance._configs_by_tag.get(tag, [])
         return [cls._instance._configs[name] for name in names if name in cls._instance._configs]
 
     @classmethod
-    def search(cls, query: str = None, type_value: str = None, tag: str = None, language: str = None) -> List[RawTemplateCfg]:
+    def search(cls, query: str = None, type_value: str = None, tag: str = None, language: str = None) -> List[TemplateCfg]:
         """Search templates by query, type, tag, or language.
         
         Args:
@@ -89,7 +89,7 @@ class Gallery:
             language: Filter by language (e.g., "zh", "en")
         
         Returns:
-            List of matching RawTemplateCfg
+            List of matching TemplateCfg
         """
         if not cls._instance:
             return []
@@ -215,7 +215,7 @@ class Gallery:
         return TemplateFactory.create(config, llm_client, embedder, **kwargs)
 
     @classmethod
-    def _resolve_config(cls, name: str, lang: str = "zh") -> RawTemplateCfg:
+    def _resolve_config(cls, name: str, lang: str = "zh") -> TemplateCfg:
         """Resolve template name to config object."""
         config = cls.get(name)
         if config is not None:
@@ -242,12 +242,12 @@ class Gallery:
 
     def _load_config(self, file_path: Path) -> None:
         try:
-            config = ConfigLoader.load_config(file_path)
+            config = load_template(file_path)
             self._register(config)
         except Exception as e:
             print(f"Failed to load config {file_path}: {e}")
 
-    def _register(self, config: RawTemplateCfg) -> None:
+    def _register(self, config: TemplateCfg) -> None:
         self._configs[config.name] = config
 
         if config.type not in self._configs_by_type:

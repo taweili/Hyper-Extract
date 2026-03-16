@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（如：数控加工中心、机械臂系统、电机运行状态、轴承温度检查等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：设备、巡检项
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该实体的描述
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 父实体（整体/设备）名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 子实体（巡检项/部分）名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：属于、子类
       required: true
       default: ''
     - name: details
-      type: string
+      type: str
       description:
         zh: 关系详细说明
       required: false

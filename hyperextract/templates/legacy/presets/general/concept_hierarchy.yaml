@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 概念名称
     - name: category
-      type: string
+      type: str
       description:
         zh: 概念类型：核心概念、子概念、属性、实例、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 概念简要描述
       required: false
@@ -27,19 +27,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 父概念/整体概念
     - name: target
-      type: string
+      type: str
       description:
         zh: 子概念/部分概念
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：上下位（Subclass-Of）、组成（Part-Of）、实例（Instance-Of）、其他（Other）
     - name: details
-      type: string
+      type: str
       description:
         zh: 关系详细说明
       required: false

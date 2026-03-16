@@ -212,7 +212,7 @@ def get_auto_type_from_config(config: TemplateCfg) -> str:
         config: TemplateCfg instance
 
     Returns:
-        AutoType string (e.g., "AutoGraph")
+        AutoType str (e.g., "AutoGraph")
     """
     autotype = config.autotype
     return AUTOTYPE_MAP.get(autotype, "AutoGraph")
@@ -225,7 +225,7 @@ def get_autotype_description(autotype: str) -> str:
         autotype: AutoType name (e.g., "AutoGraph")
 
     Returns:
-        Description string
+        Description str
     """
     return AUTOTYPE_DESCRIPTIONS.get(autotype, "")
 
@@ -237,6 +237,6 @@ def get_domain_description(domain: str) -> str:
         domain: Domain name (e.g., "finance")
 
     Returns:
-        Description string
+        Description str
     """
     return DOMAIN_DESCRIPTIONS.get(domain, f"{domain} documents")

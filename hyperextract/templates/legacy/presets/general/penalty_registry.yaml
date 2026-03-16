@@ -9,24 +9,24 @@ output:
   description: {}
   fields:
   - name: violation
-    type: string
+    type: str
     description:
       zh: 违规行为描述
   - name: severity
-    type: string
+    type: str
     description:
       zh: 严重程度：轻微、一般、严重、特别严重
   - name: penalty
-    type: string
+    type: str
     description:
       zh: 处罚措施
   - name: applicableClause
-    type: string
+    type: str
     description:
       zh: 适用条款
     required: false
   - name: notes
-    type: string
+    type: str
     description:
       zh: 备注说明
     required: false

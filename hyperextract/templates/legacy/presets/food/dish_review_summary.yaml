@@ -10,13 +10,13 @@ description:
 item_schema:
   fields:
     - name: dish_name
-      type: "string"
+      type: "str"
       description:
         zh: "菜品名称"
       required: true
       default: ""
     - name: recommendation_level
-      type: "string"
+      type: "str"
       description:
         zh: "推荐指数，如⭐⭐⭐⭐⭐ 或 4.5/5"
       required: true
@@ -34,13 +34,13 @@ item_schema:
       required: true
       default: ""
     - name: price_perception
-      type: "string"
+      type: "str"
       description:
         zh: "价格感知，如性价比高、略贵但值"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
       required: true

@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 参与人姓名或名称
       required: true
       default: ''
     - name: participant_type
-      type: string
+      type: str
       description:
         zh: 参与人类型：原告、被告、第三人、委托诉讼代理人、法定代理人、证人、鉴定人、法官、合议庭成员
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 参与人角色描述
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源参与人姓名或名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标参与人姓名或名称
       required: true
       default: ''
     - name: relation_type
-      type: string
+      type: str
       description:
         zh: 关系类型：代理、代表、股东、董事、担保、上下级、同案当事人、敌对
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 关系描述
       required: false

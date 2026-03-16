@@ -10,27 +10,27 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: role
-      type: "string"
+      type: "str"
       description:
         zh: "角色定位：攻方、守方、策划者、变节者、调解者"
     - name: faction
-      type: "string"
+      type: "str"
       description:
         zh: "所属阵营"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物描述"
 
 edge_schema:
   fields:
     - name: eventName
-      type: "string"
+      type: "str"
       description:
         zh: "事件名称"
     - name: attackers
@@ -52,15 +52,15 @@ edge_schema:
         zh: "变节者列表"
       required: false
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间"
     - name: location
-      type: "string"
+      type: "str"
       description:
         zh: "地点"
     - name: outcome
-      type: "string"
+      type: "str"
       description:
         zh: "结果描述"
 

@@ -10,49 +10,49 @@ description:
 schema:
   fields:
     - name: who
-      type: "string"
+      type: "str"
       description:
         zh: "核心人物/主体"
       required: true
       default: ""
     - name: what
-      type: "string"
+      type: "str"
       description:
         zh: "发生了什么"
       required: true
       default: ""
     - name: when
-      type: "string"
+      type: "str"
       description:
         zh: "时间"
       required: true
       default: ""
     - name: where
-      type: "string"
+      type: "str"
       description:
         zh: "地点"
       required: true
       default: ""
     - name: why
-      type: "string"
+      type: "str"
       description:
         zh: "原因"
       required: true
       default: ""
     - name: how
-      type: "string"
+      type: "str"
       description:
         zh: "如何发生"
       required: true
       default: ""
     - name: casualties
-      type: "string"
+      type: "str"
       description:
         zh: "伤亡情况"
       required: false
       default: ""
     - name: response
-      type: "string"
+      type: "str"
       description:
         zh: "官方回应"
       required: false

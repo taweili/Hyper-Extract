@@ -10,34 +10,34 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "节点名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "节点类型：生长阶段、农事操作、环境条件"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源节点"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标节点"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间点或时间段"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
 

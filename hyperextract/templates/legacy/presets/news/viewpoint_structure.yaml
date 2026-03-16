@@ -10,25 +10,25 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "元素名称，简短唯一标识符，如'政策建议'、'数据支撑'、'专家观点'"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "元素类型：观点、论据、背景引用"
       required: true
       default: ""
     - name: content
-      type: "string"
+      type: "str"
       description:
         zh: "完整内容，概括原文意思"
       required: true
       default: ""
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "来源，如无则为空白"
       required: false
@@ -37,7 +37,7 @@ node_schema:
 edge_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "聚合名称，简短唯一标识，如'核心论点'、'论证结构'、'分析框架'"
       required: true
@@ -49,7 +49,7 @@ edge_schema:
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "论证描述，说明这些元素如何构成观点"
       required: false

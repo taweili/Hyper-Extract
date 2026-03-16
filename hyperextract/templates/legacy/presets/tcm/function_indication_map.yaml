@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：方剂、功能、主治证候
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：具有功能、主治
       required: true
       default: ''
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述
       required: false

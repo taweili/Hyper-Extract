@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 节点名称，如入院、检查、治疗、转归等
     - name: category
-      type: string
+      type: str
       description:
         zh: 节点类型：入院、检查、治疗、手术、转归、其他等
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,23 +27,23 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源节点
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标节点
     - name: eventType
-      type: string
+      type: str
       description:
         zh: 事件类型：入院、检查、治疗、手术、转归等
     - name: eventDate
-      type: string
+      type: str
       description:
         zh: 事件日期，格式为年-月-日
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述
       required: false

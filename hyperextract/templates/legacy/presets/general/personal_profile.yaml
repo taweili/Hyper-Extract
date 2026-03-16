@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: name
-    type: string
+    type: str
     description:
       zh: 姓名
   - name: gender
-    type: string
+    type: str
     description:
       zh: 性别
     required: false
   - name: birthDate
-    type: string
+    type: str
     description:
       zh: 出生日期，格式为年-月-日或年份
     required: false
   - name: deathDate
-    type: string
+    type: str
     description:
       zh: 逝世日期，格式为年-月-日或年份
     required: false
   - name: nationality
-    type: string
+    type: str
     description:
       zh: 国籍
     required: false
   - name: birthPlace
-    type: string
+    type: str
     description:
       zh: 出生地
     required: false
@@ -63,7 +63,7 @@ output:
       zh: 所属组织/机构
     required: false
   - name: summary
-    type: string
+    type: str
     description:
       zh: 个人简介
     required: false

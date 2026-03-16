@@ -2,141 +2,24 @@
 
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Union
+from typing import Dict, List, Union
 from pydantic import BaseModel
 
-
-VALID_MERGE_STRATEGIES = Literal[
-    "merge_field",
-    "keep_incoming",
-    "keep_existing",
-    "llm_balanced",
-    "llm_prefer_incoming",
-    "llm_prefer_existing",
-]
-AUTO_TYPES = Literal[
-    "model",
-    "list",
-    "set",
-    "graph",
-    "hypergraph",
-    "temporal_graph",
-    "spatial_graph",
-    "spatio_temporal_graph",
-]
-
-
-# ==============================================================
-# Naive Template Configuration: AutoModel, AutoList, AutoSet
-# ==============================================================
-class NaiveGuidelineSchema(BaseModel):
-    """Naive guideline schema"""
-
-    target: str | List[str] | Dict[str, str | List[str]]
-    rules: str | List[str] | Dict[str, str | List[str]]
-
-
-class FieldSchema(BaseModel):
-    """Field definition"""
-
-    name: str
-    type: Literal["str", "int", "float", "bool", "list", "dict"]
-    description: str | Dict[str, str]
-    required: bool = False
-    default: Any | None = None
-
-
-class NaiveOutputSchema(BaseModel):
-    """Naive output schema"""
-
-    description: str | Dict[str, str]
-    fields: List[FieldSchema]
-
-
-class NaiveOptionsSchema(BaseModel):
-    """Naive runtime options"""
-
-    chunk_size: int = 2048
-    chunk_overlap: int = 256
-    max_workers: int = 10
-    verbose: bool = False
-    merge_strategy: VALID_MERGE_STRATEGIES = "llm_balanced"
-    fields_for_search: List[str] | None = None
-
-
-class NaiveDisplaySchema(BaseModel):
-    """Naive display configuration"""
-
-    label: str
-
-
-class NaiveIdentifierSchema(BaseModel):
-    """Naive identifier configuration"""
-
-    item_id: str | None = None
-
-
-# ==============================================================
-# Graph Template Configuration: AutoGraph, AutoHyperGraph
-# AutoTemporalGraph, AutoSpatialGraph, AutoSpatioTemporalGraph
-# ==============================================================
-
-
-class GraphGuidelineSchema(BaseModel):
-    """Graph guideline schema"""
-
-    target: str | List[str] | Dict[str, str | List[str]]
-    rules_for_entities: str | List[str] | Dict[str, str | List[str]]
-    rules_for_relations: str | List[str] | Dict[str, str | List[str]]
-    # AutoTemporalGraph, AutoSpatioTemporalGraph
-    rules_for_time: str | List[str] | Dict[str, str | List[str]]
-    # AutoSpatialGraph, AutoSpatioTemporalGraph
-    rules_for_location: str | List[str] | Dict[str, str | List[str]]
-
-
-class GraphOutputSchema(BaseModel):
-    """Graph output schema"""
-
-    description: str | Dict[str, str]
-    entities: NaiveOutputSchema
-    relations: NaiveOutputSchema
-
-
-class GraphOptionsSchema(BaseModel):
-    """Graph runtime options"""
-
-    chunk_size: int = 2048
-    chunk_overlap: int = 256
-    max_workers: int = 10
-    verbose: bool = False
-    entity_merge_strategy: VALID_MERGE_STRATEGIES = "llm_balanced"
-    relation_merge_strategy: VALID_MERGE_STRATEGIES = "llm_balanced"
-    extraction_mode: str | None = None
-    entity_fields_for_search: List[str] | None = None
-    relation_fields_for_search: List[str] | None = None
-    # AutoTemporalGraph, AutoSpatioTemporalGraph
-    observation_time: str | None = None
-    # AutoSpatialGraph, AutoSpatioTemporalGraph
-    observation_location: str | None = None
-
-
-class GraphDisplaySchema(BaseModel):
-    """Graph display configuration"""
-
-    entity_label: str
-    relation_label: str
-
-
-class GraphIdentifiersSchema(BaseModel):
-    """Graph Identifier configuration"""
-
-    entity_id: str | None = None
-    relation_id: str | None = None
-    relation_members: str | Dict[str, str | None, List[str]] | None = None
-    # AutoTemporalGraph, AutoSpatioTemporalGraph
-    time_field: str | None = None
-    # AutoSpatialGraph, AutoSpatioTemporalGraph
-    location_field: str | None = None
+from .schemas.base import VALID_AUTOTYPES, FieldSchema
+from .schemas.naive import (
+    NaiveGuidelineSchema,
+    NaiveOutputSchema,
+    NaiveOptionsSchema,
+    NaiveDisplaySchema,
+    NaiveIdentifierSchema,
+)
+from .schemas.graph import (
+    GraphGuidelineSchema,
+    GraphOutputSchema,
+    GraphOptionsSchema,
+    GraphDisplaySchema,
+    GraphIdentifiersSchema,
+)
 
 
 class TemplateCfg(BaseModel):
@@ -144,7 +27,7 @@ class TemplateCfg(BaseModel):
 
     language: str | List[str] = "en"
     name: str
-    type: AUTO_TYPES
+    type: VALID_AUTOTYPES
     tags: List[str]
     description: str | Dict[str, str]
     output: NaiveOutputSchema | GraphOutputSchema
@@ -154,11 +37,6 @@ class TemplateCfg(BaseModel):
     display: NaiveDisplaySchema | GraphDisplaySchema
 
 
-# ==============================================================
-# Localization Functions
-# ==============================================================
-
-
 def _localize_data(
     value: str | List[str] | Dict[str, str | List[str]] | None,
     language: str,
@@ -166,11 +44,11 @@ def _localize_data(
     """Get multilingual text value, supports list format
 
     Args:
-        value: Multilingual value, supports string, list or dict format
+        value: Multilingual value, supports str, list or dict format
         language: Target language code
 
     Returns:
-        str: Converted string
+        str: Converted str
     """
     if isinstance(value, str):
         return value
@@ -208,7 +86,7 @@ def _localize_naive_output(
 def _localize_output(
     output: NaiveOutputSchema | GraphOutputSchema,
     language: str,
-    autotype: AUTO_TYPES | None = None,
+    autotype: VALID_AUTOTYPES | None = None,
 ) -> NaiveOutputSchema | GraphOutputSchema:
     """Localize output configuration."""
     if autotype in ("model", "list", "set"):
@@ -223,7 +101,7 @@ def _localize_output(
 def _localize_guideline(
     guideline: NaiveGuidelineSchema | GraphGuidelineSchema,
     language: str,
-    autotype: AUTO_TYPES | None = None,
+    autotype: VALID_AUTOTYPES | None = None,
 ) -> NaiveGuidelineSchema | GraphGuidelineSchema:
     """Localize guideline configuration."""
     if autotype in ("model", "list", "set"):
@@ -257,7 +135,7 @@ def localize_template(config: TemplateCfg, language: str) -> TemplateCfg:
     Examples:
         >>> config = ConfigLoader.load_config("template.yaml")
         >>> config_zh = localize_template(config, "zh")
-        >>> print(config_zh.description)  # string
+        >>> print(config_zh.description)  # str
     """
 
     return TemplateCfg(
@@ -283,7 +161,7 @@ def load_template(file_path: Union[str, Path]) -> TemplateCfg:
     with open(path, "r", encoding="utf-8") as f:
         template = TemplateCfg(**yaml.safe_load(f))
 
-    # Validate multi-language support
+    # Validate and localize the template for each language
     existing_languages = (
         template.language
         if isinstance(template.language, list)

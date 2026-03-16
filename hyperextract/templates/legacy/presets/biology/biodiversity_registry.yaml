@@ -10,34 +10,34 @@ description:
 item_schema:
   fields:
     - name: species_name
-      type: "string"
+      type: "str"
       description:
         zh: "物种中文名称"
     - name: latin_name
-      type: "string"
+      type: "str"
       description:
         zh: "拉丁学名"
       required: false
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "类别：脊椎动物、无脊椎动物、植物、微生物"
     - name: population_count
-      type: "string"
+      type: "str"
       description:
         zh: "种群数量，如约120只、约850只"
     - name: protection_level
-      type: "string"
+      type: "str"
       description:
         zh: "保护级别：国家一级保护、国家二级保护、地方保护、无保护"
       required: false
     - name: habitat
-      type: "string"
+      type: "str"
       description:
         zh: "栖息地或分布区域"
       required: false
     - name: observation_details
-      type: "string"
+      type: "str"
       description:
         zh: "观测详情，包括观测时间、地点和数量记录"
       required: false

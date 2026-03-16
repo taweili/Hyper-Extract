@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如药物、理疗方法、生活干预等
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：药物、理疗、生活干预、检查、手术等
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,7 +27,7 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 超边名称，如治疗方案、康复计划等
     - name: nodes
@@ -35,11 +35,11 @@ output:
       description:
         zh: 参与超边的节点列表
     - name: disease
-      type: string
+      type: str
       description:
         zh: 针对的疾病
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述，如具体的治疗方案内容
 guideline:

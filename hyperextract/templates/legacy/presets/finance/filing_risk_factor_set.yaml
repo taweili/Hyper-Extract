@@ -9,25 +9,25 @@ output:
   description: {}
   fields:
   - name: risk_title
-    type: string
+    type: str
     description:
       zh: 风险因素的简明标题（例如 '网络安全漏洞风险'、'外汇敞口'）
     required: true
     default: ''
   - name: risk_category
-    type: string
+    type: str
     description:
       zh: 类别：'市场'、'运营'、'监管'、'财务'、'战略'、'网络安全'、'ESG'、'法律'、'地缘政治'
     required: true
     default: ''
   - name: description
-    type: string
+    type: str
     description:
       zh: 申报文件中披露的风险完整描述
     required: true
     default: ''
   - name: potential_impact
-    type: string
+    type: str
     description:
       zh: 所述的潜在财务或运营影响（例如 '对营收产生重大不利影响'）
     required: false
@@ -39,7 +39,7 @@ output:
     required: false
     default: ''
   - name: mitigation_disclosed
-    type: string
+    type: str
     description:
       zh: 公司已披露的任何缓解措施或管控手段
     required: false

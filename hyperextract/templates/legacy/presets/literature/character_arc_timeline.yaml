@@ -10,39 +10,39 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "元素名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "元素类型：角色、场景、情绪、事件"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源节点名称"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标节点名称"
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：出现、时间顺序、情绪、触发、位于"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间点（如'第一集'、'第X场'），仅时间顺序关系需要"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
 

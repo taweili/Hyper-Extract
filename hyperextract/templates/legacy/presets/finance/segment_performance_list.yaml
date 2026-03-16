@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: segment_name
-    type: string
+    type: str
     description:
       zh: 业务板块或地理区域名称（例如 '美洲'、'云服务'、'iPhone'）
     required: true
     default: ''
   - name: segment_type
-    type: string
+    type: str
     description:
       zh: 类型：'业务板块'、'地理区域'、'产品线'、'经营分部'
     required: true
     default: ''
   - name: revenue
-    type: string
+    type: str
     description:
       zh: 该期间的板块营收（例如 '482亿美元'）
     required: false
     default: ''
   - name: operating_income
-    type: string
+    type: str
     description:
       zh: 板块营业利润或经营利润
     required: false
     default: ''
   - name: revenue_growth
-    type: string
+    type: str
     description:
       zh: 同比或环比营收增长率（例如 '+12%'、'-3% 同比'）
     required: false
@@ -45,7 +45,7 @@ output:
     required: false
     default: ''
   - name: commentary
-    type: string
+    type: str
     description:
       zh: 管理层对板块业绩或展望的评论
     required: false

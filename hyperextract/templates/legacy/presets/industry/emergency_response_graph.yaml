@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（如：火灾、停电、报警、疏散人员、设备部等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：事故场景、响应动作、部门
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该实体的描述
       required: false
@@ -32,31 +32,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称（事故场景或响应动作）
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称（响应动作或部门）
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：触发、执行、负责
       required: true
       default: ''
     - name: time_limit
-      type: string
+      type: str
       description:
         zh: 响应时间要求（如：5分钟内、10分钟内）
       required: false
       default: ''
     - name: success_criterion
-      type: string
+      type: str
       description:
         zh: 成功标准（如：人员安全撤离、火势控制）
       required: false

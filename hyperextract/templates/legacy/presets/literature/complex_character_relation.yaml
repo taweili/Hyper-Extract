@@ -10,27 +10,27 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: role
-      type: "string"
+      type: "str"
       description:
         zh: "角色定位：主角、配角、反派、酱油"
     - name: faction
-      type: "string"
+      type: "str"
       description:
         zh: "所属阵营或派系"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物描述"
 
 edge_schema:
   fields:
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：三角恋、结盟、敌对、背叛、竞争、家族"
     - name: participants
@@ -38,11 +38,11 @@ edge_schema:
       description:
         zh: "参与方列表（3人或以上）"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
     - name: sourceScene
-      type: "string"
+      type: "str"
       description:
         zh: "来源情节"
       required: false

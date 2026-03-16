@@ -10,43 +10,43 @@ description:
 schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "菜名"
       required: true
       default: ""
     - name: cuisine
-      type: "string"
+      type: "str"
       description:
         zh: "菜系，如浙菜、川菜、粤菜等"
       required: false
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "分类，如热菜、凉菜、主食、甜品等"
       required: false
       default: ""
     - name: flavor
-      type: "string"
+      type: "str"
       description:
         zh: "口味描述，如咸甜鲜香、麻辣等"
       required: false
       default: ""
     - name: difficulty
-      type: "string"
+      type: "str"
       description:
         zh: "难度：简单/中等/困难"
       required: false
       default: ""
     - name: cooking_time
-      type: "string"
+      type: "str"
       description:
         zh: "预估烹饪时间，如90分钟"
       required: false
       default: ""
     - name: servings
-      type: "string"
+      type: "str"
       description:
         zh: "适合人数，如4-6人份"
       required: false
@@ -82,7 +82,7 @@ schema:
       required: false
       default: ""
     - name: nutrition_info
-      type: "string"
+      type: "str"
       description:
         zh: "营养信息"
       required: false

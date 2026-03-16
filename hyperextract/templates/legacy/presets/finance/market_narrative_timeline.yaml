@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 叙事名称（如'通胀恐惧'、'软着陆希望'）
       required: true
       default: ''
     - name: narrative_type
-      type: string
+      type: str
       description:
         zh: 叙事类型：'市场情绪'、'投资主题'、'政策预期'、'经济判断'
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 叙事描述
       required: true
@@ -32,31 +32,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 先前叙事名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 新兴叙事名称
       required: true
       default: ''
     - name: transition_type
-      type: string
+      type: str
       description:
         zh: 演变类型：被替代、演变为、触发了、主导了
       required: true
       default: ''
     - name: timestamp
-      type: string
+      type: str
       description:
         zh: 演变时间（如'2024-03'、'2024年Q2'）
       required: true
       default: ''
     - name: catalyst
-      type: string
+      type: str
       description:
         zh: 触发演变的事件或数据点
       required: false

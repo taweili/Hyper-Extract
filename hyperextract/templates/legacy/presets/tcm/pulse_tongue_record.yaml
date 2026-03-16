@@ -9,37 +9,37 @@ output:
   description: {}
   fields:
   - name: type
-    type: string
+    type: str
     description:
       zh: 特征类型：舌象、脉象
     required: true
     default: ''
   - name: subType
-    type: string
+    type: str
     description:
       zh: 子类型：如舌质、舌苔、脉位、脉率、脉势等
     required: true
     default: ''
   - name: feature
-    type: string
+    type: str
     description:
       zh: 具体特征描述，如淡红、薄白、浮、沉、迟、数等
     required: true
     default: ''
   - name: description
-    type: string
+    type: str
     description:
       zh: 详细描述
     required: false
     default: ''
   - name: clinicalSignificance
-    type: string
+    type: str
     description:
       zh: 临床意义
     required: false
     default: ''
   - name: source
-    type: string
+    type: str
     description:
       zh: 来源，如医案名称、章节等
     required: false

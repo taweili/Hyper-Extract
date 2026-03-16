@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "节点名称"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "节点类型：政策/事件、影响群体、预期后果"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "描述"
       required: false
@@ -31,25 +31,25 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "原因"
       required: true
       default: ""
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "结果"
       required: true
       default: ""
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：影响、导致、预期"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "影响描述"
       required: false

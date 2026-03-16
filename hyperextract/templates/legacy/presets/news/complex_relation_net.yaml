@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "参与者名称"
       required: true
       default: ""
     - name: role
-      type: "string"
+      type: "str"
       description:
         zh: "角色：企业、个人、机构"
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "参与者描述"
       required: false
@@ -31,7 +31,7 @@ node_schema:
 edge_schema:
   fields:
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：商业伙伴、政治盟友、家族成员、投资关系、担保关系"
       required: true
@@ -43,7 +43,7 @@ edge_schema:
       required: true
       default: ""
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
       required: false

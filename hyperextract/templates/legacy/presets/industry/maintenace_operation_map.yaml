@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如：维修工李四、扳手、离心泵P-101、润滑油等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类型：人员、工具、设备、材料、备件、岗位
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 描述或规格（例如：高级维修工、16mm开口扳手、15kW离心泵）
       required: false
@@ -38,25 +38,25 @@ output:
       required: true
       default: ''
     - name: operation_name
-      type: string
+      type: str
       description:
         zh: 作业名称或步骤（例如：更换轴承、清洗过滤器、添加润滑油）
       required: true
       default: ''
     - name: duration
-      type: string
+      type: str
       description:
         zh: 作业耗时（例如：30分钟、2小时、半天）
       required: false
       default: ''
     - name: prerequisite
-      type: string
+      type: str
       description:
         zh: 前置条件或注意事项（例如：需停机断电、需佩戴防护用品）
       required: false
       default: ''
     - name: quality_standard
-      type: string
+      type: str
       description:
         zh: 质量标准或验收要求（例如：运转正常无异响、螺栓紧固力矩达标）
       required: false

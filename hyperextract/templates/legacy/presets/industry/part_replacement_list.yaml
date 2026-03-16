@@ -9,43 +9,43 @@ output:
   description: {}
   fields:
   - name: part_name
-    type: string
+    type: str
     description:
       zh: 备件名称（例如：轴承、密封圈、滤芯、润滑油、刀片等）
     required: true
     default: ''
   - name: part_number
-    type: string
+    type: str
     description:
       zh: 备件型号或编号（例如：SKF-6205、GB/T1234-2010）
     required: false
     default: ''
   - name: quantity
-    type: string
+    type: str
     description:
       zh: 更换数量（例如：2件、5升、1套）
     required: false
     default: ''
   - name: unit
-    type: string
+    type: str
     description:
       zh: 计量单位（例如：件、个、套、升、公斤）
     required: false
     default: ''
   - name: replacement_reason
-    type: string
+    type: str
     description:
       zh: 更换原因（例如：磨损、老化、损坏、预防性更换）
     required: false
     default: ''
   - name: equipment_name
-    type: string
+    type: str
     description:
       zh: 所属设备名称（例如：离心泵P-101、空压机C-001）
     required: false
     default: ''
   - name: maintenance_type
-    type: string
+    type: str
     description:
       zh: 维护类型：例行保养、故障维修、计划检修、抢修
     required: false

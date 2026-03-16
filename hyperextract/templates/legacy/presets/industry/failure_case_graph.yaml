@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 现象/措施等实体的名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：现象、原因、措施、教训
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该实体内涵的进一步阐述和说明
       required: false
       default: ''
     - name: equipment
-      type: string
+      type: str
       description:
         zh: 涉及设备名称
       required: false
@@ -38,25 +38,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 上游环节名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 下游环节名称
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：导致、采取、产生、发现
       required: true
       default: ''
     - name: time_sequence
-      type: string
+      type: str
       description:
         zh: 时序关系：发现、分析、处理、总结
       required: false

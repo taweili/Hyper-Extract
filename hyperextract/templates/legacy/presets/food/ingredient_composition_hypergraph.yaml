@@ -10,13 +10,13 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "食材名称"
       required: true
       default: ""
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "食材类别：主料/辅料/调味品"
       required: true
@@ -25,13 +25,13 @@ node_schema:
 edge_schema:
   fields:
     - name: dish_name
-      type: "string"
+      type: "str"
       description:
         zh: "菜品名称"
       required: true
       default: ""
     - name: cuisine
-      type: "string"
+      type: "str"
       description:
         zh: "菜系"
       required: false
@@ -55,7 +55,7 @@ edge_schema:
       required: false
       default: ""
     - name: combo_description
-      type: "string"
+      type: "str"
       description:
         zh: "配伍描述"
       required: false

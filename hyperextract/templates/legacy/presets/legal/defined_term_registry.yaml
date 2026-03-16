@@ -9,19 +9,19 @@ output:
   description: {}
   fields:
   - name: term
-    type: string
+    type: str
     description:
       zh: 术语名称，如机密信息、不可抗力、项目
     required: true
     default: ''
   - name: definition
-    type: string
+    type: str
     description:
       zh: 术语的定义说明
     required: true
     default: ''
   - name: source_clause
-    type: string
+    type: str
     description:
       zh: 定义来源的条款编号
     required: false

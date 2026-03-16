@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体的规范名称（例如 '苹果公司'、'云服务分部'、'营业收入'、'净利润'）
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 类型：'公司'、'分部'、'财务指标'、'会计科目'、'外部因素'
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要背景说明（例如 '消费电子业务板块'、'GAAP 收入确认口径'）
       required: false
@@ -32,31 +32,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 主体（公司/分部/指标名称）
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标（指标/分部/因素名称）
       required: true
       default: ''
     - name: relationship
-      type: string
+      type: str
       description:
         zh: 关系类型：'拥有'、'同比变化'、'占比'、'贡献'、'影响'
       required: true
       default: ''
     - name: value
-      type: string
+      type: str
       description:
         zh: 数值（如 '3943亿美元'、'+7.8%'、'30%'）
       required: false
       default: ''
     - name: fiscal_period
-      type: string
+      type: str
       description:
         zh: 财务期间（如 'FY2024'、'Q3 2024'）
       required: false

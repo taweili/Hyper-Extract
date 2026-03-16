@@ -10,42 +10,42 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "实体名称（病虫害名、药剂名、作物名、生长阶段名）"
     - name: entity_type
-      type: "string"
+      type: "str"
       description:
         zh: "实体类型：病虫害、药剂、作物、生长阶段"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
 
 edge_schema:
   fields:
     - name: crop
-      type: "string"
+      type: "str"
       description:
         zh: "作物名称"
     - name: stage
-      type: "string"
+      type: "str"
       description:
         zh: "生长阶段"
     - name: pest
-      type: "string"
+      type: "str"
       description:
         zh: "病虫害名称"
     - name: pesticide
-      type: "string"
+      type: "str"
       description:
         zh: "推荐药剂"
     - name: dosage
-      type: "string"
+      type: "str"
       description:
         zh: "亩用量"
     - name: safety_interval
-      type: "string"
+      type: "str"
       description:
         zh: "安全间隔期"
 

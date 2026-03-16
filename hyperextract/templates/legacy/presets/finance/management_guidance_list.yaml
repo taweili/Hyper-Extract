@@ -9,49 +9,49 @@ output:
   description: {}
   fields:
   - name: guidance_topic
-    type: string
+    type: str
     description:
       zh: 指引主题（例如'第四季度收入'、'2025 财年资本支出'、'毛利率展望'、'招聘计划'）
     required: true
     default: ''
   - name: guidance_type
-    type: string
+    type: str
     description:
       zh: 类型：定量、定性、战略、运营
     required: true
     default: ''
   - name: guidance_value
-    type: string
+    type: str
     description:
       zh: 指引内容或预测值（例如'950-970 亿美元'、'将拓展 5 个新市场'、'预计下半年利润率改善'）
     required: true
     default: ''
   - name: prior_guidance
-    type: string
+    type: str
     description:
       zh: 同一指标的前次指引（如有修订，例如'900-930 亿美元'）
     required: false
     default: ''
   - name: direction
-    type: string
+    type: str
     description:
       zh: 相对前次指引或一致预期的方向：'上调'、'下调'、'维持'、'首次发布'
     required: false
     default: ''
   - name: time_period
-    type: string
+    type: str
     description:
       zh: 指引覆盖的时间段（例如'2024 年第四季度'、'2025 财年'、'未来 12 个月'）
     required: false
     default: ''
   - name: confidence_language
-    type: string
+    type: str
     description:
       zh: 管理层的确信程度措辞（例如'我们预计'、'我们有信心'、'我们预期'）
     required: false
     default: ''
   - name: speaker
-    type: string
+    type: str
     description:
       zh: 指引发布者（例如'CEO'、'CFO'、'COO'）
     required: false

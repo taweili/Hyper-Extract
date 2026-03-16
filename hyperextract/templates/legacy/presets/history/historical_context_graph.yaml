@@ -10,34 +10,34 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "实体名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "类型：地理、政治、经济、军事、文化"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "实体描述，包括位置、作用、意义等"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源实体"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标实体"
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：包含、影响、对抗、支撑"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述"
 

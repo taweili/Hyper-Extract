@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类别：'风险因素'、'财务指标'、'运营结果'
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 实体的详细描述
       required: false
@@ -32,43 +32,43 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称
       required: true
       default: ''
     - name: relation_type
-      type: string
+      type: str
       description:
         zh: 关系类型：'导致'、'影响'、'提高'、'降低'、'改善'、'削弱' 等
       required: true
       default: ''
     - name: transmission_mechanism
-      type: string
+      type: str
       description:
         zh: 传导机制说明
       required: true
       default: ''
     - name: likelihood
-      type: string
+      type: str
       description:
         zh: 发生可能性：高/中/低
       required: true
       default: ''
     - name: severity
-      type: string
+      type: str
       description:
         zh: 影响严重程度：高/中/低，或量化影响
       required: false
       default: ''
     - name: mitigation
-      type: string
+      type: str
       description:
         zh: 缓解措施或应对策略
       required: false

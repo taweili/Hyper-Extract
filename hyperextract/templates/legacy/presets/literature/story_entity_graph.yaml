@@ -10,34 +10,34 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "实体名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "实体类型：物品、地点"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "实体描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "物品"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "归属者或位置"
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：归属、位于"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "描述"
 

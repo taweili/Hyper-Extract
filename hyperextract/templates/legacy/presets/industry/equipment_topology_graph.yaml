@@ -11,37 +11,37 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 设备或部件名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：主机、辅机、部件、仪表、阀门、管路、系统、电机、泵、风机、容器等
       required: true
       default: ''
     - name: location
-      type: string
+      type: str
       description:
         zh: 安装位置（如：生产车间一层、主厂房二层）
       required: false
       default: ''
     - name: status
-      type: string
+      type: str
       description:
         zh: 运行状态：运行、备用、检修、停运
       required: false
       default: ''
     - name: specification
-      type: string
+      type: str
       description:
         zh: 规格型号或技术参数
       required: false
       default: ''
     - name: manufacturer
-      type: string
+      type: str
       description:
         zh: 制造厂家
       required: false
@@ -50,25 +50,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 上游设备或源设备名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 下游设备或目标设备名称
       required: true
       default: ''
     - name: connectionType
-      type: string
+      type: str
       description:
         zh: 连接类型：物料输送、能量传递、控制信号、工艺流程、电气连接、仪表监测等
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 连接关系的详细描述（如：高温物料流向、循环水回路、闭环控制系统）
       required: false

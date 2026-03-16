@@ -10,20 +10,20 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "基因或转录因子名称，如HIF-1α、c-Myc"
     - name: gene_symbol
-      type: "string"
+      type: "str"
       description:
         zh: "基因符号，如HK2、PFKFB3"
       required: false
     - name: type
-      type: "string"
+      type: "str"
       description:
         zh: "类型：转录因子、基因、启动子"
     - name: function
-      type: "string"
+      type: "str"
       description:
         zh: "功能描述"
       required: false
@@ -31,24 +31,24 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "调控因子（转录因子）名称"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "被调控基因名称"
     - name: relation_type
-      type: "string"
+      type: "str"
       description:
         zh: "调控类型：激活、抑制、协同激活"
     - name: mechanism
-      type: "string"
+      type: "str"
       description:
         zh: "调控机制，如结合启动子、组蛋白修饰"
       required: false
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "详细描述"
       required: false

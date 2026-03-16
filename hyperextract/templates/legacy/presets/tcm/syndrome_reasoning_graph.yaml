@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如症状、证型、治则、药物等
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：症状、证型、治则、药物
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -38,19 +38,19 @@ output:
       required: true
       default: ''
     - name: reasoningType
-      type: string
+      type: str
       description:
         zh: 推理类型：辨证论治、随证加减
       required: true
       default: ''
     - name: reasoningProcess
-      type: string
+      type: str
       description:
         zh: 推理过程描述
       required: false
       default: ''
     - name: source
-      type: string
+      type: str
       description:
         zh: 推理来源，如医案名称、章节等
       required: false

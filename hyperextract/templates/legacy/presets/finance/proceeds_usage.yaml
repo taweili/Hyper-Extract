@@ -9,37 +9,37 @@ output:
   description: {}
   fields:
   - name: use_category
-    type: string
+    type: str
     description:
       zh: 资金用途类别（例如'研发投入'、'偿还债务'、'营运资金'、'收购'、'资本支出'、'一般企业用途'）
     required: true
     default: ''
   - name: project_name
-    type: string
+    type: str
     description:
       zh: 具体项目或计划名称（例如'弗吉尼亚新数据中心'、'平台 2.0 开发'）
     required: false
     default: ''
   - name: allocated_amount
-    type: string
+    type: str
     description:
       zh: 分配金额（例如'1.5 亿美元'、'约占净募集资金的 30%'）
     required: false
     default: ''
   - name: percentage_of_proceeds
-    type: string
+    type: str
     description:
       zh: 占总募集资金的百分比（例如'30%'、'约三分之一'）
     required: false
     default: ''
   - name: timeline
-    type: string
+    type: str
     description:
       zh: 预计资金使用时间表（例如'12-18 个月'、'2025-2026 财年'）
     required: false
     default: ''
   - name: description
-    type: string
+    type: str
     description:
       zh: 资金具体使用方式的详细说明
     required: false

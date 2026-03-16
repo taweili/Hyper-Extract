@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: headline
-    type: string
+    type: str
     description:
       zh: 新闻文章/评论的标题/主题
     required: true
     default: ''
   - name: source
-    type: string
+    type: str
     description:
       zh: 出版物或来源（例如 '彭博社'、'路透社'、'CNBC'）
     required: false
     default: ''
   - name: publication_date
-    type: string
+    type: str
     description:
       zh: 发布日期
     required: false
     default: ''
   - name: overall_sentiment
-    type: string
+    type: str
     description:
       zh: 整体情绪：看涨、看跌、中性、混合
     required: false
     default: ''
   - name: sentiment_confidence
-    type: string
+    type: str
     description:
       zh: 情绪评估的置信度：高、中、低
     required: false
@@ -57,13 +57,13 @@ output:
     required: false
     default: ''
   - name: expected_impact
-    type: string
+    type: str
     description:
       zh: 预期的价格/市场影响（例如 '科技股短期上行'、'板块轮动可能性大'）
     required: false
     default: ''
   - name: time_horizon
-    type: string
+    type: str
     description:
       zh: 隐含时间范围：'盘中'、'短期'、'中期'、'长期'
     required: false

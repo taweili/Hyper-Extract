@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如人名、机构名、产品名
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：人物、机构、地点、产品、概念、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,19 +27,19 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：属于、位于、合作、竞争、发明、创建、相关等
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述
       required: false

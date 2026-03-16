@@ -9,7 +9,7 @@ output:
   description: {}
   fields:
   - name: name
-    type: string
+    type: str
     description:
       zh: 药物正名
     required: true
@@ -39,25 +39,25 @@ output:
     required: false
     default: ''
   - name: toxicity
-    type: string
+    type: str
     description:
       zh: 毒性：无毒、小毒、有毒、大毒
     required: false
     default: 无毒
   - name: dosage
-    type: string
+    type: str
     description:
       zh: 推荐剂量
     required: false
     default: ''
   - name: collection
-    type: string
+    type: str
     description:
       zh: 采集时间和方法
     required: false
     default: ''
   - name: processing
-    type: string
+    type: str
     description:
       zh: 炮制方法
     required: false

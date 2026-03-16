@@ -9,19 +9,19 @@ output:
   description: {}
   fields:
   - name: system
-    type: string
+    type: str
     description:
       zh: 系统名称，如胃肠道、全身、皮肤等
   - name: reaction
-    type: string
+    type: str
     description:
       zh: 不良反应表现
   - name: incidence
-    type: string
+    type: str
     description:
       zh: 发生率
   - name: details
-    type: string
+    type: str
     description:
       zh: 详细描述
     required: false

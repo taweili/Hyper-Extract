@@ -10,11 +10,11 @@ description:
 schema:
   fields:
     - name: plot_id
-      type: "string"
+      type: "str"
       description:
         zh: "地块编号"
     - name: soil_type
-      type: "string"
+      type: "str"
       description:
         zh: "土壤类型"
       required: false
@@ -24,7 +24,7 @@ schema:
         zh: "pH值"
       required: false
     - name: ph_level
-      type: "string"
+      type: "str"
       description:
         zh: "pH丰缺等级：酸性、弱酸性、中性、弱碱性、碱性"
       required: false
@@ -34,7 +34,7 @@ schema:
         zh: "有机质含量，单位g/kg"
       required: false
     - name: organic_matter_level
-      type: "string"
+      type: "str"
       description:
         zh: "有机质丰缺等级"
       required: false
@@ -44,7 +44,7 @@ schema:
         zh: "碱解氮含量，单位mg/kg"
       required: false
     - name: nitrogen_level
-      type: "string"
+      type: "str"
       description:
         zh: "氮素丰缺等级"
       required: false
@@ -54,7 +54,7 @@ schema:
         zh: "有效磷含量，单位mg/kg"
       required: false
     - name: phosphorus_level
-      type: "string"
+      type: "str"
       description:
         zh: "磷素丰缺等级"
       required: false
@@ -64,7 +64,7 @@ schema:
         zh: "速效钾含量，单位mg/kg"
       required: false
     - name: potassium_level
-      type: "string"
+      type: "str"
       description:
         zh: "钾素丰缺等级"
       required: false

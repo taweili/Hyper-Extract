@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如原告、被告、合同、金钱、股权等
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 实体类型：当事人、合同/协议、金钱、股权、证物、其他
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -32,31 +32,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称
       required: true
       default: ''
     - name: event
-      type: string
+      type: str
       description:
         zh: 法律行为或事件，如签订协议、支付投资款、分配红利、提起诉讼等
       required: true
       default: ''
     - name: time_info
-      type: string
+      type: str
       description:
         zh: 时间信息，统一格式为年-月-日（如2021-03-15）或年月（如2021-03）
       required: false
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 事件详细描述
       required: false

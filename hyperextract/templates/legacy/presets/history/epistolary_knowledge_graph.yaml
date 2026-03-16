@@ -10,16 +10,16 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: identity
-      type: "string"
+      type: "str"
       description:
         zh: "身份描述，如北宋文学家、东吴大都督"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物描述"
       required: false
@@ -27,20 +27,20 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "发信人"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "收信人"
     - name: time
-      type: "string"
+      type: "str"
       description:
         zh: "时间"
       required: false
     - name: subject
-      type: "string"
+      type: "str"
       description:
         zh: "信件主题或主要议题"
     - name: mentionedPersons
@@ -54,7 +54,7 @@ edge_schema:
         zh: "信中提及的事件"
       required: false
     - name: summary
-      type: "string"
+      type: "str"
       description:
         zh: "信件内容摘要"
 

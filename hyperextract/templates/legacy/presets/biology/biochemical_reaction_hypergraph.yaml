@@ -10,15 +10,15 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "分子名称，如葡萄糖、ATP、丙酮酸"
     - name: molecule_type
-      type: "string"
+      type: "str"
       description:
         zh: "分子类型：酶、底物、产物、辅因子"
     - name: molecular_formula
-      type: "string"
+      type: "str"
       description:
         zh: "分子式，如C6H12O6"
       required: false
@@ -26,7 +26,7 @@ node_schema:
 edge_schema:
   fields:
     - name: enzyme
-      type: "string"
+      type: "str"
       description:
         zh: "催化该反应的酶名称"
     - name: substrates
@@ -43,15 +43,15 @@ edge_schema:
         zh: "辅因子列表，如NAD+、Mg2+"
       required: false
     - name: reaction_type
-      type: "string"
+      type: "str"
       description:
         zh: "反应类型：水解、氧化还原、转移、裂解、合成"
     - name: direction
-      type: "string"
+      type: "str"
       description:
         zh: "反应方向：正向、逆向、可逆"
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "反应详细描述，包括反应条件或生物学意义"
       required: false

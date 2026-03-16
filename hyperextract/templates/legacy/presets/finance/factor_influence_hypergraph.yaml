@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 因子名称
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 因子类别：宏观、行业、公司、市场情绪
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 因子描述/说明
       required: false
@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: result
-      type: string
+      type: str
       description:
         zh: 结果/影响，如'业绩下滑'、'估值提升'、'价格上涨'，不超过10字
       required: true
@@ -44,7 +44,7 @@ output:
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 详细描述
       required: false

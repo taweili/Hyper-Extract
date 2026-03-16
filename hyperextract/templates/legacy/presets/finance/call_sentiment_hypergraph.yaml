@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 主题元素名称（例如'收入增长'、'CEO 蒂姆·库克'、'AI 投资周期'、'谨慎'）
       required: true
       default: ''
     - name: element_type
-      type: string
+      type: str
       description:
         zh: 类型：主题、发言人、情绪、驱动因素
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 该元素的上下文或说明
       required: false
@@ -32,7 +32,7 @@ output:
     description: {}
     fields:
     - name: cluster_name
-      type: string
+      type: str
       description:
         zh: 描述性名称（例如'CEO 看好 AI 收入'、'CFO 对利润率持谨慎态度'）
       required: true
@@ -44,25 +44,25 @@ output:
       required: true
       default: ''
     - name: sentiment_polarity
-      type: string
+      type: str
       description:
         zh: 整体情绪方向：看多、看空、中性、混合
       required: true
       default: ''
     - name: intensity
-      type: string
+      type: str
       description:
         zh: 情绪强度：强、中等、轻微
       required: true
       default: ''
     - name: evidence
-      type: string
+      type: str
       description:
         zh: 支持情绪判断的关键引述或意译
       required: false
       default: ''
     - name: shift_from_prior
-      type: string
+      type: str
       description:
         zh: 与前一季度基调的变化（如显著，例如'比第二季度更为谨慎'、'从中性上调'）
       required: false

@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: title
-    type: string
+    type: str
     description:
       zh: 规章名称
   - name: version
-    type: string
+    type: str
     description:
       zh: 版本号
     required: false
   - name: issuer
-    type: string
+    type: str
     description:
       zh: 发布机构
     required: false
   - name: issueDate
-    type: string
+    type: str
     description:
       zh: 发布日期
     required: false
   - name: effectiveDate
-    type: string
+    type: str
     description:
       zh: 生效日期
     required: false
   - name: expiryDate
-    type: string
+    type: str
     description:
       zh: 失效日期
     required: false
@@ -48,7 +48,7 @@ output:
       zh: 适用对象
     required: false
   - name: corePurpose
-    type: string
+    type: str
     description:
       zh: 核心宗旨/目的
     required: false

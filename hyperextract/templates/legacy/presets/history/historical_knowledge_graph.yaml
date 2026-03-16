@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: title
-      type: "string"
+      type: "str"
       description:
         zh: "身份或官职，如吴国大都督、刘备军师"
     - name: faction
-      type: "string"
+      type: "str"
       description:
         zh: "所属阵营，如吴、蜀、魏"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物简要描述，包括主要成就和特点"
       required: false
@@ -30,19 +30,19 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源人物姓名"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标人物姓名"
     - name: relationType
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：亲属、君臣、敌友、联盟、对手"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关系描述，描述两人之间的具体互动或关系详情"
 

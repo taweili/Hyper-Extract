@@ -9,15 +9,15 @@ output:
   description: {}
   fields:
   - name: term
-    type: string
+    type: str
     description:
       zh: 关键词
   - name: category
-    type: string
+    type: str
     description:
       zh: 分类：核心概念、术语、人名、机构名、其他
   - name: description
-    type: string
+    type: str
     description:
       zh: 关键词简要描述或上下文说明
     required: false

@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: clause_type
-    type: string
+    type: str
     description:
       zh: 条款类型：赔偿条款、责任限制、保证条款、免责声明、违约金、连带责任、其他
     required: true
     default: ''
   - name: clause_title
-    type: string
+    type: str
     description:
       zh: 条款标题或简要名称
     required: true
     default: ''
   - name: content
-    type: string
+    type: str
     description:
       zh: 条款的具体内容
     required: true
     default: ''
   - name: liability_amount
-    type: string
+    type: str
     description:
       zh: 涉及的责任金额或计算方式，如合同总价的10%、人民币20万元等
     required: false
     default: ''
   - name: source_clause
-    type: string
+    type: str
     description:
       zh: 条款来源的章节编号
     required: false

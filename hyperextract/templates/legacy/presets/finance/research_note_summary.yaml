@@ -9,67 +9,67 @@ output:
   description: {}
   fields:
   - name: company_name
-    type: string
+    type: str
     description:
       zh: 被覆盖公司的名称
     required: false
     default: ''
   - name: ticker
-    type: string
+    type: str
     description:
       zh: 股票代码（例如 'AAPL'、'NVDA'）
     required: false
     default: ''
   - name: analyst_name
-    type: string
+    type: str
     description:
       zh: 首席分析师的姓名
     required: false
     default: ''
   - name: research_firm
-    type: string
+    type: str
     description:
       zh: 研究机构名称（例如 '高盛'、'摩根士丹利'）
     required: false
     default: ''
   - name: report_date
-    type: string
+    type: str
     description:
       zh: 报告发布日期
     required: false
     default: ''
   - name: rating
-    type: string
+    type: str
     description:
       zh: 分析师评级：'买入'、'增持'、'持有'、'中性'、'卖出'、'减持'
     required: false
     default: ''
   - name: prior_rating
-    type: string
+    type: str
     description:
       zh: 如有变更，之前的评级
     required: false
     default: ''
   - name: target_price
-    type: string
+    type: str
     description:
       zh: 当前目标价（例如 '$150.00'）
     required: false
     default: ''
   - name: prior_target_price
-    type: string
+    type: str
     description:
       zh: 如有变更，之前的目标价
     required: false
     default: ''
   - name: current_price
-    type: string
+    type: str
     description:
       zh: 报告发布时的股价
     required: false
     default: ''
   - name: investment_thesis
-    type: string
+    type: str
     description:
       zh: 核心投资论点或评级的关键论据
     required: false
@@ -87,13 +87,13 @@ output:
     required: false
     default: ''
   - name: revenue_estimate
-    type: string
+    type: str
     description:
       zh: 分析师对当前/下一财年的收入预测
     required: false
     default: ''
   - name: eps_estimate
-    type: string
+    type: str
     description:
       zh: 分析师对当前/下一财年的每股收益预测
     required: false

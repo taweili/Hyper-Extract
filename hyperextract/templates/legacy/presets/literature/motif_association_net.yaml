@@ -10,30 +10,30 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "意象名称"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "意象描述"
 
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源意象"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标意象"
     - name: associationType
-      type: "string"
+      type: "str"
       description:
         zh: "关联类型：对比、递进、因果、象征、配套"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "关联描述"
 

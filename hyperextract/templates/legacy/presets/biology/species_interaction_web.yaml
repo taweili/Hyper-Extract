@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "物种名称，如绿藻、鲢鱼、苍鹭"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "物种类别：生产者、消费者、分解者"
     - name: species_type
-      type: "string"
+      type: "str"
       description:
         zh: "具体分类：浮游植物、浮游动物、底栖动物、鱼类、鸟类、哺乳动物、植物、微生物"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
       required: false
@@ -30,19 +30,19 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源物种名称"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标物种名称"
     - name: relation_type
-      type: "string"
+      type: "str"
       description:
         zh: "关系类型：捕食、寄生、竞争、互利共生、共生"
     - name: details
-      type: "string"
+      type: "str"
       description:
         zh: "关系详细描述，包括具体行为或机制"
       required: false

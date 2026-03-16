@@ -9,15 +9,15 @@ output:
   description: {}
   fields:
   - name: name
-    type: string
+    type: str
     description:
       zh: 实体名称，保持与原文一致
   - name: category
-    type: string
+    type: str
     description:
       zh: 实体类型：人物、机构、地点、产品、概念、其他
   - name: description
-    type: string
+    type: str
     description:
       zh: 简要描述
     required: false

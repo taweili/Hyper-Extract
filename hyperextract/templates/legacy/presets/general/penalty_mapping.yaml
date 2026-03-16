@@ -11,34 +11,34 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 节点名称
     - name: type
-      type: string
+      type: str
       description:
         zh: 节点类型：违规行为、处理程序、处罚结果、其他
     - name: description
-      type: string
+      type: str
       description:
         zh: 详细描述
   relations:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源节点名称
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标节点名称
     - name: relation
-      type: string
+      type: str
       description:
         zh: 关系类型：导致、触发、执行、产生、其他
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细说明
       required: false

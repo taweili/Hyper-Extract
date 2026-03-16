@@ -10,19 +10,19 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "元素名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "元素类型：论据、引用、观点"
     - name: content
-      type: "string"
+      type: "str"
       description:
         zh: "内容"
     - name: sourceText
-      type: "string"
+      type: "str"
       description:
         zh: "原文引用（仅引用类型需要）"
       required: false
@@ -30,7 +30,7 @@ node_schema:
 edge_schema:
   fields:
     - name: conclusion
-      type: "string"
+      type: "str"
       description:
         zh: "核心观点"
     - name: evidences
@@ -43,7 +43,7 @@ edge_schema:
         zh: "引用文本列表"
       required: false
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "论证描述"
 

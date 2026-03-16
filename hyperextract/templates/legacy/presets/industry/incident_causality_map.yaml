@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（例如：违章操作、泄漏积累、点火源等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类型：隐患、触发条件、违章行为、事故后果
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 描述（例如：未佩戴安全带、管道腐蚀破裂）
       required: false
       default: ''
     - name: severity
-      type: string
+      type: str
       description:
         zh: 严重程度：轻微、一般、严重、重大
       required: false
@@ -44,13 +44,13 @@ output:
       required: true
       default: ''
     - name: causality_type
-      type: string
+      type: str
       description:
         zh: 因果类型：隐患积累、触发导致、违章促成、后果扩展
       required: true
       default: ''
     - name: causality_description
-      type: string
+      type: str
       description:
         zh: 因果关系详细描述（例如：由于管道腐蚀导致泄漏，遇火源引发火灾）
       required: false

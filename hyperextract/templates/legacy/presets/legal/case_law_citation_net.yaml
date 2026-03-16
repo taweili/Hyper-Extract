@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: case_name
-      type: string
+      type: str
       description:
         zh: 判例名称，如指导案例140号、(2020)最高法民终字第XX号
       required: true
       default: ''
     - name: case_type
-      type: string
+      type: str
       description:
         zh: 案件类型：指导案例、公报案例、普通案例、司法解释、法律条文
       required: true
       default: ''
     - name: court
-      type: string
+      type: str
       description:
         zh: 审理法院
       required: false
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 案件简要描述
       required: false
@@ -38,25 +38,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源判例名称
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标判例名称
       required: true
       default: ''
     - name: citation_type
-      type: string
+      type: str
       description:
         zh: 引用类型：引用、依据、先例区分、先例推翻、参考、类案
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 引用关系描述
       required: false

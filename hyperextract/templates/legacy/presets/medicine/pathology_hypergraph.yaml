@@ -11,15 +11,15 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称，如基因、环境因素、诱因、疾病等
     - name: category
-      type: string
+      type: str
       description:
         zh: 实体类型：基因、环境因素、诱因、疾病、病理过程、症状等
     - name: description
-      type: string
+      type: str
       description:
         zh: 简要描述
       required: false
@@ -27,7 +27,7 @@ output:
     description: {}
     fields:
     - name: mechanism_name
-      type: string
+      type: str
       description:
         zh: 机制名称，简短描述性名称
     - name: participating_entities
@@ -35,15 +35,15 @@ output:
       description:
         zh: 参与此病理机制的所有实体名称列表
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：致病、诱发、促进、抑制等
     - name: details
-      type: string
+      type: str
       description:
         zh: 详细描述，如具体的致病机制
     - name: outcome
-      type: string
+      type: str
       description:
         zh: 该机制导致的结果或效应
 guideline:

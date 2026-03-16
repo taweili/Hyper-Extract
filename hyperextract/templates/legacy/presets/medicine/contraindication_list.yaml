@@ -9,15 +9,15 @@ output:
   description: {}
   fields:
   - name: contraindication
-    type: string
+    type: str
     description:
       zh: 禁忌症描述
   - name: contraindicationType
-    type: string
+    type: str
     description:
       zh: 禁忌症类型：绝对禁忌、相对禁忌等
   - name: details
-    type: string
+    type: str
     description:
       zh: 详细描述
     required: false

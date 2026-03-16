@@ -9,37 +9,37 @@ output:
   description: {}
   fields:
   - name: risk_name
-    type: string
+    type: str
     description:
       zh: 风险的简洁名称（例如 '欧盟监管收紧'、'强势美元带来的汇率逆风'）
     required: true
     default: ''
   - name: risk_category
-    type: string
+    type: str
     description:
       zh: 类别：'监管'、'竞争'、'宏观经济'、'运营'、'汇率/货币'、'地缘政治'、'技术'、'法律/诉讼'、'ESG'、'执行'
     required: true
     default: ''
   - name: description
-    type: string
+    type: str
     description:
       zh: 风险情景的详细描述
     required: true
     default: ''
   - name: potential_impact
-    type: string
+    type: str
     description:
       zh: 估计的财务影响（例如 '收入下行 3-5%'、'每股收益风险 $0.50'）
     required: false
     default: ''
   - name: probability
-    type: string
+    type: str
     description:
       zh: 分析师的概率评估：'高'、'中等'、'低'
     required: false
     default: ''
   - name: time_horizon
-    type: string
+    type: str
     description:
       zh: 风险可能兑现的时间（例如 '近期'、'2025 年'、'12-18 个月'）
     required: false

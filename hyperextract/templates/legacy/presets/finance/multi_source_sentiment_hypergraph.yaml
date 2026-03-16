@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 来源或实体的名称（例如：'彭博社文章'、'高盛分析师报告'、'AAPL'、'科技板块'）
       required: true
       default: ''
     - name: source_type
-      type: string
+      type: str
       description:
         zh: 类型：'新闻文章'、'分析师报告'、'社交媒体'、'市场数据'、'公司公告'、'受影响实体'、'板块'、'指数'
       required: true
       default: ''
     - name: sentiment_signal
-      type: string
+      type: str
       description:
         zh: 该来源的个别情绪：'看涨'、'看跌'、'中性'
       required: false
       default: ''
     - name: credibility
-      type: string
+      type: str
       description:
         zh: 来源可信度评估：'一级'、'二级'、'未验证'
       required: false
@@ -38,7 +38,7 @@ output:
     description: {}
     fields:
     - name: fusion_name
-      type: string
+      type: str
       description:
         zh: 描述性名称（例如：'AAPL 来自 3 个来源的看涨共识'）
       required: true
@@ -50,31 +50,31 @@ output:
       required: true
       default: ''
     - name: aggregated_polarity
-      type: string
+      type: str
       description:
         zh: 融合情绪：'强烈看涨'、'看涨'、'中性'、'看跌'、'强烈看跌'、'冲突'
       required: true
       default: ''
     - name: agreement_level
-      type: string
+      type: str
       description:
         zh: 来源一致性：'一致'、'多数'、'分裂'、'矛盾'
       required: true
       default: ''
     - name: affected_entity
-      type: string
+      type: str
       description:
         zh: 情绪适用的主要实体（股票代码或板块）
       required: false
       default: ''
     - name: signal_strength
-      type: string
+      type: str
       description:
         zh: 交易用的整体信号强度：'可操作'、'参考性'、'噪音'
       required: false
       default: ''
     - name: conflicting_views
-      type: string
+      type: str
       description:
         zh: 任何不同或冲突的情绪信号摘要
       required: false

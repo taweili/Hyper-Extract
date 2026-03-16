@@ -11,19 +11,19 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（公司或供应商）
       required: true
       default: ''
     - name: entity_type
-      type: string
+      type: str
       description:
         zh: 类型：客户、供应商、战略伙伴、分销商、本公司
       required: true
       default: ''
     - name: details
-      type: string
+      type: str
       description:
         zh: 地理管辖区、认证信息及合规说明
       required: false
@@ -32,25 +32,25 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 上游供应商或提供方
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 下游买方或需求方
       required: true
       default: ''
     - name: relationship_type
-      type: string
+      type: str
       description:
         zh: 类型：供应、采购、分销、战略合作
       required: true
       default: ''
     - name: product_service
-      type: string
+      type: str
       description:
         zh: 被供应或交易的内容，例如锂芯片、物流服务等
       required: true

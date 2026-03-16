@@ -14,19 +14,19 @@ output:
       zh: '提取的裁判要素列表'
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: '要素名称'
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: '要素类型：事实认定、法律依据、裁判结论、主旨、证据、其他'
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: '简要描述'
       required: false
@@ -36,7 +36,7 @@ output:
       zh: '提取的推理逻辑关系列表'
     fields:
     - name: logic_type
-      type: string
+      type: str
       description:
         zh: '推理类型：事实认定、法律适用、因果认定、责任认定、金额计算、其他'
       required: true
@@ -48,19 +48,19 @@ output:
       required: true
       default: ''
     - name: reasoning
-      type: string
+      type: str
       description:
         zh: '推理过程描述，从事实到结论的逻辑推导'
       required: true
       default: ''
     - name: conclusion
-      type: string
+      type: str
       description:
         zh: '推理结论'
       required: false
       default: ''
     - name: source_clause
-      type: string
+      type: str
       description:
         zh: '裁判文书的章节位置'
       required: false

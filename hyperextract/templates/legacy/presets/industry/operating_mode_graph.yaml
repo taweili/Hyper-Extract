@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 实体名称（如：自动运行模式、手动调试模式、待机模式、紧急停止模式、按下启动按钮、按下停止按钮、发生故障等）
       required: true
       default: ''
     - name: category
-      type: string
+      type: str
       description:
         zh: 类别：工况、条件。工况如自动运行、手动调试、待机等；条件如启动按钮、停止按钮、故障信号等
       required: true
       default: ''
     - name: description
-      type: string
+      type: str
       description:
         zh: 对该实体的描述
       required: false
       default: ''
     - name: load_range
-      type: string
+      type: str
       description:
         zh: 负荷范围（如：0-50%、50-80%、80-100%等），仅对工况类别有效
       required: false
@@ -38,31 +38,31 @@ output:
     description: {}
     fields:
     - name: source
-      type: string
+      type: str
       description:
         zh: 源实体名称（工况或条件）
       required: true
       default: ''
     - name: target
-      type: string
+      type: str
       description:
         zh: 目标实体名称（工况或条件）
       required: true
       default: ''
     - name: relationType
-      type: string
+      type: str
       description:
         zh: 关系类型：切换到、触发
       required: true
       default: ''
     - name: transition_condition
-      type: string
+      type: str
       description:
         zh: 切换条件（如：按下启动按钮、按下停止按钮、发生故障等）
       required: false
       default: ''
     - name: transition_procedure
-      type: string
+      type: str
       description:
         zh: 切换步骤
       required: false

@@ -10,15 +10,15 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "人物姓名"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "人物描述"
     - name: perspective
-      type: "string"
+      type: "str"
       description:
         zh: "视角人物对该人物的评价或印象"
       required: false
@@ -26,19 +26,19 @@ node_schema:
 edge_schema:
   fields:
     - name: source
-      type: "string"
+      type: "str"
       description:
         zh: "源人物"
     - name: target
-      type: "string"
+      type: "str"
       description:
         zh: "目标人物"
     - name: interaction
-      type: "string"
+      type: "str"
       description:
         zh: "互动类型：评价、往来、合作、书信"
     - name: content
-      type: "string"
+      type: "str"
       description:
         zh: "互动内容或评价具体描述"
 

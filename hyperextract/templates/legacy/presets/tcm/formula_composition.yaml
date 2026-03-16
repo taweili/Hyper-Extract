@@ -11,25 +11,25 @@ output:
     description: {}
     fields:
     - name: name
-      type: string
+      type: str
       description:
         zh: 药物名称
       required: true
       default: ''
     - name: nature
-      type: string
+      type: str
       description:
         zh: 性味，如：辛温、苦寒、甘平
       required: false
       default: ''
     - name: meridian
-      type: string
+      type: str
       description:
         zh: 归经，如：归肺经、归脾经、归心经
       required: false
       default: ''
     - name: effect
-      type: string
+      type: str
       description:
         zh: 功效，如：发汗解表、温通经脉、补气健脾
       required: false
@@ -38,13 +38,13 @@ output:
     description: {}
     fields:
     - name: formulaName
-      type: string
+      type: str
       description:
         zh: 方剂名称
       required: true
       default: ''
     - name: source
-      type: string
+      type: str
       description:
         zh: 方剂来源，如：伤寒论、金匮要略、方剂学教材
       required: false
@@ -86,7 +86,7 @@ output:
       required: false
       default: ''
     - name: decoctionMethod
-      type: string
+      type: str
       description:
         zh: 煎服法，如：水煎服，日三服
       required: false

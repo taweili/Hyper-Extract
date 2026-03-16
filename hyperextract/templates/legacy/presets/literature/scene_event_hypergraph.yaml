@@ -10,22 +10,22 @@ description:
 node_schema:
   fields:
     - name: name
-      type: "string"
+      type: "str"
       description:
         zh: "元素名称"
     - name: category
-      type: "string"
+      type: "str"
       description:
         zh: "元素类型：角色、地点、道具、动作"
     - name: description
-      type: "string"
+      type: "str"
       description:
         zh: "简要描述"
 
 edge_schema:
   fields:
     - name: sceneName
-      type: "string"
+      type: "str"
       description:
         zh: "场景名称，如'第一场：桐花台夜话'"
     - name: characters
@@ -33,7 +33,7 @@ edge_schema:
       description:
         zh: "出场角色列表"
     - name: location
-      type: "string"
+      type: "str"
       description:
         zh: "场景地点"
     - name: props
@@ -46,7 +46,7 @@ edge_schema:
       description:
         zh: "核心动作列表"
     - name: timeOfDay
-      type: "string"
+      type: "str"
       description:
         zh: "时间段：日/夜/晨/昏"
 

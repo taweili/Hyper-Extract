@@ -9,31 +9,31 @@ output:
   description: {}
   fields:
   - name: herbName
-    type: string
+    type: str
     description:
       zh: 药物名称
     required: true
     default: ''
   - name: methodName
-    type: string
+    type: str
     description:
       zh: 炮制方法名称：如蜜炙、酒炒、醋制、盐制等
     required: true
     default: ''
   - name: process
-    type: string
+    type: str
     description:
       zh: 具体炮制工艺流程
     required: true
     default: ''
   - name: effectChange
-    type: string
+    type: str
     description:
       zh: 炮制对药效的影响
     required: true
     default: ''
   - name: application
-    type: string
+    type: str
     description:
       zh: 适用病症或方剂
     required: true
