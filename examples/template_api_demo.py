@@ -23,6 +23,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 INPUT_FILE = Path(__file__).parent.parent / "tests" / "test_data" / "templates" / "biography_scientist.md"
 
+name = "life_event_timeline"
+# name = "knowledge_graph"
 
 def main():
     print("=" * 60)
@@ -34,53 +36,49 @@ def main():
         return
 
     print(f"\n📄 输入文件: {INPUT_FILE.name}")
-    print(f"🎯 使用模板: general/life_event_timeline")
+    print(f"🎯 使用模板: general/{name}")
 
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     print("\n[1] Template.list() - 列出所有模板")
-    names = Template.list()
-    print(f"共 {len(names)} 个模板")
+    templates = Template.list()
+    print(f"共 {len(templates)} 个模板")
 
-    print("\n[2] Template.list_domains() - 列出所有领域")
-    domains = Template.list_domains()
-    print(f"共 {len(domains)} 个领域: {domains}")
-
-    print("\n[3] Template.get() - 获取配置")
-    config = Template.get("general/life_event_timeline")
+    print("\n[2] Template.get() - 获取配置")
+    config = Template.get(f"general/{name}")
     if config:
         print(f"找到: {config.name}, type: {config.type}")
     else:
         print("未找到")
 
-    print("\n[4] Template.search(type='list') - 按类型搜索")
-    results = Template.search(type="list")
+    print("\n[3] Template.list(filter_by_type='list') - 按类型搜索")
+    results = Template.list(filter_by_type="list")
     print(f"找到 {len(results)} 个 list 类型模板")
 
-    print("\n[5] Template.create() - 通过文件路径创建实例")
+    print("\n[4] Template.create() - 通过文件路径创建实例")
     template = Template.create(
-        'life_event_timeline',
+        name,
+        language="zh",
         llm_client=llm,
         embedder=embedder,
-        language="zh",
     )
     print(f"创建成功: {type(template).__name__}")
 
-    print("\n[6] 读取输入文件")
+    print("\n[5] 读取输入文件")
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         content = f.read()
     print(f"读取成功，共 {len(content)} 字符")
 
-    print("\n[7] template.feed_text() - 喂入文本")
+    print("\n[6] template.feed_text() - 喂入文本")
     template.feed_text(content)
     print("✅ 知识提取完成")
 
-    print("\n[8] template.build_index() - 构建索引")
+    print("\n[7] template.build_index() - 构建索引")
     template.build_index()
     print("✅ 索引构建完成")
 
-    print("\n[9] template.show() - 展示结果")
+    print("\n[8] template.show() - 展示结果")
     template.show()
 
     print("\n" + "=" * 60)

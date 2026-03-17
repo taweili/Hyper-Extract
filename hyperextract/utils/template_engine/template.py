@@ -3,7 +3,7 @@
 Provides a clean API for searching and creating knowledge extraction templates.
 """
 
-from typing import List, Optional
+from typing import Dict, Optional
 from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
@@ -26,33 +26,29 @@ class Template:
         # Get template config by path
         config = Template.get("general/knowledge_graph")
 
-        # Search templates
-        results = Template.search(type="graph")
-        results = Template.search(tag="finance")
-        results = Template.search(query="知识图谱")
+        # List all templates (returns Dict[str, TemplateCfg])
+        all_templates = Template.list()
 
-        # List all templates
-        names = Template.list()
-
-        # List domains
-        domains = Template.list_domains()
+        # List templates with filters
+        graph_templates = Template.list(filter_by_type="graph")
+        zh_templates = Template.list(filter_by_language="zh")
     """
 
     @staticmethod
     def create(
         source: str | Path,
+        language: str,
         llm_client: Optional[BaseChatModel] = None,
         embedder: Optional[Embeddings] = None,
-        language: str = "en",
         **kwargs,
     ):
         """Create template instance.
 
         Args:
             source: Template path (e.g., "general/knowledge_graph") or file path
+            language: Language code (e.g., "zh", "en") - required
             llm_client: LLM client (reads from global config if not provided)
             embedder: Embedder client (reads from global config if not provided)
-            language: Language code (e.g., "zh", "en")
             **kwargs: Additional parameters
 
         Returns:
@@ -60,14 +56,15 @@ class Template:
 
         Examples:
             # By path
-            template = Template.create("general/knowledge_graph", llm, emb)
+            template = Template.create("general/knowledge_graph", "zh", llm, emb)
 
             # By file path
-            template = Template.create("/path/to/template.yaml", llm, emb)
+            template = Template.create("/path/to/template.yaml", "zh", llm, emb)
 
             # For temporal/spatial templates
             template = Template.create(
                 "finance/financial_data_temporal_graph",
+                "zh",
                 llm,
                 emb,
                 observation_time="2024-06-15"
@@ -82,7 +79,7 @@ class Template:
             llm_client = llm_client or default_llm
             embedder = embedder or default_emb
 
-        return TemplateFactory.create(source, llm_client, embedder, language=language, **kwargs)
+        return TemplateFactory.create(source, language, llm_client, embedder, **kwargs)
 
     @staticmethod
     def get(path: str) -> Optional[TemplateCfg]:
@@ -97,44 +94,28 @@ class Template:
         return Gallery.get(path)
 
     @staticmethod
-    def search(
-        query: Optional[str] = None,
-        type: Optional[str] = None,
-        tag: Optional[str] = None,
-        language: Optional[str] = None,
-    ) -> List[TemplateCfg]:
-        """Search templates by various criteria.
+    def list(
+        filter_by_query: Optional[str] = None,
+        filter_by_type: Optional[str] = None,
+        filter_by_tag: Optional[str] = None,
+        filter_by_language: Optional[str] = None,
+    ) -> Dict[str, TemplateCfg]:
+        """List templates with optional filters.
 
         Args:
-            query: Search in template name/description
-            type: Filter by autotype (e.g., "graph", "list", "model")
-            tag: Filter by tag (e.g., "finance", "medicine")
-            language: Filter by language (e.g., "zh", "en")
+            filter_by_query: Search in template name/description
+            filter_by_type: Filter by autotype (e.g., "graph", "list", "model")
+            filter_by_tag: Filter by tag
+            filter_by_language: Filter by language (e.g., "zh", "en")
 
         Returns:
-            List of matching TemplateCfg objects
+            Dict mapping template name to TemplateCfg
         """
-        return Gallery.search(
-            query=query,
-            type=type,
-            tag=tag,
-            language=language,
+        return Gallery.list(
+            filter_by_query=filter_by_query,
+            filter_by_type=filter_by_type,
+            filter_by_tag=filter_by_tag,
+            filter_by_language=filter_by_language,
         )
 
-    @staticmethod
-    def list() -> List[str]:
-        """List all available template names.
 
-        Returns:
-            List of template names
-        """
-        return Gallery.list()
-
-    @staticmethod
-    def list_domains() -> List[str]:
-        """List all available domains (folder names in presets).
-
-        Returns:
-            List of domain names
-        """
-        return Gallery.list_domains()

@@ -4,7 +4,7 @@ Auto-loads templates from presets directory.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from .parsers import TemplateCfg, load_template
 
@@ -18,14 +18,12 @@ class Gallery:
         # Get template by path
         config = Gallery.get("general/knowledge_graph")
 
-        # List all templates
-        print(Gallery.list())
+        # List all templates (returns Dict[str, TemplateCfg])
+        all_templates = Gallery.list()
 
-        # List domains
-        print(Gallery.list_domains())
-
-        # Search templates
-        results = Gallery.search(type="graph")
+        # List templates with filters
+        graph_templates = Gallery.list(filter_by_type="graph")
+        zh_templates = Gallery.list(filter_by_language="zh")
     """
 
     _instance: Optional["Gallery"] = None
@@ -53,39 +51,30 @@ class Gallery:
         return cls._instance._configs.get(f"general/{path}")
 
     @classmethod
-    def list(cls) -> List[str]:
-        """List all available template names.
-
-        Returns:
-            List of template names
-        """
-        return list(cls._instance._configs.keys()) if cls._instance else []
-
-    @classmethod
-    def search(
+    def list(
         cls,
-        query: str = None,
-        type: str = None,
-        tag: str = None,
-        language: str = None,
-    ) -> List[TemplateCfg]:
-        """Search templates by query, type, tag, or language.
+        filter_by_query: str = None,
+        filter_by_type: str = None,
+        filter_by_tag: str = None,
+        filter_by_language: str = None,
+    ) -> Dict[str, "TemplateCfg"]:
+        """List templates with optional filters.
 
         Args:
-            query: Search in template name/description
-            type: Filter by autotype (e.g., "graph", "list", "model")
-            tag: Filter by tag
-            language: Filter by language (e.g., "zh", "en")
+            filter_by_query: Search in template name/description
+            filter_by_type: Filter by autotype (e.g., "graph", "list", "model")
+            filter_by_tag: Filter by tag
+            filter_by_language: Filter by language (e.g., "zh", "en")
 
         Returns:
-            List of matching TemplateCfg
+            Dict mapping template name to TemplateCfg
         """
         if not cls._instance:
-            return []
+            return {}
 
-        results = []
-        for config in cls._instance._configs.values():
-            q = query.lower() if query else None
+        results = {}
+        for key, config in cls._instance._configs.items():
+            q = filter_by_query.lower() if filter_by_query else None
 
             if q and q not in config.name.lower():
                 desc = config.description
@@ -96,35 +85,20 @@ class Gallery:
                 ):
                     continue
 
-            if type and config.type != type:
+            if filter_by_type and config.type != filter_by_type:
                 continue
-            if tag and (not config.tags or tag not in config.tags):
+            if filter_by_tag and (not config.tags or filter_by_tag not in config.tags):
                 continue
-            if language:
+            if filter_by_language:
                 config_lang = config.language
                 if isinstance(config_lang, list):
-                    if language not in config_lang:
+                    if filter_by_language not in config_lang:
                         continue
-                elif config_lang != language:
+                elif config_lang != filter_by_language:
                     continue
-            results.append(config)
+            results[key] = config
 
         return results
-
-    @classmethod
-    def list_domains(cls) -> List[str]:
-        """List all available domains (folder names in presets).
-
-        Returns:
-            List of domain names
-        """
-        base_dir = Path(__file__).parent.parent.parent / "templates" / "presets"
-        domains = []
-        if base_dir.exists():
-            for item in base_dir.iterdir():
-                if item.is_dir() and not item.name.startswith("_"):
-                    domains.append(item.name)
-        return sorted(domains)
 
     def _load_config(self, file_path: Path, presets_dir: Path) -> None:
         try:

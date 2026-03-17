@@ -296,8 +296,8 @@ class AutoHypergraph(
         )
         
         # Store label extractors for visualization
-        self.node_label_extractor = node_label_extractor
-        self.edge_label_extractor = edge_label_extractor
+        self._node_label_extractor = node_label_extractor
+        self._edge_label_extractor = edge_label_extractor
 
         # Initialize Base Class
         super().__init__(

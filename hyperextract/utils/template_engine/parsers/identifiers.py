@@ -43,9 +43,9 @@ def _extractor(field_or_template: str) -> Callable[[Any], str]:
 def _members_extractor(
     members: dict[str, str] | str | list[str],
 ) -> Callable[[Any], Tuple[str, ...]]:
-    """Relation members extractor: 
+    """Relation members extractor:
     Graph:    {source: 's', target: 't'} -> lambda x: (x.s, x.t)
-    Hypergraph: 'members' -> lambda x: tuple(sorted(x.members)) or 
+    Hypergraph: 'members' -> lambda x: tuple(sorted(x.members)) or
                 'members' -> lambda x: tuple(sorted(x.m) for m in x.members)
     """
     # Handle Graph
@@ -54,8 +54,10 @@ def _members_extractor(
         def extractor(item: Any) -> Tuple[str, str]:
             return tuple(
                 sorted(
-                    str(getattr(item, "source")),
-                    str(getattr(item, "target")),
+                    [
+                        str(getattr(item, "source")),
+                        str(getattr(item, "target")),
+                    ]
                 )
             )
 
@@ -120,7 +122,7 @@ def parse_identifiers(
         if autotype in ("spatial_graph", "spatio_temporal_graph"):
             location_extractor = _extractor(identifiers.location_field)
             rets.append(location_extractor)
-        
+
         return tuple(rets)
 
     return None

@@ -328,9 +328,9 @@ class TemplateFactory:
     def create(
         cls,
         source: Union[str, Path, TemplateCfg],
+        language: str,
         llm_client: BaseChatModel,
         embedder: Embeddings,
-        language: str = "zh",
         **kwargs,
     ):
         """Create template instance based on configuration.
@@ -340,9 +340,9 @@ class TemplateFactory:
                 - str: Template name (e.g., "knowledge_graph") or file path
                 - Path: YAML file path
                 - TemplateCfg: Template configuration instance
+            language: Language code for localization (e.g., 'zh', 'en') - required
             llm_client: LLM client
             embedder: Embedding model
-            language: Language code for localization (e.g., 'zh', 'en')
             **kwargs: Additional parameters to override config parameters
                 e.g., observation_time="2024-06-15", observation_location="Beijing"
 
@@ -351,23 +351,23 @@ class TemplateFactory:
 
         Examples:
             # By name (search via Gallery)
-            template = TemplateFactory.create("knowledge_graph", llm, embedder)
+            template = TemplateFactory.create("knowledge_graph", "zh", llm, embedder)
 
             # By file path
-            template = TemplateFactory.create("/path/to/template.yaml", llm, embedder)
+            template = TemplateFactory.create("/path/to/template.yaml", "zh", llm, embedder)
 
             # By TemplateCfg instance
-            template = TemplateFactory.create(config, llm, embedder)
+            template = TemplateFactory.create(config, "zh", llm, embedder)
 
             # For specific language
-            template = TemplateFactory.create("knowledge_graph", llm, embedder, language="en")
+            template = TemplateFactory.create("knowledge_graph", "en", llm, embedder)
 
             # For spatio-temporal templates, pass observation_time etc.
             template = TemplateFactory.create(
                 "FinancialTemporalGraph",
+                "zh",
                 llm,
                 embedder,
-                language="zh",
                 observation_time="2024-06-15",
                 observation_location="Beijing"
             )

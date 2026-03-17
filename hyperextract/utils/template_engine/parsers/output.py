@@ -29,11 +29,14 @@ def build_naive_schema(
         kwargs = {
             "description": field.description,
         }
-        if field.required is not None:
-            kwargs["required"] = field.required
         if field.default is not None:
             kwargs["default"] = field.default
-        schema_fields[field.name] = (TYPE_MAPPING[field.type], Field(**kwargs))
+        elif field.required is False:  # 非必填且无默认值时，设 default=None
+            kwargs["default"] = None
+        schema_fields[field.name] = (
+            TYPE_MAPPING[field.type],
+            Field(**kwargs),
+        )
     return create_model(name, __doc__=description, **schema_fields)
 
 

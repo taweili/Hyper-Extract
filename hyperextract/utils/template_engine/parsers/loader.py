@@ -38,7 +38,7 @@ class TemplateCfg(BaseModel):
 
 
 def _localize_data(
-    value: str | List[str] | Dict[str, str | List[str]] | None,
+    value: str | List[str] | Dict[str, str | List[str]],
     language: str,
 ) -> str:
     """Get multilingual text value, supports list format
