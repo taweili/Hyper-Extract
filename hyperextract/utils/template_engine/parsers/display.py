@@ -11,9 +11,9 @@ from .identifiers import _extractor
 
 
 def parse_display(
-    display: NaiveDisplaySchema | GraphDisplaySchema | None,
+    display: NaiveDisplaySchema | GraphDisplaySchema,
     autotype: VALID_AUTOTYPES,
-) -> Callable[[Any], str] | tuple[Callable[[Any], str], Callable[[Any], str]] | None:
+) -> Callable[[Any], str] | tuple[Callable[[Any], str], Callable[[Any], str]]:
     """Parse display config and return label extractors.
 
     Args:
@@ -24,9 +24,6 @@ def parse_display(
         - For model/list/set: label_extractor
         - For graph types: (entity_label_extractor, relation_label_extractor)
     """
-    if not display:
-        return None
-
     if autotype in ("model", "list", "set"):
         return _extractor(display.label)
 

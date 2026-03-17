@@ -21,16 +21,22 @@ from hyperextract import Template
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 
+# INPUT_FILE = (
+#     Path(__file__).parent.parent
+#     / "tests"
+#     / "test_data"
+#     / "templates"
+#     / "biography_scientist.md"
+# )
+
 INPUT_FILE = (
     Path(__file__).parent.parent
     / "tests"
-    / "test_data"
-    / "templates"
-    / "biography_scientist.md"
+    / "kg.md"
 )
 
-name = "general/life_event_timeline"
-# name = "general/knowledge_graph"
+# name = "general/life_event_timeline"
+name = "general/knowledge_graph"
 
 
 def main():
