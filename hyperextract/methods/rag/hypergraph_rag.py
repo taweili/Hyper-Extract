@@ -223,6 +223,9 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             # Optimize indexing
             node_fields_for_index=["name", "type", "description"],
             edge_fields_for_index=["knowledge_segment"],
+            # Display labels
+            node_label_extractor=lambda x: x.name,
+            edge_label_extractor=lambda x: f"{x.knowledge_segment[:5]}...",
             # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,

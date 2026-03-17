@@ -8,6 +8,23 @@ the AutoTypes primitives. It's divided into:
 
 from . import rag
 from . import typical
+from .registry import (
+    register_method,
+    get_method,
+    list_methods,
+    get_method_cfg,
+    list_method_cfgs,
+    MethodCfg,
+)
 
-__all__ = ["rag", "typical"]
+__all__ = [
+    "rag",
+    "typical",
+    "register_method",
+    "get_method",
+    "list_methods",
+    "get_method_cfg",
+    "list_method_cfgs",
+    "MethodCfg",
+]
 

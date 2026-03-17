@@ -1,7 +1,6 @@
 """CLI entry point for Hyper-Extract."""
 
 from pathlib import Path
-from datetime import datetime
 from typing import Optional
 
 import typer
@@ -155,18 +154,31 @@ def parse(
     input: str = typer.Argument(..., help="Input file path, directory, or '-' for stdin"),
     output: str = typer.Option(..., "--output", "-o", help="Output directory"),
     template: Optional[str] = typer.Option(None, "--template", "-t", help="Template (omit for interactive selection)"),
-    lang: str = typer.Option("zh", "--lang", "-l", help="Language (zh/en)"),
+    method: Optional[str] = typer.Option(None, "--method", "-m", help="Method template (e.g., light_rag, hyper_rag)"),
+    lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language (zh/en). Required for knowledge templates, optional for methods (default: en)"),
     force: bool = typer.Option(False, "--force", "-f", help="Force overwrite"),
     no_index: bool = typer.Option(False, "--no-index", help="Skip building search index"),
 ):
     """Extract knowledge from text to a new directory."""
     validate_config()
 
-    if template is None:
+    if method:
+        template = f"method/{method}"
+    elif template is None:
         template = select_template_interactive()
         if template is None:
             console.print("[red]No template selected. Exiting.[/red]")
             raise typer.Exit(1)
+
+    is_method_template = template.startswith("method/")
+
+    if is_method_template:
+        if lang is not None:
+            console.print("[dim]Note: Method templates use English prompts. --lang parameter is ignored.[/dim]")
+        lang = "en"
+    elif lang is None:
+        console.print("[red]Error:[/red] --lang is required for knowledge templates. Use --lang en or --lang zh.")
+        raise typer.Exit(1)
 
     output_path = Path(output)
 

@@ -388,6 +388,9 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             # Optimize indexing: only index name field
             node_fields_for_index=["name", "label"],
             edge_fields_for_index=["startNode", "name", "endNode"],
+            # Display labels
+            node_label_extractor=lambda x: x.name,
+            edge_label_extractor=lambda x: x.name,
             # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,

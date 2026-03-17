@@ -12,7 +12,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from semhash import SemHash
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
@@ -185,6 +184,9 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             # Optimize indexing: only index name field
             node_fields_for_index=["name", "label"],
             edge_fields_for_index=["startNode", "name", "endNode"],
+            # Display labels
+            node_label_extractor=lambda x: x.name,
+            edge_label_extractor=lambda x: x.name,
             # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,

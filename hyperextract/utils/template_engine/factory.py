@@ -3,7 +3,7 @@
 Supports all 8 AutoType dynamic generation.
 """
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Optional
 from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
@@ -34,6 +34,58 @@ if TYPE_CHECKING:
 
 
 class TemplateFactory:
+    @classmethod
+    def create_method(
+        cls,
+        method_name: str,
+        llm_client: BaseChatModel,
+        embedder: Embeddings,
+        **kwargs,
+    ):
+        """Create method template instance.
+
+        Note: Method templates use English prompts only.
+        Language is hardcoded to "en" in metadata.
+
+        Args:
+            method_name: Method name (e.g., "light_rag", "hyper_rag")
+            llm_client: LLM client
+            embedder: Embedding model
+            **kwargs: Additional parameters passed to the method constructor
+
+        Returns:
+            AutoType instance
+
+        Examples:
+            # Create Light_RAG method
+            template = TemplateFactory.create_method("light_rag", llm, embedder)
+
+            # Create Atom method with observation_time
+            template = TemplateFactory.create_method(
+                "atom", llm, embedder, observation_time="2024-06-15"
+            )
+        """
+        from hyperextract.methods.registry import get_method
+
+        method_info = get_method(method_name)
+        if method_info is None:
+            raise ValueError(f"Unknown method: {method_name}")
+
+        method_class = method_info["class"]
+        autotype = method_info["type"]
+
+        instance = method_class(
+            llm_client=llm_client,
+            embedder=embedder,
+            **kwargs,
+        )
+
+        instance.metadata["template"] = f"method/{method_name}"
+        instance.metadata["lang"] = "en"
+        instance.metadata["type"] = autotype
+
+        return instance
+
     @classmethod
     def create_model(
         cls,
@@ -328,18 +380,24 @@ class TemplateFactory:
     def create(
         cls,
         source: Union[str, TemplateCfg],
-        language: str,
-        llm_client: BaseChatModel,
-        embedder: Embeddings,
+        language: Optional[str] = None,
+        llm_client: BaseChatModel = None,
+        embedder: Embeddings = None,
         **kwargs,
     ):
         """Create template instance based on configuration.
 
+        Supports both knowledge templates and method templates:
+        - Knowledge templates: "general/knowledge_graph", "/path/to/template.yaml"
+        - Method templates: "method/light_rag", "method/hyper_rag"
+
         Args:
             source: Template source - can be:
-                - str: Template name (e.g., "knowledge_graph") or file path
+                - str: Template name (e.g., "knowledge_graph", "method/light_rag") or file path
                 - TemplateCfg: Template configuration instance
-            language: Language code for localization (e.g., 'zh', 'en') - required
+            language: Language code for localization (e.g., 'zh', 'en')
+                - Required for knowledge templates
+                - Ignored for method templates (always uses "en")
             llm_client: LLM client
             embedder: Embedding model
             **kwargs: Additional parameters to override config parameters
@@ -349,17 +407,17 @@ class TemplateFactory:
             AutoType instance
 
         Examples:
-            # By name (search via Gallery)
+            # Knowledge template by name (language required)
             template = TemplateFactory.create("knowledge_graph", "zh", llm, embedder)
 
-            # By file path
+            # Method template (language ignored, always "en")
+            template = TemplateFactory.create("method/light_rag", llm=llm, embedder=embedder)
+
+            # By file path (language required)
             template = TemplateFactory.create("/path/to/template.yaml", "zh", llm, embedder)
 
-            # By TemplateCfg instance
+            # By TemplateCfg instance (language required)
             template = TemplateFactory.create(config, "zh", llm, embedder)
-
-            # For specific language
-            template = TemplateFactory.create("knowledge_graph", "en", llm, embedder)
 
             # For spatio-temporal templates, pass observation_time etc.
             template = TemplateFactory.create(
@@ -371,16 +429,24 @@ class TemplateFactory:
                 observation_location="Beijing"
             )
 
-            # Can also override other parameters
+            # For method templates with specific parameters
             template = TemplateFactory.create(
-                "knowledge_graph",
-                llm,
-                embedder,
-                language="zh",
-                chunk_size=4096,
-                max_workers=20
+                "method/atom",
+                llm=llm,
+                embedder=embedder,
+                observation_time="2024-06-15"
             )
         """
+        if isinstance(source, str) and source.startswith("method/"):
+            method_name = source[7:]
+            return cls.create_method(method_name, llm_client, embedder, **kwargs)
+
+        if language is None:
+            raise ValueError(
+                "language is required for knowledge templates. "
+                "Provide a language code (e.g., 'zh', 'en')."
+            )
+
         from .gallery import Gallery
         from .parsers import load_template
 

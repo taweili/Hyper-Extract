@@ -8,6 +8,8 @@ from typing import Dict, Optional
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
+from hyperextract.methods import get_method_cfg
+
 from .gallery import Gallery
 from .parsers import TemplateCfg
 
@@ -36,7 +38,7 @@ class Template:
     @staticmethod
     def create(
         source: str,
-        language: str,
+        language: Optional[str] = None,
         llm_client: Optional[BaseChatModel] = None,
         embedder: Optional[Embeddings] = None,
         **kwargs,
@@ -44,8 +46,10 @@ class Template:
         """Create template instance.
 
         Args:
-            source: Template path (e.g., "general/knowledge_graph") or file path
-            language: Language code (e.g., "zh", "en") - required
+            source: Template path (e.g., "general/knowledge_graph", "method/light_rag") or file path
+            language: Language code (e.g., "zh", "en")
+                - Required for knowledge templates
+                - Ignored for method templates (always uses "en")
             llm_client: LLM client (reads from global config if not provided)
             embedder: Embedder client (reads from global config if not provided)
             **kwargs: Additional parameters
@@ -54,10 +58,13 @@ class Template:
             AutoType instance
 
         Examples:
-            # By path
+            # Knowledge template (language required)
             template = Template.create("general/knowledge_graph", "zh", llm, emb)
 
-            # By file path
+            # Method template (language ignored, always "en")
+            template = Template.create("method/light_rag", llm_client=llm, embedder=embedder)
+
+            # By file path (language required)
             template = Template.create("/path/to/template.yaml", "zh", llm, emb)
 
             # For temporal/spatial templates
@@ -85,11 +92,14 @@ class Template:
         """Get template configuration by path.
 
         Args:
-            path: Template path (e.g., "general/knowledge_graph")
+            path: Template path (e.g., "general/knowledge_graph" or "method/light_rag")
 
         Returns:
             TemplateCfg or None if not found
         """
+        if path.startswith("method/"):
+            method_name = path[7:]
+            return get_method_cfg(method_name)
         return Gallery.get(path)
 
     @staticmethod
@@ -98,6 +108,7 @@ class Template:
         filter_by_type: Optional[str] = None,
         filter_by_tag: Optional[str] = None,
         filter_by_language: Optional[str] = None,
+        include_methods: bool = True,
     ) -> Dict[str, TemplateCfg]:
         """List templates with optional filters.
 
@@ -106,15 +117,23 @@ class Template:
             filter_by_type: Filter by autotype (e.g., "graph", "list", "model")
             filter_by_tag: Filter by tag
             filter_by_language: Filter by language (e.g., "zh", "en")
+            include_methods: Whether to include method templates (default: True)
 
         Returns:
             Dict mapping template name to TemplateCfg
         """
-        return Gallery.list(
+        templates = Gallery.list(
             filter_by_query=filter_by_query,
             filter_by_type=filter_by_type,
             filter_by_tag=filter_by_tag,
             filter_by_language=filter_by_language,
         )
+
+        if include_methods:
+            from hyperextract.methods import list_method_cfgs
+            method_templates = list_method_cfgs()
+            templates.update(method_templates)
+
+        return templates
 
 

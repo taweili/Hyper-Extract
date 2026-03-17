@@ -197,10 +197,12 @@ class Light_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             # Optimize indexing
             node_fields_for_index=["name", "type", "description"],
             edge_fields_for_index=["keywords", "description"],
+            # Display labels
+            node_label_extractor=lambda x: x.name,
+            edge_label_extractor=lambda x: f"{x.description[:5]}...",
             # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             max_workers=max_workers,
             verbose=verbose,
         )
-

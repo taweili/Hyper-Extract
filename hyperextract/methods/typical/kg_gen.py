@@ -153,6 +153,9 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             # Optimize indexing: only index name field
             node_fields_for_index=["name"],
             edge_fields_for_index=["subject", "predicate", "object"],
+            # Display labels
+            node_label_extractor=lambda x: x.name,
+            edge_label_extractor=lambda x: x.predicate,
             # Other parameters
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
