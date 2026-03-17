@@ -126,10 +126,12 @@ class Gallery:
                     domains.append(item.name)
         return sorted(domains)
 
-    def _load_config(self, file_path: Path) -> None:
+    def _load_config(self, file_path: Path, presets_dir: Path) -> None:
         try:
             config = load_template(file_path)
-            self._configs[config.name] = config
+            domain = file_path.parent.relative_to(presets_dir).parts[0]
+            key = f"{domain}/{config.name}"
+            self._configs[key] = config
         except Exception as e:
             print(f"Failed to load config {file_path}: {e}")
 
@@ -141,11 +143,8 @@ def _init_gallery() -> Gallery:
     presets_dir = Path(__file__).parent.parent.parent / "templates" / "presets"
 
     if presets_dir.exists():
-        for root, _, files in presets_dir.rglob("*"):
-            if root.is_dir():
-                for file in files:
-                    if file.suffix in (".yaml", ".yml"):
-                        gallery._load_config(root / file)
+        for file_path in presets_dir.rglob("*.yaml"):
+            gallery._load_config(file_path, presets_dir)
 
     return gallery
 

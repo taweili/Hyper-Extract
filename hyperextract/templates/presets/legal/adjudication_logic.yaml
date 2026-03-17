@@ -1,8 +1,7 @@
 language: zh
-name: AdjudicationLogic
+name: adjudication_logic
 type: hypergraph
-tags:
-- legal
+tags: [legal]
 description:
   zh: '裁判逻辑超图 - 建模法官的推理过程'
 
@@ -42,7 +41,7 @@ output:
       required: true
       default: ''
     - name: participants
-      type: list
+      type: list[str]
       description:
         zh: '参与要素名称列表，必须使用已提取节点的 name'
       required: true

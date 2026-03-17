@@ -38,25 +38,22 @@ def build_naive_schema(
 
 
 def build_graph_schema(
-    name: str,
     entity: NaiveOutputSchema,
     relation: NaiveOutputSchema,
     description: str,
-) -> BaseModel:
+) -> tuple[BaseModel, BaseModel]:
     """Build Pydantic schema for graph types (graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph)."""
-    schema_fields = {
-        "entities": build_naive_schema(
-            entity.name,
-            entity.fields,
-            entity.description,
-        ),
-        "relations": build_naive_schema(
-            relation.name,
-            relation.fields,
-            relation.description,
-        ),
-    }
-    return create_model(name, __doc__=description, **schema_fields)
+    entity_schema = build_naive_schema(
+        "NodeSchema",
+        entity.fields,
+        entity.description,
+    )
+    relation_schema = build_naive_schema(
+        "EdgeSchema",
+        relation.fields,
+        relation.description,
+    )
+    return entity_schema, relation_schema
 
 
 def parse_output(
@@ -71,13 +68,12 @@ def parse_output(
 
     if autotype in ("model", "list", "set"):
         return build_naive_schema(
-            output.name,
+            "DataSchema",
             output.fields,
             output.description,
         )
     else:
         return build_graph_schema(
-            output.name,
             output.entities,
             output.relations,
             output.description,

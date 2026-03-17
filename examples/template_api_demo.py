@@ -21,7 +21,7 @@ from hyperextract.utils.template_engine import Template
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 
-INPUT_FILE = Path(__file__).parent.parent / "tests" / "test_data" / "test_samples" / "zh" / "general" / "biography_scientist.md"
+INPUT_FILE = Path(__file__).parent.parent / "tests" / "test_data" / "templates" / "biography_scientist.md"
 
 
 def main():
@@ -63,6 +63,7 @@ def main():
         'life_event_timeline',
         llm_client=llm,
         embedder=embedder,
+        language="zh",
     )
     print(f"创建成功: {type(template).__name__}")
 

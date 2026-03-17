@@ -1,5 +1,5 @@
 language: zh
-name: LifeEventTimeline
+name: life_event_timeline
 type: temporal_graph
 tags: [general]
 description:
@@ -10,7 +10,7 @@ output:
     zh: '包含实体和事件关系的时间线'
   entities:
     description: 
-      zh: '提取的实体列表'
+      zh: '提取的实体'
     fields:
     - name: name
       type: str
@@ -27,7 +27,7 @@ output:
       required: false
   relations:
     description: 
-      zh: '提取的事件关系列表'
+      zh: '提取的事件关系'
     fields:
     - name: source
       type: str

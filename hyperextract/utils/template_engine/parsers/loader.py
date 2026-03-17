@@ -86,7 +86,7 @@ def _localize_naive_output(
 def _localize_output(
     output: NaiveOutputSchema | GraphOutputSchema,
     language: str,
-    autotype: VALID_AUTOTYPES | None = None,
+    autotype: VALID_AUTOTYPES,
 ) -> NaiveOutputSchema | GraphOutputSchema:
     """Localize output configuration."""
     if autotype in ("model", "list", "set"):
@@ -101,7 +101,7 @@ def _localize_output(
 def _localize_guideline(
     guideline: NaiveGuidelineSchema | GraphGuidelineSchema,
     language: str,
-    autotype: VALID_AUTOTYPES | None = None,
+    autotype: VALID_AUTOTYPES,
 ) -> NaiveGuidelineSchema | GraphGuidelineSchema:
     """Localize guideline configuration."""
     if autotype in ("model", "list", "set"):
@@ -144,7 +144,7 @@ def localize_template(config: TemplateCfg, language: str) -> TemplateCfg:
         type=config.type,
         tags=config.tags,
         description=_localize_data(config.description, language),
-        output=_localize_output(config.output, language),
+        output=_localize_output(config.output, language, config.type),
         guideline=_localize_guideline(config.guideline, language, config.type),
         identifiers=config.identifiers,
         options=config.options,

@@ -201,7 +201,7 @@ class TemplateFactory:
     ) -> "AutoTemporalGraph":
         from hyperextract.types import AutoTemporalGraph
 
-        entity_schema, relation_schema = parse_output(config.output)
+        entity_schema, relation_schema = parse_output(config.output, config.type)
         (
             entity_key_extractor,
             relation_key_extractor,
@@ -386,7 +386,7 @@ class TemplateFactory:
         from .parsers import load_template
 
         match source:
-            case str() as s if s.endswith((".yaml", ".yml")) or Path(s).exists():
+            case str() as s if s.endswith(".yaml") or Path(s).exists():
                 config = load_template(s)
             case str() as s:
                 config = Gallery.get(s)
