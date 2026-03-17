@@ -1,7 +1,7 @@
 """Typical/Canonical Pipelines.
 
 This module contains typical and canonical methods for constructing knowledge graphs
-from text, including Graphiti, iText2KG, and other established graph-building techniques.
+from text, including iText2KG, and other established graph-building techniques.
 """
 
 from .itext2kg import iText2KG

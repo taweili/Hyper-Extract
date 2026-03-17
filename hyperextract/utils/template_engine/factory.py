@@ -327,7 +327,7 @@ class TemplateFactory:
     @classmethod
     def create(
         cls,
-        source: Union[str, Path, TemplateCfg],
+        source: Union[str, TemplateCfg],
         language: str,
         llm_client: BaseChatModel,
         embedder: Embeddings,
@@ -338,7 +338,6 @@ class TemplateFactory:
         Args:
             source: Template source - can be:
                 - str: Template name (e.g., "knowledge_graph") or file path
-                - Path: YAML file path
                 - TemplateCfg: Template configuration instance
             language: Language code for localization (e.g., 'zh', 'en') - required
             llm_client: LLM client
@@ -387,42 +386,43 @@ class TemplateFactory:
 
         match source:
             case str() as s if s.endswith(".yaml") or Path(s).exists():
-                config = load_template(s)
+                template_cfg = load_template(s)
             case str() as s:
-                config = Gallery.get(s)
-            case Path() as p if p.exists():
-                config = load_template(p)
+                template_cfg = Gallery.get(s)
             case _:
                 raise ValueError("Invalid source: must be a template path or file path")
 
-        if config is None:
+        if template_cfg is None:
             raise ValueError(f"Template not found: {source}")
 
-        template = localize_template(config, language)
+        template_cfg = localize_template(template_cfg, language)
 
-        match template.type:
+        match template_cfg.type:
             case "model":
-                template = cls.create_model(template, llm_client, embedder, **kwargs)
+                template = cls.create_model(template_cfg, llm_client, embedder, **kwargs)
             case "list":
-                template = cls.create_list(template, llm_client, embedder, **kwargs)
+                template = cls.create_list(template_cfg, llm_client, embedder, **kwargs)
             case "set":
-                template = cls.create_set(template, llm_client, embedder, **kwargs)
+                template = cls.create_set(template_cfg, llm_client, embedder, **kwargs)
             case "graph":
-                template = cls.create_graph(template, llm_client, embedder, **kwargs)
+                template = cls.create_graph(template_cfg, llm_client, embedder, **kwargs)
             case "hypergraph":
                 template = cls.create_hypergraph(
-                    template, llm_client, embedder, **kwargs
+                    template_cfg, llm_client, embedder, **kwargs
                 )
             case "temporal_graph":
                 template = cls.create_temporal_graph(
-                    template, llm_client, embedder, **kwargs
+                    template_cfg, llm_client, embedder, **kwargs
                 )
             case "spatial_graph":
                 template = cls.create_spatial_graph(
-                    template, llm_client, embedder, **kwargs
+                    template_cfg, llm_client, embedder, **kwargs
                 )
             case "spatio_temporal_graph":
                 template = cls.create_spatio_temporal_graph(
-                    template, llm_client, embedder, **kwargs
+                    template_cfg, llm_client, embedder, **kwargs
                 )
+        template.metadata["template"] = source
+        template.metadata["lang"] = language
+        template.metadata["type"] = template_cfg.type
         return template

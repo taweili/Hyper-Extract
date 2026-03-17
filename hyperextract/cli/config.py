@@ -196,10 +196,3 @@ def load_kb_metadata(kb_path: Path) -> Optional[Dict[str, Any]]:
 
     with open(metadata_path, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def save_kb_metadata(kb_path: Path, metadata: Dict[str, Any]) -> None:
-    """Save knowledge base metadata to directory."""
-    metadata_path = kb_path / "metadata.json"
-    with open(metadata_path, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False, default=str)

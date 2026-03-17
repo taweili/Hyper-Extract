@@ -4,7 +4,6 @@ Provides a clean API for searching and creating knowledge extraction templates.
 """
 
 from typing import Dict, Optional
-from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -36,7 +35,7 @@ class Template:
 
     @staticmethod
     def create(
-        source: str | Path,
+        source: str,
         language: str,
         llm_client: Optional[BaseChatModel] = None,
         embedder: Optional[Embeddings] = None,

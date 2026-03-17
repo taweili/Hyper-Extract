@@ -28,6 +28,9 @@ output:
     - name: target
       type: str
       description: '目标实体'
+    - name: type
+      type: str
+      description: '关系类型'
     - name: description
       type: str
       description: '关系描述'
@@ -59,4 +62,4 @@ options:
 
 display:
   entity_label: '{name} ({type})'
-  relation_label: '{description}'
+  relation_label: '{type}'

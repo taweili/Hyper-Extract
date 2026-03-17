@@ -3,51 +3,12 @@
 import sys
 import typer
 from pathlib import Path
+from typing import Tuple
 from rich.console import Console
-from typing import Optional, Tuple
 
-from hyperextract.utils.template_engine import Template, TemplateCfg
 from .config import ConfigManager
 
 console = Console()
-
-
-AUTOTYPE_MAP = {
-    "model": "AutoModel",
-    "list": "AutoList",
-    "set": "AutoSet",
-    "graph": "AutoGraph",
-    "hypergraph": "AutoHypergraph",
-    "temporal_graph": "AutoTemporalGraph",
-    "spatial_graph": "AutoSpatialGraph",
-    "spatio_temporal_graph": "AutoSpatioTemporalGraph",
-}
-
-AUTOTYPE_DESCRIPTIONS = {
-    "AutoModel": "Extract into a complete data model",
-    "AutoList": "Extract as a list (keywords, items)",
-    "AutoSet": "Extract and deduplicate (entity registry)",
-    "AutoGraph": "Extract as a knowledge graph (relations)",
-    "AutoTemporalGraph": "Extract as timeline (events over time)",
-    "AutoSpatialGraph": "Extract as spatial graph (locations)",
-    "AutoSpatioTemporalGraph": "Extract as spatiotemporal graph (time + space)",
-    "AutoHypergraph": "Extract as hypergraph (multi-party relations)",
-}
-
-DOMAIN_DESCRIPTIONS = {
-    "finance": "Financial documents",
-    "medicine": "Medical documents",
-    "legal": "Legal documents",
-    "history": "Historical documents",
-    "literature": "Literature works",
-    "tcm": "Traditional Chinese Medicine",
-    "news": "News articles",
-    "biology": "Biological documents",
-    "industry": "Industrial documents",
-    "agriculture": "Agricultural documents",
-    "food": "Food and culinary",
-    "general": "General purpose",
-}
 
 
 def read_input(input_path: str) -> str:
@@ -147,14 +108,8 @@ def get_template_from_kb(kb_path: Path) -> Tuple[str, str]:
 
     metadata = load_kb_metadata(kb_path)
 
-    if not metadata:
-        console.print(
-            "[yellow]Warning:[/yellow] No metadata found, assuming knowledge_graph"
-        )
-        return "knowledge_graph", "zh"
-
-    template = metadata.get("template", "knowledge_graph")
-    lang = metadata.get("lang", "zh")
+    template = metadata.get("template")
+    lang = metadata.get("lang")
 
     return template, lang
 
@@ -177,66 +132,3 @@ def validate_config() -> "ConfigManager":
         raise typer.Exit(1)
 
     return config
-
-
-def create_template(template: str, lang: str = "zh"):
-    """Create template instance.
-
-    Args:
-        template: Template name
-        lang: Language (zh/en)
-
-    Returns:
-        TemplateWrapper instance
-    """
-    return Template.create(template, lang)
-
-
-def get_template_config(template: str, lang: str = "zh") -> Optional[TemplateCfg]:
-    """Get template config.
-
-    Args:
-        template: Template name
-        lang: Language (zh/en)
-
-    Returns:
-        TemplateCfg if found
-    """
-    return Template.get(template, lang)
-
-
-def get_auto_type_from_config(config: TemplateCfg) -> str:
-    """Infer AutoType from template config.
-
-    Args:
-        config: TemplateCfg instance
-
-    Returns:
-        AutoType str (e.g., "AutoGraph")
-    """
-    autotype = config.autotype
-    return AUTOTYPE_MAP.get(autotype, "AutoGraph")
-
-
-def get_autotype_description(autotype: str) -> str:
-    """Get description for AutoType.
-
-    Args:
-        autotype: AutoType name (e.g., "AutoGraph")
-
-    Returns:
-        Description str
-    """
-    return AUTOTYPE_DESCRIPTIONS.get(autotype, "")
-
-
-def get_domain_description(domain: str) -> str:
-    """Get description for domain.
-
-    Args:
-        domain: Domain name (e.g., "finance")
-
-    Returns:
-        Description str
-    """
-    return DOMAIN_DESCRIPTIONS.get(domain, f"{domain} documents")

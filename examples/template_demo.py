@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from hyperextract.utils.template_engine import Template
+from hyperextract import Template
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
