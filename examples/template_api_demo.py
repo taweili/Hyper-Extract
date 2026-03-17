@@ -21,7 +21,6 @@ from hyperextract.utils.template_engine import Template
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 
-TEMPLATE_FILE = Path(__file__).parent.parent / "hyperextract" / "templates" / "presets" / "general" / "life_event_timeline.yaml"
 INPUT_FILE = Path(__file__).parent.parent / "tests" / "test_data" / "test_samples" / "zh" / "general" / "biography_scientist.md"
 
 
@@ -30,16 +29,12 @@ def main():
     print("Template API 测试")
     print("=" * 60)
 
-    if not TEMPLATE_FILE.exists():
-        print(f"❌ 找不到模板文件: {TEMPLATE_FILE}")
-        return
-
     if not INPUT_FILE.exists():
         print(f"❌ 找不到输入文件: {INPUT_FILE}")
         return
 
     print(f"\n📄 输入文件: {INPUT_FILE.name}")
-    print(f"🎯 使用模板: {TEMPLATE_FILE.name}")
+    print(f"🎯 使用模板: general/life_event_timeline")
 
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
@@ -65,7 +60,7 @@ def main():
 
     print("\n[5] Template.create() - 通过文件路径创建实例")
     template = Template.create(
-        str(TEMPLATE_FILE),
+        'life_event_timeline',
         llm_client=llm,
         embedder=embedder,
     )

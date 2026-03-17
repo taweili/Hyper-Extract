@@ -38,12 +38,19 @@ class Gallery:
         """Get template configuration by path.
 
         Args:
-            path: Template path (e.g., "general/knowledge_graph")
+            path: Template path
+                If no domain is specified, "general/" is assumed. 
+                Only templates in the "general/" domain are supported.
+                Other domains are not supported.
+                (e.g., "general/knowledge_graph" or "knowledge_graph") 
 
         Returns:
             TemplateCfg or None if not found
         """
-        return cls._instance._configs.get(path) if cls._instance else None
+        if "/" in path:
+            return cls._instance._configs.get(path)
+
+        return cls._instance._configs.get(f"general/{path}")
 
     @classmethod
     def list(cls) -> List[str]:

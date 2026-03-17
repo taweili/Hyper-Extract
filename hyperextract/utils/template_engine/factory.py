@@ -386,16 +386,17 @@ class TemplateFactory:
         from .parsers import load_template
 
         match source:
-            case str() as s if Path(s).exists():
+            case str() as s if s.endswith((".yaml", ".yml")) or Path(s).exists():
                 config = load_template(s)
             case str() as s:
                 config = Gallery.get(s)
-                if config is None:
-                    raise ValueError(f"Template '{s}' not found")
             case Path() as p if p.exists():
                 config = load_template(p)
             case _:
-                raise ValueError(f"Invalid source: must be a template path or file path")
+                raise ValueError("Invalid source: must be a template path or file path")
+
+        if config is None:
+            raise ValueError(f"Template not found: {source}")
 
         template = localize_template(config, language)
 
