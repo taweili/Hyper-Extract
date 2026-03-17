@@ -3,7 +3,7 @@
 Provides a clean API for searching and creating knowledge extraction templates.
 """
 
-from typing import List, Optional, Union
+from typing import List, Optional
 from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
@@ -19,10 +19,9 @@ class Template:
     Usage Examples:
         from hyperextract.utils.template_engine import Template
 
-        # Create template instance (3 ways)
+        # Create template instance (2 ways)
         template = Template.create("general/knowledge_graph", llm, emb)
         template = Template.create("/path/to/template.yaml", llm, emb)
-        template = Template.create(config, llm, emb)
 
         # Get template config by path
         config = Template.get("general/knowledge_graph")
@@ -41,19 +40,16 @@ class Template:
 
     @staticmethod
     def create(
-        source: Union[str, Path, TemplateCfg],
+        source: str | Path,
         llm_client: Optional[BaseChatModel] = None,
         embedder: Optional[Embeddings] = None,
-        language: str = "zh",
+        language: str = "en",
         **kwargs,
     ):
         """Create template instance.
 
         Args:
-            source: Template source - can be:
-                - str: Template path (e.g., "general/knowledge_graph") or file path
-                - Path: YAML file path
-                - TemplateCfg: Template configuration instance
+            source: Template path (e.g., "general/knowledge_graph") or file path
             llm_client: LLM client (reads from global config if not provided)
             embedder: Embedder client (reads from global config if not provided)
             language: Language code (e.g., "zh", "en")
@@ -68,9 +64,6 @@ class Template:
 
             # By file path
             template = Template.create("/path/to/template.yaml", llm, emb)
-
-            # By config instance
-            template = Template.create(config, llm, emb)
 
             # For temporal/spatial templates
             template = Template.create(

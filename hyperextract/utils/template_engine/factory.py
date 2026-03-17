@@ -391,15 +391,11 @@ class TemplateFactory:
             case str() as s:
                 config = Gallery.get(s)
                 if config is None:
-                    config = Gallery.get(f"{language}/{s}")
-                if config is None:
                     raise ValueError(f"Template '{s}' not found")
             case Path() as p if p.exists():
                 config = load_template(p)
-            case TemplateCfg() as cfg:
-                config = cfg
             case _:
-                raise ValueError(f"Invalid source type: {type(source)}")
+                raise ValueError(f"Invalid source: must be a template path or file path")
 
         template = localize_template(config, language)
 

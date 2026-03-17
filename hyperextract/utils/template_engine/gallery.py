@@ -1,9 +1,8 @@
 """Template Gallery - Manages discovery and loading of knowledge extraction templates.
 
-Supports auto-loading presets and customs directories.
+Auto-loads templates from presets directory.
 """
 
-import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -16,7 +15,7 @@ class Gallery:
     Usage Examples:
         from hyperextract.utils.template_engine import Gallery
 
-        # Get template (auto-loaded)
+        # Get template by path
         config = Gallery.get("general/knowledge_graph")
 
         # List all templates
@@ -27,20 +26,12 @@ class Gallery:
 
         # Search templates
         results = Gallery.search(type="graph")
-
-        # Add custom template directory (auto-loaded)
-        Gallery.add_path("/path/to/my/templates")
-
-        # Add single YAML file
-        Gallery.add("/path/to/my_template.yaml")
     """
 
     _instance: Optional["Gallery"] = None
 
     def __init__(self):
         self._configs: Dict[str, TemplateCfg] = {}
-        self._configs_by_type: Dict[str, List[str]] = {}
-        self._configs_by_tag: Dict[str, List[str]] = {}
 
     @classmethod
     def get(cls, path: str) -> Optional[TemplateCfg]:
@@ -62,36 +53,6 @@ class Gallery:
             List of template names
         """
         return list(cls._instance._configs.keys()) if cls._instance else []
-
-    @classmethod
-    def add_path(cls, path: str) -> None:
-        """Add a directory of template files.
-
-        Args:
-            path: Directory path containing YAML template files
-        """
-        if not cls._instance:
-            return
-        dir_path = Path(path)
-        if not dir_path.exists() or not dir_path.is_dir():
-            return
-        for root, _, files in os.walk(dir_path):
-            for file in files:
-                if file.endswith((".yaml", ".yml")):
-                    cls._instance._load_config(Path(root) / file)
-
-    @classmethod
-    def add(cls, file_path: str) -> None:
-        """Add a single template file.
-
-        Args:
-            file_path: Path to YAML template file
-        """
-        if not cls._instance:
-            return
-        path = Path(file_path)
-        if path.exists() and path.is_file() and path.suffix in (".yaml", ".yml"):
-            cls._instance._load_config(path)
 
     @classmethod
     def search(
@@ -116,24 +77,22 @@ class Gallery:
             return []
 
         results = []
-
         for config in cls._instance._configs.values():
-            if query:
-                query_lower = query.lower()
-                name_match = config.name.lower()
-                desc_match = getattr(config, "description", None)
-                desc_value = desc_match.zh if hasattr(desc_match, "zh") else desc_match
-                if query_lower not in name_match and (
-                    desc_value and query_lower not in str(desc_value).lower()
+            q = query.lower() if query else None
+
+            if q and q not in config.name.lower():
+                desc = config.description
+                if isinstance(desc, str) and q not in desc.lower():
+                    continue
+                if isinstance(desc, dict) and not any(
+                    q in v.lower() for v in desc.values()
                 ):
                     continue
 
             if type and config.type != type:
                 continue
-
             if tag and (not config.tags or tag not in config.tags):
                 continue
-
             if language:
                 config_lang = config.language
                 if isinstance(config_lang, list):
@@ -141,7 +100,6 @@ class Gallery:
                         continue
                 elif config_lang != language:
                     continue
-
             results.append(config)
 
         return results
@@ -164,39 +122,23 @@ class Gallery:
     def _load_config(self, file_path: Path) -> None:
         try:
             config = load_template(file_path)
-            self._register(config)
+            self._configs[config.name] = config
         except Exception as e:
             print(f"Failed to load config {file_path}: {e}")
-
-    def _register(self, config: TemplateCfg) -> None:
-        self._configs[config.name] = config
-
-        if config.type not in self._configs_by_type:
-            self._configs_by_type[config.type] = []
-        if config.name not in self._configs_by_type[config.type]:
-            self._configs_by_type[config.type].append(config.name)
-
-        if config.tags:
-            for tag in config.tags:
-                if tag not in self._configs_by_tag:
-                    self._configs_by_tag[tag] = []
-                if config.name not in self._configs_by_tag[tag]:
-                    self._configs_by_tag[tag].append(config.name)
 
 
 def _init_gallery() -> Gallery:
     gallery = Gallery()
     Gallery._instance = gallery
 
-    base_dir = Path(__file__).parent.parent.parent / "templates"
-    presets_dir = base_dir / "presets"
-    customs_dir = base_dir / "customs"
+    presets_dir = Path(__file__).parent.parent.parent / "templates" / "presets"
 
     if presets_dir.exists():
-        Gallery.add_path(str(presets_dir))
-
-    if customs_dir.exists():
-        Gallery.add_path(str(customs_dir))
+        for root, _, files in presets_dir.rglob("*"):
+            if root.is_dir():
+                for file in files:
+                    if file.suffix in (".yaml", ".yml"):
+                        gallery._load_config(root / file)
 
     return gallery
 
