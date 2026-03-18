@@ -5,7 +5,6 @@ from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -14,6 +13,7 @@ from rich.prompt import Prompt
 from hyperextract.utils.template_engine import Gallery, Template
 
 from .utils import (
+    LOGO,
     read_input,
     validate_config,
     validate_kb_path,
@@ -58,46 +58,74 @@ def main(
         raise typer.Exit()
 
     if ctx.invoked_subcommand is None:
-        welcome_text = Text("Welcome to Hyper-Extract CLI!", style="bold cyan")
-        desc_text = Text("A command-line tool for knowledge extraction from unstructured text.")
-
-        table = Table(box=None, show_header=False, pad_edge=False)
-        table.add_column(style="green", no_wrap=True)
-        table.add_column(no_wrap=True)
-
-        table.add_row("", "")
-        table.add_row("[bold]> Getting Started[/bold]", "")
-        table.add_row("  he list template", "List available templates")
-        table.add_row("  he list method", "List available extraction methods")
-        table.add_row("  he config --help", "Manage LLM/Embedder configuration")
-        table.add_row("", "")
-        table.add_row("[bold]> Create Knowledge Base[/bold]", "")
-        table.add_row("  he parse <input> -o <kb_path>", "Extract knowledge from input file")
-        table.add_row("  he feed <kb_path> <input>", "Feed knowledge into knowledge base")
-        table.add_row("  he build-index <kb_path>", "Build index for semantic search")
-        table.add_row("", "")
-        table.add_row("[bold]> Explore Knowledge Base[/bold]", "")
-        table.add_row("  he info <kb_path>", "View knowledge base info")
-        table.add_row("  he talk <kb_path> [-i]", "Chat with knowledge base")
-        table.add_row("  he search <kb_path> <query>", "Semantic search in knowledge base")
-        table.add_row("  he show <kb_path>", "Visualize knowledge base")
-        table.add_row("", "")
-
-        panel = Panel(
-            table,
-            title="Quick Start",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-
+        from . import __version__
+        
         console.print()
-        console.print(welcome_text)
-        console.print()
+        console.print(Text(LOGO, style="bold cyan"))
+        
+        title_text = Text("HYPER-EXTRACT", style="bold cyan")
+        version_text = Text(f"v{__version__}", style="dim white")
+        desc_text = Text("Transform unstructured text into structured knowledge", style="dim")
+        
+        header = Table(box=None, show_header=False, pad_edge=False)
+        header.add_column(no_wrap=True)
+        header.add_column(style="dim white", no_wrap=True)
+        header.add_row(title_text, version_text)
+        
+        console.print(header)
         console.print(desc_text)
         console.print()
-        console.print(panel)
+        
+        from rich.rule import Rule
+        
+        console.print(Rule(style="cyan dim"))
         console.print()
-        console.print("Run [bold]he --help[/bold] for more information.")
+        
+        from rich.columns import Columns
+        from rich.panel import Panel
+        
+        def make_section(title: str, commands: list[tuple[str, str]]) -> Panel:
+            table = Table(box=None, show_header=False, pad_edge=False)
+            table.add_column(style="green bold", no_wrap=True)
+            table.add_column(style="white", no_wrap=True)
+            for cmd, desc in commands:
+                table.add_row(f"  {cmd}", desc)
+            return Panel(
+                table,
+                title=f"[bold cyan]{title}[/]",
+                border_style="cyan dim",
+                padding=(0, 1),
+            )
+        
+        sections = [
+            make_section("🚀 Getting Started", [
+                ("he list template", "List available templates"),
+                ("he list method", "List extraction methods"),
+                ("he config --help", "Manage LLM/Embedder config"),
+            ]),
+            make_section("✨ Create KB", [
+                ("he parse <input> -o <kb>", "Extract knowledge from file"),
+                ("he feed <kb> <input>", "Add knowledge to existing KB"),
+                ("he build-index <kb>", "Build semantic search index"),
+            ]),
+            make_section("🔍 Explore KB", [
+                ("he info <kb>", "View KB info & stats"),
+                ("he talk <kb> [-i]", "Chat with knowledge base"),
+                ("he search <kb> <query>", "Semantic search"),
+                ("he show <kb>", "Visualize knowledge graph"),
+            ]),
+        ]
+        
+        console.print(Columns(sections, equal=True, expand=True))
+        console.print()
+        console.print(Rule(style="cyan dim"))
+        console.print()
+        
+        hint_text = Text("💡 Tip: Run ", style="dim")
+        hint_text.append("he --help", style="bold cyan")
+        hint_text.append(" for detailed documentation", style="dim")
+        console.print(hint_text)
+        console.print()
         raise typer.Exit()
 
 

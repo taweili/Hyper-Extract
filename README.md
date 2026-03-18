@@ -10,10 +10,9 @@
 
 **8 Knowledge Types** · **5 Extraction Methods** · **200+ Domain Templates** · **Bilingual**
 
----
 
 <!-- Architecture Diagram -->
-![Architecture](./docs/assets/fw.png)
+![Architecture](docs/assets/fw.png)
 
 ---
 
