@@ -3,6 +3,9 @@ COG_RAG: Cognitive-Inspired Dual-Hypergraph RAG System Pattern
 Extracts and manages Theme-Entity relationships where Themes act as Hyperedges connecting multiple Entities.
 """
 
+import os
+import json
+from datetime import datetime
 from typing import List
 from hashlib import md5
 from pydantic import BaseModel, Field
@@ -354,6 +357,11 @@ class Cog_RAG:
         max_workers: int = 10,
         verbose: bool = False,
     ):
+        self.metadata = {
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+        }
+
         self.theme_layer = Cog_RAG_ThemeLayer(
             llm_client=llm_client,
             embedder=embedder,
@@ -440,11 +448,74 @@ class Cog_RAG:
         return chain.invoke({"context": context, "question": query})
 
     def dump(self, folder_path: str):
-        """Save both extracted graphs."""
-        import os
+        """Save both extracted graphs and metadata."""
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        metadata_path = os.path.join(folder_path, "metadata.json")
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(self.metadata, f, indent=2, ensure_ascii=False, default=str)
+
+        # 导出根目录 data.json 以供 CLI 合法性校验和 info 命令统计
+        root_data = {
+            "nodes": [n.model_dump() for n in self.nodes],
+            "edges": [e.model_dump() for e in self.edges]
+        }
+        with open(os.path.join(folder_path, "data.json"), "w", encoding="utf-8") as f:
+            json.dump(root_data, f, ensure_ascii=False, indent=2)
 
         self.theme_layer.dump(os.path.join(folder_path, "theme_layer"))
         self.detail_layer.dump(os.path.join(folder_path, "detail_layer"))
+
+    def load(self, folder_path: str):
+        """Load extracted graphs and metadata."""
+        metadata_path = os.path.join(folder_path, "metadata.json")
+        if os.path.exists(metadata_path):
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                params = json.load(f)
+                if isinstance(self.metadata, dict):
+                    self.metadata.update(params)
+                else:
+                    self.metadata = params
+
+        theme_path = os.path.join(folder_path, "theme_layer")
+        if os.path.exists(theme_path) and os.path.exists(os.path.join(theme_path, "data.json")):
+            self.theme_layer.load(theme_path)
+
+        detail_path = os.path.join(folder_path, "detail_layer")
+        if os.path.exists(detail_path) and os.path.exists(os.path.join(detail_path, "data.json")):
+            self.detail_layer.load(detail_path)
+
+    def show(
+        self,
+        node_label_extractor=None,
+        edge_label_extractor=None,
+    ):
+        """Visualize the specified layer interactively."""
+        print("\n[Cog_RAG] 这是一个双层图谱系统。请选择你想可视化的层级：")
+        print("1. Detail Layer (细节层：具体实体及其关系) - [默认]")
+        print("2. Theme Layer (主题层：宏观主题及其参与者)")
+        
+        try:
+            choice = input(f"请输入选项 [1/2]: ").strip()
+        except EOFError:
+            choice = "1"
+            
+        layer_map = {
+            "2": ("Theme Layer", self.theme_layer),
+            "1": ("Detail Layer", self.detail_layer),
+        }
+        
+        layer_name, layer_obj = layer_map.get(choice, layer_map["1"])
+
+        print(f"Visualizing Cog_RAG ({layer_name})...")
+        try:
+            layer_obj.show(
+                node_label_extractor=node_label_extractor,
+                edge_label_extractor=edge_label_extractor,
+            )
+        except Exception as e:
+            print(f"Error visualizing {layer_name}: {e}")
 
     @property
     def nodes(self):
