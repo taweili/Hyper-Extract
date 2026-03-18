@@ -81,7 +81,6 @@ def main(
         console.print(Rule(style="cyan dim"))
         console.print()
         
-        from rich.columns import Columns
         from rich.panel import Panel
         
         def make_section(title: str, commands: list[tuple[str, str]]) -> Panel:
@@ -95,6 +94,8 @@ def main(
                 title=f"[bold cyan]{title}[/]",
                 border_style="cyan dim",
                 padding=(0, 1),
+                title_align="center",
+                width=70,
             )
         
         sections = [
@@ -104,19 +105,20 @@ def main(
                 ("he config --help", "Manage LLM/Embedder config"),
             ]),
             make_section("✨ Create KB", [
-                ("he parse <input> -o <kb>", "Extract knowledge from file"),
-                ("he feed <kb> <input>", "Add knowledge to existing KB"),
-                ("he build-index <kb>", "Build semantic search index"),
+                ("he parse <input> -o <kb_path>", "Extract knowledge from file"),
+                ("he feed <kb_path> <input>", "Add knowledge to existing KB"),
+                ("he build-index <kb_path>", "Build semantic search index"),
             ]),
             make_section("🔍 Explore KB", [
-                ("he info <kb>", "View KB info & stats"),
-                ("he talk <kb> [-i]", "Chat with knowledge base"),
-                ("he search <kb> <query>", "Semantic search"),
-                ("he show <kb>", "Visualize knowledge graph"),
+                ("he info <kb_path>", "View knowledge base info & stats"),
+                ("he talk <kb_path> [-i]", "Chat with knowledge base"),
+                ("he search <kb_path> <query>", "Semantic search"),
+                ("he show <kb_path>", "Visualize knowledge graph"),
             ]),
         ]
         
-        console.print(Columns(sections, equal=True, expand=True))
+        for section in sections:
+            console.print(section)
         console.print()
         console.print(Rule(style="cyan dim"))
         console.print()

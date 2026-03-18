@@ -18,6 +18,8 @@
 
 ## ⚡ One-Line Knowledge Extraction
 
+![CLI Welcome Screen](./docs/assets/cli.png)
+
 ```bash
 # Install
 uv pip install hyperextract
@@ -31,21 +33,9 @@ he show kb                                   # Visualize
 
 ### 💻 CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `he parse` | Extract knowledge from text/file |
-| `he talk` | Interactive Q&A with knowledge base |
-| `he search` | Semantic search |
-| `he show` | Visualize knowledge graph |
-| `he list` | List available templates/methods |
-| `he config` | Configure LLM/Embedder |
-| `he info` | Show knowledge base info |
-| `he feed` | Append knowledge to existing KB |
-| `he build-index` | Build vector index |
-
 ---
 
-## "Chat solved. What's next is CLI + Knowledge Structures."
+## "Chat solved. What's next is Structured Knowledge."
 
 Transform LLM output from scattered text into **searchable, queryable, and reasoning-enabled** structured knowledge.
 

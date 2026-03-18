@@ -18,6 +18,8 @@
 
 ## ⚡ 一行命令提取知识
 
+![CLI 欢迎界面](./docs/assets/cli.png)
+
 ```bash
 # 安装
 uv pip install hyperextract
@@ -31,21 +33,9 @@ he show kb                                   # 可视化
 
 ### 💻 CLI 命令
 
-| 命令 | 说明 |
-|---------|-------------|
-| `he parse` | 从文本/文件提取知识 |
-| `he talk` | 与知识库交互问答 |
-| `he search` | 语义搜索 |
-| `he show` | 可视化知识图谱 |
-| `he list` | 列出可用模板/方法 |
-| `he config` | 配置 LLM/Embedding |
-| `he info` | 查看知识库信息 |
-| `he feed` | 向现有知识库追加内容 |
-| `he build-index` | 构建向量索引 |
-
 ---
 
-## "Chat 已解决，下一步是 CLI + 知识结构"
+## "Chat 已解决，下一步是 结构化知识"
 
 将 LLM 输出的文本转化为**可搜索、可查询、可推理**的结构化知识。
 
