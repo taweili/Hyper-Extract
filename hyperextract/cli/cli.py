@@ -62,20 +62,26 @@ def main(
         desc_text = Text("A command-line tool for knowledge extraction from unstructured text.")
 
         table = Table(box=None, show_header=False, pad_edge=False)
-        table.add_column(style="green")
-        table.add_column()
-        table.add_column()
+        table.add_column(style="green", no_wrap=True)
+        table.add_column(no_wrap=True)
 
-        table.add_row("he parse", "<input> -o <output>", "Extract knowledge (auto-builds index)")
-        table.add_row("he list", "template", "List available templates")
-        table.add_row("he list", "method", "List extraction methods")
-        table.add_row("he show", "<kb_path>", "Visualize knowledge base")
-        table.add_row("he info", "<kb_path>", "View knowledge base info")
-        table.add_row("he search", "<query> -k <kb>", "Semantic search in knowledge base")
-        table.add_row("he talk", "<kb_path>", "Chat with knowledge base")
-        table.add_row("he config", "--help", "Manage LLM and Embedder configuration")
-        table.add_row("he feed", "-k <kb>", "Feed knowledge into knowledge base")
-        table.add_row("he build-index", "<kb_path>", "Build search index for knowledge base")
+        table.add_row("", "")
+        table.add_row("[bold]> Getting Started[/bold]", "")
+        table.add_row("  he list template", "List available templates")
+        table.add_row("  he list method", "List available extraction methods")
+        table.add_row("  he config --help", "Manage LLM/Embedder configuration")
+        table.add_row("", "")
+        table.add_row("[bold]> Create Knowledge Base[/bold]", "")
+        table.add_row("  he parse <input> -o <kb_path>", "Extract knowledge from input file")
+        table.add_row("  he feed <kb_path> <input>", "Feed knowledge into knowledge base")
+        table.add_row("  he build-index <kb_path>", "Build index for semantic search")
+        table.add_row("", "")
+        table.add_row("[bold]> Explore Knowledge Base[/bold]", "")
+        table.add_row("  he info <kb_path>", "View knowledge base info")
+        table.add_row("  he talk <kb_path> [-i]", "Chat with knowledge base")
+        table.add_row("  he search <kb_path> <query>", "Semantic search in knowledge base")
+        table.add_row("  he show <kb_path>", "Visualize knowledge base")
+        table.add_row("", "")
 
         panel = Panel(
             table,
@@ -249,11 +255,16 @@ def parse(
 
     console.print()
     console.print(f"[bold green]Success![/bold green] Knowledge extracted to {output_path}")
+    console.print()
     if no_index:
-        console.print(f"[dim]Note: Index was not built. Run 'he build-index {output}' to enable search/talk.[/dim]")
+        console.print("[dim]Note: Index was not built.[/dim]")
+        console.print(f"[dim]  he build-index {output}  # Build index to enable search/talk[/dim]")
     else:
-        console.print("[dim]Index built. You can now use 'he search' and 'he talk'.[/dim]")
-    console.print(f"[dim]Use 'he show {output}' to visualize[/dim]")
+        console.print("[dim]What's next?[/dim]")
+        console.print(f"[dim]  he show {output}                    # Visualize knowledge graph[/dim]")
+        console.print(f"[dim]  he search {output} \"keyword\"        # Semantic search[/dim]")
+        console.print(f"[dim]  he talk {output} -i                 # Interactive chat[/dim]")
+        console.print(f"[dim]  he talk {output} -q \"your question\" # Single query[/dim]")
 
 
 @app.command(name="show")
@@ -288,6 +299,11 @@ def show(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
     except Exception as e:
         console.print(f"[red]Error during visualization:[/red] {e}")
         raise typer.Exit(1)
+
+    console.print()
+    console.print("[dim]Continue exploring:[/dim]")
+    console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search specific content[/dim]")
+    console.print(f"[dim]  he talk {kb_path} -i           # Interactive chat[/dim]")
 
 
 @app.command(name="info")
@@ -339,8 +355,8 @@ def info(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
 
 @app.command(name="search")
 def search(
+    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
     query: str = typer.Argument(..., help="Search query"),
-    kb_path: str = typer.Option(..., "--kb", "-k", help="Knowledge base directory"),
     top_k: int = typer.Option(3, "--top-k", "-n", help="Number of results"),
 ):
     """Semantic search in knowledge base."""
@@ -351,8 +367,8 @@ def search(
     path = validate_kb_with_index(kb_path)
     template, lang = get_template_from_kb(path)
 
-    console.print(f"[blue]Query:[/blue] {query}")
     console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
+    console.print(f"[blue]Query:[/blue] {query}")
     console.print(f"[blue]Top K:[/blue] {top_k}")
     console.print()
 
@@ -389,15 +405,25 @@ def search(
                 console.print(str(result))
             console.print()
 
+    console.print("[dim]Continue:[/dim]")
+    console.print(f"[dim]  he talk {kb_path} -q \"question about results\"  # Deep dive[/dim]")
+    console.print(f"[dim]  he talk {kb_path} -i                           # Interactive mode[/dim]")
+    console.print(f"[dim]  he show {kb_path}                              # Visualize[/dim]")
 
-def chat_loop(kb):
+
+def chat_loop(kb, kb_path: str):
     """Interactive chat loop."""
     console.print("\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n")
     while True:
         try:
             query = console.input("[bold cyan]>[/bold cyan] ")
             if query.lower() in ["exit", "quit", "q"]:
-                console.print("[dim]Goodbye![/dim]")
+                console.print("\n[dim]Goodbye![/dim]")
+                console.print()
+                console.print("[dim]Other useful commands:[/dim]")
+                console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
+                console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search[/dim]")
+                console.print(f"[dim]  he info {kb_path}              # View info[/dim]")
                 break
             if not query.strip():
                 continue
@@ -407,6 +433,11 @@ def chat_loop(kb):
             console.print()
         except KeyboardInterrupt:
             console.print("\n[dim]Goodbye![/dim]")
+            console.print()
+            console.print("[dim]Other useful commands:[/dim]")
+            console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
+            console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search[/dim]")
+            console.print(f"[dim]  he info {kb_path}              # View info[/dim]")
             break
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
@@ -453,7 +484,7 @@ def talk(
             raise typer.Exit(1)
 
     if interactive:
-        chat_loop(kb)
+        chat_loop(kb, kb_path)
     else:
         with console.status("[bold blue]Thinking..."):
             try:
@@ -470,22 +501,28 @@ def talk(
                 console.print(f"[red]Error:[/red] {e}")
                 raise typer.Exit(1)
 
+        console.print()
+        console.print("[dim]Continue:[/dim]")
+        console.print(f"[dim]  he talk {kb_path} -i           # Enter interactive mode[/dim]")
+        console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search more[/dim]")
+        console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
+
 
 @app.command(name="feed")
 def feed(
+    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
     input: str = typer.Argument(..., help="Input file path or '-' for stdin"),
-    output: str = typer.Option(..., "--output", "-o", help="Knowledge base directory"),
     template: Optional[str] = typer.Option(None, "--template", "-t", help="Template"),
     lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language"),
 ):
     """Append knowledge to an existing directory."""
     validate_config()
 
-    output_path = validate_kb_path(output)
+    output_path = validate_kb_path(kb_path)
 
     metadata = load_kb_metadata(output_path)
     if not metadata:
-        console.print(f"[red]Error:[/red] Not a valid knowledge base directory: {output}")
+        console.print(f"[red]Error:[/red] Not a valid knowledge base directory: {kb_path}")
         raise typer.Exit(1)
 
     if template is None:
@@ -493,8 +530,8 @@ def feed(
     if lang is None:
         lang = metadata.get("lang", "zh")
 
+    console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
     console.print(f"[blue]Input:[/blue] {input}")
-    console.print(f"[blue]Output:[/blue] {output}")
     console.print(f"[blue]Template:[/blue] {template} (from metadata)")
     console.print(f"[blue]Language:[/blue] {lang} (from metadata)")
     console.print()
@@ -523,6 +560,10 @@ def feed(
 
     console.print()
     console.print(f"[bold green]Success![/bold green] Knowledge appended to {output_path}")
+    console.print()
+    console.print("[dim]Next steps:[/dim]")
+    console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
+    console.print(f"[dim]  he build-index {kb_path}       # Rebuild index (if needed)[/dim]")
 
 
 @app.command(name="build-index")
@@ -568,3 +609,7 @@ def build_index(
 
     console.print()
     console.print(f"[bold green]Success![/bold green] Index built for {kb_path}")
+    console.print()
+    console.print("[dim]Now you can:[/dim]")
+    console.print(f"[dim]  he search {kb_path} \"keyword\"  # Semantic search[/dim]")
+    console.print(f"[dim]  he talk {kb_path} -i           # Interactive chat[/dim]")

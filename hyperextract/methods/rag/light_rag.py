@@ -134,7 +134,7 @@ class Light_RAG(AutoGraph[NodeSchema, EdgeSchema]):
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         """
         Initialize Light_RAG engine.

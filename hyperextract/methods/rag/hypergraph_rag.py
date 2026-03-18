@@ -186,7 +186,7 @@ class HyperGraph_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         """Initialize HyperGraph_RAG extraction engine.
 

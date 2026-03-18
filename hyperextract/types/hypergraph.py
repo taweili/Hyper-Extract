@@ -652,6 +652,7 @@ class AutoHypergraph(
         query: str,
         top_k_nodes: int = 3,
         top_k_edges: int = 3,
+        top_k: int | None = None,
     ) -> Tuple[List[NodeSchema], List[EdgeSchema]]:
         """Unified hypergraph search interface.
 
@@ -662,6 +663,7 @@ class AutoHypergraph(
             query: Search query string.
             top_k_nodes: Number of node results to return (default: 3). Set to 0 to disable node search.
             top_k_edges: Number of hyperedge results to return (default: 3). Set to 0 to disable hyperedge search.
+            top_k: If provided, sets both top_k_nodes and top_k_edges to this value.
 
         Returns:
             Tuple[List[Node], List[Edge]]: A tuple containing:
@@ -672,6 +674,10 @@ class AutoHypergraph(
             ValueError: If both top_k_nodes and top_k_edges are <= 0.
             ValueError: If search is requested (top_k > 0) but the corresponding index is not built.
         """
+        if top_k is not None:
+            top_k_nodes = top_k
+            top_k_edges = top_k
+
         if top_k_nodes <= 0 and top_k_edges <= 0:
             raise ValueError(
                 "At least one of top_k_nodes or top_k_edges must be positive."
@@ -705,6 +711,7 @@ class AutoHypergraph(
         query: str,
         top_k_nodes: int = 3,
         top_k_edges: int = 3,
+        top_k: int | None = None,
     ) -> AIMessage:
         """Performs a chat-like interaction using hypergraph knowledge.
 
@@ -715,6 +722,7 @@ class AutoHypergraph(
             query: User query string.
             top_k_nodes: Number of relevant nodes to retrieve (default: 3). Set to 0 to disable node context.
             top_k_edges: Number of relevant hyperedges to retrieve (default: 3). Set to 0 to disable edge context.
+            top_k: If provided, sets both top_k_nodes and top_k_edges to this value.
 
         Returns:
             An AIMessage object containing the LLM-generated response.
@@ -725,7 +733,10 @@ class AutoHypergraph(
             >>> response = hg.chat("What participates in X?", top_k_nodes=5, top_k_edges=2)
             >>> print(response.content)  # Print the generated answer
         """
-        # Step 1: Validation
+        if top_k is not None:
+            top_k_nodes = top_k
+            top_k_edges = top_k
+
         if top_k_nodes <= 0 and top_k_edges <= 0:
             raise ValueError(
                 "At least one of top_k_nodes or top_k_edges must be positive."

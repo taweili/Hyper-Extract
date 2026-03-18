@@ -179,7 +179,7 @@ class Cog_RAG_ThemeLayer(AutoHypergraph[NodeSchema, ThemeSchema]):
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         # 1. Define Key Extractors
         # Node key: exact match by name
@@ -288,7 +288,7 @@ class Cog_RAG_DetailLayer(AutoHypergraph[NodeSchema, EdgeSchema]):
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         node_key_fn = lambda x: x.name
         # Relations: Unique by Sorted Participants
@@ -352,7 +352,7 @@ class Cog_RAG:
         chunk_size: int = 2048,
         chunk_overlap: int = 256,
         max_workers: int = 10,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         self.theme_layer = Cog_RAG_ThemeLayer(
             llm_client=llm_client,
