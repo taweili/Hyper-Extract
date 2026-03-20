@@ -98,8 +98,15 @@ def list_method_cfgs() -> Dict[str, MethodCfg]:
 
 def _init_registry():
     """Initialize the registry with built-in methods."""
-    from hyperextract.methods.rag import Light_RAG, Hyper_RAG, HyperGraph_RAG, Cog_RAG
+    from hyperextract.methods.rag import Light_RAG, Hyper_RAG, HyperGraph_RAG, Cog_RAG, Graph_RAG
     from hyperextract.methods.typical import iText2KG, iText2KG_Star, KG_Gen, Atom
+
+    register_method(
+        name="graph_rag",
+        method_class=Graph_RAG,
+        autotype="graph",
+        description="Graph-RAG: Graph-based Retrieval-Augmented Generation with Community detection",
+    )
 
     register_method(
         name="light_rag",
