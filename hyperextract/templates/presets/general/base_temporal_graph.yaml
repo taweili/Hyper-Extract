@@ -1,0 +1,98 @@
+language: zh
+name: base_temporal_graph
+type: temporal_graph
+tags: [general]
+description:
+  zh: '基础时序图谱模板 - 从文本中提取实体之间的关系，并在文本提供时间信息时为关系补充时间属性，用于表达事实、事件或状态的连接及其时间上下文。'
+
+output:
+  description: 
+    zh: '包含实体节点、关系边及可选时间信息的时序图谱结构。'
+  entities:
+    description: 
+      zh: '文本中可独立识别、可参与关系连接的实体节点。'
+    fields:
+    - name: name
+      type: str
+      description:
+        zh: '实体名称，使用文本中最明确、最稳定的称呼。'
+    - name: type
+      type: str
+      description:
+        zh: '实体类型，如人物、地点、组织、物品、概念、事件、制度、其他。'
+    - name: description
+      type: str
+      description:
+        zh: '对实体身份、含义或其在当前文本中作用的简要说明。'
+      required: false
+  relations:
+    description: 
+      zh: '实体之间的关系边；若文本提供时间，可在关系上补充时间属性。'
+    fields:
+    - name: source
+      type: str
+      description:
+        zh: '关系起点实体，必须对应已提取实体的 name。'
+    - name: target
+      type: str
+      description:
+        zh: '关系终点实体，必须对应已提取实体的 name。'
+    - name: eventType
+      type: str
+      description:
+        zh: '关系类型，用简洁词语概括两个实体之间的连接方式。'
+    - name: eventDate
+      type: str
+      description:
+        zh: '关系对应的时间；无明确时间时可留空。'
+      required: false
+    - name: details
+      type: str
+      description:
+        zh: '对关系的简要补充说明；无额外信息时可留空。'
+      required: false
+
+guideline:
+  target:
+    zh: '你是一位时序知识图谱构建专家。请从文本中提取关键实体，以及这些实体之间的关系；如果文本提供了明确时间，再为关系补充时间属性。'
+  rules_for_entities:
+    zh:
+    - '提取对理解文本事实、事件过程和时间演变有价值，且能够参与关系连接的实体。'
+    - '为每个实体指定合适类型，如人物、地点、组织、物品、概念、事件、制度、其他。'
+    - 'name 使用原文中最稳定、最清晰的称呼；同一实体在全文中保持命名一致。'
+    - 'description 用 1 句话概括实体身份、含义或其在文本中的作用；信息不足时可留空。'
+    - '优先保留在文本中与其他实体存在明确联系的实体；对既不关键也没有明确关系支撑的边缘实体，可不提取。'
+  rules_for_relations:
+    zh:
+    - '仅在文本明确表达两个实体之间存在关系、事件或状态变化时创建关系边。'
+    - 'source 和 target 必须直接引用已提取实体的 name，不要新增未提取实体。'
+    - '只要文本能支持关系成立，就应提取该关系边。'
+    - 'eventType 使用简洁关系词概括，如属于、位于、任职、合作、参与、影响、发布、签署、相关等。'
+    - 'eventDate 是可选字段；没有明确时间时也要保留关系边，并将 eventDate 留空。'
+    - 'details 只补充必要背景或结果，没有额外信息时可留空。'
+    - '无法确定具体关系对象时，不要强行构造边。'
+  rules_for_time:
+    zh:
+    - '当前观察日期：{observation_time}'
+    - 'eventDate 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
+    - '没有明确时间时，仍应保留关系边，并将 eventDate 留空。'
+    - '相对时间以 observation_time 为基准解析，如“去年/今年/明年”“昨天/今天/明天”“十年前/五年后”。'
+    - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD；保留文本可确定的最细粒度。'
+    - '“年初/年末”可解析为当年 1 月 1 日或 12 月 31 日；朝代、时期名称或模糊历史时间可按原文保留。'
+    - '若时间只对应关系成立、变化或终止中的某一时点，则记录最直接相关的那个时间。'
+    - '无法可靠确定时间时留空，不要根据常识补写。'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{eventType}|{details}'
+  relation_members: 
+    source: source
+    target: target
+  time_field: 'eventDate'
+
+options:
+  extraction_mode: two_stage
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{eventType} ({eventDate})'

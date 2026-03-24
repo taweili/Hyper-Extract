@@ -1,0 +1,81 @@
+language: zh
+name: concept_hierarchy
+type: graph
+tags: [general]
+description:
+  zh: '概念层级图谱模板 - 从教材、百科、定义说明等文本中提取概念及其层次结果的组成或实例化关系，用于构建稳定的概念结构。'
+
+output:
+  description:
+    zh: '由概念节点和层级关系边组成的结构化结果，用于表达概念体系中的分类、组成与实例关系。'
+  entities:
+    description:
+      zh: '文本中出现并可进入概念结构的节点。'
+    fields:
+    - name: name
+      type: str
+      description:
+        zh: '概念名称、术语名称或实例名称，优先使用原文中的稳定叫法。'
+    - name: category
+      type: str
+      description:
+        zh: '概念所属专业类别，需要通过文中内容归纳并结合你的常识进行判断'
+    - name: description
+      type: str
+      description:
+        zh: '对该概念的简要说明，可概括其定义、范围或在当前结构中的作用。'
+      required: false
+      default: ''
+  relations:
+    description:
+      zh: '概念之间的层级或结构关系边。'
+    fields:
+    - name: source
+      type: str
+      description:
+        zh: '关系起点，通常为上位概念、整体概念或被实例化的概念。'
+    - name: target
+      type: str
+      description:
+        zh: '关系终点，通常为下位概念、组成部分或实例。'
+    - name: relation_type
+      type: str
+      description:
+        zh: '层次关系类型，使用具体层级关系词'
+    - name: details
+      type: str
+      description:
+        zh: '对关系方向、限定条件或上下文的简要补充。'
+      required: false
+      default: ''
+
+guideline:
+  target:
+    zh: '你是一位概念层级抽取专家。请只提取能够组成层级结构的概念，并同时给出这些概念之间明确成立的层次结构组成或实例关系。'
+  rules_for_entities:
+    zh:
+    - 'name 必须使用原文中的完整稳定名称；不要把“推理/预测”缩写成“推理”这类更短名字。'
+    - 'category 表明专业所属类别，需要通过文中内容归纳并结合你的常识进行判断；如果无法归类太过于泛化或不重要可留空。'
+    - 'description 用 1 句话简述该概念在当前层级中的含义；若无必要可留空。'
+  rules_for_relations:
+    zh:
+    - '只在文本明确表达层级结构时建立边。'
+    - 'source 和 target 必须逐字对应已提取节点的 name，不能改写、缩写或新造名称。'
+    - '组成用于“X 包含 Y 作为部分/模块/组成项”；实例用于“Y 是 X 的具体实例/代表；你还可以使用一些其他的表示层次关系的词语”。'
+    - '如果某个节点在全文中找不到任何可靠关系，不要为了保留它而强行构造边。'
+    - '优先保证图谱连通性和关系准确性，而不是追求节点数量。'
+    - '若关系依赖特定限定语、范围或角度，可写入 details；没有则留空。'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relation_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+options:
+  extraction_mode: one_stage
+
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{relation_type}'

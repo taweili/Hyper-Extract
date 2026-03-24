@@ -1,0 +1,87 @@
+language: zh
+name: social_network
+type: graph
+tags: [general]
+description:
+  zh: '社会关系网络模板 - 从人物叙事、组织介绍、历史材料或新闻文本中提取人物与组织之间的人际和隶属关系。'
+
+output:
+  description:
+    zh: '由人物、组织等节点及其关系边组成的社会关系网络结构。'
+  entities:
+    description:
+      zh: '人际关系网络中的人物、组织或机构节点。'
+    fields:
+    - name: name
+      type: str
+      description:
+        zh: '人物、组织或机构的名称。'
+    - name: type
+      type: str
+      description:
+        zh: '节点类型，如人物、组织、机构、团体、其他。'
+    - name: description
+      type: str
+      description:
+        zh: '对节点身份或其在网络中作用的简要说明。'
+      required: false
+      default: ''
+    - name: role
+      type: str
+      description:
+        zh: '该节点在当前文本中的角色、身份或职位。'
+      required: false
+      default: ''
+  relations:
+    description:
+      zh: '人物与人物、人物与组织、组织与组织之间的社会关系边。'
+    fields:
+    - name: source
+      type: str
+      description:
+        zh: '关系起点节点。'
+    - name: target
+      type: str
+      description:
+        zh: '关系终点节点。'
+    - name: relation_type
+      type: str
+      description:
+        zh: '关系类型，如亲属、朋友、同事、师生、上下级、合作、竞争、隶属、其他。'
+    - name: details
+      type: str
+      description:
+        zh: '对关系依据、互动方式或上下文的简要补充。'
+      required: false
+      default: ''
+
+guideline:
+  target:
+    zh: '你是一位社会关系分析专家。请从文本中提取人物、组织及其明确存在的人际关系或组织隶属关系。'
+  rules_for_entities:
+    zh:
+    - '优先提取对关系网络有意义的人物、组织、机构或团体节点。'
+    - 'name 使用文本中最稳定、最清晰的称呼；同一对象保持统一命名。'
+    - 'type 概括节点类别，role 用于补充其在当前文本中的身份或职位；没有则留空。'
+    - 'description 可说明该节点为何重要或其在关系网络中的作用；信息不足时留空。'
+  rules_for_relations:
+    zh:
+    - '仅在文本明确表达两节点之间存在社会关系、合作关系、竞争关系或组织隶属时建立边。'
+    - 'source 和 target 必须直接引用已提取节点的 name。'
+    - 'relation_type 优先使用亲属、朋友、同事、师生、上下级、合作、竞争、隶属、其他。'
+    - 'details 可用于补充关系背景、时间段或互动情境；没有额外信息时留空。'
+    - '不要把共同出现、共同被提及但无明确互动的对象误判为存在关系。'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relation_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+options:
+  extraction_mode: two_stage
+
+display:
+  entity_label: '{name} ({role})'
+  relation_label: '{relation_type}'
