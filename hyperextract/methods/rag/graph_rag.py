@@ -5,8 +5,7 @@ Extracts and manages entity-relationship knowledge graphs with standard binary e
 
 import json
 from pathlib import Path
-from typing import List, Dict, Optional, Any, Set
-import networkx as nx
+from typing import List, Dict, Optional, Any, Tuple
 from pydantic import BaseModel, Field
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
@@ -20,6 +19,18 @@ try:
     HAS_GRASPOLOGIC = True
 except ImportError:
     HAS_GRASPOLOGIC = False
+
+
+def _ensure_networkx():
+    """Lazy import networkx, raise helpful error if not installed."""
+    try:
+        import networkx as nx
+        return nx
+    except ImportError:
+        raise ImportError(
+            "networkx is required for community detection. "
+            "Install with: pip install networkx"
+        )
 
 # ============================================================================
 # Node Schema
@@ -188,7 +199,6 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
     - Community Detection (Leiden/Modularity)
     - Community Reports (Summarization)
     - Global Search (Map-Reduce over summaries)
-    - Local Search (Neighbor-based retrieval with community context)
 
     Implements the architecture of Microsoft GraphRAG / Nano-GraphRAG.
     """
@@ -272,7 +282,7 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
 
         # Community Management
         self.community_reports: Dict[str, CommunityReport] = {}
-        self._community_graph: Optional[nx.Graph] = None
+        self._community_graph: Optional[Any] = None
         self._community_hierarchy: Dict[int, Dict[str, List[str]]] = {}  # level -> {community_id: [node_names]}
         self._node_to_community: Dict[str, Dict[str, Any]] = {}  # node_name -> {level: community_id}
 
@@ -287,54 +297,34 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
         # 1. Save standard graph data (nodes, edges, index)
         super().dump(folder_path)
 
-        # 2. Save Community Data
-        community_data = {
-            "reports": {k: v.model_dump() for k, v in self.community_reports.items()},
-            "hierarchy": {str(k): v for k, v in self._community_hierarchy.items()},
-            "node_map": self._node_to_community
-        }
-        
-        comm_path = root / "community_data.json"
-        with open(comm_path, "w", encoding="utf-8") as f:
-            json.dump(community_data, f, indent=2, ensure_ascii=False)
+        # 2. Save Community Data (only if exists)
+        if self.community_reports:
+            community_data = {
+                "reports": {k: v.model_dump() for k, v in self.community_reports.items()},
+                "hierarchy": {str(k): v for k, v in self._community_hierarchy.items()},
+                "node_map": self._node_to_community
+            }
 
-        # 3. Export GraphML for visualization (e.g., Gephi)
-        try:
-            graphml_path = root / "graph.graphml"
-            G_export = nx.Graph()
-            for n in self.nodes:
-                G_export.add_node(n.name, label=n.name, type=n.type, description=n.description)
-            for e in self.edges:
-                G_export.add_edge(e.source, e.target, weight=float(e.strength), description=e.description)
-            
-            nx.write_graphml(G_export, graphml_path)
-        except Exception as e:
-            if self.verbose:
-                print(f"Warning: Failed to save GraphML: {e}")
-        
+            comm_path = root / "community_data.json"
+            with open(comm_path, "w", encoding="utf-8") as f:
+                json.dump(community_data, f, indent=2, ensure_ascii=False)
+
         if self.verbose:
             print(f"✓ Results saved to {root}/")
 
     def load(self, folder_path: str | Path) -> None:
         """Loads graph state from directory."""
         root = Path(folder_path)
-        
+
         # 1. Load standard graph data
         super().load(folder_path)
 
-        # 2. Rebuild NetworkX graph
-        self._community_graph = nx.Graph()
-        for n in self.nodes:
-            self._community_graph.add_node(n.name, **n.model_dump())
-        for e in self.edges:
-            self._community_graph.add_edge(e.source, e.target, weight=float(e.strength), **e.model_dump())
-
-        # 3. Load Community Data
+        # 2. Load Community Data (if exists)
         comm_path = root / "community_data.json"
         if comm_path.exists():
             with open(comm_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             self.community_reports = {
                 k: CommunityReport.model_validate(v) for k, v in data.get("reports", {}).items()
             }
@@ -342,14 +332,24 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
                 int(k) if k.isdigit() else k: v for k, v in data.get("hierarchy", {}).items()
             }
             self._node_to_community = data.get("node_map", {})
-            
+
             if self.verbose:
                 print(f"Loaded {len(self.community_reports)} community reports.")
-
 
     # ============================================================================
     # Community Detection & Summarization
     # ============================================================================
+
+    def _ensure_community_graph(self):
+        """Lazily build _community_graph from nodes and edges when needed."""
+        if self._community_graph is None:
+            nx = _ensure_networkx()
+            self._community_graph = nx.Graph()
+            for n in self.nodes:
+                self._community_graph.add_node(n.name, **n.model_dump())
+            for e in self.edges:
+                self._community_graph.add_edge(e.source, e.target, weight=float(e.strength), **e.model_dump())
+        return self._community_graph
 
     def build_communities(self, level: int = 0):
         """
@@ -363,6 +363,8 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             if self.verbose:
                 print("Graph is empty, cannot build communities.")
             return
+
+        nx = _ensure_networkx()
 
         if self.verbose:
             print("Building graph topology...")
@@ -498,129 +500,71 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             print(f"Successfully generated {len(self.community_reports)} community reports.")
 
     # ============================================================================
-    # Global Search
+    # Search Override with Community Support
     # ============================================================================
 
-    def global_search(self, query: str) -> str:
+    def search(
+        self,
+        query: str,
+        top_k_nodes: int = 3,
+        top_k_edges: int = 3,
+        top_k: int | None = None,
+        use_community: bool = False,
+    ) -> Tuple[List, List, Optional[Dict]]:
+        """Unified graph search interface with optional community enhancement.
+
+        Args:
+            query: Search query string.
+            top_k_nodes: Number of node results to return (default: 3).
+            top_k_edges: Number of edge results to return (default: 3).
+            top_k: If provided, sets both top_k_nodes and top_k_edges to this value.
+            use_community: If True, enables community-aware search.
+                          Requires networkx and graspologic. Default: False.
+
+        Returns:
+            Tuple of (nodes, edges, community_context).
+            community_context is None when use_community=False.
         """
-        Global Search: Answering questions by synthesizing community summaries.
-        Best for: "What are the main themes?", "How does X affect Y generally?".
-        """
+        if use_community:
+            return self._global_search_impl(query, top_k_nodes, top_k_edges)
+        return super().search(query, top_k_nodes, top_k_edges, top_k)
+
+    def _global_search_impl(
+        self,
+        query: str,
+        top_k_nodes: int = 3,
+        top_k_edges: int = 3,
+    ) -> Tuple[List, List, Dict]:
+        """Internal implementation for community-enhanced search."""
         if not self.community_reports:
-            print("No community reports found. Building communities first...")
+            if self.verbose:
+                print("No community reports found. Building communities first...")
             self.build_communities()
 
-        # Gather all community summaries
-        # For a production system, you would start with a "Map" phase (rate communities by relevance)
-        # Here we do a simple aggregation (suitable for small-medium graphs)
-        
-        context_parts = []
-        for r in self.community_reports.values():
-            context_parts.append(f"## Community: {r.title} (Rating: {r.rating})\\nSummary: {r.summary}\\n")
-        
-        full_context = "\\n".join(context_parts)
-        
-        prompt = ChatPromptTemplate.from_template(GLOBAL_SEARCH_PROMPT)
-        chain = prompt | self.llm_client | StrOutputParser()
-        
-        if self.verbose:
-            print("Executing Global Search...")
-        
-        response = chain.invoke({"query": query, "context": full_context})
-        return response
+        community_context = self._get_community_context_for_query(query)
+        nodes, edges = super().search(query, top_k_nodes, top_k_edges)
+
+        return nodes, edges, community_context
+
+    def _get_community_context_for_query(self, query: str) -> Dict:
+        """Get community context related to the query."""
+        if not self.community_reports:
+            return {}
+
+        sorted_reports = sorted(
+            self.community_reports.values(),
+            key=lambda r: r.rating,
+            reverse=True
+        )[:3]
+
+        return {
+            "summaries": [
+                {"title": r.title, "summary": r.summary, "rating": r.rating}
+                for r in sorted_reports
+            ]
+        }
 
     # ============================================================================
-    # Local Search
+    # Deprecated: Global Search functionality is now integrated into search(use_community=True)
+    # Use kb.search(query, use_community=True) instead
     # ============================================================================
-
-    def local_search(self, query: str, hops: int = 1) -> str:
-        """
-        Local Search: Focuses on specific entities mentioned in the query.
-        Best for: "What did X do?", "Who is related to Y?".
-        
-        Using: Entity Vector Search -> Graph Traversal (BFS) -> Context window ingestion including Community Summaries.
-        """
-        # 1. Identify entities in query (Using Vector Search on Nodes)
-        self.build_index() # Ensure index exists
-        relevant_nodes = self.search_nodes(query, top_k=5)
-        
-        if not relevant_nodes:
-            return "No relevant entities found in the graph for this query."
-        
-        start_node_names = {n.name for n in relevant_nodes}
-        visited_nodes = set()
-        
-        # 2. Traverse Graph (Manual BFS for 'hops')
-        if not self._community_graph:
-            G = nx.Graph()
-            for node in self.nodes:
-                G.add_node(node.name)
-            for edge in self.edges:
-                G.add_edge(edge.source, edge.target)
-            self._community_graph = G
-        else:
-            G = self._community_graph
-            
-        current_layer = start_node_names
-        
-        for _ in range(hops):
-            next_layer = set()
-            for node_name in current_layer:
-                if node_name in G:
-                    neighbors = list(G.neighbors(node_name))
-                    next_layer.update(neighbors)
-            
-            visited_nodes.update(current_layer)
-            current_layer = next_layer
-
-        # 3. Retrieve detailed context for visited nodes and their edges
-        final_context_edges = [
-            e for e in self.edges 
-            if e.source in visited_nodes or e.target in visited_nodes
-        ]
-        
-        # Limit to reasonable context size
-        final_context_edges = final_context_edges[:50] 
-        edges_txt = "\\n".join([f"- {e.source}->{e.target}: {e.description}" for e in final_context_edges])
-
-        # 4. (Enhanced) Retrieve Community Context for key nodes
-        community_context = []
-        seen_community_ids: Set[str] = set()
-
-        # Try to find which communities the start_node_names belong to
-        if self.community_reports:
-            # Method A: Use exact node-to-community mapping if available from build_communities
-            for node_name in start_node_names:
-                if node_name in self._node_to_community:
-                    mapping = self._node_to_community[node_name]
-                    # We might have multiple levels, pick any or all
-                    for cid in mapping.values():
-                        if cid in self.community_reports and cid not in seen_community_ids:
-                            report = self.community_reports[cid]
-                            community_context.append(f"Community: {report.title}\\nSummary: {report.summary}")
-                            seen_community_ids.add(cid)
-            
-            # Method B: Fallback if mapping missed (or inconsistent), check key_entities presence
-            for report in self.community_reports.values():
-                if report.id not in seen_community_ids and report.key_entities:
-                    if set(report.key_entities) & start_node_names:
-                        community_context.append(f"Community: {report.title}\\nSummary: {report.summary}")
-                        seen_community_ids.add(report.id)
-
-        community_txt = "\\n\\n".join(community_context) if community_context else "No specific community context available."
-
-        # Generate Answer
-        prompt_content = f"""
-        Answer the query based on the local graph context provided.
-        Query: {query}
-        
-        ### Community Context (High-level themes):
-        {community_txt}
-
-        ### Direct Relationships (Fact-based details):
-        {edges_txt}
-        
-        Answer:
-        """
-        
-        return self.llm_client.invoke(prompt_content).content

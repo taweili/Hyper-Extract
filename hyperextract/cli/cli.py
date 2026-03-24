@@ -322,10 +322,7 @@ def show(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
     console.print("[bold blue]Visualizing with OntoSight...[/bold blue]")
 
     try:
-        kb.show(
-            node_label_extractor=lambda n: getattr(n, "name", str(n)),
-            edge_label_extractor=lambda e: getattr(e, "relation", str(e)),
-        )
+        kb.show()
     except Exception as e:
         console.print(f"[red]Error during visualization:[/red] {e}")
         raise typer.Exit(1)

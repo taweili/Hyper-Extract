@@ -208,29 +208,32 @@ if __name__ == "__main__":
         "Leona目前的状况如何?",
     ]
 
-    # 1. Global Search Example
+    # 1. Global Search Example (Community-Enhanced Search)
     print("\n" + "-" * 60)
-    print("[1. Global Search] (Broad Understanding / Map-Reduce)")
+    print("[1. Community-Enhanced Search] (use_community=True)")
     print("-" * 60)
     for q in queries:
         print(f"\nQuery: {q}")
         print("Response:")
         try:
-            print(rag.global_search(q))
+            nodes, edges, community_context = rag.search(q, use_community=True)
+            if community_context:
+                print("Community Summaries:")
+                for summary in community_context.get("summaries", []):
+                    print(f"  - [{summary['title']}] (rating: {summary['rating']})")
+                    print(f"    {summary['summary'][:100]}...")
+            if nodes:
+                print(f"Top nodes: {[n.name for n in nodes[:3]]}")
+            if edges:
+                print(f"Top edges: {[e.description[:50] for e in edges[:3]]}")
         except Exception as e:
             print(f"Error: {e}")
 
-    # 2. Local Search Example
+    # 2. Local Search Example (Not implemented yet)
     print("\n" + "-" * 60)
-    print("[2. Local Search] (Targeted Subgraph + Community Context)")
+    print("[2. Local Search] (Targeted Subgraph + Community Context) - Not Implemented")
     print("-" * 60)
-    for q in queries:
-        print(f"\nQuery: {q}")
-        print("Response:")
-        try:
-            print(rag.local_search(q))
-        except Exception as e:
-            print(f"Error: {e}")
+    print("Local search is not yet available. Use chat() for conversational queries.")
 
     # 3. Standard Edge Search
     print("\n" + "-" * 60)
