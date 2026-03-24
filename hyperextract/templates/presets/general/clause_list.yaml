@@ -1,0 +1,50 @@
+language: zh
+name: clause_list
+type: list
+tags: [general]
+description:
+  zh: '规章条文清单 - 将规章制度、操作手册或合规文本拆解为逐条的原子化条文，便于索引、检索、比对与问答。'
+
+output:
+  description:
+    zh: '由逐条拆解后的规章条文组成的列表结果。'
+  fields:
+  - name: clauseId
+    type: str
+    description:
+      zh: '条文编号，如第1条、第2条、第2.1款、第3项等。'
+  - name: title
+    type: str
+    description:
+      zh: '条文标题、主题或该条的简短概括；原文未明确给出时可留空。'
+    required: false
+    default: ''
+  - name: content
+    type: str
+    description:
+      zh: '条文正文内容，尽量保持与原文一致，避免改写。'
+  - name: category
+    type: str
+    description:
+      zh: '条文分类，如总则、权利义务、程序、处罚、附则、其他。'
+    required: false
+    default: '其他'
+
+guideline:
+  target:
+    zh: '你是一位专业的规章制度条文拆解专家。请将输入文本按其自然结构拆解为可独立引用、可检索的逐条条文。'
+  rules:
+    zh:
+    - '按原文的自然层级和编号结构拆解条文，如第X条、第X款、第X项等。'
+    - '每一项输出都应对应一个独立、可单独引用的条文单元。'
+    - 'clauseId 必须尽量使用原文中的编号；若原文无明确编号，可使用稳定且简洁的顺序标识。'
+    - 'content 应保留该条的核心正文，尽量与原文一致，不要总结式改写。'
+    - 'title 仅在原文明确存在标题、主题或能够从该条主旨中直接提炼时填写；否则留空。'
+    - 'category 需尽量归入总则、权利义务、程序、处罚、附则、其他之一。'
+    - '不要遗漏任何实质性条文，也不要把多个独立条文合并成一条。'
+    - '目录、页眉页脚、签章、编号噪音、纯格式性重复内容通常不作为条文输出。'
+
+options: {}
+
+display:
+  label: '{clauseId}({title})'
