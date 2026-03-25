@@ -1,0 +1,54 @@
+language: zh
+name: PurchaseRecord
+type: spatial_graph
+tags: [commerce]
+description: '购买记录图 - 记录购买关系及购买发生地点'
+
+output:
+  description: '购买关系图，关系边包含购买地点'
+  entities:
+    description: '买家、卖家和商品节点'
+    fields:
+      - name: name
+        type: str
+        description: '实体名称'
+      - name: type
+        type: str
+        description: '实体类型：买家、卖家、商品'
+  relations:
+    description: '购买关系边'
+    fields:
+      - name: source
+        type: str
+        description: '源实体（买家）'
+      - name: target
+        type: str
+        description: '目标实体（商品）'
+      - name: amount
+        type: str
+        description: '购买金额'
+        required: false
+      - name: location
+        type: str
+        description: '购买发生地点'
+
+guideline:
+  target: '你是一位商业分析专家。请提取购买关系和购买地点信息。'
+  rules_for_entities:
+    - '提取买家、卖家和商品'
+  rules_for_relations:
+    - 'source 必须是买家，target 必须是商品'
+  rules_for_location:
+    - 'location 记录购买发生的地点'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{target}'
+  relation_members:
+    source: source
+    target: target
+  location_field: location
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '购买地点: {location}'

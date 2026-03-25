@@ -1,0 +1,61 @@
+language: zh
+name: SocialMeeting
+type: spatio_temporal_graph
+tags: [social]
+description: '社交会面图 - 记录人物之间的会面关系，包含会面时间和地点'
+
+output:
+  description: '社交会面关系图，关系边包含会面时间和地点'
+  entities:
+    description: '人物节点'
+    fields:
+      - name: name
+        type: str
+        description: '人物姓名'
+      - name: role
+        type: str
+        description: '社会角色'
+        required: false
+  relations:
+    description: '会面关系边'
+    fields:
+      - name: source
+        type: str
+        description: '源实体（人物A）'
+      - name: target
+        type: str
+        description: '目标实体（人物B）'
+      - name: meeting_type
+        type: str
+        description: '会面类型'
+        required: false
+      - name: event_date
+        type: str
+        description: '会面时间'
+      - name: location
+        type: str
+        description: '会面地点'
+
+guideline:
+  target: '你是一位社交分析专家。请提取人物之间的会面关系。'
+  rules_for_entities:
+    - '提取所有涉及的人物'
+  rules_for_relations:
+    - 'source 和 target 是会面的双方'
+  rules_for_time:
+    - 'event_date 记录会面时间'
+  rules_for_location:
+    - 'location 记录会面地点'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{target}|{event_date}'
+  relation_members:
+    source: source
+    target: target
+  time_field: event_date
+  location_field: location
+
+display:
+  entity_label: '{name}'
+  relation_label: '{event_date} @ {location}'

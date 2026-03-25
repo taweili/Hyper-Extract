@@ -96,18 +96,15 @@ Transform LLM output from scattered text into **searchable, queryable, and reaso
 
 ---
 
-## 🌍 12 Domains, 200+ Ready-to-Use Templates
+## 🌍 6 Domains, 40+ Ready-to-Use Templates
 
 > Pre-built templates for **different industries** — extract knowledge **right away** without designing schemas.
 
 | Domain | Templates | Domain | Templates |
 | :--- | :---: | :--- | :---: |
-| 💰 Finance | 25+ | 📜 History | 12+ |
-| 🏥 Medicine | 20+ | 🧬 Biology | 10+ |
-| ⚖️ Legal | 15+ | 🎭 Literature | 10+ |
-| 🌿 TCM | 15+ | 📰 News | 12+ |
-| 🔧 Industry | 18+ | 🌾 Agriculture | 8+ |
-| 🍜 Food | 8+ | 🌐 General | 20+ |
+| 📚 General | 16 | 💰 Finance | 21 |
+| 🏥 Medicine | 15 | 🌿 TCM | 10 |
+| ⚖️ Legal | 11 | 🔧 Industry | 15 |
 
 **✅ Bilingual** — Templates available in both English and Chinese
 
