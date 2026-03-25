@@ -1,60 +1,76 @@
-language: zh
+language: [zh, en]
+
 name: base_temporal_graph
 type: temporal_graph
 tags: [general]
+
 description:
   zh: '基础时序图谱模板 - 从文本中提取实体之间的关系，并在文本提供时间信息时为关系补充时间属性，用于表达事实、事件或状态的连接及其时间上下文。'
+  en: 'Base Temporal Graph Template - Extracts relationships between entities from text and supplements temporal attributes to relations when time information is provided, expressing the connections of facts, events, or states with their temporal context.'
 
 output:
-  description: 
+  description:
     zh: '包含实体节点、关系边及可选时间信息的时序图谱结构。'
+    en: 'Temporal graph structure containing entity nodes, relation edges, and optional temporal information.'
   entities:
-    description: 
+    description:
       zh: '文本中可独立识别、可参与关系连接的实体节点。'
+      en: 'Entity nodes that can be independently identified and participate in relation connections in the text.'
     fields:
     - name: name
       type: str
       description:
         zh: '实体名称，使用文本中最明确、最稳定的称呼。'
+        en: 'Entity name, using the most explicit and stable designation in the text.'
     - name: type
       type: str
       description:
         zh: '实体类型，如人物、地点、组织、物品、概念、事件、制度、其他。'
+        en: 'Entity type, such as person, location, organization, object, concept, event, institution, or other.'
     - name: description
       type: str
       description:
         zh: '对实体身份、含义或其在当前文本中作用的简要说明。'
+        en: 'Brief description of the entity identity, meaning, or its role in the current text.'
       required: false
+
   relations:
-    description: 
+    description:
       zh: '实体之间的关系边；若文本提供时间，可在关系上补充时间属性。'
+      en: 'Relation edges between entities; temporal attributes can be added to relations if the text provides time information.'
     fields:
     - name: source
       type: str
       description:
         zh: '关系起点实体，必须对应已提取实体的 name。'
+        en: 'Source entity of the relation, must correspond to the name of an extracted entity.'
     - name: target
       type: str
       description:
         zh: '关系终点实体，必须对应已提取实体的 name。'
+        en: 'Target entity of the relation, must correspond to the name of an extracted entity.'
     - name: eventType
       type: str
       description:
         zh: '关系类型，用简洁词语概括两个实体之间的连接方式。'
+        en: 'Relation type, concisely describing the connection between two entities.'
     - name: eventDate
       type: str
       description:
         zh: '关系对应的时间；无明确时间时可留空。'
+        en: 'Time associated with the relation; can be left empty if no explicit time is available.'
       required: false
     - name: details
       type: str
       description:
         zh: '对关系的简要补充说明；无额外信息时可留空。'
+        en: 'Brief supplementary explanation for the relation; can be left empty if no additional information is available.'
       required: false
 
 guideline:
   target:
     zh: '你是一位时序知识图谱构建专家。请从文本中提取关键实体，以及这些实体之间的关系；如果文本提供了明确时间，再为关系补充时间属性。'
+    en: 'You are an expert in temporal knowledge graph construction. Extract key entities and their relationships from the text; if the text provides explicit time information, supplement temporal attributes to the relations.'
   rules_for_entities:
     zh:
     - '提取对理解文本事实、事件过程和时间演变有价值，且能够参与关系连接的实体。'
@@ -62,6 +78,12 @@ guideline:
     - 'name 使用原文中最稳定、最清晰的称呼；同一实体在全文中保持命名一致。'
     - 'description 用 1 句话概括实体身份、含义或其在文本中的作用；信息不足时可留空。'
     - '优先保留在文本中与其他实体存在明确联系的实体；对既不关键也没有明确关系支撑的边缘实体，可不提取。'
+    en:
+    - 'Extract entities that are valuable for understanding text facts, event processes, and temporal evolution, and that can participate in relation connections.'
+    - 'Assign appropriate types to each entity, such as person, location, organization, object, concept, event, institution, or other.'
+    - 'Use the most stable and clear designation in the source text for names; maintain consistent naming for the same entity throughout the text.'
+    - 'Use one sentence to summarize entity identity, meaning, or its role in the text; can be left empty if information is insufficient.'
+    - 'Prioritize retaining entities that have clear connections with other entities in the text; edge entities that are neither critical nor supported by explicit relations may be omitted.'
   rules_for_relations:
     zh:
     - '仅在文本明确表达两个实体之间存在关系、事件或状态变化时创建关系边。'
@@ -71,21 +93,38 @@ guideline:
     - 'eventDate 是可选字段；没有明确时间时也要保留关系边，并将 eventDate 留空。'
     - 'details 只补充必要背景或结果，没有额外信息时可留空。'
     - '无法确定具体关系对象时，不要强行构造边。'
+    en:
+    - 'Create relation edges only when the text explicitly expresses that a relationship, event, or state change exists between two entities.'
+    - 'Source and target must directly reference the name of an extracted entity; do not create new unextracted entities.'
+    - 'Extract the relation edge as long as the text supports the establishment of the relationship.'
+    - 'Use concise relational words for eventType, such as belongs to, located at, employed by, cooperates with, participates in, affects, publishes, signs, related to, etc.'
+    - 'eventDate is an optional field; retain the relation edge even without explicit time, and leave eventDate empty.'
+    - 'details should only supplement necessary background or results; can be left empty if no additional information is available.'
+    - 'Do not forcibly construct edges when the specific relation target cannot be determined.'
   rules_for_time:
     zh:
     - '当前观察日期：{observation_time}'
     - 'eventDate 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
     - '没有明确时间时，仍应保留关系边，并将 eventDate 留空。'
-    - '相对时间以 observation_time 为基准解析，如“去年/今年/明年”“昨天/今天/明天”“十年前/五年后”。'
+    - '相对时间以 observation_time 为基准解析，如"去年/今年/明年""昨天/今天/明天""十年前/五年后"。'
     - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD；保留文本可确定的最细粒度。'
-    - '“年初/年末”可解析为当年 1 月 1 日或 12 月 31 日；朝代、时期名称或模糊历史时间可按原文保留。'
+    - '"年初/年末"可解析为当年 1 月 1 日或 12 月 31 日；朝代、时期名称或模糊历史时间可按原文保留。'
     - '若时间只对应关系成立、变化或终止中的某一时点，则记录最直接相关的那个时间。'
     - '无法可靠确定时间时留空，不要根据常识补写。'
+    en:
+    - 'Current observation date: {observation_time}'
+    - 'eventDate is an optional field; fill in only when the text explicitly provides time or when relative time can be reliably converted.'
+    - 'Retain the relation edge even without explicit time, and leave eventDate empty.'
+    - 'Parse relative time based on observation_time, such as "last year/this year/next year," "yesterday/today/tomorrow," "ten years ago/in five years."'
+    - 'If the text provides an explicit year, write as YYYY; if it provides a complete date, write as YYYY-MM-DD; preserve the finest granularity that can be determined from the text.'
+    - '"Beginning/end of year" can be parsed as January 1st or December 31st of that year; dynasty names, period names, or vague historical times can be kept in the original text.'
+    - 'If the time corresponds to only one point among the establishment, change, or termination of the relation, record the most directly relevant time.'
+    - 'Leave empty when time cannot be reliably determined; do not fill in based on common sense.'
 
 identifiers:
   entity_id: name
   relation_id: '{source}|{eventType}|{details}'
-  relation_members: 
+  relation_members:
     source: source
     target: target
   time_field: 'eventDate'

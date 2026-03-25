@@ -1,143 +1,76 @@
 ---
 name: hyper-extract-yaml-validator
 description: |
-  Hyper-Extract YAML Validator. Checks configuration completeness, correctness, and best practices.
-
-  ## Validation Levels
-  - ERROR: Must fix, otherwise won't work
-  - WARNING: Should fix, may affect quality
-  - INFO: Reference info, recommended to follow
+  YAML Validator for Hyper-Extract. Validates configuration syntax and structure.
+  Use optional after design to check for errors.
 ---
 
 # YAML Validator
 
-## Validation Checklist
+## Validation Workflow
 
-### 1. Required Fields
+1. **Syntax check**: YAML is valid
+2. **Required fields**: All required fields present
+3. **Type check**: Valid AutoType value
+4. **Identifiers check**: Proper configuration for type
+5. **Field validation**: Types and descriptions present
 
-- [ ] language
-- [ ] name
-- [ ] type (one of 8 valid types)
-- [ ] tags
-- [ ] description
-- [ ] output
-- [ ] guideline
+## Quick Validation Checklist
 
-### 2. Type-Specific Validation
-
-#### Record Types
+### All Types
 
 ```yaml
-output:
-  description: '...'      # ✓ Exists
-  fields:                 # ✓ Exists
-    - name: ...           # ✓ Each field has name
-      type: ...          # ✓ Has type
-      description: ...   # ✓ Has description
+- [ ] language: zh/en
+- [ ] name: PascalCase
+- [ ] type: valid AutoType
+- [ ] tags: lowercase array
+- [ ] description: non-empty
+- [ ] output: exists
+- [ ] guideline: exists
 ```
 
-#### Graph Types
+### Graph Types
 
 ```yaml
-output:
-  entities:               # ✓ Exists
-    description: '...'
-    fields:
-      - name: name
-      - name: category
-  relations:              # ✓ Exists
-    description: '...'
-    fields:
-      - name: source     # ✓ Binary relations
-      - name: target     # ✓ OR
-      - name: participants  # ✓ Hypergraph
+- [ ] output.entities: exists
+- [ ] output.relations: exists
+- [ ] identifiers.entity_id: exists
+- [ ] identifiers.relation_id: exists
+- [ ] identifiers.relation_members: configured
 ```
 
-#### Temporal Graph
+### Hypergraph
 
 ```yaml
-identifiers:
-  time_field: '...'       # ✓ Must exist
+- [ ] relation_members is string OR list
+- [ ] If list: all fields are type: list
 ```
 
-#### Spatial Graph
+### Temporal/Spatial
 
 ```yaml
-identifiers:
-  location_field: '...'   # ✓ Must exist
+- [ ] identifiers.time_field: configured (temporal)
+- [ ] identifiers.location_field: configured (spatial)
 ```
 
-### 3. Field Value Validation
+## Validation Levels
 
-| Field | Valid Values | Common Errors |
-|-------|-------------|---------------|
-| type | model, list, set, graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph | Typo: "graphh" |
-| language | Single: zh/en; Multi: [zh, en] | Non-standard: "chinese" |
-| extraction_mode | one_stage, two_stage | Typo: "two-stage" |
+| Level | Meaning | Action |
+|-------|---------|--------|
+| ERROR | Must fix | Won't work without fix |
+| WARNING | Should fix | May affect quality |
+| INFO | Reference | Recommended to follow |
 
-### 4. Naming Conventions
+## Reference Files
 
-- [ ] name: PascalCase (e.g., EarningsCallSummary)
-- [ ] tags: lowercase (e.g., [finance, medicine])
-- [ ] field names: snake_case (e.g., company_name)
-- [ ] relation_type: Usually Chinese (e.g., 拥有, 影响)
+| Topic | Reference File |
+|-------|---------------|
+| Syntax validation | [rules-syntax.md](rules-syntax.md) |
+| Type-specific rules | [rules-types.md](rules-types.md) |
+| Identifier rules | [rules-identifiers.md](rules-identifiers.md) |
+| Common errors | [patterns-errors.md](patterns-errors.md) |
 
-### 5. Identifiers Configuration
-
-#### Binary Relations
-
-```yaml
-identifiers:
-  entity_id: name              # ✓ References entity field
-  relation_id: '{source}|...' # ✓ Template syntax correct
-  relation_members:           # ✓ Map correctly
-    source: source
-    target: target
-```
-
-#### Hypergraph
-
-```yaml
-identifiers:
-  entity_id: name
-  relation_id: '{ruleType}|{action}'
-  relation_members: participants  # ✓ STRING, not dict
-```
-
-#### Complex (relation_members as list)
-
-```yaml
-identifiers:
-  entity_id: name
-  relation_id: '{relation_type}'
-  relation_members: [field1, field2]  # ✓ List of field names
-```
-
-## Error Messages
-
-### Missing Required Field
-
-```
-ERROR: Missing required field 'output'
-Fix: Add output field definition
-```
-
-### Invalid Type Value
-
-```
-ERROR: type value 'graphh' is not valid
-Valid values: model, list, set, graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph
-Fix: Correct to 'graph'
-```
-
-### Missing Identifiers
-
-```
-ERROR: graph type requires identifiers.relation_members
-Fix: Add relation_members configuration
-```
-
-## Output Format
+## Error Message Format
 
 ```markdown
 ## Validation Results
@@ -156,18 +89,13 @@ Fix: Add relation_members configuration
 
 ### Semantic Validation
 ⚠️ 2 warnings
-- WARNING: 'company_name' field description too brief
-- WARNING: Missing options.extraction_mode, recommend 'two_stage'
-
-### Best Practices
-⚠️ 1 suggestion
-- INFO: Consider adding identifiers for better deduplication
+- WARNING: [message]
+- WARNING: [message]
 
 ### Overall Assessment
-✅ Configuration valid, ready for Hyper-Extract
-
-## Fix Suggestions
-
-1. Add extraction_mode: 'two_stage' to options
-2. Expand 'company_name' description to be more specific
+✅ Configuration valid
 ```
+
+---
+
+See [patterns-errors.md](patterns-errors.md) for common error patterns and fixes.

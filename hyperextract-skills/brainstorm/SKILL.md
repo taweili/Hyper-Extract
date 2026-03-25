@@ -1,93 +1,134 @@
 ---
 name: hyper-extract-brainstorm
 description: |
-  Hyper-Extract Requirements Brainstorming Assistant. Explore user requirements and discuss detailed design for each type.
-
-  ## What We Explore
-  - Input: Source, domain, structure
-  - Output: What to extract, how to use
-  - Type-specific discussions:
-    * Record types: Item structure, field design, deduplication
-    * Graph types: Entity types, relation types, multi-type nodes
-    * Hypergraph: Participant types, outcome structure, reasoning needs
-    * Temporal/spatial: Time/location on edges, format handling, observation reference
-
-  ## Output
-  1. Requirements summary
-  2. Recommended type
-  3. Type-specific design specs
+  Requirements Brainstorming for Hyper-Extract. Helps users discuss requirements and determine types.
+  Use when exploring extraction needs or unsure which type to use.
 ---
 
 # Brainstorm: Requirements Exploration
 
-## Phase 1: Input & Output
+## Workflow
 
-**Input**: Source, domain, structure level, length
-**Output**: What to extract and how to use
+1. Clarify input/output
+2. Discuss type details
+3. Output design draft → Pass to designer
 
-## Phase 2: Type Determination
+---
 
-- "Complete summary" → **model**
-- "List of items" → **list**
-- "Deduplicated entities" → **set**
-- "Relationships between entities" → **graph**
-- "Multi-party relationships" → **hypergraph**
-- "Events with time" → **temporal_graph**
-- "Events with location" → **spatial_graph**
-- "Events with time + location" → **spatio_temporal_graph**
+## Type Determination
 
-## Phase 3: Type-Specific Discussion
+### Decision Tree
 
-### Record Types (model/list/set)
+```
+Need to model relationships?
+├─ No → Record types
+│   ├─ Single object → model
+│   ├─ Ordered list → list
+│   └─ Deduplicated set → set
+└─ Yes → Graph types
+    ├─ Binary (A→B) → graph
+    └─ Multi-entity (A+B+C→D)
+        ├─ Flat list → hypergraph (simple)
+        └─ Role groups → hypergraph (nested)
 
-- Item structure and fields
-- For set: deduplication field
-- For list: nested structure, order
+After graph:
+├─ + time dimension → temporal_graph
+├─ + space dimension → spatial_graph
+└─ + both → spatio_temporal_graph
+```
 
-### Graph Types
+### Quick Reference
 
-1. **Entity types**: What entities to extract?
-2. **Entity fields**: name, category, description?
-3. **Relation types**: What relationships?
-4. **Relation fields**: Binary or complex?
+| Intent | Type |
+|--------|------|
+| Summary/card | model |
+| Ordered items | list |
+| Deduplicated entities | set |
+| Binary relations | graph |
+| Multi-party events | hypergraph |
+| + time | temporal_graph |
+| + space | spatial_graph |
+| + time + space | spatio_temporal_graph |
 
-### Hypergraph
+---
 
-- Participants: Who/what participates?
-- Outcome: What result/conclusion?
-- Reasoning: Evidence needed?
+## Discussion Questions
 
-### Dimension Evolution (temporal/spatial)
+### For All Types
+- What is the input source?
+- What to extract?
+- Key fields needed?
 
-After basic graph design, discuss:
+### For Graph Types
+- Entity types and granularity?
+- Relation types (predefined or custom)?
+- Multi-type nodes?
 
-**Time dimension?**
-- Does the relation have time? (e.g., "A bought from B on date X")
-- Is time on node (birth_date) or edge (event_date)?
-- If time needs to be a relation dimension → upgrade to **temporal_graph**
-- Extract time to edge, add `time_field` in identifiers
+### For Hypergraph
+- Simple or nested grouping?
+- How many semantic groups?
+- Group names?
 
-**Location dimension?**
-- Does the relation have location? (e.g., "A bought from B at location Y")
-- Is location on node (hq) or edge (transaction location)?
-- If location needs to be a relation dimension → upgrade to **spatial_graph**
-- Extract location to edge, add `location_field` in identifiers
+### For Temporal/Spatial
+- Time/space on edge or node?
+- Format handling?
 
-**Both?**
-- Need both time and location → **spatio_temporal_graph**
+---
 
-## Output Format
+## Output: Design Draft
+
+### For Record Types (model/list/set)
 
 ```markdown
-## Requirements Summary
-- Input: ...
-- Output: ...
-- Quality: ...
+## Type: [model/list/set]
 
-## Type Recommendation
-**Type**: [type]
-**Confidence**: High/Medium/Low
+## Fields
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| [name] | str | yes | ... |
 
-## Design Specs
-[Based on type discussion]
+## Notes
+[Any special requirements]
 ```
+
+### For Graph Types (graph/hypergraph/temporal/spatial)
+
+```markdown
+## Type: [graph/hypergraph/temporal/spatial]
+
+## Entities
+| Field | Type | Description |
+|-------|------|-------------|
+| name | str | Entity name |
+| category | str | Entity type |
+
+## Relations
+| Field | Type | Description |
+|-------|------|-------------|
+| [field] | str/list | ... |
+
+## Identifiers
+- entity_id: name
+- relation_id: '{...}'
+- relation_members: [...]
+
+## Notes
+[Any special requirements]
+```
+
+### Type-Specific Fields
+
+| Type | Additional Fields |
+|------|-------------------|
+| hypergraph | Participants or Groups |
+| temporal_graph | time_field |
+| spatial_graph | location_field |
+| spatio_temporal_graph | time_field + location_field |
+
+---
+
+## Pass to Designer
+
+After brainstorm, invoke the appropriate designer:
+- model/list/set → record-designer
+- graph/hypergraph/temporal/spatial → graph-designer

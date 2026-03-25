@@ -1,69 +1,105 @@
 ---
 name: hyper-extract
 description: |
-  Hyper-Extract Knowledge Template Design Assistant. Helps users design YAML configuration templates through natural language dialogue.
-
-  ## Supported Types (8 AutoTypes)
-  ### Record Types
-  - model: Single structured object
-  - list: List of homogeneous objects
-  - set: Deduplicated object set
-  ### Graph Types
-  - graph: Binary relation graph
-  - hypergraph: Multi-entity relation hypergraph
-  - temporal_graph: Temporal graph with time dimension
-  - spatial_graph: Spatial graph with location dimension
-  - spatio_temporal_graph: Combined temporal and spatial
-
-  ## Workflow
-  1. brainstorm: Explore requirements, discuss type details
-  2. record-designer OR graph-designer: Design structure + rules
-  3. yaml-validator: Validate configuration (optional)
-  4. multilingual: Multi-language conversion (optional)
+  Hyper-Extract Knowledge Template Designer. Creates YAML configs for data extraction.
 ---
 
-# Hyper-Extract Knowledge Template Design Assistant
+# Hyper-Extract
 
-## How to Use
+## Overview
 
-### Mode 1: Start from Requirements
-Describe your scenario, we'll explore together to clarify needs and determine the type.
+Hyper-Extract helps users design YAML configuration templates for structured data extraction.
 
-### Mode 2: Start from Type
-Already know the type? Jump directly to the designer.
-
-### Mode 3: Start from Example
-Have a reference template? We'll analyze and adapt it.
-
-## Sub-Skills
-
-| Skill | Purpose |
-|-------|---------|
-| brainstorm | Deep discussion about requirements and type-specific details |
-| record-designer | Design model/list/set structures |
-| graph-designer | Design graph/hypergraph/etc structures |
-| yaml-validator | Validate YAML correctness |
-| multilingual | Multi-language support |
-
-## Calling Sub-Skills
+## Workflow
 
 ```
-[Invoke brainstorm]
-User description: [description]
-Current understanding: [if any]
+User → brainstorm → designer → validator → multilingual
+```
 
-[Invoke record-designer]
-Type: [model/list/set]
-Requirements: [from brainstorm]
+## Skills
 
-[Invoke graph-designer]
-Type: [graph/hypergraph/temporal_graph/spatial_graph/spatio_temporal_graph]
-Requirements: [from brainstorm]
+| Skill | Purpose | When to Use |
+|-------|---------|-------------|
+| brainstorm | Explore requirements, determine types | First step, when unsure |
+| record-designer | Design model/list/set structures | For Record types |
+| graph-designer | Design graph/hypergraph structures | For Graph types |
+| yaml-validator | Validate YAML correctness | Optional, after design |
+| multilingual | Multi-language support | Optional |
 
-[Invoke yaml-validator]
-YAML: [configuration]
-Scope: [all/syntax/semantics]
+---
 
-[Invoke multilingual]
-Language: [target language]
+## Skill Workflow
+
+### Step 1: brainstorm
+Discuss requirements, determine type, create design draft.
+
+### Step 2: designer
+Generate YAML based on design draft:
+- record-designer → model/list/set
+- graph-designer → graph/hypergraph/temporal/spatial
+
+### Step 3: validator (optional)
+Validate YAML syntax and structure.
+
+### Step 4: multilingual (optional)
+Add multi-language support.
+
+---
+
+## Supported Types
+
+| Type | Description |
+|------|-------------|
+| model | Single structured object |
+| list | Ordered list of items |
+| set | Deduplicated set |
+| graph | Binary relations (A→B) |
+| hypergraph | Multi-entity relations |
+| temporal_graph | + time dimension |
+| spatial_graph | + space dimension |
+| spatio_temporal_graph | + time + space |
+
+---
+
+## Hypergraph Grouping
+
+| Type | relation_members | Use Case |
+|------|-----------------|----------|
+| Simple | `participants` (string) | Flat list |
+| Nested | `[group_a, group_b]` (list) | Semantic roles |
+
+---
+
+## Skill Calling Conventions
+
+### brainstorm → designer
+
+Pass design draft:
+```markdown
+## Type: hypergraph
+## Groups: [attackers, defenders]
+## Fields: [battle_name, outcome]
+```
+
+### designer → validator (optional)
+
+```markdown
+## Generated YAML
+[yaml content]
+```
+
+---
+
+## Type Determination Quick Reference
+
+```
+Need relationships?
+├─ No → model / list / set
+└─ Yes → graph / hypergraph
+    ├─ Binary → graph
+    └─ Multi-entity → hypergraph
+
++ time → temporal_graph
++ space → spatial_graph
++ both → spatio_temporal_graph
 ```

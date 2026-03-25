@@ -1,115 +1,96 @@
 ---
 name: hyper-extract-record-designer
 description: |
-  Hyper-Extract Record Designer. Designs structure, identifiers, display, and extraction rules for model/list/set types.
-
-  ## Applicable Types
-  - model: Single object
-  - list: Object list
-  - set: Deduplicated set
-
-  ## Complete Output
-  - output.fields
-  - guideline (target + rules)
-  - identifiers.item_id (set only)
-  - display.label
+  Record Type Designer for Hyper-Extract. Generates YAML for model/list/set types.
+  Use after brainstorm with design draft.
 ---
 
 # Record Designer: model/list/set
 
+## Input from Brainstorm
+
+Receive design specs from brainstorm:
+- What fields to extract
+- Field types and requirements
+- Deduplication needs (for set)
+
+## Workflow
+
+1. **Confirm type** (model/list/set)
+2. **Design fields** (output.fields)
+3. **Configure identifiers** (identifiers.item_id for set)
+4. **Set display** (display.label)
+5. **Write guideline** (guideline)
+6. **Review and output YAML**
+
 ## Type Confirmation
 
-- **model**: Extract a single complete object
-- **list**: Extract list of homogeneous objects
-- **set**: Extract deduplicated set of objects
+| Type | Identifiers | Use Case |
+|------|-------------|----------|
+| model | Not needed | Single object |
+| list | Not needed | Ordered items |
+| set | `item_id` required | Deduplicated entities |
 
-## Part 1: Field Design (output.fields)
-
-### Field Definition Template
+## Output Template
 
 ```yaml
+language: en
+
+name: [TemplateName]
+type: [model/list/set]
+tags: [...]
+description: '...'
+
 output:
-  description: 'Output structure description'
+  description: '...'
   fields:
-    - name: field_name        # snake_case, must be unique
-      type: str/int/float/list # data type
-      description: 'What this field means'
-      required: true/false     # is this mandatory?
-      default: 'value'         # default when missing
-```
+    - name: field_name
+      type: str/int/float/list
+      description: '...'
+      required: true/false
+      default: '...'
 
-### Field Type Guidelines
-
-| Type | Use When | Example |
-|------|----------|---------|
-| str | Text values | names, descriptions |
-| int | Whole numbers | counts, years |
-| float | Decimal numbers | prices, percentages |
-| list | Multiple values | tags, categories |
-
-### Usually Needed Fields
-
-- At minimum, most records need a `name` or `title` field
-
-### Optional Fields
-
-- description: Brief explanation
-- category: Type or classification
-- Domain-specific fields
-
-## Part 2: Extraction Rules (guideline)
-
-### Target Setting
-
-```yaml
 guideline:
-  target: 'You are a [domain] expert. Extract [goal] from text.'
-```
+  target: 'You are a [domain] expert...'
+  rules: [...]
 
-### Rules for Records
+identifiers: {}  # Or item_id for set
 
-```yaml
-  rules:
-    - 'Rule 1: What to extract'
-    - 'Rule 2: How to handle edge cases'
-    - 'Rule 3: Quality standards'
-```
-
-### Rule Writing Guidelines
-
-1. Be specific about what to extract
-2. Include edge case handling
-3. Set quality standards
-4. Prioritize important rules first
-
-## Part 3: Identifier Rules (identifiers)
-
-### For set types, configure deduplication:
-
-```yaml
-identifiers:
-  item_id: field_name  # Deduplicate based on this field
-```
-
-### For model/list types:
-
-Usually not needed, or use empty:
-
-```yaml
-identifiers: {}
-```
-
-## Part 4: Display Configuration (display)
-
-```yaml
 display:
-  label: '{field_name}'  # How to display each record
+  label: '{field_name}'
 ```
 
-### Label Template Syntax
+## Type-Specific Output
 
-- `{field_name}`: Insert field value
-- Example: `'{company_name}'` → "Acme Corp"
+### model
+
+```yaml
+type: model
+identifiers: {}  # Not needed
+```
+
+### list
+
+```yaml
+type: list
+identifiers: {}  # Not needed
+```
+
+### set
+
+```yaml
+type: set
+identifiers:
+  item_id: [deduplication field]
+```
+
+## Reference Files
+
+| Topic | Reference File |
+|-------|---------------|
+| Field design patterns | [reference-field.md](reference-field.md) |
+| Identifier configuration | [reference-identifier.md](reference-identifier.md) |
+| Complete examples | [examples.md](examples.md) |
 
 ## Design Checklist
 
@@ -120,49 +101,6 @@ display:
 - [ ] For set: item_id can uniquely identify records?
 - [ ] Display label references correct fields?
 
-## Complete Output Example
+---
 
-```yaml
-language: en
-
-name: EarningsCallSummary
-type: model
-tags: [finance]
-description: 'Extract key financial metrics from earnings call transcripts'
-
-output:
-  description: 'Earnings call summary'
-  fields:
-    - name: company_name
-      type: str
-      description: 'Company name'
-      required: true
-      default: ''
-    - name: revenue
-      type: str
-      description: 'Revenue amount'
-      required: false
-      default: 'N/A'
-    - name: quarter
-      type: str
-      description: 'Fiscal quarter'
-      required: true
-      default: ''
-
-guideline:
-  target: 'You are a financial analyst. Extract key metrics from earnings calls.'
-  rules:
-    - 'Extract revenue in the format shown in text (including currency)'
-    - 'Use N/A if revenue is not mentioned'
-    - 'Extract quarter as Q1/Q2/Q3/Q4 format'
-
-display:
-  label: '{company_name} - {quarter}'
-```
-
-## Next Steps
-
-After record design:
-1. Review with user
-2. Optional: yaml-validator
-3. Optional: multilingual
+See [examples.md](examples.md) for complete YAML examples.
