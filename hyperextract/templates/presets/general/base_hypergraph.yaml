@@ -2,7 +2,7 @@ language: [zh, en]
 
 name: base_hypergraph
 type: hypergraph
-tags: [general]
+tags: [general, hypergraph]
 
 description:
   zh: '通用超图结构知识模板 - 从任意文本中提取超图结构，包含节点（实体、概念、地点等）以及连接多个节点的多元关系超边（事件、会议、合作、冲突等）。'
@@ -12,10 +12,10 @@ output:
   description:
     zh: '提取出来的超图结构，包含节点和超边。'
     en: 'Extracted hypergraph structure containing nodes and hyperedges.'
-  nodes:
+  entities:
     description:
       zh: '文本中可独立识别的节点，如实体、概念、地点等基本语义单元。'
-      en: 'Nodes that can be independently identified in the text, such as entities, concepts, locations, or other basic semantic units.'
+      en: 'Entity nodes that can be independently identified in the text, such as entities, concepts, locations, or other basic semantic units.'
     fields:
     - name: name
       type: str
@@ -33,7 +33,7 @@ output:
         zh: '对节点身份或作用的简要说明。'
         en: 'Brief description of the node identity or role.'
       required: false
-  hyperedges:
+  relations:
     description:
       zh: '连接多个节点的多元关系超边，如事件、会议、合作、冲突、交易等。'
       en: 'Multi-node relation hyperedges connecting multiple nodes, such as events, meetings, cooperation, conflicts, transactions, etc.'
@@ -64,39 +64,33 @@ guideline:
   target:
     zh: '你是一位关系抽取专家。请从文本中提取超图结构，包括：1）可独立识别的节点（实体、概念、地点等）；2）连接多个节点的多元关系超边（事件、会议、合作等）。'
     en: 'You are an expert in relation extraction. Extract hypergraph structure from the text, including: 1) independently identifiable nodes (entities, concepts, locations, etc.); 2) multi-node relation hyperedges (events, meetings, cooperation, etc.).'
-  rules_for_nodes:
+  rules_for_entities:
     zh:
     - '提取文本中可识别的节点，如实体、概念、地点、组织、物品等基本语义单元。'
-    - 'name 使用原文中最稳定、最清晰的称呼。'
-    - 'type 概括节点的类别，如实体、概念、地点、组织、物品等。'
-    - 'description 用 1 句话概括节点身份或作用；若信息不足可留空。'
+    - '同一节点在全文中保持命名一致。'
+    - '不要提取纯代词、泛称或无独立指代意义的词语。'
     en:
     - 'Extract identifiable nodes from the text, such as entities, concepts, locations, organizations, objects, or other basic semantic units.'
-    - 'Use the most stable and clear designation in the source text for names.'
-    - 'Use type to summarize the node category, such as entity, concept, location, organization, object, etc.'
-    - 'Describe the node in 1 sentence; leave empty if information is insufficient.'
-  rules_for_hyperedges:
+    - 'Maintain consistent naming for the same node throughout the text.'
+    - 'Do not extract pure pronouns, generic terms, or phrases without independent referential meaning.'
+  rules_for_relations:
     zh:
     - '仅在文本明确表达多个节点共同参与某个事件或关系时创建超边。'
-    - 'participants 必须全部引用已提取节点的 name。'
-    - 'name 用简洁的词语概括该超边的核心内容。'
-    - 'type 概括该超边的类型，如事件、会议、合作、冲突、交易、协议等。'
-    - 'description 简要说明超边内容或结果；无额外信息时可留空。'
+    - '避免重复超边；若多个节点多次以相同方式共同参与同一事件，应合并为一条记录。'
+    - '优先使用文本中明确出现的词语描述超边内容。'
     en:
     - 'Create hyperedges only when the text explicitly expresses that multiple nodes jointly participate in an event or relation.'
-    - 'All participants must reference the names of extracted nodes.'
-    - 'Use concise words for name to summarize the core content of this hyperedge.'
-    - 'Use type to characterize the hyperedge type, such as event, meeting, cooperation, conflict, transaction, agreement, etc.'
-    - 'Briefly describe the hyperedge content or result; leave empty if no additional information is available.'
+    - 'Avoid duplicate hyperedges; if multiple nodes repeatedly participate in the same event in the same way, merge them into one record.'
+    - 'Prefer words that explicitly appear in the text to describe hyperedge content.'
 
 identifiers:
-  node_id: name
-  hyperedge_id: '{name}|{type}'
-  hyperedge_members: participants
+  entity_id: name
+  relation_id: '{name}|{type}'
+  relation_members: participants
 
 options:
   extraction_mode: two_stage
 
 display:
-  node_label: '{name} ({type})'
-  hyperedge_label: '{name}'
+  entity_label: '{name} ({type})'
+  relation_label: '{name}'

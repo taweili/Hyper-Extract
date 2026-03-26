@@ -67,27 +67,21 @@ guideline:
   rules_for_entities:
     zh:
     - '提取对理解文本事实、结构或逻辑有价值的实体。'
-    - 'name 使用原文中最明确、最稳定的称呼；同一实体在全文中保持命名一致。'
-    - 'type 需概括实体类别，可使用通用类型标签。'
-    - 'description 用 1 句话概括实体的身份或作用；若信息不足可留空。'
+    - '同一实体在全文中保持命名一致。'
+    - '不要提取纯代词、泛称或无独立指代意义的词语。'
     en:
     - 'Extract entities that are valuable for understanding text facts, structure, or logic.'
-    - 'Use the most explicit and stable designation in the source text for names; maintain consistent naming for the same entity.'
-    - 'Use type to summarize the entity category using general type labels.'
-    - 'Describe the entity in 1 sentence; leave empty if information is insufficient.'
+    - 'Maintain consistent naming for the same entity throughout the text.'
+    - 'Do not extract pure pronouns, generic terms, or phrases without independent referential meaning.'
   rules_for_relations:
     zh:
     - '仅在文本明确表达两个实体之间存在语义联系时创建关系，不要凭常识补充隐含关系。'
-    - 'source 和 target 必须直接引用已提取实体的 name，不能新造实体名称。'
-    - 'type 使用简洁、方向清晰的关系词。'
-    - 'description 简要说明关系依据或上下文；若文本没有额外信息可留空。'
     - '避免重复关系；若同一对实体存在多种不同关系，可分别记录。'
+    - '优先使用文本中明确出现的关系词，不要过度抽象化。'
     en:
     - 'Create relation edges only when the text explicitly expresses a semantic connection between two entities.'
-    - 'Source and target must directly reference the name of an extracted entity; do not create new entity names.'
-    - 'Use concise relation words with clear direction.'
-    - 'Briefly describe the relation basis or context; leave empty if no additional information is available.'
     - 'Avoid duplicate relations; if the same pair of entities has multiple different relations, record them separately.'
+    - 'Prefer relation words that explicitly appear in the text; avoid over-abstraction.'
 
 identifiers:
   entity_id: name

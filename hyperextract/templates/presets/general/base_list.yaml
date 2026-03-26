@@ -32,13 +32,9 @@ guideline:
   rules:
     zh:
     - '提取所有符合要求的列表项，不遗漏。'
-    - 'item 直接引用原文或用简洁语言概括。'
-    - 'type 用于区分不同类型的项；如无需区分可留空。'
     - '去除无意义或重复的列表项。'
     en:
     - 'Extract all qualifying list items without omission.'
-    - 'Quote directly or summarize items concisely.'
-    - 'Use type to distinguish different types; leave empty if unnecessary.'
     - 'Remove meaningless or duplicate items.'
 
 display:

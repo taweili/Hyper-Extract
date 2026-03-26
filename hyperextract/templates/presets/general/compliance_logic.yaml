@@ -35,7 +35,7 @@ output:
       description:
         zh: '规定类型，用于概括该条规定在规定什么。优先使用：职责分工、行为要求、流程程序、其他。'
     - name: participants
-      type: list[str]
+      type: list
       description:
         zh: '构成该条规定基本内容的实体名称列表，必须直接使用已提取节点的 name。只放实体，不要把动作短语放进 participants。'
     - name: action

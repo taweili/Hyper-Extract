@@ -38,14 +38,10 @@ guideline:
   rules:
     zh:
     - '提取文本中核心的、结构化的对象。'
-    - 'name 使用原文中最稳定、最清晰的称呼。'
-    - 'description 用 1-2 句话概括对象的身份或作用。'
-    - 'type 概括对象的类型，如无法确定可留空。'
+    - '优先使用原文中的稳定叫法，避免使用临时描述或简称。'
     en:
     - 'Extract the core, structured object from the text.'
-    - 'Use the most stable and clear designation for name.'
-    - 'Describe the object in 1-2 sentences.'
-    - 'Categorize the object; leave empty if unclassifiable.'
+    - 'Prefer stable designations from the source text; avoid temporary descriptions or abbreviations.'
 
 display:
   label: '{name}'

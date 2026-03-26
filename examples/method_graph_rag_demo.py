@@ -126,7 +126,6 @@ if __name__ == "__main__":
     for i, edge in enumerate(rag.edges, 1):
         print(f"\n{i}. {edge.source} -> {edge.target}")
         print(f"   Description: {edge.description}")
-        print(f"   Keywords: {edge.keywords}")
         print(f"   Strength: {edge.strength}/10")
 
     print(f"\n✓ Total edges extracted: {len(rag.edges)}\n")
@@ -208,56 +207,98 @@ if __name__ == "__main__":
         "Leona目前的状况如何?",
     ]
 
-    # 1. Global Search Example (Community-Enhanced Search)
+    # 1. Standard Edge Search
     print("\n" + "-" * 60)
-    print("[1. Community-Enhanced Search] (use_community=True)")
+    print("[1. Standard Node & Edge Search] (use_community=False)")
     print("-" * 60)
-    for q in queries:
-        print(f"\nQuery: {q}")
-        print("Response:")
-        try:
-            nodes, edges, community_context = rag.search(q, use_community=True)
-            if community_context:
-                print("Community Summaries:")
-                for summary in community_context.get("summaries", []):
-                    print(f"  - [{summary['title']}] (rating: {summary['rating']})")
-                    print(f"    {summary['summary'][:100]}...")
-            if nodes:
-                print(f"Top nodes: {[n.name for n in nodes[:3]]}")
-            if edges:
-                print(f"Top edges: {[e.description[:50] for e in edges[:3]]}")
-        except Exception as e:
-            print(f"Error: {e}")
 
-    # 2. Local Search Example (Not implemented yet)
-    print("\n" + "-" * 60)
-    print("[2. Local Search] (Targeted Subgraph + Community Context) - Not Implemented")
-    print("-" * 60)
-    print("Local search is not yet available. Use chat() for conversational queries.")
-
-    # 3. Standard Edge Search
-    print("\n" + "-" * 60)
-    print("[3. Standard Edge Search] (Vector similarity only)")
-    print("-" * 60)
-    
     for i, query in enumerate(queries, 1):
-        print(f"\nQuery: {query}")
+        print(f"\n【问题 {i}】{query}")
+        print("-" * 60)
+
         try:
+            # 基础检索模式：按语义向量直接搜索相关的Edges
             results = rag.search_edges(query, top_k=3)
 
             if results:
                 for j, result in enumerate(results, 1):
-                    print(f"  [{j}] {result.source} -> {result.target}: {result.description[:100]}...")
+                    # Graph_RAG 从底层直接继承支持了带有 score 评分的结果也可以直接遍历 Edge 对象
+                    edge = result[0] if isinstance(result, tuple) else result
+                    score = result[1] if isinstance(result, tuple) else 1.0
+
+                    print(f"\n  {j}. [Score: {score:.3f}]")
+                    print(f"     Relation: {edge.source} -> {edge.target}")
+                    print(f"     Description: {edge.description}")
+                    print(f"     Strength: {edge.strength}/10")
             else:
-                print("  No relevant edges found.")
+                print("  (No relevant relationships found)")
         except Exception as e:
-            print(f"  Search failed: {e}")
+            print(f"  Search error: {str(e)}")
+
+
+    # 2. Global Search Example (Community-Enhanced Search)
+    print("\n" + "-" * 60)
+    print("[2. Community-Enhanced Search] (use_community=True)")
+    print("-" * 60)
+    for i, q in enumerate(queries, 1):
+        print(f"\n【问题 {i}】{q}")
+        print("-" * 60)
+        try:
+            # 社区增强检索模式，返回 nodes, edges 和 community_context (返回长度为 3 的 tuple)
+            nodes, edges, community_context = rag.search(q, top_k=3, use_community=True)
+            if community_context:
+                print("  Community Summaries:")
+                for summary in community_context.get("summaries", []):
+                    print(f"    - [{summary['title']}] (rating: {summary['rating']})")
+                    print(f"      {summary['summary'][:100]}...")
+            if nodes:
+                print(f"  Top nodes: {[n.name for n in nodes[:3]]}")
+            if edges:
+                print(f"  Top edges: {[e.description[:50] for e in edges[:3]]}")
+        except Exception as e:
+            print(f"  Error: {e}")
+
+    # ============================================================================
+    # Chat with GraphRAG
+    # ============================================================================
+    print("\n" + "=" * 80)
+    print("💬 Interactive Chat with GraphRAG")
+    print("=" * 80)
+    print("Engaging in multi-turn dialogue based on extracted knowledge...\n")
+
+    for q in queries:
+        print(f"❓ User: {q}")
+        try:
+            response = rag.chat(q)
+            print(f"🤖 GraphRAG: {response.content}\n")
+        except Exception as e:
+            print(f"⚠️ Chat error: {e}\n")
 
     # ============================================================================
     # Save Results
     # ============================================================================
     print("\n" + "=" * 80)
-    print("SAVING RESULTS")
+    print("Saving Results...")
     print("=" * 80)
-    
-    rag.dump("temp/graph_rag_demo")
+
+    try:
+        output_dir = "temp/graph_rag_demo"
+        rag.dump(output_dir)
+        print(f"✓ Results saved to {output_dir}/")
+
+        # List saved files
+        saved_files = []
+        if os.path.exists(output_dir):
+            for root, dirs, files in os.walk(output_dir):
+                for file in files:
+                    rel_path = os.path.relpath(os.path.join(root, file), output_dir)
+                    saved_files.append(rel_path)
+
+        if saved_files:
+            print("\n  Saved files:")
+            for f in saved_files:
+                print(f"    - {f}")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not save results: {str(e)}")
+
+    print("\n" + "=" * 80 + "\n")

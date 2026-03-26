@@ -73,32 +73,19 @@ guideline:
   rules_for_entities:
     zh:
     - '提取对理解文本事实、事件过程有价值，且能够参与关系连接的实体。'
-    - 'name 使用原文中最稳定、最清晰的称呼；同一实体在全文中保持命名一致。'
-    - 'type 需概括实体类别。'
-    - 'description 用 1 句话概括实体身份或作用；若信息不足可留空。'
+    - '同一实体在全文中保持命名一致。'
     en:
     - 'Extract entities that are valuable for understanding text facts and event processes, and that can participate in relation connections.'
-    - 'Use the most stable and clear designation in the source text for names; maintain consistent naming for the same entity.'
-    - 'Use type to summarize the entity category.'
-    - 'Describe the entity in 1 sentence; leave empty if information is insufficient.'
+    - 'Maintain consistent naming for the same entity throughout the text.'
   rules_for_relations:
     zh:
     - '仅在文本明确表达两个实体之间存在关系时创建关系边。'
-    - 'source 和 target 必须直接引用已提取实体的 name。'
-    - 'event_type 使用简洁关系词概括。'
-    - 'event_date 是可选字段；没有明确时间时也要保留关系边，并将 event_date 留空。'
-    - 'description 简要说明关系依据或上下文；无额外信息时可留空。'
     en:
     - 'Create relation edges only when the text explicitly expresses a relationship between two entities.'
-    - 'Source and target must directly reference the name of an extracted entity.'
-    - 'Use concise relational words for event_type.'
-    - 'event_date is optional; retain the relation edge even without explicit time, and leave event_date empty.'
-    - 'Briefly describe the relation basis or context; leave empty if no additional information is available.'
   rules_for_time:
     zh:
     - '当前观察日期：{observation_time}'
     - 'event_date 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
-    - '没有明确时间时，仍应保留关系边，并将 event_date 留空。'
     - '相对时间以 observation_time 为基准解析，如"去年/今年/明年""昨天/今天/明天""十年前/五年后"。'
     - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD；保留文本可确定的最细粒度。'
     - '若时间只对应关系成立、变化或终止中的某一时点，则记录最直接相关的那个时间。'
@@ -106,7 +93,6 @@ guideline:
     en:
     - 'Current observation date: {observation_time}'
     - 'event_date is optional; fill in only when the text explicitly provides time or when relative time can be reliably converted.'
-    - 'Retain the relation edge even without explicit time, and leave event_date empty.'
     - 'Parse relative time based on observation_time.'
     - 'Write years as YYYY; write full dates as YYYY-MM-DD; preserve the finest granularity determinable from the text.'
     - 'If time corresponds to only one point among establishment, change, or termination, record the most directly relevant time.'

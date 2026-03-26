@@ -14,7 +14,7 @@ TYPE_MAPPING = {
     "int": int,
     "float": float,
     "bool": bool,
-    "list[str]": List[str],
+    "list": List[str],
 }
 
 

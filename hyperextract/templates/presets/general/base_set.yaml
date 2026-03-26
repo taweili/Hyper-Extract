@@ -37,16 +37,12 @@ guideline:
   rules:
     zh:
     - '提取对理解文本内容有意义的实体。'
-    - 'name 使用文本中最清晰、最稳定的称呼；同一实体若有简称或别称，应统一为一个名称。'
-    - 'type 用于概括实体类型，尽量准确且可复用。'
-    - 'description 用 1 句话说明实体是谁、是什么或在文本中的作用；信息不足时可留空。'
+    - '同一实体若有简称或别称，应统一为一个名称。'
     - '对同一实体进行去重，不要因表述差异重复输出多条。'
     - '不要把纯代词、泛称、临时描述短语或无独立指代意义的词语当作实体。'
     en:
     - 'Extract entities that are meaningful for understanding the text content.'
-    - 'Use the clearest and most stable designation for names; unify names with aliases or nicknames.'
-    - 'Use type to summarize the entity category.'
-    - 'Describe the entity in 1 sentence; leave empty if information is insufficient.'
+    - 'Unify names with aliases or nicknames for the same entity.'
     - 'Deduplicate entities; do not output multiple records for the same entity.'
     - 'Do not treat pure pronouns, generic terms, or non-referential phrases as entities.'
 

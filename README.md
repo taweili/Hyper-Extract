@@ -1,159 +1,110 @@
-# Hyper-Extract 🖥️
+# 🔍 Hyper-Extract
 
-[中文版](./README_ZH.md) · [English Version](#)
+> **"Stop reading. Start understanding."**
+>
+> *"告别文档焦虑，让信息一目了然"*
 
----
+Transform unstructured documents into **searchable, visual, structured knowledge** — with just one command.
 
-## The CLI-First Knowledge Extraction Engine
-
-> Transform any document into **searchable, queryable, reasoning-enabled** structured knowledge — with just one command.
-
-**8 Knowledge Types** · **5 Extraction Methods** · **200+ Domain Templates** · **Bilingual**
-
-
-<!-- Architecture Diagram -->
-![Architecture](docs/assets/fw.png)
+[📖 English Version](#) · [中文版](./README_ZH.md)
 
 ---
 
-## ⚡ One-Line Knowledge Extraction
+## ✨ Features
 
-![CLI Welcome Screen](./docs/assets/cli.png)
-
-```bash
-# Install
-uv pip install hyperextract
-
-# Extract → Build → Query (one line at a time)
-he parse report.md -o kb -t graph -l zh    # Extract knowledge
-he talk kb -i                                # Interactive Q&A
-he search kb "revenue growth reasons"        # Semantic search
-he show kb                                   # Visualize
-```
-
-### 💻 CLI Commands
-
----
-
-## "Chat solved. What's next is Structured Knowledge."
-
-Transform LLM output from scattered text into **searchable, queryable, and reasoning-enabled** structured knowledge.
+| Feature | Description |
+|---------|-------------|
+| ⚡ **CLI-First** | One command to extract knowledge from any document |
+| 🎯 **8 Structures** | Knowledge Graph, Timeline, Spatial, Hypergraph... |
+| 👁️ **Visual** | Interactive visualization with OntoSight |
+| 🔍 **Searchable** | Semantic search across all your knowledge |
+| 🌐 **Bilingual** | Full support for English and Chinese |
+| 📦 **200+ Templates** | Ready-to-use domain-specific templates |
 
 ---
 
 ## ❌ Before | ✅ After
 
-<!-- Concept Diagram -->
-![Concept](./docs/assets/concept.png)
-
 | Before | After |
-| :--- | :--- |
-| LLM outputs a wall of text | Structured knowledge (8 types) |
-| ❌ Need Python to use | ✅ CLI-first (`he` command) |
-| ❌ Only simple graph | ✅ Graph/Temporal/Spatial/Hypergraph... |
-| ❌ Answer disappears | ✅ Persistent storage |
-| ❌ Can't search precisely | ✅ Semantic search |
-| ❌ Can't trace source | ✅ Traceable provenance |
-| ❌ One language only | ✅ Bilingual (zh/en) |
-| ❌ Fragmented, can't reuse | ✅ Knowledge accumulates |
+|--------|-------|
+| Walls of text | **Clear visual structure** |
+| ❌ Hours of reading | ✅ **Instant clarity** |
+| ❌ Hard to find key info | ✅ **Semantic search** |
+| ❌ Can't compare docs | ✅ **Structured comparison** |
+| ❌ Scattered insights | ✅ **Knowledge accumulation** |
+
+![Before/After Demo](docs/assets/before-after-demo.jpeg)
 
 ---
 
-## 🧩 8 Knowledge Structures (Not Just Simple Graphs)
+## ⚡ Quick Start
 
-> Unlike other tools that only support basic graphs, Hyper-Extract handles **complex, multi-dimensional knowledge structures**.
-
-<!-- AutoTypes Diagram -->
-![AutoTypes](./docs/assets/autotypes.png)
-
-| Type | Icon | What it does |
-| :--- | :---: | :--- |
-| **AutoModel** | 📋 | Extract into a complete data model |
-| **AutoList** | 📝 | Extract as a list (keywords, items) |
-| **AutoSet** | 📦 | Extract and deduplicate (entity registry) |
-| **AutoGraph** | 🔗 | Extract as a knowledge graph (relations) |
-| **AutoTemporalGraph** | ⏱️ | Extract as timeline (events over time) |
-| **AutoSpatialGraph** | 📍 | Extract as spatial graph (locations) |
-| **AutoSpatioTemporalGraph** | 🌏 | Extract as spatiotemporal graph (time + space) |
-| **AutoHypergraph** | 🌐 | Extract as hypergraph (multi-party relations) |
-
----
-
-## 🔬 Extraction Methods Comparison
-
-> Hyper-Extract implements **multiple** extraction methods, not just one.
-
-| Method | Type | Graph | Temporal | Spatial | Spatiotemporal | Hypergraph |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **KG-Gen** | Graph | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **ATOM** | Atomic | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Graphiti** | Temporal | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **LightRAG** | Graph | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Hyper-RAG** | Hypergraph | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Hyper-Extract** | **All-in-One** | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-**Choose the method that fits your need, or let AutoTypes auto-select.**
-
----
-
-## 🌍 6 Domains, 40+ Ready-to-Use Templates
-
-> Pre-built templates for **different industries** — extract knowledge **right away** without designing schemas.
-
-| Domain | Templates | Domain | Templates |
-| :--- | :---: | :--- | :---: |
-| 📚 General | 16 | 💰 Finance | 21 |
-| 🏥 Medicine | 15 | 🌿 TCM | 10 |
-| ⚖️ Legal | 11 | 🔧 Industry | 15 |
-
-**✅ Bilingual** — Templates available in both English and Chinese
-
----
-
-## 🚀 Quick Start
-
-### Option 1: CLI (Recommended) ⚡
+### Installation
 
 ```bash
-# Extract knowledge from document
-he parse document.pdf -o my_kb -t knowledge_graph -l zh
-
-# Chat with your knowledge
-he talk my_kb -i
-
-# Search semantically
-he search my_kb "公司营收增长原因"
-
-# Visualize knowledge graph
-he show my_kb
+pip install hyper-extract
 ```
 
-### Option 2: Python API
+### Usage
 
-```python
-from hyperextract.utils.template_engine import Gallery, TemplateFactory
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+```bash
+# Extract structure from document
+he parse document.pdf -o kb
 
-llm = ChatOpenAI(model="gpt-4o-mini")
-embedder = OpenAIEmbeddings()
+# Visualize the knowledge
+he show kb
 
-config = Gallery.get("ResearchNoteSummary")
-template = TemplateFactory.create(config, llm, embedder)
-result = template.parse("Apple Q3 revenue reached $94.9 billion...")
+# Semantic search
+he search kb "key insights"
 
-answer = template.chat("What drove the revenue growth?")
-print(answer.content)
+# Interactive Q&A
+he talk kb -i
 ```
+
+![CLI Welcome Screen](docs/assets/cli.png)
+
+---
+
+## 🧩 8 Knowledge Structures
+
+**8 different structures** for different needs:
+
+| Type | Icon | Best For | Example |
+|------|------|----------|---------|
+| **AutoModel** | 📋 | Structured reports | Financial statements |
+| **AutoList** | 📝 | Key points | Meeting notes |
+| **AutoSet** | 📦 | Entity registry | Product catalog |
+| **AutoGraph** | 🔗 | Relations | Social networks |
+| **AutoTemporalGraph** | ⏱️ | Event sequences | News timeline |
+| **AutoSpatialGraph** | 📍 | Locations | Delivery routes |
+| **AutoSpatioTemporalGraph** | 🌏 | Time + Space | Historical events |
+| **AutoHypergraph** | 🌐 | Complex relations | Legal cases |
+
+![AutoTypes Demo](docs/assets/autotypes-demo.jpeg)
+
+---
+
+## 🎯 Use Cases
+
+| Domain | What You Get | Example |
+|--------|--------------|---------|
+| 📊 **Finance** | Extract insights from earnings reports | `he parse report.pdf -o kb -l en` |
+| ⚖️ **Legal** | Structure contracts, case laws | `he parse contract.pdf -o kb -t hypergraph` |
+| 🏥 **Medical** | Organize patient histories | `he parse records.pdf -o kb` |
+| 📚 **Research** | Extract key findings from papers | `he parse paper.pdf -o kb` |
+| 📋 **Meetings** | Transform notes into timelines | `he parse notes.md -o kb` |
+
+![Use Cases Demo](docs/assets/use-cases-demo.jpeg)
 
 ---
 
 ## 🔧 Architecture
 
 <details>
-<summary><strong>Technical Details</strong></summary>
+<summary><strong>Technical Details (Click to Expand)</strong></summary>
 
 ```
-hyperextract/
+hyper-extract/
 ├── cli/                      # 💻 CLI Interface (he command)
 │   ├── commands/            # parse, talk, search, show...
 │   └── __main__.py          # Entry point
@@ -166,16 +117,27 @@ hyperextract/
 │   ├── hypergraph.py        # AutoHypergraph
 │   ├── temporal_graph.py    # AutoTemporalGraph
 │   ├── spatial_graph.py     # AutoSpatialGraph
-│   └── spatio_temporal_graph.py  # AutoSpatioTemporalGraph
+│   └── spatio_temporal_graph.py
 │
 ├── methods/                  # 🔬 Extraction Engines
 │   ├── rag/                 # LightRAG, HyperRAG, CogRAG
-│   └── typical/             # KG-Gen, ATOM (reproduced)
+│   └── typical/             # KG-Gen, ATOM
 │
 └── templates/                # 🌍 200+ Domain Templates
-    ├── zh/                  # Chinese templates (25+ domains)
+    ├── zh/                  # Chinese templates
     └── en/                  # English templates
 ```
+
+### Supported Methods
+
+| Method | Graph | Temporal | Spatial | Hypergraph |
+|--------|-------|----------|---------|------------|
+| KG-Gen | ✅ | ❌ | ❌ | ❌ |
+| ATOM | ✅ | ✅ | ❌ | ❌ |
+| Graphiti | ❌ | ✅ | ❌ | ❌ |
+| LightRAG | ✅ | ❌ | ❌ | ❌ |
+| Hyper-RAG | ❌ | ❌ | ❌ | ✅ |
+| **Hyper-Extract** | ✅ | ✅ | ✅ | ✅ |
 
 </details>
 
@@ -189,13 +151,9 @@ hyperextract/
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing & Support
 
 Welcome! Please feel free to submit issues and pull requests.
-
----
-
-## ⭐ Support
 
 If you find this project helpful, please give us a ⭐ to show your support!
 

@@ -27,6 +27,17 @@ Receive design specs from brainstorm:
 6. **Write guideline** (guideline)
 7. **Review and output YAML**
 
+## Critical: Output vs Guideline
+
+**Key Principle**: Schema defines "WHAT", Guideline defines "HOW TO DO WELL". DO NOT repeat schema definitions in guideline.
+
+| Guideline Should Have | Guideline Should NOT Have |
+|-----------------------|-------------------------|
+| Extraction strategy ("extract valuable entities") | Field definitions ("name should be...") |
+| Quality requirements ("maintain naming consistency") | Type descriptions ("type field is...") |
+| Creation conditions ("only when text explicitly states") | Reference requirements ("must reference name field") |
+| Common mistakes to avoid | Schema field descriptions |
+
 ## Type Confirmation
 
 | Type | relation_members | Additional Config |
@@ -150,6 +161,13 @@ identifiers:
 - [ ] Relation types semantically clear?
 - [ ] source/target reference entities?
 - [ ] No ambiguous relations?
+
+### Guideline (Must Check)
+- [ ] No field definitions repeated from schema?
+- [ ] Extraction strategy defined?
+- [ ] Quality requirements specified (naming consistency)?
+- [ ] Creation conditions clear ("only when text explicitly states")?
+- [ ] Common mistakes warned?
 
 ### Hypergraph
 - [ ] Participant count reasonable?

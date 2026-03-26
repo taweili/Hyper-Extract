@@ -1,162 +1,113 @@
-# Hyper-Extract 🖥️
+# 🔍 Hyper-Extract
 
-[English Version](./README.md) · [中文版](#)
+> **"告别文档焦虑，让信息一目了然"**
+>
+> *"Stop reading. Start understanding."*
 
----
+将非结构化文档转化为**可搜索、可视化、结构化**的知识 —— 一行命令即可。
 
-## 首个 CLI 优先的知识提取引擎
-
-> 只需一行命令，将任何文档转化为**可搜索、可查询、可推理**的结构化知识。
-
-**8 种知识结构** · **5 种提取方法** · **200+ 领域模板** · **中英文支持**
-
-
-<!-- 架构图 -->
-![架构图](docs/assets/fw.png)
+[📖 English Version](./README.md) · [中文版](#)
 
 ---
 
-## ⚡ 一行命令提取知识
+## ✨ 核心特性
 
-![CLI 欢迎界面](./docs/assets/cli.png)
-
-```bash
-# 安装
-uv pip install hyperextract
-
-# 提取 → 构建 → 问答 (逐行执行)
-he parse report.md -o kb -t graph -l zh    # 提取知识
-he talk kb -i                                # 交互式问答
-he search kb "营收增长原因"                   # 语义搜索
-he show kb                                   # 可视化
-```
-
-### 💻 CLI 命令
-
----
-
-## "Chat 已解决，下一步是 结构化知识"
-
-将 LLM 输出的文本转化为**可搜索、可查询、可推理**的结构化知识。
+| 特性 | 说明 |
+|------|------|
+| ⚡ **CLI 优先** | 一条命令提取任何文档的知识 |
+| 🎯 **8 种结构** | 知识图谱、时间线、空间图、超图... |
+| 👁️ **可视化** | 使用 OntoSight 进行交互式可视化 |
+| 🔍 **可搜索** | 语义搜索所有知识 |
+| 🌐 **双语支持** | 完整支持中文和英文 |
+| 📦 **200+ 模板** | 开箱即用的领域模板 |
 
 ---
 
 ## ❌ 以前 | ✅ 现在
 
-<!-- 概念图 -->
-![概念图](./docs/assets/concept.png)
-
 | 以前 | 现在 |
-| :--- | :--- |
-| LLM 输出一堆文本 | 结构化知识（8种类型） |
-| ❌ 需要写 Python 代码 | ✅ CLI 优先（`he` 命令） |
-| ❌ 只支持简单图谱 | ✅ 图谱/时序/空间/超图... |
-| ❌ 回答完就消失 | ✅ 可持久化存储 |
-| ❌ 无法精准检索 | ✅ 语义搜索 |
-| ❌ 难以追溯源头 | ✅ 可追溯来源 |
-| ❌ 只有一种语言 | ✅ 中英文双语支持 |
-| ❌ 碎片化无法复用 | ✅ 知识沉淀复用 |
+|------|------|
+| 密密麻麻的文字 | **清晰的结构** |
+| ❌ 花几小时阅读 | ✅ **即时清晰** |
+| ❌ 找不到关键信息 | ✅ **语义搜索** |
+| ❌ 无法对比文档 | ✅ **结构化对比** |
+| ❌ 洞察碎片化 | ✅ **知识沉淀** |
+
+![Before/After 演示](docs/assets/before-after-demo.jpeg)
 
 ---
 
-## 🧩 8 种知识结构（不只是简单图谱）
+## ⚡ 快速开始
 
-> 与其他只支持基础图谱的工具不同，Hyper-Extract 支持**复杂、多维的知识结构**。
-
-<!-- AutoTypes 图 -->
-![AutoTypes](./docs/assets/autotypes.png)
-
-| 类型 | 图标 | 功能 |
-| :--- | :---: | :--- |
-| **AutoModel** | 📋 | 提取为完整的数据模型 |
-| **AutoList** | 📝 | 提取为列表 |
-| **AutoSet** | 📦 | 提取并去重 |
-| **AutoGraph** | 🔗 | 提取为知识图谱 |
-| **AutoTemporalGraph** | ⏱️ | 提取为时序图（时间线） |
-| **AutoSpatialGraph** | 📍 | 提取为空间图（地理位置） |
-| **AutoSpatioTemporalGraph** | 🌏 | 提取为时空图（时间+空间） |
-| **AutoHypergraph** | 🌐 | 提取为超图（多方关系） |
-
----
-
-## 🔬 提取方法对比
-
-> Hyper-Extract 实现了**多种**提取方法，而非只有一种。
-
-| 方法 | 类型 | 图谱 | 时序 | 空间 | 时空 | 超图 |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **KG-Gen** | 图谱 | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **ATOM** | 原子 | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Graphiti** | 时序 | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **LightRAG** | 图谱 | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Hyper-RAG** | 超图 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Hyper-Extract** | **全能型** | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-**选择适合你需求的方法，或让 AutoTypes 自动选择。**
-
----
-
-## 🌍 6 个领域，40+ 开箱即用模板
-
-> 针对**不同行业**预置的模板 —— 无需设计schema，直接提取知识。
-
-| 领域 | 模板数 | 领域 | 模板数 |
-| :--- | :---: | :--- | :---: |
-| � 通用 | 16 | � 金融 | 21 |
-| 🏥 医疗 | 15 | 🌿 中医 | 10 |
-| ⚖️ 法律 | 11 | 🔧 工业 | 15 |
-
-**✅ 双语支持** — 模板同时支持中文和英文
-
----
-
-## 🚀 快速开始
-
-### 方式一：CLI（推荐）⚡
+### 安装
 
 ```bash
-# 从文档提取知识
-he parse document.pdf -o my_kb -t knowledge_graph -l zh
+pip install hyper-extract
+```
 
-# 与知识库问答
-he talk my_kb -i
+### 使用
+
+```bash
+# 从文档提取结构
+he parse document.pdf -o kb
+
+# 可视化知识
+he show kb
 
 # 语义搜索
-he search my_kb "公司营收增长原因"
+he search kb "关键信息"
 
-# 可视化知识图谱
-he show my_kb
+# 交互式问答
+he talk kb -i
 ```
 
-### 方式二：Python API
-
-```python
-from hyperextract.utils.template_engine import Gallery, TemplateFactory
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-llm = ChatOpenAI(model="gpt-4o-mini")
-embedder = OpenAIEmbeddings()
-
-config = Gallery.get("ResearchNoteSummary")
-template = TemplateFactory.create(config, llm, embedder)
-result = template.parse("苹果Q3营收达到949亿美元...")
-
-answer = template.chat("营收增长的原因是什么？")
-print(answer.content)
-```
+![CLI 界面](docs/assets/cli.png)
 
 ---
 
-## 🔧 技术架构
+## 🧩 8 种知识结构
+
+**8 种不同结构**，满足不同需求：
+
+| 类型 | 图标 | 适用场景 | 示例 |
+|------|------|----------|------|
+| **AutoModel** | 📋 | 结构化报告 | 财务报表 |
+| **AutoList** | 📝 | 要点提取 | 会议记录 |
+| **AutoSet** | 📦 | 实体注册 | 产品目录 |
+| **AutoGraph** | 🔗 | 关系分析 | 社交网络 |
+| **AutoTemporalGraph** | ⏱️ | 事件序列 | 新闻时间线 |
+| **AutoSpatialGraph** | 📍 | 地理位置 | 配送路线 |
+| **AutoSpatioTemporalGraph** | 🌏 | 时间+空间 | 历史事件 |
+| **AutoHypergraph** | 🌐 | 复杂关系 | 法律案件 |
+
+![AutoTypes 演示](docs/assets/autotypes-demo.jpeg)
+
+---
+
+## 🎯 使用场景
+
+| 领域 | 你将获得 | 示例 |
+|------|----------|------|
+| 📊 **财务** | 从财报中提取洞察 | `he parse report.pdf -o kb -l en` |
+| ⚖️ **法律** | 结构化合同、法条 | `he parse contract.pdf -o kb -t hypergraph` |
+| 🏥 **医疗** | 整理病历、治疗方案 | `he parse records.pdf -o kb` |
+| 📚 **研究** | 从论文中提取关键发现 | `he parse paper.pdf -o kb` |
+| 📋 **会议** | 转化为可操作的洞察 | `he parse notes.md -o kb` |
+
+![使用场景演示](docs/assets/use-cases-demo.jpeg)
+
+---
+
+## 🔧 架构
 
 <details>
-<summary><strong>技术细节</strong></summary>
+<summary><strong>技术细节（点击展开）</strong></summary>
 
 ```
-hyperextract/
-├── cli/                      # 💻 CLI 接口（he 命令）
+hyper-extract/
+├── cli/                      # 💻 CLI 接口 (he 命令)
 │   ├── commands/            # parse, talk, search, show...
-│   └── __main__.py          # 入口
+│   └── __main__.py          # 入口点
 │
 ├── types/                    # 🧩 8 种知识结构
 │   ├── model.py             # AutoModel
@@ -166,16 +117,27 @@ hyperextract/
 │   ├── hypergraph.py        # AutoHypergraph
 │   ├── temporal_graph.py    # AutoTemporalGraph
 │   ├── spatial_graph.py     # AutoSpatialGraph
-│   └── spatio_temporal_graph.py  # AutoSpatioTemporalGraph
+│   └── spatio_temporal_graph.py
 │
 ├── methods/                  # 🔬 提取引擎
 │   ├── rag/                 # LightRAG, HyperRAG, CogRAG
-│   └── typical/             # KG-Gen, ATOM（复现）
+│   └── typical/             # KG-Gen, ATOM
 │
 └── templates/                # 🌍 200+ 领域模板
-    ├── zh/                  # 中文模板（25+ 领域）
+    ├── zh/                  # 中文模板
     └── en/                  # 英文模板
 ```
+
+### 支持的方法
+
+| 方法 | 图谱 | 时序 | 空间 | 超图 |
+|------|------|------|------|------|
+| KG-Gen | ✅ | ❌ | ❌ | ❌ |
+| ATOM | ✅ | ✅ | ❌ | ❌ |
+| Graphiti | ❌ | ✅ | ❌ | ❌ |
+| LightRAG | ✅ | ❌ | ❌ | ❌ |
+| Hyper-RAG | ❌ | ❌ | ❌ | ✅ |
+| **Hyper-Extract** | ✅ | ✅ | ✅ | ✅ |
 
 </details>
 
@@ -185,20 +147,16 @@ hyperextract/
 
 - [📖 完整文档](docs/)
 - [💻 示例代码](examples/)
-- [🏷️ 模板 Gallery](hyperextract/templates/)
+- [🏷️ 模板库](hyperextract/templates/)
 
 ---
 
-## 🤝 贡献
+## 🤝 贡献与支持
 
 欢迎提交 Issue 和 Pull Request！
 
----
-
-## ⭐ 支持
-
-如果你觉得这个项目有帮助，请给我们一个 ⭐ 表示支持！
+如果这个项目对你有帮助，请给我们一个 ⭐！
 
 ---
 
-*用 ❤️ 为 AI 社区构建*
+*为 AI 社区而构建 ❤️*

@@ -25,6 +25,17 @@ Receive design specs from brainstorm:
 5. **Write guideline** (guideline)
 6. **Review and output YAML**
 
+## Critical: Output vs Guideline
+
+**Key Principle**: Schema defines "WHAT", Guideline defines "HOW TO DO WELL". DO NOT repeat schema definitions in guideline.
+
+| Guideline Should Have | Guideline Should NOT Have |
+|-----------------------|-------------------------|
+| Extraction strategy ("extract key information for...") | Field definitions ("field_a is for...") |
+| Quality requirements ("maintain format consistency") | Type descriptions ("type field should be...") |
+| Deduplication rules (for set type) | Required/optional clarifications |
+| Common mistakes to avoid | Default value explanations |
+
 ## Type Confirmation
 
 | Type | Identifiers | Use Case |
@@ -113,3 +124,10 @@ identifiers:
 - [ ] Default values are safe/meaningful?
 - [ ] For set: item_id can uniquely identify records?
 - [ ] Display label references correct fields?
+
+### Guideline (Must Check)
+- [ ] No field definitions repeated from schema?
+- [ ] Extraction strategy defined?
+- [ ] Quality requirements specified?
+- [ ] Common mistakes warned?
+- [ ] For set: deduplication rules clear?

@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from hyperextract.types import AutoGraph
 from ontomem.merger import CustomRuleMerger
 
@@ -61,9 +60,6 @@ class EdgeSchema(BaseModel):
     target: str = Field(description="Name of the target entity")
     description: str = Field(
         description="Detailed explanation of the relationship or event connection"
-    )
-    keywords: str = Field(
-        description="Keywords summarizing the relationship (e.g., 'conflict, trade')",
     )
     strength: int = Field(
         ge=1,
@@ -182,8 +178,7 @@ Your task is to merge them into a SINGLE object exactly matching the schema.
 Merge strategy:
 1. **source/target**: Keep them identical to the inputs.
 2. **description**: Synthesize a single, comprehensive description covering the relationship dynamics from all inputs. Write it in the third person.
-3. **keywords**: Combine keyword lists from all inputs, removing duplicates.
-4. **strength**: Calculate the average of the input strengths (round to nearest integer).
+3. **strength**: Calculate the average of the input strengths (round to nearest integer).
 """
 
 # ============================================================================
@@ -269,7 +264,7 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             edge_strategy_or_merger=edge_merger,
             # Optimize indexing
             node_fields_for_index=["name", "type", "description"],
-            edge_fields_for_index=["keywords", "description"],
+            edge_fields_for_index=["description"],
             # Display labels
             node_label_extractor=lambda x: x.name,
             edge_label_extractor=lambda x: f"{x.description[:5]}...",
@@ -563,8 +558,3 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
                 for r in sorted_reports
             ]
         }
-
-    # ============================================================================
-    # Deprecated: Global Search functionality is now integrated into search(use_community=True)
-    # Use kb.search(query, use_community=True) instead
-    # ============================================================================

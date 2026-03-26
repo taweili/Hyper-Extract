@@ -21,7 +21,7 @@ VALID_AUTOTYPES = Literal[
     "spatio_temporal_graph",
 ]
 
-VALID_FIELD_TYPES = Literal["str", "int", "float", "bool", "list[str]"]
+VALID_FIELD_TYPES = Literal["str", "int", "float", "bool", "list"]
 
 
 class FieldSchema(BaseModel):

@@ -115,6 +115,11 @@ hyperextract-skills/
     └── SKILL.md               # Multi-language conversion
 ```
 
+## Design Principles
+
+When designing templates, remember: **Schema defines WHAT, Guideline defines HOW TO DO WELL**. 
+See `graph-designer/SKILL.md` or `record-designer/SKILL.md` for details.
+
 ## License
 
 Apache 2.0
