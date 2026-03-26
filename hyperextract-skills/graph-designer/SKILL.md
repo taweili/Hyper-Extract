@@ -1,8 +1,10 @@
 ---
-name: hyper-extract-graph-designer
+name: graph-designer
 description: |
-  Graph Type Designer for Hyper-Extract. Generates YAML for graph/hypergraph types.
-  Use after brainstorm with design draft.
+  Design YAML extraction templates for graph types (graph, hypergraph, temporal_graph, spatial_graph).
+  Use when user says: "design graph", "create knowledge graph", "extract relationships", "temporal data", "spatial data".
+  Trigger: User wants to extract entity relationships, multi-party events, or time/location-based data.
+  Skip: User wants simple record extraction (use record-designer instead).
 ---
 
 # Graph Designer: graph/hypergraph/temporal/spatial

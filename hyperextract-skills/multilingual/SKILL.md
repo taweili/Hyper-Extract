@@ -1,23 +1,34 @@
 ---
-name: hyper-extract-multilingual
+name: multilingual
 description: |
-  Hyper-Extract Multilingual Converter. Converts single-language configuration to multi-language support.
-
-  ## Translatable Fields
-  - description
-  - output.description
-  - fields[].description
-  - guideline.target
-  - guideline.rules
-
-  ## Non-Translatable Fields
-  - name, type, tags
-  - field names (name in fields)
-  - identifiers
-  - display
+  Convert Hyper-Extract YAML templates to multi-language support.
+  Use when user says: "add translation", "multilingual", "convert language", "support Chinese and English".
+  Trigger: User wants to add Chinese/English/Japanese translation to their template.
+  Skip: User wants to design a new template (use record-designer or graph-designer instead).
 ---
 
 # Multilingual Converter
+
+## Translatable Fields
+
+The following fields can be translated:
+
+- description
+- output.description
+- fields[].description
+- guideline.target
+- guideline.rules
+
+## Non-Translatable Fields
+
+The following fields should NOT be translated:
+
+- name, type, tags
+- field names (name in fields)
+- identifiers
+- display
+
+---
 
 ## Conversion Modes
 

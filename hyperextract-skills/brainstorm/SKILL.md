@@ -1,8 +1,10 @@
 ---
-name: hyper-extract-brainstorm
+name: brainstorm
 description: |
-  Requirements Brainstorming for Hyper-Extract. Helps users discuss requirements and determine types.
-  Use when exploring extraction needs or unsure which type to use.
+  Explore requirements and determine extraction type for Hyper-Extract.
+  Use when user says: "design template", "extract data", "create extraction", "unsure which type to use".
+  Trigger: User needs help deciding extraction type (model/list/set/graph/hypergraph).
+  Skip: User already knows the type and wants specific design help.
 ---
 
 # Brainstorm: Requirements Exploration

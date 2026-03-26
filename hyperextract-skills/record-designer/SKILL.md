@@ -1,8 +1,10 @@
 ---
-name: hyper-extract-record-designer
+name: record-designer
 description: |
-  Record Type Designer for Hyper-Extract. Generates YAML for model/list/set types.
-  Use after brainstorm with design draft.
+  Design YAML extraction templates for record types (model, list, set).
+  Use when user says: "design model template", "create list extraction", "extract ordered items", "deduplicate entities".
+  Trigger: User wants to extract structured records, lists, or deduplicated entities.
+  Skip: User mentions graph, relations, or knowledge graph (use graph-designer instead).
 ---
 
 # Record Designer: model/list/set

@@ -1,14 +1,17 @@
 ---
 name: hyper-extract
 description: |
-  Hyper-Extract Knowledge Template Designer. Creates YAML configs for data extraction.
+  Hyper-Extract Knowledge Template Designer for structured knowledge extraction.
+  Use when user wants to: design YAML templates, extract structured knowledge, create knowledge graphs.
+  Available skills: brainstorm, record-designer, graph-designer, yaml-validator, multilingual.
+  Trigger: User mentions template design, extraction, knowledge graph, or YAML configuration.
 ---
 
 # Hyper-Extract
 
 ## Overview
 
-Hyper-Extract helps users design YAML configuration templates for structured data extraction.
+Hyper-Extract helps users design YAML configuration templates for structured knowledge extraction.
 
 ## Workflow
 

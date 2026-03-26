@@ -1,8 +1,10 @@
 ---
-name: hyper-extract-yaml-validator
+name: yaml-validator
 description: |
-  YAML Validator for Hyper-Extract. Validates configuration syntax and structure.
-  Use optional after design to check for errors.
+  Validate Hyper-Extract YAML templates for syntax and structure errors.
+  Use when user says: "validate template", "check YAML", "fix errors", "validate syntax".
+  Trigger: User wants to verify their YAML configuration is correct.
+  Skip: User wants to design a new template (use record-designer or graph-designer instead).
 ---
 
 # YAML Validator
