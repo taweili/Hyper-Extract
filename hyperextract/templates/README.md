@@ -79,6 +79,19 @@ print(Gallery.list_all())
 
 The default choice for unstructured text that doesn't fit a specific industry.
 
+*   **Base Templates**: General-purpose knowledge extraction templates covering all AutoType primitives. Use these as building blocks or extend them for domain-specific needs.
+
+| Template | Primitive | Description | Use Case |
+| :--- | :--- | :--- | :--- |
+| **`BaseModel`** | `AutoModel` | General-purpose structured object extraction | Universal single-object extraction |
+| **`BaseList`** | `AutoList` | General-purpose ordered list extraction | Universal list extraction |
+| **`BaseSet`** | `AutoSet` | General-purpose entity deduplication | Universal entity collection |
+| **`BaseGraph`** | `AutoGraph` | General-purpose knowledge graph extraction | Universal binary relation extraction |
+| **`BaseHypergraph`** | `AutoHypergraph` | General-purpose hypergraph extraction | Universal multi-entity relation extraction |
+| **`BaseTemporalGraph`** | `AutoTemporalGraph` | General-purpose temporal graph extraction | Universal time-ordered relation extraction |
+| **`BaseSpatialGraph`** | `AutoSpatialGraph` | General-purpose spatial graph extraction | Universal location-aware relation extraction |
+| **`BaseSpatioTemporalGraph`** | `AutoSpatioTemporalGraph` | General-purpose spatio-temporal graph extraction | Universal time & location relation extraction |
+
 *   **Arbitrary Text (Universal Extraction)**: Any type of text for direct entity and relationship extraction.
 
 | Template | Primitive | Description | Use Case |

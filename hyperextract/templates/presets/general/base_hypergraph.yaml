@@ -1,0 +1,102 @@
+language: [zh, en]
+
+name: base_hypergraph
+type: hypergraph
+tags: [general]
+
+description:
+  zh: '通用超图结构知识模板 - 从任意文本中提取超图结构，包含节点（实体、概念、地点等）以及连接多个节点的多元关系超边（事件、会议、合作、冲突等）。'
+  en: 'General-purpose Hypergraph Knowledge Template - Extracts hypergraph structure from any text, containing nodes (entities, concepts, locations, etc.) and multi-node relation hyperedges (events, meetings, cooperation, conflicts, etc.).'
+
+output:
+  description:
+    zh: '提取出来的超图结构，包含节点和超边。'
+    en: 'Extracted hypergraph structure containing nodes and hyperedges.'
+  nodes:
+    description:
+      zh: '文本中可独立识别的节点，如实体、概念、地点等基本语义单元。'
+      en: 'Nodes that can be independently identified in the text, such as entities, concepts, locations, or other basic semantic units.'
+    fields:
+    - name: name
+      type: str
+      description:
+        zh: '节点名称，使用文本中最明确、最稳定的称呼。'
+        en: 'Node name, using the most explicit and stable designation in the text.'
+    - name: type
+      type: str
+      description:
+        zh: '节点类型，如实体、概念、地点、组织、物品等。'
+        en: 'Node type, such as entity, concept, location, organization, object, etc.'
+    - name: description
+      type: str
+      description:
+        zh: '对节点身份或作用的简要说明。'
+        en: 'Brief description of the node identity or role.'
+      required: false
+  hyperedges:
+    description:
+      zh: '连接多个节点的多元关系超边，如事件、会议、合作、冲突、交易等。'
+      en: 'Multi-node relation hyperedges connecting multiple nodes, such as events, meetings, cooperation, conflicts, transactions, etc.'
+    fields:
+    - name: name
+      type: str
+      description:
+        zh: '该超边的名称或标题，用于唯一标识这条多元关系。'
+        en: 'Name or title of this hyperedge, used to uniquely identify this multi-node relation.'
+    - name: type
+      type: str
+      description:
+        zh: '超边的类型，如事件、会议、合作、冲突、交易、协议等。'
+        en: 'Type of the hyperedge, such as event, meeting, cooperation, conflict, transaction, agreement, etc.'
+    - name: participants
+      type: list
+      description:
+        zh: '参与该超边的所有节点名称列表。'
+        en: 'List of all node names participating in this hyperedge.'
+    - name: description
+      type: str
+      description:
+        zh: '对该超边内容或结果的简要说明。'
+        en: 'Brief description of the hyperedge content or result.'
+      required: false
+
+guideline:
+  target:
+    zh: '你是一位关系抽取专家。请从文本中提取超图结构，包括：1）可独立识别的节点（实体、概念、地点等）；2）连接多个节点的多元关系超边（事件、会议、合作等）。'
+    en: 'You are an expert in relation extraction. Extract hypergraph structure from the text, including: 1) independently identifiable nodes (entities, concepts, locations, etc.); 2) multi-node relation hyperedges (events, meetings, cooperation, etc.).'
+  rules_for_nodes:
+    zh:
+    - '提取文本中可识别的节点，如实体、概念、地点、组织、物品等基本语义单元。'
+    - 'name 使用原文中最稳定、最清晰的称呼。'
+    - 'type 概括节点的类别，如实体、概念、地点、组织、物品等。'
+    - 'description 用 1 句话概括节点身份或作用；若信息不足可留空。'
+    en:
+    - 'Extract identifiable nodes from the text, such as entities, concepts, locations, organizations, objects, or other basic semantic units.'
+    - 'Use the most stable and clear designation in the source text for names.'
+    - 'Use type to summarize the node category, such as entity, concept, location, organization, object, etc.'
+    - 'Describe the node in 1 sentence; leave empty if information is insufficient.'
+  rules_for_hyperedges:
+    zh:
+    - '仅在文本明确表达多个节点共同参与某个事件或关系时创建超边。'
+    - 'participants 必须全部引用已提取节点的 name。'
+    - 'name 用简洁的词语概括该超边的核心内容。'
+    - 'type 概括该超边的类型，如事件、会议、合作、冲突、交易、协议等。'
+    - 'description 简要说明超边内容或结果；无额外信息时可留空。'
+    en:
+    - 'Create hyperedges only when the text explicitly expresses that multiple nodes jointly participate in an event or relation.'
+    - 'All participants must reference the names of extracted nodes.'
+    - 'Use concise words for name to summarize the core content of this hyperedge.'
+    - 'Use type to characterize the hyperedge type, such as event, meeting, cooperation, conflict, transaction, agreement, etc.'
+    - 'Briefly describe the hyperedge content or result; leave empty if no additional information is available.'
+
+identifiers:
+  node_id: name
+  hyperedge_id: '{name}|{type}'
+  hyperedge_members: participants
+
+options:
+  extraction_mode: two_stage
+
+display:
+  node_label: '{name} ({type})'
+  hyperedge_label: '{name}'

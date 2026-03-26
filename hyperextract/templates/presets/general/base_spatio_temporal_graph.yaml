@@ -1,17 +1,17 @@
 language: [zh, en]
 
-name: base_temporal_graph
-type: temporal_graph
+name: base_spatio_temporal_graph
+type: spatio_temporal_graph
 tags: [general]
 
 description:
-  zh: '通用时序图结构知识模板 - 从任意文本中提取实体之间的关系，并在文本提供时间信息时为关系补充时间属性。'
-  en: 'General-purpose Temporal Graph Knowledge Template - Extracts relationships between entities from any text and supplements temporal attributes when time information is available.'
+  zh: '通用时空图结构知识模板 - 从任意文本中提取实体之间的关系，并在文本提供时间和位置信息时为关系补充时空属性。'
+  en: 'General-purpose Spatio-Temporal Graph Knowledge Template - Extracts relationships between entities from any text and supplements temporal and spatial attributes when such information is available.'
 
 output:
   description:
-    zh: '包含实体节点、关系边及时间信息的时序图谱结果。'
-    en: 'Temporal graph result containing entity nodes, relation edges, and temporal information.'
+    zh: '提取出来的时空图谱结构，包含实体节点、关系边、时间信息和位置信息。'
+    en: 'Extracted spatio-temporal graph structure containing entity nodes, relation edges, temporal information, and location information.'
   entities:
     description:
       zh: '文本中可独立识别、可参与关系连接的实体节点。'
@@ -35,8 +35,8 @@ output:
       required: false
   relations:
     description:
-      zh: '实体之间的关系边；若文本提供时间，可在关系上补充时间属性。'
-      en: 'Relation edges between entities; temporal attributes can be added when time information is provided.'
+      zh: '实体之间的关系边；若文本提供时间或位置，可在关系上补充时空属性。'
+      en: 'Relation edges between entities; temporal and spatial attributes can be added when such information is provided.'
     fields:
     - name: source
       type: str
@@ -59,6 +59,12 @@ output:
         zh: '关系对应的时间；无明确时间时可留空。'
         en: 'Time associated with the relation; can be left empty if no explicit time is available.'
       required: false
+    - name: location
+      type: str
+      description:
+        zh: '关系对应的位置信息；无明确位置时可留空。'
+        en: 'Location information associated with the relation; can be left empty if no explicit location is available.'
+      required: false
     - name: description
       type: str
       description:
@@ -68,16 +74,16 @@ output:
 
 guideline:
   target:
-    zh: '你是一位时序知识图谱构建专家。请从文本中提取关键实体及其关系；如果文本提供了时间信息，再为关系补充时间属性。'
-    en: 'You are an expert in temporal knowledge graph construction. Extract key entities and their relationships from the text; supplement temporal attributes when time information is provided.'
+    zh: '你是一位时空知识图谱构建专家。请从文本中提取关键实体及其关系；如果文本提供了时间或位置信息，再为关系补充相应的时空属性。'
+    en: 'You are an expert in spatio-temporal knowledge graph construction. Extract key entities and their relationships from the text; supplement temporal and spatial attributes when such information is provided.'
   rules_for_entities:
     zh:
-    - '提取对理解文本事实、事件过程有价值，且能够参与关系连接的实体。'
+    - '提取对理解文本事实有价值，且能够参与关系连接的实体。'
     - 'name 使用原文中最稳定、最清晰的称呼；同一实体在全文中保持命名一致。'
     - 'type 需概括实体类别。'
     - 'description 用 1 句话概括实体身份或作用；若信息不足可留空。'
     en:
-    - 'Extract entities that are valuable for understanding text facts and event processes, and that can participate in relation connections.'
+    - 'Extract entities that are valuable for understanding text facts, and that can participate in relation connections.'
     - 'Use the most stable and clear designation in the source text for names; maintain consistent naming for the same entity.'
     - 'Use type to summarize the entity category.'
     - 'Describe the entity in 1 sentence; leave empty if information is insufficient.'
@@ -87,30 +93,37 @@ guideline:
     - 'source 和 target 必须直接引用已提取实体的 name。'
     - 'event_type 使用简洁关系词概括。'
     - 'event_date 是可选字段；没有明确时间时也要保留关系边，并将 event_date 留空。'
+    - 'location 是可选字段；没有明确位置时也要保留关系边，并将 location 留空。'
     - 'description 简要说明关系依据或上下文；无额外信息时可留空。'
     en:
     - 'Create relation edges only when the text explicitly expresses a relationship between two entities.'
     - 'Source and target must directly reference the name of an extracted entity.'
     - 'Use concise relational words for event_type.'
     - 'event_date is optional; retain the relation edge even without explicit time, and leave event_date empty.'
+    - 'location is optional; retain the relation edge even without explicit location, and leave location empty.'
     - 'Briefly describe the relation basis or context; leave empty if no additional information is available.'
   rules_for_time:
     zh:
     - '当前观察日期：{observation_time}'
     - 'event_date 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
-    - '没有明确时间时，仍应保留关系边，并将 event_date 留空。'
-    - '相对时间以 observation_time 为基准解析，如"去年/今年/明年""昨天/今天/明天""十年前/五年后"。'
-    - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD；保留文本可确定的最细粒度。'
-    - '若时间只对应关系成立、变化或终止中的某一时点，则记录最直接相关的那个时间。'
-    - '无法可靠确定时间时留空，不要根据常识补写。'
+    - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD。'
+    - '无法可靠确定时间时留空。'
     en:
     - 'Current observation date: {observation_time}'
     - 'event_date is optional; fill in only when the text explicitly provides time or when relative time can be reliably converted.'
-    - 'Retain the relation edge even without explicit time, and leave event_date empty.'
-    - 'Parse relative time based on observation_time.'
-    - 'Write years as YYYY; write full dates as YYYY-MM-DD; preserve the finest granularity determinable from the text.'
-    - 'If time corresponds to only one point among establishment, change, or termination, record the most directly relevant time.'
+    - 'Write years as YYYY; write full dates as YYYY-MM-DD.'
     - 'Leave empty when time cannot be reliably determined.'
+  rules_for_location:
+    zh:
+    - '当前观察位置：{observation_location}'
+    - 'location 是可选字段；仅在文本明确提供位置时填写。'
+    - '优先使用文本中的原始位置表达。'
+    - '无法可靠确定位置时留空。'
+    en:
+    - 'Current observation location: {observation_location}'
+    - 'location is optional; fill in only when the text explicitly provides location.'
+    - 'Prefer to use the original location expression from the text.'
+    - 'Leave empty when location cannot be reliably determined.'
 
 identifiers:
   entity_id: name
@@ -119,6 +132,7 @@ identifiers:
     source: source
     target: target
   time_field: event_date
+  location_field: location
 
 options:
   extraction_mode: two_stage

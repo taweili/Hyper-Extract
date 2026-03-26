@@ -79,6 +79,19 @@ print(Gallery.list_all())
 
 适用于无法归类或多领域交叉的文本，通过提取基础实体和SPO关系构建通用图谱。
 
+*   **通用结构知识模板**：覆盖所有 AutoType 原语的基础模板。可直接使用或作为领域模板的扩展基础。
+
+| 模板 | 原语 | 描述 | 应用场景 |
+| :--- | :--- | :--- | :--- |
+| **`BaseModel`** | `AutoModel` | 通用结构模型提取 | 通用单一对象提取 |
+| **`BaseList`** | `AutoList` | 通用列表提取 | 通用有序列表提取 |
+| **`BaseSet`** | `AutoSet` | 通用实体集合去重 | 通用实体汇总 |
+| **`BaseGraph`** | `AutoGraph` | 通用图谱提取 | 通用二元关系提取 |
+| **`BaseHypergraph`** | `AutoHypergraph` | 通用超图提取 | 通用多元关系提取 |
+| **`BaseTemporalGraph`** | `AutoTemporalGraph` | 通用时序图谱提取 | 通用时间有序关系提取 |
+| **`BaseSpatialGraph`** | `AutoSpatialGraph` | 通用空间图谱提取 | 通用位置感知关系提取 |
+| **`BaseSpatioTemporalGraph`** | `AutoSpatioTemporalGraph` | 通用时空图谱提取 | 通用时间与位置关系提取 |
+
 *   **任意文本 (通用提取)**：适用于任何类型的文本，直接提取其中的实体及关系。
 
 | 模板 | 原语 | 描述 | 应用场景 |
