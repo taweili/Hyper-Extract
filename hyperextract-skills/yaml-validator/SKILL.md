@@ -63,12 +63,23 @@ description: |
 
 ## Reference Files
 
-| Topic | Reference File |
-|-------|---------------|
-| Syntax validation | [rules-syntax.md](rules-syntax.md) |
-| Type-specific rules | [rules-types.md](rules-types.md) |
-| Identifier rules | [rules-identifiers.md](rules-identifiers.md) |
-| Common errors | [patterns-errors.md](patterns-errors.md) |
+**Important**: Check these files only when needed during validation process.
+
+| Topic | When to Check |
+|-------|--------------|
+| [references/rules-syntax.md](references/rules-syntax.md) | Always (first step) |
+| [references/rules-types.md](references/rules-types.md) | Type-specific validation |
+| [references/rules-identifiers.md](references/rules-identifiers.md) | Identifier configuration check |
+| [references/rules-errors.md](references/rules-errors.md) | When errors are found |
+
+## Validation Order
+
+**Recommended order**: Follow this sequence for efficient validation:
+
+1. **Syntax** → [rules-syntax.md](references/rules-syntax.md) - Check YAML validity first
+2. **Structure** → [rules-types.md](references/rules-types.md) - Validate based on type
+3. **Identifiers** → [rules-identifiers.md](references/rules-identifiers.md) - Check identifier config
+4. **Errors** → [rules-errors.md](references/rules-errors.md) - Look up fixes if needed
 
 ## Error Message Format
 
@@ -95,7 +106,3 @@ description: |
 ### Overall Assessment
 ✅ Configuration valid
 ```
-
----
-
-See [patterns-errors.md](patterns-errors.md) for common error patterns and fixes.

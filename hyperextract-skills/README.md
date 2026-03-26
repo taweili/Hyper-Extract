@@ -85,22 +85,34 @@ hyperextract-skills/
 ├── brainstorm/
 │   └── SKILL.md               # Requirements exploration
 ├── record-designer/
-│   └── SKILL.md               # Record type design
+│   ├── SKILL.md               # Record type design
+│   ├── cases/                 # Example templates (YAML)
+│   │   ├── earnings-summary.yaml
+│   │   ├── product-features.yaml
+│   │   └── entity-registry.yaml
+│   └── references/            # Design patterns
+│       ├── field.md
+│       └── identifier.md
 ├── graph-designer/
-│   └── SKILL.md               # Graph type design
+│   ├── SKILL.md               # Graph type design
+│   ├── cases/                 # Example templates (YAML)
+│   │   ├── corporate-ownership.yaml
+│   │   ├── battle-analysis.yaml
+│   │   └── meeting-records.yaml
+│   └── references/            # Design patterns
+│       ├── entity.md
+│       ├── relation.md
+│       ├── hypergraph.md
+│       └── dimensions.md
 ├── yaml-validator/
-│   └── SKILL.md               # YAML validation
-├── multilingual/
-│   └── SKILL.md               # Multi-language conversion
-└── examples/                  # Example templates
-    ├── model/
-    ├── list/
-    ├── set/
-    ├── graph/
-    ├── hypergraph/
-    ├── temporal_graph/
-    ├── spatial_graph/
-    └── spatio_temporal_graph/
+│   ├── SKILL.md               # YAML validation
+│   └── references/            # Validation rules
+│       ├── rules-syntax.md
+│       ├── rules-types.md
+│       ├── rules-identifiers.md
+│       └── rules-errors.md
+└── multilingual/
+    └── SKILL.md               # Multi-language conversion
 ```
 
 ## License

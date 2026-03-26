@@ -1,0 +1,28 @@
+language: en
+name: ProductFeatures
+type: list
+tags: [product, features]
+description: 'Extract product features'
+
+output:
+  description: 'Product feature list'
+  fields:
+    - name: order
+      type: int
+      description: 'Feature order'
+    - name: feature
+      type: str
+      description: 'Feature name'
+    - name: description
+      type: str
+      description: 'Feature description'
+      required: false
+
+guideline:
+  target: 'You are a product analyst. Extract product features.'
+  rules:
+    - 'Extract features in order they appear'
+    - 'Include brief description if available'
+
+display:
+  label: '{order}. {feature}'

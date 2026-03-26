@@ -1,0 +1,49 @@
+language: en
+name: MeetingRecords
+type: spatio_temporal_graph
+tags: [business, collaboration]
+description: 'Extract meeting information'
+
+output:
+  entities:
+    description: 'People and organizations'
+    fields:
+      - name: name
+        type: str
+  relations:
+    description: 'Meeting events'
+    fields:
+      - name: meeting_title
+        type: str
+      - name: attendees
+        type: list
+      - name: meeting_date
+        type: str
+      - name: location
+        type: str
+        required: false
+      - name: summary
+        type: str
+        required: false
+
+guideline:
+  target: 'You are a business analyst. Extract meeting information.'
+  rules_for_entities:
+    - 'Extract all mentioned participants'
+  rules_for_relations:
+    - 'Extract time and location if mentioned'
+  rules_for_time:
+    - 'Use ISO format when possible'
+  rules_for_location:
+    - 'Keep structured locations as-is'
+
+identifiers:
+  entity_id: name
+  relation_id: '{meeting_title}|{meeting_date}'
+  relation_members: attendees
+  time_field: meeting_date
+  location_field: location
+
+display:
+  entity_label: '{name}'
+  relation_label: '{meeting_title} @ {meeting_date}'

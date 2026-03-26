@@ -84,13 +84,24 @@ identifiers:
   item_id: [deduplication field]
 ```
 
+## Cases by Type
+
+**Important**: Load only the case matching user's selected type.
+
+| Type | Case File |
+|------|-----------|
+| model | [cases/earnings-summary.yaml](cases/earnings-summary.yaml) |
+| list | [cases/product-features.yaml](cases/product-features.yaml) |
+| set | [cases/entity-registry.yaml](cases/entity-registry.yaml) |
+
 ## Reference Files
 
-| Topic | Reference File |
-|-------|---------------|
-| Field design patterns | [reference-field.md](reference-field.md) |
-| Identifier configuration | [reference-identifier.md](reference-identifier.md) |
-| Complete examples | [examples.md](examples.md) |
+**Important**: Check these files only when needed for the specific design task.
+
+| Topic | When to Check |
+|-------|--------------|
+| [references/field.md](references/field.md) | When designing output.fields |
+| [references/identifier.md](references/identifier.md) | For set type only |
 
 ## Design Checklist
 
@@ -100,7 +111,3 @@ identifiers:
 - [ ] Default values are safe/meaningful?
 - [ ] For set: item_id can uniquely identify records?
 - [ ] Display label references correct fields?
-
----
-
-See [examples.md](examples.md) for complete YAML examples.

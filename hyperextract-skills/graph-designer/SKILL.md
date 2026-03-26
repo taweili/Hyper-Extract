@@ -113,15 +113,26 @@ identifiers:
   location_field: location
 ```
 
+## Cases by Type
+
+**Important**: Load only the case matching user's selected type.
+
+| Type | Case File |
+|------|-----------|
+| graph | [cases/corporate-ownership.yaml](cases/corporate-ownership.yaml) |
+| hypergraph | [cases/battle-analysis.yaml](cases/battle-analysis.yaml) |
+| spatio_temporal_graph | [cases/meeting-records.yaml](cases/meeting-records.yaml) |
+
 ## Reference Files
 
-| Topic | Reference File |
-|-------|---------------|
-| Entity design patterns | [reference-entity.md](reference-entity.md) |
-| Relation design patterns | [reference-relation.md](reference-relation.md) |
-| Hypergraph design | [reference-hypergraph.md](reference-hypergraph.md) |
-| Dimension design | [reference-dimensions.md](reference-dimensions.md) |
-| Complete examples | [examples.md](examples.md) |
+**Important**: Check these files only when needed for the specific design task.
+
+| Topic | When to Check |
+|-------|--------------|
+| [references/entity.md](references/entity.md) | When designing output.entities |
+| [references/relation.md](references/relation.md) | When designing output.relations |
+| [references/hypergraph.md](references/hypergraph.md) | For hypergraph type only |
+| [references/dimensions.md](references/dimensions.md) | For temporal_graph/spatial_graph types |
 
 ---
 
@@ -148,7 +159,3 @@ identifiers:
 - [ ] relation_id template correct?
 - [ ] relation_members configured?
 - [ ] time/location_field specified?
-
----
-
-See [examples.md](examples.md) for complete YAML examples.

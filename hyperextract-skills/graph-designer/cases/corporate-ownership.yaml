@@ -1,0 +1,48 @@
+language: en
+name: CorporateOwnershipGraph
+type: graph
+tags: [finance, corporate]
+description: 'Extract company ownership and control relationships'
+
+output:
+  entities:
+    description: 'Company and person entities'
+    fields:
+      - name: name
+        type: str
+        description: 'Entity name'
+      - name: category
+        type: str
+        description: 'Company or Person'
+  relations:
+    description: 'Ownership and control relationships'
+    fields:
+      - name: source
+        type: str
+      - name: target
+        type: str
+      - name: relation_type
+        type: str
+      - name: percentage
+        type: str
+        required: false
+
+guideline:
+  target: 'You are a corporate analysis expert. Extract company relationships.'
+  rules_for_entities:
+    - 'Extract company and person entities only'
+    - 'Category must be Company or Person'
+  rules_for_relations:
+    - 'Only extract ownership and control relationships'
+    - 'Common types: owns, controls, invested_in, subsidiary_of'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{relation_type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name} ({category})'
+  relation_label: '{relation_type}'

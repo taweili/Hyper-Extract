@@ -1,0 +1,38 @@
+language: en
+name: EarningsCallSummary
+type: model
+tags: [finance]
+description: 'Extract key financial metrics from earnings call transcripts'
+
+output:
+  description: 'Earnings call summary'
+  fields:
+    - name: company_name
+      type: str
+      description: 'Company name'
+      required: true
+      default: ''
+    - name: revenue
+      type: str
+      description: 'Revenue amount'
+      required: false
+      default: 'N/A'
+    - name: quarter
+      type: str
+      description: 'Fiscal quarter'
+      required: true
+      default: ''
+    - name: key_highlights
+      type: list
+      description: 'Key highlights from the call'
+      required: false
+
+guideline:
+  target: 'You are a financial analyst. Extract key metrics from earnings calls.'
+  rules:
+    - 'Extract revenue in the format shown in text (including currency)'
+    - 'Use N/A if revenue is not mentioned'
+    - 'Extract quarter as Q1/Q2/Q3/Q4 format'
+
+display:
+  label: '{company_name} - {quarter}'

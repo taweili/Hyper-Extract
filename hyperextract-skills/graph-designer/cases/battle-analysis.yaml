@@ -1,0 +1,49 @@
+language: en
+name: BattleAnalysis
+type: hypergraph
+tags: [history, military]
+description: 'Extract historical battle information'
+
+output:
+  entities:
+    description: 'Historical figures and factions'
+    fields:
+      - name: name
+        type: str
+  relations:
+    description: 'Battle events with participants'
+    fields:
+      - name: battle_name
+        type: str
+      - name: attackers
+        type: list
+        description: 'Attacking side'
+      - name: defenders
+        type: list
+        description: 'Defending side'
+      - name: commanders
+        type: list
+        description: 'Key commanders'
+        required: false
+      - name: outcome
+        type: str
+      - name: year
+        type: str
+        required: false
+
+guideline:
+  target: 'You are a military history expert. Extract battle information.'
+  rules_for_entities:
+    - 'Extract all mentioned figures and factions'
+  rules_for_relations:
+    - 'Identify attackers and defenders clearly'
+    - 'Include key commanders if mentioned'
+
+identifiers:
+  entity_id: name
+  relation_id: '{battle_name}'
+  relation_members: [attackers, defenders, commanders]
+
+display:
+  entity_label: '{name}'
+  relation_label: '{battle_name}: {outcome}'

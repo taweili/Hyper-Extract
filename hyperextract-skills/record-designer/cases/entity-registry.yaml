@@ -1,0 +1,32 @@
+language: en
+name: EntityRegistry
+type: set
+tags: [entity, registry]
+description: 'Extract and deduplicate entity mentions'
+
+output:
+  description: 'Entity registry'
+  fields:
+    - name: name
+      type: str
+      description: 'Entity name'
+    - name: category
+      type: str
+      description: 'Entity type'
+    - name: source
+      type: str
+      description: 'Source document'
+      required: false
+
+guideline:
+  target: 'You are a knowledge engineer. Extract entities and deduplicate.'
+  rules:
+    - 'Extract all mentioned entities'
+    - 'Deduplicate by name'
+    - 'Keep first occurrence of each entity'
+
+identifiers:
+  item_id: name
+
+display:
+  label: '{name} ({category})'
