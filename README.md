@@ -6,157 +6,85 @@
 
 Transform unstructured documents into **searchable, visual, structured knowledge** — with just one command.
 
-[📖 English Version](#) · [中文版](./README_ZH.md)
+[📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
----
-
-## ✨ Features
-
-| Feature | Description |
-|---------|-------------|
-| ⚡ **CLI-First** | One command to extract knowledge from any document |
-| 🎯 **8 Structures** | Knowledge Graph, Timeline, Spatial, Hypergraph... |
-| 👁️ **Visual** | Interactive visualization with OntoSight |
-| 🔍 **Searchable** | Semantic search across all your knowledge |
-| 🌐 **Bilingual** | Full support for English and Chinese |
-| 📦 **200+ Templates** | Ready-to-use domain-specific templates |
-
----
-
-## ❌ Before | ✅ After
-
-| Before | After |
-|--------|-------|
-| Walls of text | **Clear visual structure** |
-| ❌ Hours of reading | ✅ **Instant clarity** |
-| ❌ Hard to find key info | ✅ **Semantic search** |
-| ❌ Can't compare docs | ✅ **Structured comparison** |
-| ❌ Scattered insights | ✅ **Knowledge accumulation** |
-
-![Before/After Demo](docs/assets/before-after-demo.jpeg)
+![Start](docs/assets/start.jpg)
 
 ---
 
 ## ⚡ Quick Start
 
-### Installation
-
 ```bash
 pip install hyper-extract
-```
 
-### Usage
-
-```bash
-# Extract structure from document
-he parse document.pdf -o kb
-
-# Visualize the knowledge
+he parse document.md -o kb
 he show kb
-
-# Semantic search
 he search kb "key insights"
-
-# Interactive Q&A
-he talk kb -i
 ```
 
 ![CLI Welcome Screen](docs/assets/cli.png)
 
 ---
 
-## 🧩 8 Knowledge Structures
+## 🧩 Knowledge Structures
 
-**8 different structures** for different needs:
+![8 Types](docs/assets/8-types.jpg)
 
-| Type | Icon | Best For | Example |
-|------|------|----------|---------|
-| **AutoModel** | 📋 | Structured reports | Financial statements |
-| **AutoList** | 📝 | Key points | Meeting notes |
-| **AutoSet** | 📦 | Entity registry | Product catalog |
-| **AutoGraph** | 🔗 | Relations | Social networks |
-| **AutoTemporalGraph** | ⏱️ | Event sequences | News timeline |
-| **AutoSpatialGraph** | 📍 | Locations | Delivery routes |
-| **AutoSpatioTemporalGraph** | 🌏 | Time + Space | Historical events |
-| **AutoHypergraph** | 🌐 | Complex relations | Legal cases |
+8 structures for extracting different types of information:
 
-![AutoTypes Demo](docs/assets/autotypes-demo.jpeg)
+**Scalar Types:**
+| Structure | Best For | Example |
+|-----------|----------|---------|
+| AutoModel | Structured reports | Financial statements |
+| AutoList | Key points | Meeting notes |
+| AutoSet | Entity collection | Product catalog |
 
----
+**Graph Types:**
+| Structure | Best For | Example |
+|-----------|----------|---------|
+| AutoGraph | Binary relations | Social networks |
+| AutoHypergraph | Multi-party events | Legal disputes |
+| AutoTemporalGraph | Event sequences | News timeline |
+| AutoSpatialGraph | Locations | Delivery routes |
+| AutoSpatioTemporalGraph | Events in time & space | Historical battles |
 
-## 🎯 Use Cases
+### Comparison with Other Libraries
 
-| Domain | What You Get | Example |
-|--------|--------------|---------|
-| 📊 **Finance** | Extract insights from earnings reports | `he parse report.pdf -o kb -l en` |
-| ⚖️ **Legal** | Structure contracts, case laws | `he parse contract.pdf -o kb -t hypergraph` |
-| 🏥 **Medical** | Organize patient histories | `he parse records.pdf -o kb` |
-| 📚 **Research** | Extract key findings from papers | `he parse paper.pdf -o kb` |
-| 📋 **Meetings** | Transform notes into timelines | `he parse notes.md -o kb` |
-
-![Use Cases Demo](docs/assets/use-cases-demo.jpeg)
-
----
-
-## 🔧 Architecture
-
-<details>
-<summary><strong>Technical Details (Click to Expand)</strong></summary>
-
-```
-hyper-extract/
-├── cli/                      # 💻 CLI Interface (he command)
-│   ├── commands/            # parse, talk, search, show...
-│   └── __main__.py          # Entry point
-│
-├── types/                    # 🧩 8 Knowledge Structures
-│   ├── model.py             # AutoModel
-│   ├── list.py              # AutoList
-│   ├── set.py               # AutoSet
-│   ├── graph.py             # AutoGraph
-│   ├── hypergraph.py        # AutoHypergraph
-│   ├── temporal_graph.py    # AutoTemporalGraph
-│   ├── spatial_graph.py     # AutoSpatialGraph
-│   └── spatio_temporal_graph.py
-│
-├── methods/                  # 🔬 Extraction Engines
-│   ├── rag/                 # LightRAG, HyperRAG, CogRAG
-│   └── typical/             # KG-Gen, ATOM
-│
-└── templates/                # 🌍 200+ Domain Templates
-    ├── zh/                  # Chinese templates
-    └── en/                  # English templates
-```
-
-### Supported Methods
-
-| Method | Graph | Temporal | Spatial | Hypergraph |
-|--------|-------|----------|---------|------------|
-| KG-Gen | ✅ | ❌ | ❌ | ❌ |
-| ATOM | ✅ | ✅ | ❌ | ❌ |
-| Graphiti | ❌ | ✅ | ❌ | ❌ |
-| LightRAG | ✅ | ❌ | ❌ | ❌ |
-| Hyper-RAG | ❌ | ❌ | ❌ | ✅ |
-| **Hyper-Extract** | ✅ | ✅ | ✅ | ✅ |
-
-</details>
+| Feature | KG-Gen | ATOM | Graphiti | LightRAG | Hyper-Extract |
+|---------|--------|------|----------|----------|---------------|
+| Knowledge Graph | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Temporal Graph | ❌ | ✅ | ✅ | ❌ | ✅ |
+| Spatial Graph | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Hypergraph | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Templates | ❌ | ❌ | ❌ | ❌ | ✅ |
+| CLI Tool | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
-## 📚 Documentation & Resources
+## 🌍 Domain Templates
+
+![Domain](docs/assets/domain.png)
+
+![Domain Templates](docs/assets/domain-templates.jpeg)
+
+Pre-built templates for common domains:
+
+| Domain | Templates |
+|--------|-----------|
+| Finance | Earnings reports, shareholder structure, risk factors |
+| Legal | Contracts, case law, compliance requirements |
+| Medicine | Clinical records, pharmacology, treatment plans |
+| Industry | Equipment specs, incident reports, safety procedures |
+| General | Meeting notes, articles, research papers |
+| TCM | Herbal formulas, meridian flow, syndrome reasoning |
+
+See [Template Gallery](hyperextract/templates/) for all templates.
+
+---
+
+## 📚 Documentation
 
 - [📖 Full Documentation](docs/)
 - [💻 Examples](examples/)
 - [🏷️ Template Gallery](hyperextract/templates/)
 
----
-
-## 🤝 Contributing & Support
-
-Welcome! Please feel free to submit issues and pull requests.
-
-If you find this project helpful, please give us a ⭐ to show your support!
-
----
-
-*Built with ❤️ for the AI Community*

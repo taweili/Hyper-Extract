@@ -2,7 +2,7 @@
 name: record-designer
 description: |
   Design YAML extraction templates for record types (model, list, set).
-  Use when user says: "design model template", "create list extraction", "extract ordered items", "deduplicate entities".
+  Use when user says: "design model template", "create item list extraction", "extract items", "deduplicate entities".
   Trigger: User wants to extract structured records, lists, or deduplicated entities.
   Skip: User mentions graph, relations, or knowledge graph (use graph-designer instead).
 ---
@@ -41,7 +41,7 @@ Receive design specs from brainstorm:
 | Type | Identifiers | Use Case |
 |------|-------------|----------|
 | model | Not needed | Single object |
-| list | Not needed | Ordered items |
+| list | Not needed | List of items |
 | set | `item_id` required | Deduplicated entities |
 
 ## Output Template

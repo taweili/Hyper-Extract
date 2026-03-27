@@ -3,8 +3,9 @@
 from typing import Optional
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 
-from ..config import ConfigManager, LLM_PROVIDERS, EMBEDDER_PROVIDERS
+from ..config import ConfigManager
 import typer
 
 console = Console()
@@ -12,7 +13,82 @@ console = Console()
 app = typer.Typer(
     name="config",
     help="Manage LLM and Embedder configuration",
+    invoke_without_command=True,
 )
+
+
+@app.callback()
+def config_callback(
+    ctx: typer.Context,
+):
+    """Show configuration help when running 'he config' without subcommand."""
+    if ctx.invoked_subcommand is not None:
+        return
+    
+    from ..utils import LOGO
+    
+    console.print()
+    console.print(Text(LOGO, style="bold cyan"))
+    
+    from rich.rule import Rule
+    
+    console.print(Rule(style="cyan dim"))
+    console.print()
+    
+    title_text = Text("CONFIGURATION", style="bold cyan")
+    desc_text = Text("Manage LLM and Embedder settings", style="dim")
+    
+    header = Table(box=None, show_header=False, pad_edge=False)
+    header.add_column(no_wrap=True)
+    header.add_column(style="dim white", no_wrap=True)
+    header.add_row(title_text, desc_text)
+    
+    console.print(header)
+    console.print()
+    console.print(Rule(style="cyan dim"))
+    console.print()
+    
+    console.print("[bold cyan]Available Commands:[/bold cyan]")
+    console.print()
+    
+    commands_info = [
+        ("he config init", "Interactive configuration setup (recommended for first-time users)"),
+        ("he config show", "Display current configuration"),
+        ("he config llm", "Configure LLM settings"),
+        ("he config embedder", "Configure Embedder settings"),
+    ]
+    
+    for cmd, desc in commands_info:
+        console.print(f"  [green]{cmd:<30}[/green] {desc}")
+    
+    console.print()
+    console.print(Rule(style="cyan dim"))
+    console.print()
+    
+    console.print("[bold cyan]Quick Start:[/bold cyan]")
+    console.print()
+    console.print("  [yellow]1.[/yellow] Run [green]he config init[/green] for interactive setup")
+    console.print("  [yellow]2.[/yellow] Or configure individually:")
+    console.print("     [green]he config llm --api-key YOUR_KEY[/green]")
+    console.print("     [green]he config embedder --api-key YOUR_KEY[/green]")
+    console.print()
+    
+    console.print("[bold cyan]Environment Variables (alternative):[/bold cyan]")
+    console.print()
+    console.print("  [green]OPENAI_API_KEY[/green] - OpenAI API key (used if not set in config)")
+    console.print("  [green]OPENAI_BASE_URL[/green] - Custom API base URL (optional)")
+    console.print()
+    
+    console.print(Rule(style="cyan dim"))
+    console.print()
+    
+    hint_text = Text("💡 Tip: Run ", style="dim")
+    hint_text.append("he config <command> --help", style="bold cyan")
+    hint_text.append(" for detailed command usage", style="dim")
+    console.print(hint_text)
+    console.print()
+    
+    raise typer.Exit()
 
 
 def _show_config():
@@ -22,24 +98,24 @@ def _show_config():
     
     table = Table(title="Hyper-Extract Configuration")
     table.add_column("Service", style="cyan", width=15)
-    table.add_column("Provider", style="green", width=15)
-    table.add_column("Model", style="yellow", width=25)
-    table.add_column("API Key", style="magenta", width=20)
+    table.add_column("Model", style="yellow", width=30)
+    table.add_column("API Key", style="magenta", width=25)
+    table.add_column("Base URL", style="green", width=25)
 
     llm_cfg = cfg["llm"]
     emb_cfg = cfg["embedder"]
 
     table.add_row(
         "LLM",
-        llm_cfg["provider"],
         llm_cfg["model"],
         llm_cfg["api_key"][:10] + "..." if llm_cfg["api_key"] else "(not set)",
+        llm_cfg["base_url"] or "(default)",
     )
     table.add_row(
         "Embedder",
-        emb_cfg["provider"],
         emb_cfg["model"],
         emb_cfg["api_key"][:10] + "..." if emb_cfg["api_key"] else "(not set)",
+        emb_cfg["base_url"] or "(default)",
     )
 
     console.print(table)
@@ -55,12 +131,6 @@ def show(
 
 @app.command(name="llm")
 def llm(
-    provider: str = typer.Option(
-        None,
-        "--provider",
-        "-p",
-        help=f"LLM provider ({'/'.join(LLM_PROVIDERS)})",
-    ),
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
@@ -90,7 +160,6 @@ def llm(
         table = Table(title="LLM Configuration", show_header=False)
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="green")
-        table.add_row("Provider", cfg.provider)
         table.add_row("Model", cfg.model)
         table.add_row("API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)")
         table.add_row("Base URL", cfg.base_url or "(default)")
@@ -103,7 +172,6 @@ def llm(
         return
 
     config.set_llm(
-        provider=provider,
         model=model,
         api_key=api_key,
         base_url=base_url,
@@ -113,12 +181,6 @@ def llm(
 
 @app.command(name="embedder")
 def embedder(
-    provider: str = typer.Option(
-        None,
-        "--provider",
-        "-p",
-        help=f"Embedder provider ({'/'.join(EMBEDDER_PROVIDERS)})",
-    ),
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
@@ -148,7 +210,6 @@ def embedder(
         table = Table(title="Embedder Configuration", show_header=False)
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="green")
-        table.add_row("Provider", cfg.provider)
         table.add_row("Model", cfg.model)
         table.add_row("API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)")
         table.add_row("Base URL", cfg.base_url or "(default)")
@@ -161,7 +222,6 @@ def embedder(
         return
 
     config.set_embedder(
-        provider=provider,
         api_key=api_key,
         model=model,
         base_url=base_url,
@@ -180,31 +240,39 @@ def init(
     console.print()
 
     console.print("[bold]Step 1: LLM Configuration[/bold]")
-    provider = console.input("  Provider [openai]: ") or "openai"
-    model = console.input("  Model [gpt-4o-mini]: ") or "gpt-4o-mini"
-    api_key = console.input("  API Key: ", password=True)
-    base_url = console.input("  Base URL (optional): ")
+    model = console.input("  Model (default: gpt-4o-mini): ") or "gpt-4o-mini"
+    
+    api_key = None
+    while not api_key:
+        api_key = console.input("  API Key: ")
+        if not api_key:
+            console.print("  [red]API Key is required. Please enter your API key.[/red]")
+    
+    base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
 
     config.set_llm(
-        provider=provider,
         model=model,
         api_key=api_key,
-        base_url=base_url or None,
+        base_url=base_url,
     )
 
     console.print()
 
     console.print("[bold]Step 2: Embedder Configuration[/bold]")
-    emb_provider = console.input("  Provider [openai]: ") or "openai"
-    emb_model = console.input("  Model [text-embedding-3-small]: ") or "text-embedding-3-small"
-    emb_api_key = console.input("  API Key: ", password=True)
-    emb_base_url = console.input("  Base URL (optional): ")
+    emb_model = console.input("  Model (default: text-embedding-3-small): ") or "text-embedding-3-small"
+    
+    emb_api_key = None
+    while not emb_api_key:
+        emb_api_key = console.input("  API Key: ")
+        if not emb_api_key:
+            console.print("  [red]API Key is required. Please enter your API key.[/red]")
+    
+    emb_base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
 
     config.set_embedder(
-        provider=emb_provider,
         model=emb_model,
         api_key=emb_api_key,
-        base_url=emb_base_url or None,
+        base_url=emb_base_url,
     )
 
     console.print()

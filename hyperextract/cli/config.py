@@ -13,20 +13,14 @@ DEFAULT_CONFIG_DIR = Path.home() / ".he"
 DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR / "config.toml"
 
 
-LLM_PROVIDERS = ["openai", "anthropic", "google"]
-EMBEDDER_PROVIDERS = ["openai", "anthropic", "google"]
-
-
 @dataclass
 class LLMConfig:
-    provider: str = "openai"
     model: str = "gpt-4o-mini"
     api_key: str = ""
     base_url: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "provider": self.provider,
             "model": self.model,
             "api_key": self.api_key,
             "base_url": self.base_url,
@@ -35,7 +29,6 @@ class LLMConfig:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "LLMConfig":
         return cls(
-            provider=data.get("provider", "openai"),
             model=data.get("model", "gpt-4o-mini"),
             api_key=data.get("api_key", ""),
             base_url=data.get("base_url", ""),
@@ -44,14 +37,12 @@ class LLMConfig:
 
 @dataclass
 class EmbedderConfig:
-    provider: str = "openai"
     model: str = "text-embedding-3-small"
     api_key: str = ""
     base_url: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "provider": self.provider,
             "model": self.model,
             "api_key": self.api_key,
             "base_url": self.base_url,
@@ -60,7 +51,6 @@ class EmbedderConfig:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EmbedderConfig":
         return cls(
-            provider=data.get("provider", "openai"),
             model=data.get("model", "text-embedding-3-small"),
             api_key=data.get("api_key", ""),
             base_url=data.get("base_url", ""),
@@ -104,7 +94,6 @@ class ConfigManager:
     def get_llm_config(self) -> LLMConfig:
         """Get LLM config with environment variable fallback."""
         config = LLMConfig(
-            provider=self.llm.provider,
             model=self.llm.model,
             api_key=self.llm.api_key or os.environ.get("OPENAI_API_KEY", ""),
             base_url=self.llm.base_url or os.environ.get("OPENAI_BASE_URL", ""),
@@ -114,7 +103,6 @@ class ConfigManager:
     def get_embedder_config(self) -> EmbedderConfig:
         """Get Embedder config with environment variable fallback."""
         config = EmbedderConfig(
-            provider=self.embedder.provider,
             model=self.embedder.model,
             api_key=self.embedder.api_key or os.environ.get("OPENAI_API_KEY", ""),
             base_url=self.embedder.base_url or os.environ.get("OPENAI_BASE_URL", ""),
@@ -123,14 +111,11 @@ class ConfigManager:
 
     def set_llm(
         self,
-        provider: Optional[str] = None,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
     ) -> None:
         """Set LLM configuration."""
-        if provider:
-            self.llm.provider = provider
         if model:
             self.llm.model = model
         if api_key is not None:
@@ -141,14 +126,11 @@ class ConfigManager:
 
     def set_embedder(
         self,
-        provider: Optional[str] = None,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
     ) -> None:
         """Set Embedder configuration."""
-        if provider:
-            self.embedder.provider = provider
         if model:
             self.embedder.model = model
         if api_key is not None:

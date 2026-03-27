@@ -87,6 +87,31 @@ display:
   relation_label: '...'
 ```
 
+## Display Design Principles
+
+**Important**: display.label is used for graph visualization. Edges connect two nodes (source/target), so the edge label should NOT repeat this information.
+
+### Design Principles
+
+| Principle | entity_label | relation_label |
+|-----------|--------------|----------------|
+| Node | Show core identifier | - |
+| Edge | - | Show relation type + optional dimensions |
+| Spatio-temporal | - | Show relation type + location + time |
+
+### Recommended relation_label by Type
+
+| Type | relation_label | Example |
+|------|----------------|---------|
+| graph | `{relation_type}` | `owns` |
+| hypergraph | `{event_name}` or `{outcome}` | `Battle of Red Cliffs` |
+| spatio_temporal_graph | `{relation_type}@{location}({event_date})` | `meets@Beijing(1985)` |
+
+### Length Reference
+
+- entity_label: Recommended 5-20 characters
+- relation_label: Recommended 10-30 characters
+
 ## Quick Config Reference
 
 ### Binary Relations (graph)
@@ -134,7 +159,7 @@ identifiers:
 |------|-----------|
 | graph | [cases/corporate-ownership.yaml](cases/corporate-ownership.yaml) |
 | hypergraph | [cases/battle-analysis.yaml](cases/battle-analysis.yaml) |
-| spatio_temporal_graph | [cases/meeting-records.yaml](cases/meeting-records.yaml) |
+| spatio_temporal_graph | [cases/biography-events.yaml](cases/biography-events.yaml) |
 
 ## Reference Files
 
