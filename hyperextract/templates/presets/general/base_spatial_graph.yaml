@@ -48,7 +48,7 @@ output:
       description:
         zh: '关系终点实体，必须对应已提取实体的 name。'
         en: 'Target entity of the relation, must correspond to the name of an extracted entity.'
-    - name: relation_type
+    - name: type
       type: str
       description:
         zh: '关系类型，用简洁词语概括两个实体之间的连接方式。'
@@ -98,7 +98,7 @@ guideline:
 
 identifiers:
   entity_id: name
-  relation_id: '{source}|{relation_type}|{target}'
+  relation_id: '{source}|{type}|{target}|{location}'
   relation_members:
     source: source
     target: target
@@ -109,4 +109,4 @@ options:
 
 display:
   entity_label: '{name} ({type})'
-  relation_label: '{relation_type}'
+  relation_label: '{type}@{location}'

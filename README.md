@@ -65,8 +65,6 @@ he search kb "key insights"
 
 ![Domain](docs/assets/domain.png)
 
-![Domain Templates](docs/assets/domain-templates.jpeg)
-
 Pre-built templates for common domains:
 
 | Domain | Templates |

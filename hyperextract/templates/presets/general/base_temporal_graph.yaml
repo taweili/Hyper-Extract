@@ -48,12 +48,12 @@ output:
       description:
         zh: '关系终点实体，必须对应已提取实体的 name。'
         en: 'Target entity of the relation, must correspond to the name of an extracted entity.'
-    - name: event_type
+    - name: type
       type: str
       description:
         zh: '关系类型，用简洁词语概括两个实体之间的连接方式。'
         en: 'Relation type, concisely describing the connection between two entities.'
-    - name: event_date
+    - name: time
       type: str
       description:
         zh: '关系对应的时间；无明确时间时可留空。'
@@ -85,14 +85,14 @@ guideline:
   rules_for_time:
     zh:
     - '当前观察日期：{observation_time}'
-    - 'event_date 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
+    - 'time 是可选字段；仅在文本明确提供时间，或可依据相对时间可靠换算时填写。'
     - '相对时间以 observation_time 为基准解析，如"去年/今年/明年""昨天/今天/明天""十年前/五年后"。'
     - '若文本给出明确年份，则写为 YYYY；若给出完整日期，则写为 YYYY-MM-DD；保留文本可确定的最细粒度。'
     - '若时间只对应关系成立、变化或终止中的某一时点，则记录最直接相关的那个时间。'
     - '无法可靠确定时间时留空，不要根据常识补写。'
     en:
     - 'Current observation date: {observation_time}'
-    - 'event_date is optional; fill in only when the text explicitly provides time or when relative time can be reliably converted.'
+    - 'time is optional; fill in only when the text explicitly provides time or when relative time can be reliably converted.'
     - 'Parse relative time based on observation_time.'
     - 'Write years as YYYY; write full dates as YYYY-MM-DD; preserve the finest granularity determinable from the text.'
     - 'If time corresponds to only one point among establishment, change, or termination, record the most directly relevant time.'
@@ -100,15 +100,15 @@ guideline:
 
 identifiers:
   entity_id: name
-  relation_id: '{source}|{event_type}|{target}'
+  relation_id: '{source}|{type}|{target}|{time}'
   relation_members:
     source: source
     target: target
-  time_field: event_date
+  time_field: time
 
 options:
   extraction_mode: two_stage
 
 display:
   entity_label: '{name} ({type})'
-  relation_label: '{event_type}'
+  relation_label: '{type}@{time}'

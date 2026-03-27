@@ -2,7 +2,7 @@ language: [zh, en]
 
 name: base_set
 type: set
-tags: [general]
+tags: [general, set]
 
 description:
   zh: '通用实体集合结构知识模板 - 从任意文本中识别并去重关键实体，汇总为可复用的实体清单。'

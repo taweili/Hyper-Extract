@@ -65,8 +65,6 @@ he search kb "关键信息"
 
 ![Domain](docs/assets/domain.png)
 
-![领域模板](docs/assets/domain-templates.jpeg)
-
 开箱即用的领域模板：
 
 | 领域 | 模板 |
