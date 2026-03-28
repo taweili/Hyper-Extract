@@ -82,3 +82,14 @@ options: {...}
 2. Verify all required fields present
 3. Check naming conventions
 4. Validate field value types
+
+---
+
+## Multi-language Consistency
+
+| Field | Rule | ❌ Wrong | ✅ Correct |
+|-------|------|----------|------------|
+| `zh` | Pure Chinese | `类型：entity(实体)` | `类型：实体/抽象` |
+| `en` | Pure English | `Type: 实体` | `Type: entity/abstract` |
+
+Detection pattern: `[a-zA-Z]+\([^)]+\)` in `zh` fields.

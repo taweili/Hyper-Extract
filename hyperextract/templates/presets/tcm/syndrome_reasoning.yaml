@@ -1,0 +1,106 @@
+language: [zh, en]
+
+name: syndrome_reasoning
+type: hypergraph
+tags: [tcm, syndrome, diagnosis, reasoning]
+
+description:
+  zh: '证候推理图模板 - 从医案和临床经验中提取症状、证候和治法的推理关系'
+  en: 'Syndrome Reasoning Graph Template - Extract symptom-syndrome-treatment reasoning relationships from medical cases and clinical experience'
+
+output:
+  description:
+    zh: '症状到证候到治法的推理链条'
+    en: 'Reasoning chain from symptoms to syndrome to treatment'
+  entities:
+    description:
+      zh: '症状、证候和治法要素'
+      en: 'Symptom, syndrome, and treatment elements'
+    fields:
+      - name: name
+        type: str
+        description:
+          zh: '要素名称'
+          en: 'Element name'
+        required: true
+      - name: type
+        type: str
+        description:
+          zh: '要素类型：症状/证候/治法/方剂'
+          en: 'Element type: symptom/syndrome/treatment/formula'
+        required: true
+      - name: description
+        type: str
+        description:
+          zh: '说明'
+          en: 'Description'
+        required: false
+  relations:
+    description:
+      zh: '症状、证候、治法之间的推理关系'
+      en: 'Reasoning relationships between symptoms, syndromes, and treatments'
+    fields:
+      - name: symptom
+        type: list
+        description:
+          zh: '症状表现'
+          en: 'Symptom manifestations'
+        required: false
+      - name: syndrome
+        type: str
+        description:
+          zh: '证候类型'
+          en: 'Syndrome type'
+        required: true
+      - name: principle
+        type: str
+        description:
+          zh: '治法原则'
+          en: 'Treatment principle'
+        required: true
+      - name: formula
+        type: str
+        description:
+          zh: '推荐方剂'
+          en: 'Recommended formula'
+        required: false
+      - name: type
+        type: str
+        description:
+          zh: '关系类型：leads_to/treated_by'
+          en: 'Relation type: leads_to/treated_by'
+        required: true
+
+guideline:
+  target:
+    zh: '你是一位专业的中医临床专家，负责从医案和临床经验中准确提取证候推理关系。'
+    en: 'You are a professional TCM clinical expert responsible for accurately extracting syndrome reasoning relationships from medical cases and clinical experience.'
+  rules_for_entities:
+    zh:
+      - '提取症状表现作为实体'
+      - '提取证候类型作为实体'
+      - '提取治法原则作为实体'
+      - '提取推荐方剂作为实体'
+    en:
+      - 'Extract symptom manifestations as entities'
+      - 'Extract syndrome types as entities'
+      - 'Extract treatment principles as entities'
+      - 'Extract recommended formulas as entities'
+  rules_for_relations:
+    zh:
+      - 'type为leads_to表示从症状到证候的推导'
+      - 'type为treated_by表示从证候到治法的对应'
+      - 'symptom字段应包含所有相关的症状'
+    en:
+      - 'type leads_to indicates derivation from symptoms to syndrome'
+      - 'type treated_by indicates correspondence from syndrome to treatment'
+      - 'Symptom field should include all related symptoms'
+
+identifiers:
+  entity_id: name
+  relation_id: '{syndrome}|{type}|{principle}'
+  relation_members: symptom
+
+display:
+  entity_label: '{name}'
+  relation_label: '{type}'

@@ -131,3 +131,7 @@ identifiers:
 - [ ] Quality requirements specified?
 - [ ] Common mistakes warned?
 - [ ] For set: deduplication rules clear?
+
+### Multi-language
+- [ ] `zh` descriptions use pure Chinese
+- [ ] `en` descriptions use pure English

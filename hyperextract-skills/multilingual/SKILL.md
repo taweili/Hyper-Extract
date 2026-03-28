@@ -94,6 +94,17 @@ rules:
     - 'Each field corresponds to an independent information item'
 ```
 
+### Multi-language Consistency
+
+When translating field values (like enum options), maintain language purity:
+
+| Original | Chinese Translation | English Translation |
+|----------|-------------------|-------------------|
+| `类型：实体/抽象` | `类型：实体/抽象` | `Type: entity/abstract` |
+| `重要性：高/中/低` | `重要性：高/中/低` | `Significance: high/medium/low` |
+
+Do NOT translate inline: `类型：entity(实体)` → wrong!
+
 ## Translation Checklist
 
 - [ ] Preserve technical terms consistently

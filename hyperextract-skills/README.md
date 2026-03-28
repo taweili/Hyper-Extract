@@ -12,6 +12,7 @@ Knowledge template design skills for Hyper-Extract.
 | graph-designer | Design graph/hypergraph/etc structures |
 | yaml-validator | Validate YAML configurations |
 | multilingual | Convert to multi-language support |
+| template-optimizer | Optimize templates and fix common issues |
 
 ## Installation
 
@@ -43,8 +44,9 @@ cp -r hyperextract-skills ~/.trae/skills/
 
 1. Start with the brainstorm skill to explore your requirements
 2. Based on the recommended type, use either record-designer or graph-designer
-3. Optionally validate with yaml-validator
-4. Optionally convert to multilingual
+3. **Optimize with template-optimizer** (recommended)
+4. Optionally validate with yaml-validator
+5. Optionally convert to multilingual
 
 ### Example Workflow
 
@@ -111,8 +113,15 @@ hyperextract-skills/
 │       ├── rules-types.md
 │       ├── rules-identifiers.md
 │       └── rules-errors.md
-└── multilingual/
-    └── SKILL.md               # Multi-language conversion
+├── multilingual/
+│   └── SKILL.md               # Multi-language conversion
+└── template-optimizer/
+    ├── SKILL.md               # Template optimization
+    └── references/            # Optimization rules
+        ├── rules-naming.md
+        ├── rules-multilingual.md
+        ├── rules-field-count.md
+        └── rules-consistency.md
 ```
 
 ## Design Principles

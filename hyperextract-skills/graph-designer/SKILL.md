@@ -204,3 +204,21 @@ identifiers:
 - [ ] relation_id template correct?
 - [ ] relation_members configured?
 - [ ] time/location_field specified?
+
+### Multi-language
+- [ ] `zh` descriptions use pure Chinese (no English terms like `entity(...)`)
+- [ ] `en` descriptions use pure English (no Chinese characters)
+
+### Entity-Relation Consistency
+- [ ] source/target types match entities definition
+
+### Relation Type Design
+For **generic templates**: Use open-ended description
+```yaml
+en: 'Relation type, concisely describing the connection between entities'
+```
+
+For **domain-specific templates**: Can use predefined types
+```yaml
+en: 'Relation type: type_a/type_b/type_c'
+```

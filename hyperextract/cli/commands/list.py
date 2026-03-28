@@ -3,6 +3,7 @@
 from typing import Optional
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 import typer
 
 from hyperextract.utils.template_engine import Gallery
@@ -15,11 +16,11 @@ app = typer.Typer(
 )
 
 
-def _get_description(cfg) -> str:
+def _get_description(cfg, lang: str = "en") -> str:
     """Get description from template config, handling both str and dict types."""
     desc = cfg.description
     if isinstance(desc, dict):
-        return desc.get("zh", desc.get("en", ""))
+        return desc.get(lang, desc.get("en", ""))
     return desc or ""
 
 
@@ -27,31 +28,36 @@ def _get_description(cfg) -> str:
 def template(
     query: Optional[str] = typer.Option(None, "--query", "-q", help="Query to search templates"),
     autotype: Optional[str] = typer.Option(None, "--autotype", "-a", help="Filter by autotype"),
-    language: Optional[str] = typer.Option(None, "--lang", "-l", help="Filter by language"),
+    language: Optional[str] = typer.Option(None, "--lang", "-l", help="Language filter (en/zh/all, default: en)"),
     include_methods: bool = typer.Option(True, "--include-methods/--no-methods", help="Include method templates"),
 ):
     """List all available templates with detailed information."""
+    target_lang = language if language else "en"
+
     results = Gallery.list(
         filter_by_query=query,
         filter_by_type=autotype,
-        filter_by_language=language,
+        filter_by_language=None if target_lang == "all" else target_lang,
     )
 
     templates = []
     for path, cfg in results.items():
-        full_name = cfg.name
-        languages = cfg.language if cfg.language else ["zh"]
+        languages = cfg.language if cfg.language else ["en"]
         if isinstance(languages, str):
             languages = [languages]
 
-        for lang in languages:
-            templates.append((path, full_name, lang, cfg.type, _get_description(cfg)))
+        if target_lang == "all":
+            for lang in languages:
+                templates.append((path, cfg.type, _get_description(cfg, lang)))
+        else:
+            lang = target_lang if target_lang in languages else (languages[0] if languages else "en")
+            templates.append((path, cfg.type, _get_description(cfg, lang)))
 
-    if include_methods:
+    if include_methods and target_lang != "zh":
         from hyperextract.methods import list_method_cfgs
         method_templates = list_method_cfgs()
         for name, cfg in method_templates.items():
-            templates.append((name, cfg.name, "en", cfg.type, cfg.description))
+            templates.append((name, cfg.type, cfg.description))
 
     if not templates:
         console.print("[yellow]No templates found.[/yellow]")
@@ -62,16 +68,15 @@ def template(
         show_header=True,
         header_style="bold magenta",
         expand=True,
+        show_lines=True,
     )
-    table.add_column("Template ID", style="cyan", no_wrap=True, width=30)
-    table.add_column("Name", style="green", width=20)
-    table.add_column("Type", style="yellow", no_wrap=True, width=12)
-    table.add_column("Language", style="magenta", no_wrap=True, width=8)
+    table.add_column("Template ID", style="cyan", width=26)
+    table.add_column("Type", style="yellow", no_wrap=True, width=22)
     table.add_column("Description", style="white")
 
-    for tid, name, lang, template_type, desc in templates:
-        desc_text = desc[:60] + "..." if len(desc) > 60 else desc
-        table.add_row(tid, name, template_type, lang, desc_text)
+    for tid, template_type, desc in templates:
+        domain, name = tid.split("/", 1)
+        table.add_row(Text(f"{domain}/\n{name}", style="cyan"), template_type, desc)
 
     console.print(table)
     console.print(f"\n[dim]Total: {len(templates)} templates[/dim]")
