@@ -10,13 +10,16 @@ AutoSpatialGraph Demo: 深海惊魂 - "阿特拉斯"号的幽灵 🌊👻
 2. 相对位置推理："这里的阀门控制着楼下的..."、"头顶传来了..."。
 3. 空间作为属性：位置不再是节点，而是实体（尸体、设备、怪物）的固有属性。
 4. 观察点注入：所有相对描述（"这里"）必须解析为主角当前的观察点。
+
+Usage:
+    python examples/types/spatial_graph_demo.py
 """
+
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 添加项目根目录到路径
-project_root = Path(__file__).resolve().parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
 from pydantic import BaseModel, Field
@@ -183,7 +186,6 @@ def run_demo():
             "## 源文本:\n"
             "{source_text}\n\n"
         ),
-        verbose=True,
         chunk_size=2048,
     )
 

@@ -10,14 +10,16 @@ AutoTemporalGraph Demo: 谍战惊悚 - 柏林的48小时 🕵️‍♀️💣
 2. 并发事件：同一时间多个地点的不同行动
 3. 时间精度：需要提取到分钟级别（HH:MM）
 4. 实体合并：同一个人的不同代称需要被识别和合并
+
+Usage:
+    python examples/types/temporal_graph_demo.py
 """
 
 import sys
 from pathlib import Path
 from typing import Optional
 
-# 添加项目根目录到路径
-project_root = Path(__file__).resolve().parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
 from pydantic import BaseModel, Field
@@ -176,7 +178,6 @@ def run_demo():
             "## 源文本:\n"
             "{source_text}\n\n"
         ),
-        verbose=True,
         chunk_size=2048,
     )
 

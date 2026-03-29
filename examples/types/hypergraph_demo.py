@@ -3,6 +3,9 @@ AutoHypergraph 演示：星际外交危机的故事线分析
 
 这个例子展示了如何使用 AutoHypergraph 从复杂的叙事文本中提取多类型的超边关系。
 超边可以代表不同类型的故事单元：冲突、结盟、持有关系、会议等。
+
+Usage:
+    python examples/types/hypergraph_demo.py
 """
 
 import os
@@ -11,8 +14,8 @@ import collections
 from typing import List
 from pathlib import Path
 
-# 添加父目录到路径
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(project_root))
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -20,6 +23,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from hyperextract.types import AutoHypergraph
 
 load_dotenv()
+
+INPUT_FILE = project_root / "examples" / "inputs" / "sci_fi_story.md"
 
 # ==============================================================================
 # 1. 定义 Schema：灵活的叙事结构
@@ -150,7 +155,6 @@ def main():
         llm_client=llm_client,
         embedder=embedder,
         extraction_mode="two_stage",  # 推荐：先识别实体，再梳理故事线
-        verbose=True,
         # 使用中文 Prompt 引导 LLM
         prompt_for_node_extraction=(
             "你的任务是从故事文本中提取所有重要的实体节点。\n"

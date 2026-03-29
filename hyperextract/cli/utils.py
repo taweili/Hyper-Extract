@@ -107,22 +107,38 @@ def validate_kb_with_index(kb_path: str) -> Path:
 
 
 def get_template_from_kb(kb_path: Path) -> Tuple[str, str]:
-    """Get template name and language from knowledge base metadata.
+    """Get template path for knowledge base.
 
-    Args:
-        kb_path: Knowledge base directory path
+    Load priority:
+    1. If template is in presets (e.g., "general/graph") -> use preset name
+    2. If template not in presets -> try to find {template}.yaml in KB directory
 
-    Returns:
-        Tuple of (template_name, language)
+    Raises:
+        ValueError: If template not found and no local yaml file exists
     """
     from .config import load_kb_metadata
+    from hyperextract.utils.template_engine import Gallery
 
     metadata = load_kb_metadata(kb_path)
+    if metadata is None:
+        raise ValueError(f"No metadata.json found in knowledge base: {kb_path}")
 
     template = metadata.get("template")
     lang = metadata.get("lang")
 
-    return template, lang
+    if template:
+        if Gallery.get(template) is not None:
+            return template, lang
+        else:
+            local_yaml = kb_path / f"{template}.yaml"
+            if local_yaml.exists():
+                return str(local_yaml), lang
+            raise ValueError(
+                f"Template '{template}' not found in presets and local file "
+                f"'{local_yaml}' does not exist."
+            )
+
+    raise ValueError("No template specified in metadata.json")
 
 
 def validate_config() -> "ConfigManager":

@@ -37,39 +37,51 @@ output:
         required: false
   relations:
     description:
-      zh: '方剂中药材的角色和配伍关系'
-      en: 'Herb roles and compatibility in formulas'
+      zh: '方剂组成和配伍关系'
+      en: 'Formula composition and compatibility'
     fields:
-      - name: formula
+      - name: formula_name
         type: str
         description:
           zh: '方剂名称'
           en: 'Formula name'
         required: true
-      - name: herb
-        type: str
+      - name: sovereigns
+        type: list
         description:
-          zh: '药材名称'
-          en: 'Herb name'
+          zh: '君药列表 - 主治主症的药物'
+          en: 'Sovereign herbs - herbs addressing the main condition'
         required: true
-      - name: role
-        type: str
+      - name: ministers
+        type: list
         description:
-          zh: '药材角色：君/臣/佐/使'
-          en: 'Herb role: sovereign/minister/assistant/envoy'
+          zh: '臣药列表 - 辅助君药的药物'
+          en: 'Minister herbs - herbs supporting the sovereign'
         required: true
-      - name: dosage
-        type: str
+      - name: assistants
+        type: list
         description:
-          zh: '剂量'
-          en: 'Dosage'
+          zh: '佐药列表 - 配合治疗或减轻副作用的药物'
+          en: 'Assistant herbs - herbs for synergy or reducing side effects'
         required: false
-      - name: type
+      - name: envoys
+        type: list
+        description:
+          zh: '使药列表 - 引药入经或调和诸药的药物'
+          en: 'Envoy herbs - herbs guiding the formula or harmonizing'
+        required: false
+      - name: total_dosage
         type: str
         description:
-          zh: '关系类型：contains/antagonizes'
-          en: 'Relation type: contains/antagonizes'
-        required: true
+          zh: '方剂总剂量'
+          en: 'Total formula dosage'
+        required: false
+      - name: indications
+        type: str
+        description:
+          zh: '主治功效'
+          en: 'Therapeutic indications'
+        required: false
 
 guideline:
   target:
@@ -86,19 +98,29 @@ guideline:
       - 'Role classification should follow TCM formula theory'
   rules_for_relations:
     zh:
-      - 'type为contains表示药材属于某方剂'
-      - 'type为antagonizes表示相恶相反的配伍禁忌'
-      - 'role字段应准确标注君臣佐使角色'
+      - '每个方剂作为一个完整的超边，提取方剂名称作为formula_name'
+      - '将药材按君臣佐使角色分别填入对应的列表字段'
+      - '君药：主治主症的核心药物，必填且通常只有1味'
+      - '臣药：辅助君药的药物，至少1味'
+      - '佐药：配合治疗或减轻副作用的药物，可选'
+      - '使药：引药入经或调和诸药的药物，可选'
+      - '若方剂仅标注君臣药，应将对应列表置空而非删除字段'
+      - '提取总剂量和主治功效以完善方剂信息'
     en:
-      - 'type contains indicates herb belongs to a formula'
-      - 'type antagonizes indicates incompatible compatibility'
-      - 'Role field should accurately indicate sovereign/minister/assistant/envoy role'
+      - 'Extract each formula as a complete hyperedge with formula_name'
+      - 'Partition herbs into corresponding lists by sovereign/minister/assistant/envoy roles'
+      - 'Sovereign: Core herbs addressing the main condition, required, usually 1 herb'
+      - 'Minister: Supporting herbs for the sovereign, at least 1 required'
+      - 'Assistant: Herbs for synergy or reducing side effects, optional'
+      - 'Envoy: Herbs guiding the formula or harmonizing, optional'
+      - 'If a formula only specifies sovereign and minister herbs, leave corresponding lists empty rather than deleting fields'
+      - 'Extract total dosage and therapeutic indications to complete formula information'
 
 identifiers:
   entity_id: name
-  relation_id: '{formula}|{type}|{herb}'
-  relation_members: herb
+  relation_id: '{formula_name}'
+  relation_members: [sovereigns, ministers, assistants, envoys]
 
 display:
   entity_label: '{name}'
-  relation_label: '{role}'
+  relation_label: '{formula_name}'

@@ -31,6 +31,7 @@ Check against these rules:
 | [rules-multilingual.md](references/rules-multilingual.md) | Language consistency |
 | [rules-field-count.md](references/rules-field-count.md) | Information density |
 | [rules-consistency.md](references/rules-consistency.md) | Schema vs Guideline separation |
+| [rules-hypergraph-grouping.md](references/rules-hypergraph-grouping.md) | Hypergraph grouping strategy |
 
 ### Step 3: Apply Fixes
 
@@ -87,6 +88,15 @@ Output changes with explanations for learning.
 
 **Fix**: Schema defines WHAT, Guideline defines HOW TO DO WELL.
 
+### Rule 5: Hypergraph Grouping
+
+```
+❌ relation_members: participants (string) + role field exists
+❌ relation_id contains participant field
+```
+
+**Fix**: Use nested grouping `relation_members: [group_a, group_b]` when entities partition by roles.
+
 ---
 
 ## Design Principles
@@ -133,6 +143,7 @@ For **entities** and **relations**:
 | [rules-multilingual.md](references/rules-multilingual.md) | Language consistency |
 | [rules-field-count.md](references/rules-field-count.md) | Too many fields |
 | [rules-consistency.md](references/rules-consistency.md) | Schema-guideline overlap |
+| [rules-hypergraph-grouping.md](references/rules-hypergraph-grouping.md) | Role field vs nested grouping |
 
 ---
 

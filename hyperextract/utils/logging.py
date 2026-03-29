@@ -95,7 +95,7 @@ def setup_logger(
 # Initialize with sensible defaults on module import.
 # This ensures users don't need explicit setup_logger() calls for basic usage.
 # Environment variables will be checked and applied automatically.
-setup_logger(level="INFO")
+setup_logger(level="DEBUG")
 
 # Export public API
 __all__ = ["logger", "setup_logger"]

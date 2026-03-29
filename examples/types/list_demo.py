@@ -2,14 +2,16 @@
 AutoList 多 Chunk 提取示例
 
 演示如何使用 AutoList 处理长文本，测试多 chunk 并发提取和列表合并功能。
+
+Usage:
+    python examples/types/list_demo.py
 """
 
 import sys
 from pathlib import Path
 
-# 添加项目根目录到 Python 路径
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(project_root))
 
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -114,7 +116,6 @@ def main():
         chunk_size=500,  # 设置小的 chunk_size 来测试多 chunk 提取
         chunk_overlap=50,
         max_workers=5,
-        verbose=True,
     )
 
     # 4. 提取知识 (使用 feed_text 模式)

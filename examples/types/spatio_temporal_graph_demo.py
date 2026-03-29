@@ -12,14 +12,16 @@ AutoSpatioTemporalGraph Demo: 谍战惊悚 - 柏林的48小时 (时空增强版)
 - 分离的时间/空间提取器 (Time & Location Extractors)
 - 自动融合的时空唯一键 (Composite Spatio-Temporal Key)
 - 相对时空消歧 (Relative Spatio-Temporal Resolution)
+
+Usage:
+    python examples/types/spatio_temporal_graph_demo.py
 """
 
 import sys
 from pathlib import Path
 from typing import Optional
 
-# 添加项目根目录到路径
-project_root = Path(__file__).resolve().parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
 from pydantic import BaseModel, Field
@@ -121,7 +123,6 @@ def run_demo():
             "## 源文本:\n"
             "{source_text}\n\n"
         ),
-        verbose=True
     )
 
     print("\n⚙️  执行时空感知提取流程...")

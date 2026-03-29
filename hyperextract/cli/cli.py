@@ -275,11 +275,21 @@ def parse(
             kb.feed_text(text)
 
         progress.update(task, description="Saving data...")
+
+        template_config = Template.get(template)
+        if template_config is None:
+            if template.endswith(".yaml"):
+                import shutil
+                filename = Path(template).name
+                shutil.copy(template, output_path / filename)
+                console.print(f"[dim]Custom template '{filename}' saved to KB directory[/dim]")
+
         kb.dump(output_path)
 
         if not no_index:
             progress.update(task, description="Building search index...")
             kb.build_index()
+            console.print("[dim]Index built successfully[/dim]")
             progress.update(task, description="Saving index...")
             kb.dump(output_path)
 
@@ -623,6 +633,10 @@ def build_index(
 
             progress.update(task, description="Loading knowledge base...")
             kb.load(path)
+
+            if force:
+                console.print("[dim]Force rebuild: clearing existing index...[/dim]")
+                kb.clear_index()
 
             progress.update(task, description="Building index...")
             kb.build_index()

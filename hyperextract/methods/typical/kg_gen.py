@@ -133,7 +133,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         nodes_in_edge_fn = lambda x: (x.subject, x.object)
 
         # 3. Call parent class initialization
-        logger.info("馃殌 Initializing KGGenGraph (Knowledge Graph Generator)")
+        logger.info("🔧 Initializing KGGenGraph (Knowledge Graph Generator)")
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -181,7 +181,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         nodes, edges = graph_data.nodes, graph_data.edges
 
         if len(nodes) == 0:
-            logger.warning("鈿狅笍 No nodes to deduplicate; skipping deduplication.")
+            logger.warning("⚠️ No nodes to deduplicate; skipping deduplication.")
             return graph_data
 
         # 1. Prepare data and run SemHash
@@ -190,7 +190,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         try:
             embeddings = self.embedder.embed_documents(node_names)
         except Exception as e:
-            logger.error(f"鉂?Failed to generate embeddings: {e}")
+            logger.error(f"❌ Failed to generate embeddings: {e}")
             return graph_data
 
         semhash = SemHash.from_records(
@@ -234,7 +234,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         Returns:
             A new, deduplicated KG_Gen instance.
         """
-        logger.info(f"馃搵 Creating deduplicated copy (threshold={threshold})...")
+        logger.info(f"📋 Creating deduplicated copy (threshold={threshold})...")
 
         # 1. Deep copy current data
         graph_data = self.data.model_copy(deep=True)

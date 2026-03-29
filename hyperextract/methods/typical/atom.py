@@ -371,7 +371,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         )
 
         # 3. Call parent class initialization
-        logger.info("馃殌 Initializing Atom")
+        logger.info("Initializing Atom")
         super().__init__(
             node_schema=NodeSchema,
             edge_schema=EdgeSchema,
@@ -421,7 +421,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         obs_date_str = self.observation_time or datetime.now().strftime("%Y-%m-%d")
 
         # ==================== Step 1: Extract Atomic Facts ====================
-        logger.info("馃攳 [Phase 1] Extracting Atomic Facts...")
+        logger.info("💡 [Phase 1] Extracting Atomic Facts...")
 
         # 1. Prepare raw chunks
         if len(text) <= self.chunk_size:
@@ -452,14 +452,14 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             if fact_list and fact_list.atomic_fact:
                 all_facts.extend(fact_list.atomic_fact)
 
-        logger.info(f"鉁?Extracted {len(all_facts)} atomic facts.")
+        logger.info(f"✅ Extracted {len(all_facts)} atomic facts.")
 
         if not all_facts:
-            logger.warning("鈿狅笍 No facts extracted. Returning empty graph.")
+            logger.warning("⚠️ No facts extracted. Returning empty graph.")
             return AutoGraphSchema()
 
         # ==================== Step 2: Extract Edges from Facts ====================
-        logger.info("馃攳 [Phase 2] Extracting Edges from Atomic Facts...")
+        logger.info("💡 [Phase 2] Extracting Edges from Atomic Facts...")
 
         # 5. Group Facts into Chunks (Controlled by count AND size)
         # This ensures each fact remains intact and fact IDs reset per chunk
@@ -565,17 +565,17 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         nodes, edges = self.nodes, self.edges
 
         if not nodes:
-            logger.warning("鈿狅笍 No nodes to match; skipping matching.")
+            logger.warning("⚠️ No nodes to match; skipping matching.")
             return self
 
         # 1. Generate Embeddings using self.embedder.embed_documents
         node_names = [n.name for n in nodes]
-        logger.info(f"馃搳 Generating embeddings for {len(node_names)} nodes...")
+        logger.info(f"🔄 Generating embeddings for {len(node_names)} nodes...")
 
         try:
             embeddings = self.embedder.embed_documents(node_names)
         except Exception as e:
-            logger.error(f"鉂?Failed to generate embeddings: {e}")
+            logger.error(f"❌ Failed to generate embeddings: {e}")
             return self
 
         # 2. Initialize SemHash from embeddings
@@ -596,10 +596,10 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
                 mapping[record.record] = record.duplicates[0][0]
 
         if not mapping:
-            logger.info("鉁?No similar nodes found above threshold.")
+            logger.info("✅ No similar nodes found above threshold.")
             return self
 
-        logger.info(f"馃敆 Found {len(mapping)} nodes to merge.")
+        logger.info(f"🔗 Found {len(mapping)} nodes to merge.")
 
         # 5. Apply mapping to graph data
         # Update Node names
@@ -619,6 +619,6 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
         self._set_data_state(new_data)
 
         logger.info(
-            f"鉁?Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
+            f"✅ Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
         )
         return self

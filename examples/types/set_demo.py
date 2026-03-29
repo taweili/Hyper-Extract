@@ -1,26 +1,22 @@
-"""集合知识示例 - 从冒险者日志中提取和去重怪物信息
+"""
+集合知识示例 - 从冒险者日志中提取和去重怪物信息
 
 这个示例演示了AutoSet如何基于唯一键字段自动去重提取的项目。
 使用RPG怪物图鉴场景展示LLM_MERGE策略如何智能合并来自多个来源的冲突信息。
+
+Usage:
+    python examples/types/set_demo.py
 """
 
-# import os
-
-# import io
-# sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-from ontomem.merger import MergeStrategy
-
-
-# 添加项目根目录到 Python 路径
 import sys
 from pathlib import Path
 
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(project_root))
 
+from pydantic import BaseModel, Field
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from ontomem.merger import MergeStrategy
 from hyperextract import AutoSet
 
 import dotenv
@@ -79,7 +75,6 @@ def main():
 
 ### 冒险者日志:
 {source_text}""",
-        verbose=True,
     )
 
     # 来自冒险者的日志 - 包含重复的怪物但信息略有不同

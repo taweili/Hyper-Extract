@@ -100,6 +100,26 @@ identifiers:
 
 ---
 
+## When to Use Nested Grouping
+
+Use **nested grouping** (list of lists) when:
+- Same semantic whole: Entities naturally belong to the same concept
+- Role-based partitioning: Entities partition by semantic roles
+- Shared context: All entities share common attributes
+
+⚠️ **If you find yourself adding a `role` field, consider using nested grouping instead.**
+
+**❌ Wrong**: `relation_members: participants` + `role` field
+**✅ Correct**: `relation_members: [group_a, group_b]`
+
+| Scenario | Should Use Nested | Groups |
+|----------|-----------------|--------|
+| Formula (君臣佐使) | ✅ | sovereigns, ministers, assistants, envoys |
+| Battle (攻防) | ✅ | attackers, defenders |
+| Independent trades | ❌ | - |
+
+---
+
 ## Design Checklist
 
 - [ ] How many semantic groups?
@@ -107,3 +127,4 @@ identifiers:
 - [ ] Can members belong to multiple groups?
 - [ ] Is there an outcome/result?
 - [ ] Is reasoning needed?
+- [ ] Should use nested grouping instead of role field?

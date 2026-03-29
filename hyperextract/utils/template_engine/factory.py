@@ -488,7 +488,12 @@ class TemplateFactory:
                 template = cls.create_spatio_temporal_graph(
                     template_cfg, llm_client, embedder, **kwargs
                 )
-        template.metadata["template"] = source
+
+        if source.endswith(".yaml"):
+            template.metadata["template"] = Path(source).stem
+        else:
+            template.metadata["template"] = source
         template.metadata["lang"] = language
         template.metadata["type"] = template_cfg.type
+
         return template
