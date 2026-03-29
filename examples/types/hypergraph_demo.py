@@ -345,8 +345,6 @@ def main():
     print("💾 保存超图到本地")
     print("=" * 70)
 
-    # 获取项目根目录
-    project_root = Path(__file__).resolve().parent.parent
     save_path = project_root / "temp" / "auto_hypergraph_demo"
 
     try:
