@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：preceded_by/proves/disputes'
+          zh: '关系类型：先于/证明/争议'
           en: 'Relation type: preceded_by/proves/disputes'
         required: true
       - name: time
@@ -86,9 +86,9 @@ guideline:
       - 'Entity descriptions should be concise and accurate'
   rules_for_relations:
     zh:
-      - 'type为preceded_by表示时间先后顺序'
-      - 'type为proves表示证据支持'
-      - 'type为disputes表示对某一事实存在争议'
+      - 'type为"先于"表示时间先后顺序'
+      - 'type为"证明"表示证据支持'
+      - 'type为"争议"表示对某一事实存在争议'
       - '仅提取文本中明确陈述的事实关系'
     en:
       - 'type preceded_by indicates temporal sequence'

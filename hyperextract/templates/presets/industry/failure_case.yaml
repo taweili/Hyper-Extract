@@ -80,9 +80,9 @@ guideline:
       - 'Extract corrective measures as entities'
   rules_for_relations:
     zh:
-      - 'type为caused_by表示由某原因引起'
-      - 'type为resolved_by表示通过某措施解决'
-      - 'type为prevented_by表示通过某措施预防'
+      - 'type为"原因"表示由某原因引起'
+      - 'type为"解决"表示通过某措施解决'
+      - 'type为"预防"表示通过某措施预防'
       - 'lesson字段应总结经验教训'
     en:
       - 'type caused_by indicates caused by a reason'

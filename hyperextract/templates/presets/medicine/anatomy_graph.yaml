@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：contains/located_in'
+          zh: '关系类型：包含/位于'
           en: 'Relation type: contains/located_in'
         required: true
 

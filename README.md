@@ -1,7 +1,7 @@
 # 🔍 Hyper-Extract
 
 > **"Stop reading. Start understanding."**
->
+
 > *"告别文档焦虑，让信息一目了然"*
 
 Transform documents into **knowledge abstracts** — with just one command.
@@ -17,71 +17,41 @@ Transform documents into **knowledge abstracts** — with just one command.
 ```bash
 pip install hyper-extract
 
-he config init
-he parse document.md -o ka -l zh
-he talk ka -i
-```
-
-![CLI Configuration](docs/assets/cli.png)
-
----
-
-## ⚙️ Quick Configuration
-
-**Recommended**: gpt-4o-mini (fast & stable for structured extraction) + text-embedding-3-small
-
-```bash
 he config init -k YOUR_API_KEY
-# Or with custom base URL
-he config init -k YOUR_KEY -u https://api.openai.com/v1
+
+he parse document.md -o ./knowledge_abstract/ -l zh
 ```
 
-View config: `he config show`
+> 🔗 For detailed usage, see [CLI Guide](./hyperextract/cli/README.md)
 
 ---
 
-## 💡 Usage Example
+## ✨ Key Features
 
-```bash
-he parse document.md -o ka -l zh
-he show ka
-he search ka "key insights"
-```
+| 🤖 8 Knowledge Types | 🌍 38+ Domain Templates | 💻 Interactive CLI | 🔍 Semantic Search |
+|:---:|:---:|:---:|:---:|
+| From lists to spatio-temporal graphs | Finance, Medical, Legal ready-to-use | One command for full workflow | FAISS vector similarity |
+
+> 🔗 Learn more about [8 Knowledge Types](#knowledge-types) | [Domain Templates](#domain-templates)
 
 ---
 
-## 🧩 Knowledge Abstract Types
+## 📊 Knowledge Types
 
 ![8 Types](docs/assets/8-types-v2.jpg)
 
-8 structures for extracting different types of information:
-
-**Record Types:**
-| Structure | Best For | Example |
-|-----------|----------|---------|
-| AutoModel | Structured reports | Financial statements |
-| AutoList | Key points | Meeting notes |
-| AutoSet | Entity collection | Product catalog |
-
-**Graph Types:**
-| Structure | Best For | Example |
-|-----------|----------|---------|
+| Type | Best For | Example |
+|------|----------|---------|
+| AutoModel | Structured reports | Financial summaries |
+| AutoList | Ordered lists | Meeting notes |
+| AutoSet | Deduplicated collections | Product catalogs |
 | AutoGraph | Binary relations | Social networks |
-| AutoHypergraph | Multi-party events | Legal disputes |
-| AutoTemporalGraph | Event sequences | News timeline |
-| AutoSpatialGraph | Locations | Delivery routes |
+| AutoHypergraph | Multi-party events | Contract disputes |
+| AutoTemporalGraph | Temporal relations | News timelines |
+| AutoSpatialGraph | Spatial relations | Delivery routes |
 | AutoSpatioTemporalGraph | Events in time & space | Historical battles |
 
-### Comparison with Other Libraries
-
-| Feature | KG-Gen | ATOM | Graphiti | LightRAG | Hyper-Extract |
-|---------|--------|------|----------|----------|---------------|
-| Knowledge Graph | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Temporal Graph | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Spatial Graph | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Hypergraph | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Templates | ❌ | ❌ | ❌ | ❌ | ✅ |
-| CLI Tool | ❌ | ❌ | ❌ | ❌ | ✅ |
+> 🔗 See [Full Type Documentation](./hyperextract/types/) | [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
 
 ---
 
@@ -89,10 +59,8 @@ he search ka "key insights"
 
 ![Domains](docs/assets/domains-v2.png)
 
-Pre-built templates for common domains:
-
-| Domain | Templates | Scenarios |
-|--------|-----------|-----------|
+| Domain | Templates | Typical Scenarios |
+|--------|-----------|-------------------|
 | General | 13 | Workflow, Biography, Concept maps |
 | Finance | 5 | Earnings reports, Risk factors |
 | Medicine | 5 | Clinical records, Drug interactions |
@@ -100,48 +68,81 @@ Pre-built templates for common domains:
 | Industry | 5 | Equipment topology, Failure analysis |
 | Legal | 5 | Contract clauses, Case citations |
 
-**Total: 6 Domains · 37 Templates**
+> 🔗 See [Full Template Gallery](./hyperextract/templates/) | [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
 
-See [Template Gallery](hyperextract/templates/) for all templates.
+---
+
+## 🎯 Python API Examples
+
+```python
+from hyperextract import Template
+
+ka = Template.create("finance/earnings_summary")
+result = ka.parse(financial_report_text)
+# result.operating_revenue = "100 billion RMB"
+```
+
+> 🔗 See more [Example Code](./examples/)
+
+---
+
+## 📈 Comparison with Other Libraries
+
+| Feature | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| Knowledge Graph | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Temporal Graph | ✅ | ❌ | ❌ | ✅ | ✅ |
+| Spatial Graph | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Hypergraph | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Domain Templates | ❌ | ❌ | ❌ | ❌ | ✅ |
+| CLI Tool | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Multi-language | Partial | ❌ | ❌ | ❌ | ✅ |
+| Visualization | Partial | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
 ## 💻 CLI Reference
 
-### Parse Command
+### Parse Documents
 
 ```bash
-he parse document.md -o my_ka -l zh
-he parse document.md -o my_ka -t general/knowledge_graph -l zh
+he parse document.md -o ./knowledge_abstract/ -l zh
+he parse earnings.md -o ./finance_report/ -t finance/earnings_summary -l zh
 ```
 
-### Build Search Index
+### Search & Chat
 
 ```bash
-he build-index my_ka
-```
-
-### Search Knowledge Abstract
-
-```bash
-he search my_ka "What are the key findings?"
-he search my_ka "key insights" -n 5
+he search ./finance_report/ "What was the revenue growth?"
+he talk ./finance_report/ -i  # Interactive mode
 ```
 
 ### Visualize
 
 ```bash
-he show my_ka
-he info my_ka
+he show ./finance_report/  # Graph visualization
+he info ./finance_report/  # Show statistics
 ```
 
-For full CLI documentation, see [CLI Guide](hyperextract/cli/README.md).
+> 🔗 For full CLI documentation, see [CLI Guide](./hyperextract/cli/README.md)
 
 ---
 
-## 📚 Documentation
+## 🤝 Contributing
 
-- [📖 Full Documentation](docs/)
-- [💻 Examples](examples/)
-- [🏷️ Template Gallery](hyperextract/templates/)
-- [🖥️ CLI Guide](hyperextract/cli/README.md)
+Contributions are welcome! Please submit Issues and PRs.
+
+## 📄 License
+
+Apache-2.0
+
+---
+
+## 📚 Related Documentation
+
+| Documentation | Description |
+|---------------|-------------|
+| [CLI Guide](./hyperextract/cli/README.md) | Complete CLI reference |
+| [Template Gallery](./hyperextract/templates/) | 38+ domain templates |
+| [Example Code](./examples/) | Python API examples |
+| [Full Documentation](./docs/) | Architecture & implementation |

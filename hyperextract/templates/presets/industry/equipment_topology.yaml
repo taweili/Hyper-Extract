@@ -61,7 +61,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：connected_to/located_in/contains'
+          zh: '关系类型：连接/位于/包含'
           en: 'Relation type: connected_to/located_in/contains'
         required: true
 

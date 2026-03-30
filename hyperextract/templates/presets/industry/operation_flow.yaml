@@ -61,7 +61,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：next/triggers/results_in'
+          zh: '关系类型：后续/触发/导致'
           en: 'Relation type: next/triggers/results_in'
         required: true
       - name: description
@@ -86,9 +86,9 @@ guideline:
       - 'Equipment states should indicate key state changes'
   rules_for_relations:
     zh:
-      - 'type为next表示顺序执行'
-      - 'type为triggers表示触发条件'
-      - 'type为results_in表示导致状态变化'
+      - 'type为"顺序"表示顺序执行'
+      - 'type为"触发"表示触发条件'
+      - 'type为"导致"表示导致状态变化'
       - '仅提取文档中明确说明的关系'
     en:
       - 'type next indicates sequential execution'

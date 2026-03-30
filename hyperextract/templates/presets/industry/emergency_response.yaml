@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：triggers/executed_by/requires'
+          zh: '关系类型：触发/执行/需要'
           en: 'Relation type: triggers/executed_by/requires'
         required: true
       - name: responsible_role
@@ -80,9 +80,9 @@ guideline:
       - 'Extract required resources as entities'
   rules_for_relations:
     zh:
-      - 'type为triggers表示触发响应'
-      - 'type为executed_by表示执行责任人'
-      - 'type为requires表示所需资源'
+      - 'type为"触发"表示触发响应'
+      - 'type为"执行"表示执行责任人'
+      - 'type为"需要"表示所需资源'
     en:
       - 'type triggers indicates triggering response'
       - 'type executed_by indicates executing responsible person'

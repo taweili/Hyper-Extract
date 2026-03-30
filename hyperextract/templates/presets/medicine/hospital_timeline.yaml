@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：follows/results_in'
+          zh: '关系类型：后续/导致'
           en: 'Relation type: follows/results_in'
         required: true
       - name: time
@@ -86,8 +86,8 @@ guideline:
       - 'Descriptions should concisely summarize event content'
   rules_for_relations:
     zh:
-      - 'type为follows表示事件的时序关系'
-      - 'type为results_in表示因果结果关系'
+      - 'type为"后续"表示事件的时序关系'
+      - 'type为"导致"表示因果结果关系'
       - 'performer应标注执行人或科室'
     en:
       - 'type follows indicates temporal sequence of events'

@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：controls/belongs_to/holds_shares'
+          zh: '关系类型：控制/属于/持股'
           en: 'Relation type: controls/belongs_to/holds_shares'
         required: true
       - name: ownership_percentage

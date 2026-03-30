@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：cites/distinguished_from/overruled_by'
+          zh: '关系类型：引用/区分/推翻'
           en: 'Relation type: cites/distinguished_from/overruled_by'
         required: true
       - name: description
@@ -80,9 +80,9 @@ guideline:
       - 'Court information should be accurately labeled'
   rules_for_relations:
     zh:
-      - 'type为cites表示引用关系'
-      - 'type为distinguished_from表示区分解释'
-      - 'type为overruled_by表示被推翻'
+      - 'type为"引用"表示引用关系'
+      - 'type为"区分"表示区分解释'
+      - 'type为"推翻"表示被推翻'
       - '仅提取文本中明确提及的引用关系'
     en:
       - 'type cites indicates citation relationship'

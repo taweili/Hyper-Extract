@@ -49,7 +49,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：precedes/causes/triggers'
+          zh: '关系类型：先于/导致/触发'
           en: 'Relation type: precedes/causes/triggers'
         required: true
       - name: time
@@ -80,9 +80,9 @@ guideline:
       - 'Event type should reflect the nature of the event (announcement/rating adjustment/earnings release, etc.)'
   rules_for_relations:
     zh:
-      - 'type为precedes表示事件的时间先后顺序'
-      - 'type为causes表示因果关联'
-      - 'type为triggers表示触发关系'
+      - 'type为"先于"表示事件的时间先后顺序'
+      - 'type为"导致"表示因果关联'
+      - 'type为"触发"表示触发关系'
       - '仅提取文本中明确说明的关系'
       - 'description中应说明事件是否构成重大事项'
     en:

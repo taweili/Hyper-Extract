@@ -67,7 +67,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：indicates/contraindicated_with'
+          zh: '关系类型：适用于/禁忌联合'
           en: 'Relation type: indicates/contraindicated_with'
         required: true
 
@@ -88,8 +88,8 @@ guideline:
       - 'Extract treatment outcomes as entities'
   rules_for_relations:
     zh:
-      - 'type为indicates表示适应症'
-      - 'type为contraindicated_with表示禁忌组合'
+      - 'type为"适用"表示适应症'
+      - 'type为"禁忌"表示禁忌组合'
       - 'conditions字段应包含所有相关的患者特征/适用条件'
     en:
       - 'type indicates indicates indication'

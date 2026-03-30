@@ -74,8 +74,8 @@ guideline:
       - 'Location descriptions should accurately indicate anatomical positions'
   rules_for_relations:
     zh:
-      - 'type为located_on表示穴位属于某经脉'
-      - 'type为flows_to表示经脉的流注顺序'
+      - 'type为"位于"表示穴位属于某经脉'
+      - 'type为"流注"表示经脉的流注顺序'
     en:
       - 'type located_on indicates acupoint belongs to a meridian'
       - 'type flows_to indicates the flow sequence of meridians'

@@ -55,7 +55,7 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：causes/mitigates/assigned_to'
+          zh: '关系类型：导致/缓解/分配给'
           en: 'Relation type: causes/mitigates/assigned_to'
         required: true
       - name: responsible_role
@@ -80,9 +80,9 @@ guideline:
       - 'Extract control measures as entities'
   rules_for_relations:
     zh:
-      - 'type为causes表示导致风险'
-      - 'type为mitigates表示减轻风险'
-      - 'type为assigned_to表示责任分配'
+      - 'type为"导致"表示导致风险'
+      - 'type为"减轻"表示减轻风险'
+      - 'type为"分配"表示责任分配'
       - 'responsible_role应标注具体的责任人或部门'
     en:
       - 'type causes indicates causing risk'

@@ -41,12 +41,12 @@ output:
     - name: source
       type: str
       description:
-        zh: '关系起点实体，必须对应已提取实体的 name。'
+        zh: '关系起点实体，必须对应已提取实体的名称。'
         en: 'Source entity of the relation, must correspond to the name of an extracted entity.'
     - name: target
       type: str
       description:
-        zh: '关系终点实体，必须对应已提取实体的 name。'
+        zh: '关系终点实体，必须对应已提取实体的名称。'
         en: 'Target entity of the relation, must correspond to the name of an extracted entity.'
     - name: type
       type: str
