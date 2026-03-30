@@ -1,6 +1,6 @@
 language: [zh, en]
 
-name: base_temporal_graph
+name: temporal_graph
 type: temporal_graph
 tags: [general]
 

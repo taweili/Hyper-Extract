@@ -1,6 +1,6 @@
 language: [zh, en]
 
-name: base_spatio_temporal_graph
+name: spatio_temporal_graph
 type: spatio_temporal_graph
 tags: [general]
 

@@ -19,7 +19,7 @@ pip install hyper-extract
 
 he config init
 he parse document.md -o ka -l zh
-he search ka "关键信息"
+he talk ka -i
 ```
 
 ![CLI 配置指南](docs/assets/cli.png)
@@ -28,47 +28,24 @@ he search ka "关键信息"
 
 ## ⚙️ 快速配置
 
-首次使用前，需要配置你的 LLM 和 Embedder：
-
-### 交互式配置（推荐）
+**推荐配置**：gpt-4o-mini（快速稳定，适合结构化提取）+ text-embedding-3-small
 
 ```bash
-he config init
+he config init -k YOUR_API_KEY
+# 或指定自定义接口
+he config init -k YOUR_KEY -u https://api.openai.com/v1
 ```
 
-此命令将引导你完成以下配置：
-1. LLM 配置（模型、API Key、基础 URL）
-2. Embedder 配置（模型、API Key、基础 URL）
+查看配置：`he config show`
 
-### 手动配置
+---
 
-#### 配置 LLM
+## 💡 使用示例
 
 ```bash
-he config llm --api-key YOUR_API_KEY
-he config llm --model gpt-4o --api-key YOUR_API_KEY --base-url https://api.openai.com/v1
-```
-
-#### 配置 Embedder
-
-```bash
-he config embedder --api-key YOUR_API_KEY
-he config embedder --model text-embedding-3-small --api-key YOUR_API_KEY
-```
-
-### 环境变量方式
-
-```bash
-export OPENAI_API_KEY=your_api_key
-export OPENAI_BASE_URL=https://api.openai.com/v1
-```
-
-环境变量优先级高于配置文件设置。
-
-### 查看当前配置
-
-```bash
-he config show
+he parse document.md -o ka -l zh
+he show ka
+he search ka "关键信息"
 ```
 
 ---

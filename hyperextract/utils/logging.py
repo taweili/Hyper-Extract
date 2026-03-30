@@ -1,101 +1,94 @@
-"""
-Loguru Logger Configuration
+"""Unified logging configuration using structlog."""
 
-Provides flexible logging setup with optional file output.
-Supports environment variables for configuration without requiring code changes.
-"""
-
-import os
+import logging
 import sys
-from pathlib import Path
-from typing import Optional, Union
-from loguru import logger
+from typing import Optional
 
-# ==================== Environment Variable Constants ====================
+import structlog
+
 ENV_LOG_LEVEL = "HYPER_EXTRACT_LOG_LEVEL"
 ENV_LOG_FILE = "HYPER_EXTRACT_LOG_FILE"
 
 
-def setup_logger(
-    level: str = "INFO",
-    log_file: Optional[Union[str, Path]] = None,
-    rotation: str = "10 MB",
-    retention: str = "10 days",
-    serialize: bool = False,
+def configure_logging(
+    level: str = "WARNING",
+    json_output: bool = False,
+    output_file: Optional[str] = None,
 ) -> None:
-    """
-    Configure Loguru Logger with optional file output.
-    
-    This function can be called explicitly by users to override default configuration.
-    Environment variables are checked first, then parameters, then defaults.
-    
+    """Configure structlog for hyper-extract.
+
     Args:
-        level: Log level (e.g., "DEBUG", "INFO", "WARNING", "ERROR").
-               Defaults to "INFO". Overridden by HYPER_EXTRACT_LOG_LEVEL env var.
-        log_file: Path to log file. If None, only console output is used.
-                  Defaults to None. Overridden by HYPER_EXTRACT_LOG_FILE env var.
-        rotation: Log rotation size (e.g., "10 MB", "1 GB", "00:00").
-        retention: Log retention duration (e.g., "10 days", "7 days").
-        serialize: If True, outputs logs in JSON format (suitable for production).
-    
-    Examples:
-        # Default: console only, INFO level
-        setup_logger()
-        
-        # Add file logging via code
-        setup_logger(level="DEBUG", log_file="logs/debug.log")
-        
-        # Using environment variables (recommended for deployment)
-        # HYPER_EXTRACT_LOG_LEVEL=DEBUG
-        # HYPER_EXTRACT_LOG_FILE=./logs/app.log
+        level: Log level ("DEBUG", "INFO", "WARNING", "ERROR").
+        json_output: If True, output JSON format (for production).
+        output_file: Optional file path to write logs.
     """
-    # Remove all existing handlers to prevent duplication
-    logger.remove()
+    import os
+    level = os.getenv(ENV_LOG_LEVEL, level).upper()
+    level_value = getattr(logging, level, logging.WARNING)
 
-    # 1. Determine final configuration (environment variables have highest priority)
-    final_level = os.getenv(ENV_LOG_LEVEL, level).upper()
+    structlog.configure(
+        processors=[
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.add_logger_name,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.dev.ConsoleRenderer(colors=True) if not json_output
+            else structlog.processors.JSONRenderer(),
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+
+    handlers = []
+
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setLevel(level_value)
+    handlers.append(console_handler)
+
     env_log_file = os.getenv(ENV_LOG_FILE)
-    final_log_file = log_file if log_file else env_log_file
+    final_output_file = output_file if output_file else env_log_file
 
-    # 2. Add console handler
-    console_format = (
-        "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
-        "<level>{level: <8}</level> | "
-        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
-        "<level>{message}</level>"
-    )
-    
-    logger.add(
-        sys.stderr,
-        level=final_level,
-        format=console_format,
-        serialize=serialize,
-        colorize=True,
-    )
-
-    # 3. Add file handler (only if path is configured)
-    if final_log_file:
-        log_path = Path(final_log_file)
-        # Ensure parent directory exists
+    if final_output_file:
+        from pathlib import Path
+        log_path = Path(final_output_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
+        file_handler.setLevel(level_value)
+        handlers.append(file_handler)
 
-        logger.add(
-            str(log_path),
-            rotation=rotation,
-            retention=retention,
-            level="DEBUG",  # File captures more detailed information
-            compression="zip",
-            encoding="utf-8",
-            enqueue=True,  # Asynchronous I/O for thread safety
-            serialize=serialize,
-        )
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    for handler in handlers:
+        root_logger.addHandler(handler)
+    root_logger.setLevel(level_value)
 
 
-# ==================== Default Initialization ====================
-# Initialize with sensible defaults on module import.
-# This ensures users don't need explicit setup_logger() calls for basic usage.
-# Environment variables will be checked and applied automatically.
-setup_logger(level="ERROR")
+def get_logger(name: str = None) -> structlog.stdlib.BoundLogger:
+    """Get a configured structlog logger.
 
-# Export public API
-__all__ = ["logger", "setup_logger"]
+    Args:
+        name: Logger name (typically __name__).
+
+    Returns:
+        A structlog bound logger instance.
+    """
+    return structlog.get_logger(name)
+
+
+def set_log_level(level: str) -> None:
+    """Dynamically set log level at runtime.
+
+    Args:
+        level: Log level ("DEBUG", "INFO", "WARNING", "ERROR").
+    """
+    level_value = getattr(logging, level.upper(), logging.WARNING)
+    logging.getLogger().setLevel(level_value)
+
+
+configure_logging(level="WARNING")
+
+__all__ = ["get_logger", "configure_logging", "set_log_level"]

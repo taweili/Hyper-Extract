@@ -24,6 +24,12 @@ output:
       zh: '列表项的类型或分类标签。'
       en: 'Type or category label of the list item.'
     required: false
+  - name: description
+    type: str
+    description:
+      zh: '列表项的具体描述、说明或相关属性信息。'
+      en: 'Specific description, explanation, or related attribute information of the list item.'
+    required: false
 
 guideline:
   target:

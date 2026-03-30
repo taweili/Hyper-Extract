@@ -67,21 +67,23 @@ YAML_TO_AUTOTYPE_MAPPING = {
 
 
 def parse_option(
-    options: NaiveOptionsSchema | GraphOptionsSchema,
+    options: NaiveOptionsSchema | GraphOptionsSchema | None,
     autotype: VALID_AUTOTYPES,
     override: dict | None = None,
 ) -> dict:
     """Parse options and return kwargs for specific autotype.
 
     Args:
-        options: Unified Options configuration
+        options: Unified Options configuration (can be None if not defined in template)
         autotype: auto type (model, list, set, graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph)
         override: Optional override for specific parameters
 
     Returns:
         dict: Only contains parameters needed for the corresponding autotype
     """
-    # Map YAML parameter names to autotype parameter names
+    if options is None:
+        return {}
+
     options_dict = options.model_dump()
     options_dict = {
         YAML_TO_AUTOTYPE_MAPPING.get(k, k): v for k, v in options_dict.items()

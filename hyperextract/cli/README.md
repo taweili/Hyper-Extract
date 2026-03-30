@@ -29,40 +29,36 @@ he search my_ka "key insights"
 
 ## ⚙️ Configuration
 
-Before using Hyper-Extract, you need to configure your LLM and Embedder settings.
+### One-Command Setup (Simplest)
 
-### Interactive Setup (Recommended)
+```bash
+# Just provide your API key - defaults work for most users
+he config init --api-key YOUR_API_KEY
+
+# With custom base URL
+he config init -k YOUR_KEY -u https://your-endpoint.com/v1
+```
+
+This automatically configures both LLM and Embedder with:
+- LLM: gpt-4o-mini
+- Embedder: text-embedding-3-small
+
+### Interactive Setup
 
 ```bash
 he config init
 ```
 
-This will guide you through setting up:
-1. LLM configuration (model, API key, base URL)
-2. Embedder configuration (model, API key, base URL)
-
-Note: Provider is fixed to OpenAI by default.
-
 ### Manual Configuration
 
-#### Configure LLM
+For advanced users who need separate configurations:
 
 ```bash
-# Basic configuration
-he config llm --api-key YOUR_API_KEY
+# Configure LLM
+he config llm --api-key YOUR_KEY --model gpt-4o
 
-# Specify model and base URL
-he config llm --model gpt-4o --api-key YOUR_API_KEY --base-url https://api.openai.com/v1
-```
-
-#### Configure Embedder
-
-```bash
-# Basic configuration
-he config embedder --api-key YOUR_API_KEY
-
-# Specify model
-he config embedder --model text-embedding-3-small --api-key YOUR_API_KEY
+# Configure Embedder
+he config embedder --api-key YOUR_KEY --model text-embedding-3-small
 ```
 
 ### Environment Variables

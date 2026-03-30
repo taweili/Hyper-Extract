@@ -1,10 +1,11 @@
 """Hyperextract utilities module."""
 
-from .logging import logger, setup_logger
+from .logging import get_logger, configure_logging, set_log_level
 from .client import get_client
 
 __all__ = [
-    "logger",
-    "setup_logger",
+    "get_logger",
+    "configure_logging",
+    "set_log_level",
     "get_client",
 ]

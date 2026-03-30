@@ -21,7 +21,9 @@ from langchain_community.vectorstores import FAISS
 from ontosight import view_nodes
 
 from .base import BaseAutoType
-from hyperextract.utils.logging import logger
+from hyperextract.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 ItemSchema = TypeVar("ItemSchema", bound=BaseModel)

@@ -19,7 +19,7 @@ pip install hyper-extract
 
 he config init
 he parse document.md -o ka -l zh
-he search ka "key insights"
+he talk ka -i
 ```
 
 ![CLI Configuration](docs/assets/cli.png)
@@ -28,47 +28,24 @@ he search ka "key insights"
 
 ## ⚙️ Quick Configuration
 
-Before using Hyper-Extract, you need to configure your LLM and Embedder:
-
-### Interactive Setup (Recommended)
+**Recommended**: gpt-4o-mini (fast & stable for structured extraction) + text-embedding-3-small
 
 ```bash
-he config init
+he config init -k YOUR_API_KEY
+# Or with custom base URL
+he config init -k YOUR_KEY -u https://api.openai.com/v1
 ```
 
-This will guide you through setting up:
-1. LLM configuration (model, API key, base URL)
-2. Embedder configuration (model, API key, base URL)
+View config: `he config show`
 
-### Manual Configuration
+---
 
-#### Configure LLM
+## 💡 Usage Example
 
 ```bash
-he config llm --api-key YOUR_API_KEY
-he config llm --model gpt-4o --api-key YOUR_API_KEY --base-url https://api.openai.com/v1
-```
-
-#### Configure Embedder
-
-```bash
-he config embedder --api-key YOUR_API_KEY
-he config embedder --model text-embedding-3-small --api-key YOUR_API_KEY
-```
-
-### Environment Variables
-
-```bash
-export OPENAI_API_KEY=your_api_key
-export OPENAI_BASE_URL=https://api.openai.com/v1
-```
-
-Environment variables take precedence over config file settings.
-
-### View Current Configuration
-
-```bash
-he config show
+he parse document.md -o ka -l zh
+he show ka
+he search ka "key insights"
 ```
 
 ---

@@ -97,6 +97,21 @@ guideline:
       - 'Create relationships only when the text explicitly expresses a relationship between two entities'
       - 'Prefer relation words that explicitly appear in the text'
       - 'Do not create implicit common-sense associations'
+  rules_for_time:
+    zh:
+      - '观察时间基准：{observation_time}'
+      - '绝对日期：保持原文格式（如"1985年"、"1985-03-15"）'
+      - '相对时间：转换为绝对时间（如"二十岁时"→"1965年"）'
+      - '模糊时间：保留原文表述，不推测具体年份'
+      - '时间范围：以最早时间点为准（如"1985-1989年"→"1985年"）'
+      - '仅提取文本中明确表达的时间'
+    en:
+      - 'Observation time baseline: {observation_time}'
+      - 'Absolute dates: Keep as-is (e.g., "1985", "1985-03-15")'
+      - 'Relative time: Convert to absolute (e.g., "at age twenty" → "1965")'
+      - 'Fuzzy time: Keep original expression, do not infer specific year'
+      - 'Time range: Use earliest time point (e.g., "1985-1989" → "1985")'
+      - 'Only extract time explicitly stated in the text'
 
 identifiers:
   entity_id: name
@@ -104,6 +119,7 @@ identifiers:
   relation_members:
     source: source
     target: target
+  time_field: time
 
 display:
   entity_label: '{name}'

@@ -1,6 +1,6 @@
 language: [zh, en]
 
-name: base_model
+name: model
 type: model
 tags: [general]
 

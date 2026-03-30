@@ -13,7 +13,9 @@ from langchain_core.embeddings import Embeddings
 from ontomem.merger import MergeStrategy
 
 from hyperextract.types import AutoGraph
-from hyperextract.utils.logging import logger
+from hyperextract.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 # ==============================================================================
 # 1. Schema Definition - Consistent with original iText2KG implementation

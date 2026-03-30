@@ -231,10 +231,42 @@ def embedder(
 
 @app.command(name="init")
 def init(
-    force: bool = typer.Option(False, "--force", "-f", help="Force overwrite existing config"),
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        "-k",
+        help="API key for both LLM and Embedder",
+    ),
+    base_url: Optional[str] = typer.Option(
+        None,
+        "--base-url",
+        "-u",
+        help="Custom API base URL",
+    ),
 ):
     """Initialize configuration interactively."""
     config = ConfigManager()
+
+    if api_key:
+        config.set_llm(
+            model="gpt-4o-mini",
+            api_key=api_key,
+            base_url=base_url,
+        )
+        config.set_embedder(
+            model="text-embedding-3-small",
+            api_key=api_key,
+            base_url=base_url,
+        )
+        console.print("[bold green]Configuration saved successfully![/bold green]")
+        console.print()
+        console.print("[bold]Current settings:[/bold]")
+        console.print("  [cyan]LLM Model:[/cyan] gpt-4o-mini")
+        console.print("  [cyan]Embedder Model:[/cyan] text-embedding-3-small")
+        console.print("  [cyan]API Key:[/cyan] " + api_key[:10] + "...")
+        if base_url:
+            console.print(f"  [cyan]Base URL:[/cyan] {base_url}")
+        return
 
     console.print("[bold blue]Hyper-Extract Configuration Setup[/bold blue]")
     console.print()
@@ -242,18 +274,18 @@ def init(
     console.print("[bold]Step 1: LLM Configuration[/bold]")
     model = console.input("  Model (default: gpt-4o-mini): ") or "gpt-4o-mini"
     
-    api_key = None
-    while not api_key:
-        api_key = console.input("  API Key: ")
-        if not api_key:
+    llm_api_key = None
+    while not llm_api_key:
+        llm_api_key = console.input("  API Key: ")
+        if not llm_api_key:
             console.print("  [red]API Key is required. Please enter your API key.[/red]")
     
-    base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
+    llm_base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
 
     config.set_llm(
         model=model,
-        api_key=api_key,
-        base_url=base_url,
+        api_key=llm_api_key,
+        base_url=llm_base_url,
     )
 
     console.print()

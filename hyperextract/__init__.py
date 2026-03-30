@@ -35,6 +35,9 @@ from .types import (
 # Template engine API
 from .utils.template_engine import Template
 
+# Logging utilities
+from .utils.logging import configure_logging, get_logger, set_log_level
+
 
 __version__ = "0.1.0"
 __author__ = "Yifan Feng"
@@ -55,4 +58,8 @@ __all__ = [
     "AutoSpatioTemporalGraph",
     # Template engine
     "Template",
+    # Logging utilities
+    "configure_logging",
+    "get_logger",
+    "set_log_level",
 ]

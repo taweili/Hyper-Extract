@@ -1,6 +1,6 @@
 language: [zh, en]
 
-name: base_spatial_graph
+name: spatial_graph
 type: spatial_graph
 tags: [general]
 

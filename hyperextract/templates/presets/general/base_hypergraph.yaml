@@ -1,6 +1,6 @@
 language: [zh, en]
 
-name: base_hypergraph
+name: hypergraph
 type: hypergraph
 tags: [general, hypergraph]
 
