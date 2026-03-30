@@ -16,13 +16,13 @@ pip install hyper-extract
 he config init
 
 # Extract knowledge from a document
-he parse document.md -o my_kb -l zh
+he parse document.md -o my_ka -l zh
 
 # Visualize the knowledge graph
-he show my_kb
+he show my_ka
 
-# Search within your knowledge base
-he search my_kb "key insights"
+# Search within your Knowledge Abstract
+he search my_ka "key insights"
 ```
 
 ---
@@ -86,25 +86,25 @@ he config show
 
 ## 📄 Parse Command
 
-Extract knowledge from documents into structured knowledge bases.
+Extract knowledge from documents into structured Knowledge Abstracts.
 
 ### Basic Usage
 
 ```bash
 # Parse with interactive template selection
-he parse document.md -o my_kb -l zh
+he parse document.md -o my_ka -l zh
 
 # Parse with specific template
-he parse document.md -o my_kb -t general/knowledge_graph -l zh
+he parse document.md -o my_ka -t general/knowledge_graph -l zh
 
 # Parse with specific method
-he parse document.md -o my_kb -m light_rag
+he parse document.md -o my_ka -m light_rag
 ```
 
 ### Options
 
 - `<input>` - Input file path, directory, or `-` for stdin
-- `-o, --output` - Output knowledge base directory (required)
+- `-o, --output` - Output Knowledge Abstract directory (required)
 - `-t, --template` - Template ID (omit for interactive selection)
 - `-m, --method` - Method template (e.g., `light_rag`, `hyper_rag`)
 - `-l, --lang` - Language (`zh` or `en`, required for knowledge templates)
@@ -136,53 +136,53 @@ he list method -q rag  # Search by keyword
 Required for semantic search and chat functionality.
 
 ```bash
-he build-index my_kb
-he build-index my_kb --force  # Rebuild existing index
+he build-index my_ka
+he build-index my_ka --force  # Rebuild existing index
 ```
 
-### Search Knowledge Base
+### Search Knowledge Abstract
 
-Perform semantic search within your knowledge base.
+Perform semantic search within your Knowledge Abstract.
 
 ```bash
-he search my_kb "What are the key findings?"
-he search my_kb "key insights" -n 5  # Return top 5 results
+he search my_ka "What are the key findings?"
+he search my_ka "key insights" -n 5  # Return top 5 results
 ```
 
-### Chat with Knowledge Base
+### Chat with Knowledge Abstract
 
-Ask questions about your knowledge base.
+Ask questions about your Knowledge Abstract.
 
 ```bash
 # Single query
-he talk my_kb -q "What was discussed in the meeting?"
+he talk my_ka -q "What was discussed in the meeting?"
 
 # Interactive mode
-he talk my_kb -i
+he talk my_ka -i
 ```
 
 ### Visualize Knowledge Graph
 
-View your knowledge base as an interactive graph.
+View your Knowledge Abstract as an interactive graph.
 
 ```bash
-he show my_kb
+he show my_ka
 ```
 
-### View Knowledge Base Info
+### View Knowledge Abstract Info
 
-Display statistics and metadata about your knowledge base.
+Display statistics and metadata about your Knowledge Abstract.
 
 ```bash
-he info my_kb
+he info my_ka
 ```
 
-### Add Knowledge to Existing KB
+### Add Knowledge to Existing KA
 
-Append new knowledge to an existing knowledge base.
+Append new knowledge to an existing Knowledge Abstract.
 
 ```bash
-he feed my_kb new_document.md
+he feed my_ka new_document.md
 ```
 
 ---
@@ -199,13 +199,13 @@ he config init
 he list template -l zh | grep finance
 
 # Extract earnings report
-he parse earnings_report.md -o finance_kb -t finance/earnings_summary -l zh
+he parse earnings_report.md -o finance_ka -t finance/earnings_summary -l zh
 
 # Build index for search
-he build-index finance_kb
+he build-index finance_ka
 
 # Search for insights
-he search finance_kb "What was the revenue growth?"
+he search finance_ka "What was the revenue growth?"
 ```
 
 ### Example 2: Extract Legal Contracts
@@ -215,20 +215,20 @@ he search finance_kb "What was the revenue growth?"
 he list template -l zh | grep legal
 
 # Extract contract information
-he parse contract.md -o legal_kb -t legal/contract_summary -l zh
+he parse contract.md -o legal_ka -t legal/contract_summary -l zh
 
 # View as knowledge graph
-he show legal_kb
+he show legal_ka
 ```
 
 ### Example 3: Use Method Templates
 
 ```bash
 # Use Light RAG method
-he parse document.md -o kb -m light_rag
+he parse document.md -o ka -m light_rag
 
 # Use Hyper RAG method
-he parse document.md -o kb -m hyper_rag
+he parse document.md -o ka -m hyper_rag
 ```
 
 ---

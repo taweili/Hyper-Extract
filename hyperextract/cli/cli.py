@@ -16,10 +16,10 @@ from .utils import (
     LOGO,
     read_input,
     validate_config,
-    validate_kb_path,
-    validate_kb_with_data,
-    validate_kb_with_index,
-    get_template_from_kb,
+    validate_ka_path,
+    validate_ka_with_data,
+    validate_ka_with_index,
+    get_template_from_ka,
 )
 from .config import (
     load_kb_metadata,
@@ -104,16 +104,16 @@ def main(
                 ("he list method", "List extraction methods"),
                 ("he config --help", "Manage LLM/Embedder config"),
             ]),
-            make_section("✨ Create KB", [
-                ("he parse <input> -o <kb_path>", "Extract knowledge from file"),
-                ("he feed <kb_path> <input>", "Add knowledge to existing KB"),
-                ("he build-index <kb_path>", "Build semantic search index"),
+            make_section("✨ Create KA", [
+                ("he parse <input> -o <ka_path>", "Extract knowledge to new KA"),
+                ("he feed <ka_path> <input>", "Add knowledge to existing KA"),
+                ("he build-index <ka_path>", "Build semantic search index"),
             ]),
-            make_section("🔍 Explore KB", [
-                ("he info <kb_path>", "View knowledge base info & stats"),
-                ("he talk <kb_path> [-i]", "Chat with knowledge base"),
-                ("he search <kb_path> <query>", "Semantic search"),
-                ("he show <kb_path>", "Visualize knowledge graph"),
+            make_section("🔍 Explore KA", [
+                ("he info <ka_path>", "View Knowledge Abstract info & stats"),
+                ("he talk <ka_path> [-i]", "Chat with Knowledge Abstract"),
+                ("he search <ka_path> <query>", "Semantic search"),
+                ("he show <ka_path>", "Visualize knowledge graph"),
             ]),
         ]
         
@@ -308,11 +308,11 @@ def parse(
 
 
 @app.command(name="show")
-def show(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
-    """Visualize knowledge base using OntoSight."""
-    path = validate_kb_with_data(kb_path)
+def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")):
+    """Visualize Knowledge Abstract using OntoSight."""
+    path = validate_ka_with_data(ka_path)
 
-    template, lang = get_template_from_kb(path)
+    template, lang = get_template_from_ka(path)
 
     console.print(f"[blue]Template:[/blue] {template}")
     console.print(f"[blue]Language:[/blue] {lang}")
@@ -320,13 +320,13 @@ def show(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
 
     validate_config()
 
-    with console.status("[bold blue]Loading knowledge base..."):
+    with console.status("[bold blue]Loading Knowledge Abstract..."):
         try:
             kb = Template.create(template, lang)
             kb.load(path)
 
         except Exception as e:
-            console.print(f"[red]Error loading knowledge base:[/red] {e}")
+            console.print(f"[red]Error loading Knowledge Abstract:[/red] {e}")
             raise typer.Exit(1)
 
     console.print("[bold blue]Visualizing with OntoSight...[/bold blue]")
@@ -339,16 +339,16 @@ def show(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
 
     console.print()
     console.print("[dim]Continue exploring:[/dim]")
-    console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search specific content[/dim]")
-    console.print(f"[dim]  he talk {kb_path} -i           # Interactive chat[/dim]")
+    console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search specific content[/dim]")
+    console.print(f"[dim]  he talk {ka_path} -i           # Interactive chat[/dim]")
 
 
 @app.command(name="info")
-def info(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
-    """View knowledge base information and statistics."""
+def info(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")):
+    """View Knowledge Abstract information and statistics."""
     import json
 
-    path = validate_kb_with_data(kb_path)
+    path = validate_ka_with_data(ka_path)
 
     metadata = load_kb_metadata(path)
 
@@ -368,7 +368,7 @@ def info(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
 
     index_exists = (path / "index").exists() and any((path / "index").iterdir())
 
-    table = Table(title="Knowledge Base Info", show_header=False, box=None)
+    table = Table(title="Knowledge Abstract Info", show_header=False, box=None)
     table.add_column("Key", style="cyan", width=15)
     table.add_column("Value", style="green")
 
@@ -392,19 +392,19 @@ def info(kb_path: str = typer.Argument(..., help="Knowledge base directory")):
 
 @app.command(name="search")
 def search(
-    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
+    ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     query: str = typer.Argument(..., help="Search query"),
     top_k: int = typer.Option(3, "--top-k", "-n", help="Number of results"),
 ):
-    """Semantic search in knowledge base."""
+    """Semantic search in Knowledge Abstract."""
     import json
 
     validate_config()
 
-    path = validate_kb_with_index(kb_path)
-    template, lang = get_template_from_kb(path)
+    path = validate_ka_with_index(ka_path)
+    template, lang = get_template_from_ka(path)
 
-    console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
+    console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
     console.print(f"[blue]Query:[/blue] {query}")
     console.print(f"[blue]Top K:[/blue] {top_k}")
     console.print()
@@ -415,7 +415,7 @@ def search(
         try:
             kb = Template.create(template, lang)
 
-            progress.update(task, description="Loading knowledge base...")
+            progress.update(task, description="Loading Knowledge Abstract...")
             kb.load(path)
 
             progress.update(task, description="Searching...")
@@ -443,12 +443,12 @@ def search(
             console.print()
 
     console.print("[dim]Continue:[/dim]")
-    console.print(f"[dim]  he talk {kb_path} -q \"question about results\"  # Deep dive[/dim]")
-    console.print(f"[dim]  he talk {kb_path} -i                           # Interactive mode[/dim]")
-    console.print(f"[dim]  he show {kb_path}                              # Visualize[/dim]")
+    console.print(f"[dim]  he talk {ka_path} -q \"question about results\"  # Deep dive[/dim]")
+    console.print(f"[dim]  he talk {ka_path} -i                           # Interactive mode[/dim]")
+    console.print(f"[dim]  he show {ka_path}                              # Visualize[/dim]")
 
 
-def chat_loop(kb, kb_path: str):
+def chat_loop(kb, ka_path: str):
     """Interactive chat loop."""
     console.print("\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n")
     while True:
@@ -458,9 +458,9 @@ def chat_loop(kb, kb_path: str):
                 console.print("\n[dim]Goodbye![/dim]")
                 console.print()
                 console.print("[dim]Other useful commands:[/dim]")
-                console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
-                console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search[/dim]")
-                console.print(f"[dim]  he info {kb_path}              # View info[/dim]")
+                console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
+                console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search[/dim]")
+                console.print(f"[dim]  he info {ka_path}              # View info[/dim]")
                 break
             if not query.strip():
                 continue
@@ -472,9 +472,9 @@ def chat_loop(kb, kb_path: str):
             console.print("\n[dim]Goodbye![/dim]")
             console.print()
             console.print("[dim]Other useful commands:[/dim]")
-            console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
-            console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search[/dim]")
-            console.print(f"[dim]  he info {kb_path}              # View info[/dim]")
+            console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
+            console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search[/dim]")
+            console.print(f"[dim]  he info {ka_path}              # View info[/dim]")
             break
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
@@ -482,19 +482,19 @@ def chat_loop(kb, kb_path: str):
 
 @app.command(name="talk")
 def talk(
-    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
+    ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     query: Optional[str] = typer.Option(None, "--query", "-q", help="Question to ask"),
     top_k: int = typer.Option(3, "--top-k", "-n", help="Number of context items"),
     interactive: bool = typer.Option(False, "--interactive", "-i", help="Interactive mode"),
 ):
-    """Chat with knowledge base."""
+    """Chat with Knowledge Abstract."""
     validate_config()
 
-    path = validate_kb_with_index(kb_path)
-    template, lang = get_template_from_kb(path)
+    path = validate_ka_with_index(ka_path)
+    template, lang = get_template_from_ka(path)
 
     if interactive:
-        console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
+        console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
         console.print(f"[blue]Template:[/blue] {template}")
         console.print(f"[blue]Top K:[/blue] {top_k}")
         console.print()
@@ -503,7 +503,7 @@ def talk(
         raise typer.Exit(1)
     else:
         console.print(f"[blue]Query:[/blue] {query}")
-        console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
+        console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
         console.print(f"[blue]Top K:[/blue] {top_k}")
         console.print()
 
@@ -513,7 +513,7 @@ def talk(
         try:
             kb = Template.create(template, lang)
 
-            progress.update(task, description="Loading knowledge base...")
+            progress.update(task, description="Loading Knowledge Abstract...")
             kb.load(path)
 
         except Exception as e:
@@ -521,7 +521,7 @@ def talk(
             raise typer.Exit(1)
 
     if interactive:
-        chat_loop(kb, kb_path)
+        chat_loop(kb, ka_path)
     else:
         with console.status("[bold blue]Thinking..."):
             try:
@@ -540,26 +540,26 @@ def talk(
 
         console.print()
         console.print("[dim]Continue:[/dim]")
-        console.print(f"[dim]  he talk {kb_path} -i           # Enter interactive mode[/dim]")
-        console.print(f"[dim]  he search {kb_path} \"keyword\"  # Search more[/dim]")
-        console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
+        console.print(f"[dim]  he talk {ka_path} -i           # Enter interactive mode[/dim]")
+        console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search more[/dim]")
+        console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
 
 
 @app.command(name="feed")
 def feed(
-    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
+    ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     input: str = typer.Argument(..., help="Input file path or '-' for stdin"),
     template: Optional[str] = typer.Option(None, "--template", "-t", help="Template"),
     lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language"),
 ):
-    """Append knowledge to an existing directory."""
+    """Append knowledge to an existing Knowledge Abstract."""
     validate_config()
 
-    output_path = validate_kb_path(kb_path)
+    output_path = validate_ka_path(ka_path)
 
     metadata = load_kb_metadata(output_path)
     if not metadata:
-        console.print(f"[red]Error:[/red] Not a valid knowledge base directory: {kb_path}")
+        console.print(f"[red]Error:[/red] Not a valid Knowledge Abstract directory: {ka_path}")
         raise typer.Exit(1)
 
     if template is None:
@@ -567,7 +567,7 @@ def feed(
     if lang is None:
         lang = metadata.get("lang", "zh")
 
-    console.print(f"[blue]Knowledge base:[/blue] {kb_path}")
+    console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
     console.print(f"[blue]Input:[/blue] {input}")
     console.print(f"[blue]Template:[/blue] {template} (from metadata)")
     console.print(f"[blue]Language:[/blue] {lang} (from metadata)")
@@ -599,19 +599,19 @@ def feed(
     console.print(f"[bold green]Success![/bold green] Knowledge appended to {output_path}")
     console.print()
     console.print("[dim]Next steps:[/dim]")
-    console.print(f"[dim]  he show {kb_path}              # Visualize[/dim]")
-    console.print(f"[dim]  he build-index {kb_path}       # Rebuild index (if needed)[/dim]")
+    console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
+    console.print(f"[dim]  he build-index {ka_path}       # Rebuild index (if needed)[/dim]")
 
 
 @app.command(name="build-index")
 def build_index(
-    kb_path: str = typer.Argument(..., help="Knowledge base directory"),
+    ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     force: bool = typer.Option(False, "--force", "-f", help="Force rebuild"),
 ):
-    """Build vector index for knowledge base."""
+    """Build vector index for Knowledge Abstract."""
     validate_config()
 
-    path = validate_kb_with_data(kb_path)
+    path = validate_ka_with_data(ka_path)
 
     index_dir = path / "index"
     if index_dir.exists() and any(index_dir.iterdir()) and not force:
@@ -619,7 +619,7 @@ def build_index(
         console.print(f"[dim]Index location: {index_dir}[/dim]")
         raise typer.Exit(0)
 
-    template, lang = get_template_from_kb(path)
+    template, lang = get_template_from_ka(path)
 
     console.print(f"[blue]Template:[/blue] {template}")
     console.print(f"[blue]Language:[/blue] {lang}")
@@ -631,7 +631,7 @@ def build_index(
         try:
             kb = Template.create(template, lang)
 
-            progress.update(task, description="Loading knowledge base...")
+            progress.update(task, description="Loading Knowledge Abstract...")
             kb.load(path)
 
             if force:
@@ -649,8 +649,8 @@ def build_index(
             raise typer.Exit(1)
 
     console.print()
-    console.print(f"[bold green]Success![/bold green] Index built for {kb_path}")
+    console.print(f"[bold green]Success![/bold green] Index built for {ka_path}")
     console.print()
     console.print("[dim]Now you can:[/dim]")
-    console.print(f"[dim]  he search {kb_path} \"keyword\"  # Semantic search[/dim]")
-    console.print(f"[dim]  he talk {kb_path} -i           # Interactive chat[/dim]")
+    console.print(f"[dim]  he search {ka_path} \"keyword\"  # Semantic search[/dim]")
+    console.print(f"[dim]  he talk {ka_path} -i           # Interactive chat[/dim]")
