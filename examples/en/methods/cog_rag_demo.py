@@ -7,19 +7,19 @@ Usage:
     python examples/en/methods/cog_rag_demo.py
 """
 
-import sys
 from pathlib import Path
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(project_root))
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 from hyperextract.methods.rag import Cog_RAG
+
+project_root = Path(__file__).resolve().parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "examples" / "en" / "tesla.md"
-QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
+INPUT_FILE = project_root / "en" / "tesla.md"
+QUESTION_FILE = project_root / "en" / "tesla_question.md"
 
 if __name__ == "__main__":
     with open(INPUT_FILE) as f:
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     rag = Cog_RAG(llm_client=llm, embedder=embedder)
     rag.feed_text(text)
 
-    print(f"\n✓ Extracted {len(rag.themes)} themes, {len(rag.nodes)} entities\n")
+    print(f"\n✓ Extracted {len(rag.nodes)} entities, {len(rag.edges)} hyperedges\n")
 
     print("-" * 60)
     print("Q&A")

@@ -12,33 +12,55 @@ Transform documents into **knowledge abstracts** — with just one command.
 
 ---
 
+## ✨ Features
+
+- 🔷 **Knowledge Structures** — Model, List, Set, Graph, Hypergraph, TemporalGraph, SpatialGraph, SpatioTemporalGraph
+- 💻 **Interactive CLI** — Extract, build, and interact with knowledge abstracts
+- ⚡ **Incremental Updates** — Continuously update knowledge abstracts with new questions
+
+---
+
 ## ⚡ Quick Start
 
+### Install with uv
+
 ```bash
-pip install hyper-extract
-
-he config init -k YOUR_API_KEY
-
-he parse document.md -o ./knowledge_abstract/ -l zh
+uv pip install hyper-extract
 ```
 
-> 🔗 For detailed usage, see [CLI Guide](./hyperextract/cli/README.md)
+### CLI Usage
+
+```bash
+he config init -k YOUR_API_KEY
+he parse document.md -o ./output/ -l zh
+he search ./output/ "What are the key events?"
+he feed ./output/ new_document.md
+he show ./output/
+```
+
+<details>
+<summary>🐍 Python API</summary>
+
+```python
+from hyperextract import Template
+
+ka = Template.create("finance/event_timeline")
+result = ka.parse(annual_report_text)
+# result.timeline = [Event("Q1 revenue", "2024-01"), ...]
+```
+
+</details>
+
+> 🔗 For detailed CLI usage, see [CLI Guide](./hyperextract/cli/README.md)
 
 ---
 
-## ✨ Key Features
+## 📖 Knowledge Abstraction
 
-| 🤖 8 Knowledge Types | 🌍 38+ Domain Templates | 💻 Interactive CLI | 🔍 Semantic Search |
-|:---:|:---:|:---:|:---:|
-| From lists to spatio-temporal graphs | Finance, Medical, Legal ready-to-use | One command for full workflow | FAISS vector similarity |
+> From simple structured data to complex spatio-temporal graphs — **10+ extraction methods**, covering **6 domains**, with **80+ templates**.
 
-> 🔗 Learn more about [8 Knowledge Types](#knowledge-types) | [Domain Templates](#domain-templates)
-
----
-
-## 📊 Knowledge Types
-
-![8 Types](docs/assets/8-types-v2.jpg)
+<details>
+<summary>🔧 8 Knowledge Structures</summary>
 
 | Type | Best For | Example |
 |------|----------|---------|
@@ -51,13 +73,29 @@ he parse document.md -o ./knowledge_abstract/ -l zh
 | AutoSpatialGraph | Spatial relations | Delivery routes |
 | AutoSpatioTemporalGraph | Events in time & space | Historical battles |
 
-> 🔗 See [Full Type Documentation](./hyperextract/types/) | [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
+</details>
 
----
+<details>
+<summary>🔍 Extraction Methods (10+)</summary>
 
-## 🌍 Domain Templates
+| Method | Type | Description |
+|--------|------|-------------|
+| graph_rag | graph | Graph-RAG + community detection |
+| light_rag | graph | Lightweight entity-relation extraction |
+| hyper_rag | hypergraph | Hypergraph for multi-entity relations |
+| cog_rag | graph | Cognitive retrieval augmentation |
+| itext2kg | graph | High-quality triple extraction |
+| kg_gen | graph | Structured knowledge generation |
+| atom | graph | Temporal graph + evidence attribution |
 
-![Domains](docs/assets/domains-v2.png)
+</details>
+
+<details>
+<summary>🌍 Domain Templates (6 Domains / 38+ Templates)</summary>
+
+Templates are written in YAML to define extraction targets and output structure.
+- **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
+- **Preset Templates**: [presets directory](./hyperextract/templates/presets/)
 
 | Domain | Templates | Typical Scenarios |
 |--------|-----------|-------------------|
@@ -68,21 +106,7 @@ he parse document.md -o ./knowledge_abstract/ -l zh
 | Industry | 5 | Equipment topology, Failure analysis |
 | Legal | 5 | Contract clauses, Case citations |
 
-> 🔗 See [Full Template Gallery](./hyperextract/templates/) | [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
-
----
-
-## 🎯 Python API Examples
-
-```python
-from hyperextract import Template
-
-ka = Template.create("finance/earnings_summary")
-result = ka.parse(financial_report_text)
-# result.operating_revenue = "100 billion RMB"
-```
-
-> 🔗 See more [Example Code](./examples/)
+</details>
 
 ---
 
@@ -101,30 +125,14 @@ result = ka.parse(financial_report_text)
 
 ---
 
-## 💻 CLI Reference
+## 📚 Related Documentation
 
-### Parse Documents
-
-```bash
-he parse document.md -o ./knowledge_abstract/ -l zh
-he parse earnings.md -o ./finance_report/ -t finance/earnings_summary -l zh
-```
-
-### Search & Chat
-
-```bash
-he search ./finance_report/ "What was the revenue growth?"
-he talk ./finance_report/ -i  # Interactive mode
-```
-
-### Visualize
-
-```bash
-he show ./finance_report/  # Graph visualization
-he info ./finance_report/  # Show statistics
-```
-
-> 🔗 For full CLI documentation, see [CLI Guide](./hyperextract/cli/README.md)
+| Documentation | Description |
+|---------------|-------------|
+| [CLI Guide](./hyperextract/cli/README.md) | Complete CLI reference |
+| [Template Gallery](./hyperextract/templates/) | 38+ domain templates |
+| [Example Code](./examples/) | Python API examples |
+| [Full Documentation](./docs/) | Architecture & implementation |
 
 ---
 
@@ -135,14 +143,3 @@ Contributions are welcome! Please submit Issues and PRs.
 ## 📄 License
 
 Apache-2.0
-
----
-
-## 📚 Related Documentation
-
-| Documentation | Description |
-|---------------|-------------|
-| [CLI Guide](./hyperextract/cli/README.md) | Complete CLI reference |
-| [Template Gallery](./hyperextract/templates/) | 38+ domain templates |
-| [Example Code](./examples/) | Python API examples |
-| [Full Documentation](./docs/) | Architecture & implementation |

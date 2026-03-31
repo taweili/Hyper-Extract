@@ -1,1 +1,1 @@
-"""Test suite for Hyper-Extract types module."""
+"""Tests for hyperextract types module."""

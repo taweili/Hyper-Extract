@@ -251,7 +251,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         new_instance._set_data_state(graph_data)
 
         logger.info(
-            f"鉁?Deduplication Complete: "
+            f"✅ Deduplication Complete: "
             f"Nodes {original_node_count} -> {len(new_instance.nodes)}, "
             f"Edges {original_edge_count} -> {len(new_instance.edges)}"
         )
@@ -271,7 +271,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             self (modified in-place)
         """
         logger.info(
-            f"馃攧 Starting in-place SemHash deduplication (threshold={threshold})..."
+            f"🚀 Starting in-place SemHash deduplication (threshold={threshold})..."
         )
 
         graph_data = self.data.model_copy()
@@ -286,7 +286,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         self._set_data_state(graph_data)
 
         logger.info(
-            f"鉁?In-place deduplication complete: "
+            f"✅ In-place deduplication complete: "
             f"Nodes {original_node_count} -> {len(self.nodes)}, "
             f"Edges {original_edge_count} -> {len(self.edges)}"
         )

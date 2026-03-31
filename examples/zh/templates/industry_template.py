@@ -5,16 +5,14 @@ Usage:
     python examples/templates/industry_template.py
 """
 
-import sys
 from pathlib import Path
 
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(project_root))
-
+import dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 from hyperextract import Template
 
-import dotenv
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 dotenv.load_dotenv()
 

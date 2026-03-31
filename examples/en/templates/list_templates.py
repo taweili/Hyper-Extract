@@ -5,12 +5,10 @@ Usage:
     python examples/en/templates/list_templates.py
 """
 
-import sys
 import yaml
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.append(str(project_root))
 
 
 def list_templates():

@@ -274,7 +274,7 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             The updated iText2KG_Star instance with matched nodes and updated edges.
         """
         logger.info(
-            f"馃攧 Starting node matching and edge update (threshold={threshold})..."
+            f"🚀 Starting node matching and edge update (threshold={threshold})..."
         )
 
         nodes, edges = self.nodes, self.edges

@@ -12,33 +12,55 @@
 
 ---
 
-## ⚡ 快速开始
-
-```bash
-pip install hyper-extract
-
-he config init -k YOUR_API_KEY
-
-he parse document.md -o ./knowledge_abstract/ -l zh
-```
-
-> 🔗 详细使用说明请查看 [CLI 指南](./hyperextract/cli/README.md)
-
----
-
 ## ✨ 核心特性
 
-| 🤖 8种知识类型 | 🌍 38+领域模板 | 💻 交互式CLI | 🔍 语义检索 |
-|:---:|:---:|:---:|:---:|
-| 从列表到时空图谱 | 金融医疗法律开箱即用 | 一行命令完成全流程 | FAISS向量相似度 |
-
-> 🔗 了解 [8种知识类型](#知识类型) | [领域模板](#领域模板)
+- 🔷 **知识结构** — Model, List, Set, Graph, Hypergraph, TemporalGraph, SpatialGraph, SpatioTemporalGraph
+- 💻 **交互式CLI** — 提取、构建、与知识摘要交互
+- ⚡ **增量更新** — 持续使用新问题更新知识摘要
 
 ---
 
-## 📊 知识类型
+## ⚡ 快速开始
 
-![8种类型](docs/assets/8-types-v2.jpg)
+### 使用 uv 安装
+
+```bash
+uv pip install hyper-extract
+```
+
+### CLI 使用
+
+```bash
+he config init -k YOUR_API_KEY
+he parse document.md -o ./output/ -l zh
+he search ./output/ "有哪些关键事件？"
+he feed ./output/ new_document.md
+he show ./output/
+```
+
+<details>
+<summary>🐍 Python API</summary>
+
+```python
+from hyperextract import Template
+
+ka = Template.create("finance/event_timeline")
+result = ka.parse(annual_report_text)
+# result.timeline = [Event("Q1营收", "2024-01"), ...]
+```
+
+</details>
+
+> 🔗 详细 CLI 使用请查看 [CLI 指南](./hyperextract/cli/README.md)
+
+---
+
+## 📖 知识摘要
+
+> 从简单结构化到复杂时空图谱 —— **10+ 提取方法**，覆盖 **6 大领域**，共 **38+ 模板**。
+
+<details>
+<summary>🔧 8 种知识结构</summary>
 
 | 类型 | 适用场景 | 示例 |
 |------|----------|------|
@@ -51,13 +73,30 @@ he parse document.md -o ./knowledge_abstract/ -l zh
 | AutoSpatialGraph | 空间关系 | 配送路线 |
 | AutoSpatioTemporalGraph | 时空事件 | 历史战役 |
 
-> 🔗 查看 [完整类型文档](./hyperextract/types/) | [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
+</details>
 
----
 
-## 🌍 领域模板
+<details>
+<summary>🔍 提取方法 (10+)</summary>
 
-![领域概览](docs/assets/domains-v2.png)
+| 方法 | 类型 | 描述 |
+|------|------|------|
+| graph_rag | graph | Graph-RAG + 社区检测 |
+| light_rag | graph | 轻量级实体关系提取 |
+| hyper_rag | hypergraph | 超图多实体关系 |
+| cog_rag | graph | 认知检索增强 |
+| itext2kg | graph | 高质量三元组提取 |
+| kg_gen | graph | 结构化知识生成 |
+| atom | graph | 时序图谱 + 证据归因 |
+
+</details>
+
+<details>
+<summary>🌍 领域模板 (6领域 / 80+模板)</summary>
+
+模板使用 YAML 编写，定义提取目标和输出结构。
+- **编写指南**: [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
+- **预设模板**: [presets 目录](./hyperextract/templates/presets/)
 
 | 领域 | 模板数 | 典型场景 |
 |------|--------|----------|
@@ -68,21 +107,7 @@ he parse document.md -o ./knowledge_abstract/ -l zh
 | Industry | 5 | 设备拓扑、事故分析 |
 | Legal | 5 | 合同条款、判例引用 |
 
-> 🔗 查看 [完整模板库](./hyperextract/templates/) | [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
-
----
-
-## 🎯 Python API 示例
-
-```python
-from hyperextract import Template
-
-ka = Template.create("finance/earnings_summary")
-result = ka.parse(financial_report_text)
-# result.operating_revenue = "1000亿元"
-```
-
-> 🔗 查看更多 [示例代码](./examples/)
+</details>
 
 ---
 
@@ -101,30 +126,14 @@ result = ka.parse(financial_report_text)
 
 ---
 
-## 💻 CLI 参考
+## 📚 相关文档
 
-### 解析文档
-
-```bash
-he parse document.md -o ./knowledge_abstract/ -l zh
-he parse earnings.md -o ./finance_report/ -t finance/earnings_summary -l zh
-```
-
-### 搜索与问答
-
-```bash
-he search ./finance_report/ "营收增长了多少？"
-he talk ./finance_report/ -i  # 交互式问答
-```
-
-### 可视化
-
-```bash
-he show ./finance_report/  # 图形化展示
-he info ./finance_report/  # 显示统计信息
-```
-
-> 🔗 完整的 CLI 文档请查看 [CLI 指南](./hyperextract/cli/README.md)
+| 文档 | 说明 |
+|------|------|
+| [CLI 指南](./hyperextract/cli/README.md) | 命令行工具完整参考 |
+| [模板库](./hyperextract/templates/) | 38+ 领域模板 |
+| [示例代码](./examples/) | Python API 使用示例 |
+| [完整文档](./docs/) | 架构设计与实现细节 |
 
 ---
 
@@ -135,14 +144,3 @@ he info ./finance_report/  # 显示统计信息
 ## 📄 许可证
 
 Apache-2.0
-
----
-
-## 📚 相关文档
-
-| 文档 | 说明 |
-|------|------|
-| [CLI 指南](./hyperextract/cli/README.md) | 命令行工具完整参考 |
-| [模板库](./hyperextract/templates/) | 38+ 领域模板 |
-| [示例代码](./examples/) | Python API 使用示例 |
-| [完整文档](./docs/) | 架构设计与实现细节 |

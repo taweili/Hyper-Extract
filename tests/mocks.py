@@ -1,6 +1,7 @@
 """Mock implementations for LLM and Embeddings for testing without API keys."""
 
-from typing import Any, List, Optional, Type, get_origin, get_args
+from typing import Any, List, Optional, Type, Union, get_origin, get_args, Dict
+from enum import Enum
 from pydantic import BaseModel, create_model
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage
@@ -25,7 +26,6 @@ class MockEmbeddings(Embeddings):
     def _hash_to_vector(self, text: str) -> List[float]:
         """Convert text to deterministic vector of given dimension."""
         hash_val = hash(text)
-        # Create deterministic values based on hash
         return [(hash_val + i) % 1000 / 1000.0 for i in range(self.dim)]
 
 
@@ -55,6 +55,19 @@ class MockStructuredRunnable(RunnableSerializable):
         """Generate mock instances for batch input."""
         return [self.invoke(inp, config) for inp in inputs]
 
+    def _get_field_info(self, field_type: Type) -> tuple:
+        """Get the base type and whether it's Optional."""
+        origin = get_origin(field_type)
+
+        if origin is Union:
+            args = get_args(field_type)
+            non_none_args = [arg for arg in args if arg is not type(None)]
+            if len(non_none_args) == 1 and type(None) in args:
+                return non_none_args[0], True
+            return field_type, False
+
+        return field_type, False
+
     def _generate_mock_instance(self, model_cls: Type[BaseModel]) -> BaseModel:
         """Recursively generate mock instance matching schema."""
         data = {}
@@ -62,45 +75,63 @@ class MockStructuredRunnable(RunnableSerializable):
         for field_name, field_info in model_cls.model_fields.items():
             field_type = field_info.annotation
 
-            # Handle Optional types
             origin = get_origin(field_type)
-            if origin is Optional.__class__ or (
-                hasattr(field_type, "__args__") and type(None) in get_args(field_type)
-            ):
-                # Extract the actual type from Optional
-                args = get_args(field_type)
-                field_type = args[0] if args else str
+            is_optional = False
 
-            origin = get_origin(field_type)
+            if origin is Union:
+                base_type, is_optional = self._get_field_info(field_type)
+                field_type = base_type
+                origin = get_origin(field_type)
 
-            # Handle List types
-            if origin is list:
-                args = get_args(field_type)
-                if args and issubclass(args[0], BaseModel):
-                    # List of Pydantic models
-                    data[field_name] = [self._generate_mock_instance(args[0])]
-                else:
-                    # List of primitives or empty
-                    data[field_name] = []
+            default = field_info.default
+            has_default = (
+                default is not None
+                or field_info.default_factory is not None
+            )
 
-            # Handle Pydantic model fields
-            elif isinstance(field_type, type) and issubclass(field_type, BaseModel):
-                data[field_name] = self._generate_mock_instance(field_type)
-
-            # Handle primitive types
-            elif field_type == str:
-                data[field_name] = f"mock_{field_name}"
-            elif field_type == int:
-                data[field_name] = 1
-            elif field_type == float:
-                data[field_name] = 1.0
-            elif field_type == bool:
-                data[field_name] = True
-            else:
-                # Default to None for unknown types
+            if is_optional and not has_default:
                 data[field_name] = None
+                continue
+
+            value = self._generate_value_for_type(field_type, origin, field_name)
+            data[field_name] = value
 
         return model_cls(**data)
+
+    def _generate_value_for_type(
+        self, field_type: Type, origin: Any, field_name: str
+    ) -> Any:
+        """Generate a mock value for a given field type."""
+        if origin is list:
+            args = get_args(field_type)
+            if args and issubclass(args[0], BaseModel):
+                return [self._generate_mock_instance(args[0])]
+            return []
+
+        if origin is dict:
+            args = get_args(field_type)
+            key_type = args[0] if len(args) > 0 else str
+            value_type = args[1] if len(args) > 1 else Any
+            return {}
+
+        if isinstance(field_type, type) and issubclass(field_type, Enum):
+            return list(field_type)[0] if len(field_type) > 0 else None
+
+        if isinstance(field_type, type) and issubclass(field_type, BaseModel):
+            return self._generate_mock_instance(field_type)
+
+        if field_type == str:
+            return f"mock_{field_name}"
+        elif field_type == int:
+            return 1
+        elif field_type == float:
+            return 1.0
+        elif field_type == bool:
+            return True
+        elif field_type == Any:
+            return f"mock_{field_name}"
+        else:
+            return None
 
 
 class MockChatModel(BaseChatModel):
@@ -118,10 +149,15 @@ class MockChatModel(BaseChatModel):
         **kwargs: Any,
     ) -> Any:
         """Generate mock response."""
-        # Return a simple mock message
-        return type("ChatResult", (), {"generations": [type("Generation", (), {"message": AIMessage(content="mock response")})]})()
+        return type("ChatResult", (), {
+            "generations": [
+                type("Generation", (), {"message": AIMessage(content="mock response")})
+            ]
+        })()
 
-    def with_structured_output(self, schema: Type[BaseModel], **kwargs: Any) -> RunnableSerializable:
+    def with_structured_output(
+        self, schema: Type[BaseModel], **kwargs: Any
+    ) -> RunnableSerializable:
         """
         Return a MockStructuredRunnable that generates mock data matching the schema.
         This simulates LangChain's with_structured_output behavior.

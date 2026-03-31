@@ -7,15 +7,20 @@
     python examples/zh/autotypes/graph_demo.py
 """
 
-import sys
 from pathlib import Path
+
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
 from pydantic import BaseModel, Field
+
 from hyperextract.types import AutoGraph
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
+QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 
 
 class Entity(BaseModel):
@@ -31,13 +36,14 @@ class Relation(BaseModel):
     type: str = Field(description="关系类型：父亲/兄弟/师徒/朋友/政敌")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "zh" / "sushi.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  图谱提取示例")
@@ -47,6 +53,9 @@ def main():
     graph = AutoGraph[Entity, Relation](
         node_schema=Entity,
         edge_schema=Relation,
+        node_key_extractor=lambda x: x.name,
+        edge_key_extractor=lambda x: f"{x.source}-{x.type}-{x.target}",
+        nodes_in_edge_extractor=lambda x: (x.source, x.target),
         llm_client=llm,
         embedder=embedder,
     )
@@ -57,16 +66,15 @@ def main():
 
     graph.build_index()
 
-    for q in [
-        "苏轼的家庭关系有哪些？",
-        "苏轼与哪些人有过师徒关系？",
-        "苏轼创作了哪些著名作品？",
-    ]:
-        print(f"\n问题：{q}")
-        nodes, edges = graph.search(q, top_k_nodes=3, top_k_edges=3)
-        print(f"  实体：{[n.name for n in nodes]}")
-        print(f"  关系：{[e.type for e in edges]}")
+    print("-" * 60)
+    print("问答")
+    print("-" * 60)
+    for q in questions:
+        print(f"\n问: {q}")
+        try:
+            result = graph.chat(q)
+            print(f"答: {result.content}")
+        except Exception as e:
+            print(f"错误: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    graph.show(node_label_extractor=lambda x: x.name, edge_label_extractor=lambda x: x.type)

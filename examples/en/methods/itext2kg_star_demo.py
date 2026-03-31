@@ -7,19 +7,19 @@ Usage:
     python examples/en/methods/itext2kg_star_demo.py
 """
 
-import sys
 from pathlib import Path
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(project_root))
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 from hyperextract.methods.typical import iText2KG_Star
+
+project_root = Path(__file__).resolve().parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "examples" / "en" / "tesla.md"
-QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
+INPUT_FILE = project_root / "en" / "tesla.md"
+QUESTION_FILE = project_root / "en" / "tesla_question.md"
 
 if __name__ == "__main__":
     with open(INPUT_FILE) as f:

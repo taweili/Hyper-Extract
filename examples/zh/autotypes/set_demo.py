@@ -7,15 +7,20 @@ AutoSet 示例 - 苏轼相关人物
     python examples/zh/autotypes/set_demo.py
 """
 
-import sys
 from pathlib import Path
+
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
 from pydantic import BaseModel, Field
+
 from hyperextract import AutoSet
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
+QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 
 
 class Person(BaseModel):
@@ -25,13 +30,14 @@ class Person(BaseModel):
     description: str = Field(description="简要描述", default="")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "zh" / "sushi.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  AutoSet 示例 - 苏轼相关人物")
@@ -60,12 +66,15 @@ def main():
 
     entities.build_index()
 
-    for q in ["苏洵", "王安石", "欧阳修"]:
-        print(f"\n查询：{q}")
-        results = entities.search(q, top_k=3)
-        for r in results:
-            print(f"  {r.name}（{r.category}）")
+    print("-" * 60)
+    print("问答")
+    print("-" * 60)
+    for q in questions:
+        print(f"\n问: {q}")
+        try:
+            result = entities.chat(q)
+            print(f"答: {result.content}")
+        except Exception as e:
+            print(f"错误: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    entities.show(item_label_extractor=lambda x: x.name)

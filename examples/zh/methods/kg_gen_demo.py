@@ -7,19 +7,19 @@ Usage:
     python examples/zh/methods/kg_gen_demo.py
 """
 
-import sys
 from pathlib import Path
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(project_root))
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 from hyperextract.methods.typical import KG_Gen
+
+project_root = Path(__file__).resolve().parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
-QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
+INPUT_FILE = project_root / "zh" / "sushi.md"
+QUESTION_FILE = project_root / "zh" / "sushi_question.md"
 
 if __name__ == "__main__":
     with open(INPUT_FILE, encoding="utf-8") as f:

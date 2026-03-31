@@ -8,15 +8,20 @@ Usage:
     python examples/en/autotypes/list_demo.py
 """
 
-import sys
 from pathlib import Path
+
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
 from pydantic import BaseModel, Field
+
 from hyperextract import AutoList
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "en" / "tesla.md"
+QUESTION_FILE = project_root / "en" / "tesla_question.md"
 
 
 class TimelineEvent(BaseModel):
@@ -26,13 +31,14 @@ class TimelineEvent(BaseModel):
     description: str = Field(description="Event description")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "en" / "tesla.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  AutoList Demo - Tesla Timeline")
@@ -55,12 +61,15 @@ def main():
 
     timeline.build_index()
 
-    for q in ["inventions", "Edison", "Colorado Springs"]:
-        print(f"\nQuery: {q}")
-        results = timeline.search(q, top_k=3)
-        for r in results:
-            print(f"  {r.year}: {r.title}")
+    print("-" * 60)
+    print("Q&A")
+    print("-" * 60)
+    for q in questions:
+        print(f"\nQ: {q}")
+        try:
+            result = timeline.chat(q)
+            print(f"A: {result.content}")
+        except Exception as e:
+            print(f"Error: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    timeline.show(item_label_extractor=lambda x: f"{x.year}: {x.title}")

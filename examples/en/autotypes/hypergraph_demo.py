@@ -1,22 +1,27 @@
 """
 Hypergraph Demo - Tesla Biography
 
-Extract hyper-relationships from text using AutoHyperGraph.
+Extract hyper-relationships from text using AutoHypergraph.
 This demo shows how to capture multi-entity relationships.
 
 Usage:
     python examples/en/autotypes/hypergraph_demo.py
 """
 
-import sys
 from pathlib import Path
+
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
 from pydantic import BaseModel, Field
-from hyperextract.types import AutoHyperGraph
+
+from hyperextract.types import AutoHypergraph
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "en" / "tesla.md"
+QUESTION_FILE = project_root / "en" / "tesla_question.md"
 
 
 class Entity(BaseModel):
@@ -32,22 +37,26 @@ class HyperEdge(BaseModel):
     type: str = Field(description="Relationship type")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "en" / "tesla.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  Hypergraph Demo")
     print("=" * 60)
     print("Extracting multi-entity relationships...")
 
-    graph = AutoHyperGraph[Entity, HyperEdge](
+    graph = AutoHypergraph[Entity, HyperEdge](
         node_schema=Entity,
         edge_schema=HyperEdge,
+        node_key_extractor=lambda x: x.name,
+        edge_key_extractor=lambda x: f"{x.type}_{'_'.join(sorted(x.members))}",
+        nodes_in_edge_extractor=lambda x: tuple(x.members),
         llm_client=llm,
         embedder=embedder,
     )
@@ -62,11 +71,15 @@ def main():
 
     graph.build_index()
 
-    for q in ["War of Currents", "inventions", "collaboration"]:
-        print(f"\nQuery: {q}")
-        nodes, edges = graph.search(q, top_k_nodes=3, top_k_edges=3)
-        print(f"  Found {len(edges)} related hyper-edges")
+    print("-" * 60)
+    print("Q&A")
+    print("-" * 60)
+    for q in questions:
+        print(f"\nQ: {q}")
+        try:
+            result = graph.chat(q)
+            print(f"A: {result.content}")
+        except Exception as e:
+            print(f"Error: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    graph.show(node_label_extractor=lambda x: x.name, edge_label_extractor=lambda x: x.type)

@@ -87,14 +87,14 @@ class EdgeSchema(BaseModel):
         description=(
             "A time or interval indicating when this relationship begins or is active. "
             "Resolve relative temporal expressions based on the observation_time:\n"
-            "  - 'today' 鈫?exact observation_time\n"
-            "  - 'yesterday' 鈫?observation_time minus 1 day\n"
-            "  - 'this week' 鈫?Monday of observation_time's week\n"
-            "  - 'last week' 鈫?Monday of the week before observation_time\n"
-            "  - 'this month' 鈫?first day of observation_time's month\n"
-            "  - 'last month' 鈫?first day of the month before observation_time\n"
-            "  - 'this year' 鈫?January 1st of observation_time's year\n"
-            "  - 'last year' 鈫?January 1st of the year before observation_time\n"
+            "  - 'today' → exact observation_time\n"
+            "  - 'yesterday' → observation_time minus 1 day\n"
+            "  - 'this week' → Monday of observation_time's week\n"
+            "  - 'last week' → Monday of the week before observation_time\n"
+            "  - 'this month' → first day of observation_time's month\n"
+            "  - 'last month' → first day of the month before observation_time\n"
+            "  - 'this year' → January 1st of observation_time's year\n"
+            "  - 'last year' → January 1st of the year before observation_time\n"
             "Keep explicit dates as-is (e.g., '18-06-2024'). "
             "For example, if 'Yassir became CEO from 2023', then t_start=['01-01-2023']. "
             "This can be a single year, a date, or a resolved relative reference. "
@@ -106,9 +106,9 @@ class EdgeSchema(BaseModel):
         description=(
             "A time or interval indicating when this relationship ceases to hold. "
             "Resolve relative temporal expressions based on the observation_time using the same rules as t_start:\n"
-            "  - 'today' 鈫?exact observation_time\n"
-            "  - 'yesterday' 鈫?observation_time minus 1 day\n"
-            "  - 'this week' 鈫?Monday of observation_time's week\n"
+            "  - 'today' → exact observation_time\n"
+            "  - 'yesterday' → observation_time minus 1 day\n"
+            "  - 'this week' → Monday of observation_time's week\n"
             "  - etc. (same resolution rules as t_start)\n"
             "Keep explicit dates as-is. "
             "For example, if 'Yassir left his position in 2025', then t_end=['01-01-2025']. "
@@ -203,7 +203,7 @@ Given an input paragraph and an `observation_time`, generate a list of all disti
 """
 
 # Atom FACToid prompt ends, edge prompt begins
-Atom_EDGE_EXTRACTION_PROMPT = """
+Atom_EDGE_EXTRACTION_PROMPT = f"""
 Observation Date: {observation_time}
 
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
@@ -218,7 +218,7 @@ Extract a list of relationships where each relationship consists of:
 5. **Time End (`t_end`)**: Strategies for when the relation ended.
 6. **Evidence (`atomic_facts`)**: The exact source sentences/facts supporting this edge.
 
-### 馃摑 Guidelines
+### 🎯 Guidelines
 
 #### 1. Entity & Relation Standards
 - **Entities**: Extract precise names (e.g., "Apple Inc.", "Steve Jobs"). Assign accurate semantic labels (e.g., "Organization", "Person").
@@ -241,7 +241,7 @@ Extract a list of relationships where each relationship consists of:
 - **NO Paraphrasing**: Do not summarize or rewrite the source text in this field.
 - If a relationship is derived from multiple facts, include all distinct facts in the list.
 
-### 馃�� Few-Shot Examples
+### 📝 Few-Shot Examples
 
 **Input**: "Michel served as CFO at Acme Corp from 2019 to 2021. He was hired by Beta Inc in 2021, but left that role in 2023."
 **Output**:
@@ -261,14 +261,11 @@ Extract a list of relationships where each relationship consists of:
 **Output**:
 - (John Doe, has_status, Married, t_start=["2026-02-26"], t_end=[], atomic_facts=["John Doe's marriage is happening on 26-02-2026."])
 
-### 馃殌 Directives
+### ⚡ Directives
 - Extract strictly what is in the text. Do not hallucinate external facts.
 - Use the **Observation Date** as the anchor for all relative temporal expressions.
 - Maintain consistency: The same entity name should be used across multiple relations.
 - Ensure `atomic_facts` contains exact copies of the source text strings.
-
-### Known Nodes:
-{known_nodes}
 
 ### Source Text:
 {source_text}
@@ -385,7 +382,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             # Inject customized prompts
             prompt_for_edge_extraction=Atom_EDGE_EXTRACTION_PROMPT,
             # Configure deduplication strategy
-            node_strategy_or_merger=MergeStrategy.KEEP_EXISTING,
+            node_strategy_or_merger=MergeStrategy.LLM.BALANCED,
             edge_strategy_or_merger=edge_merger,
             # Optimize indexing: only index name field
             node_fields_for_index=["name", "label"],
@@ -561,7 +558,7 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             The updated Atom instance with matched nodes and updated edges.
         """
         logger.info(
-            f"馃攧 Starting node matching and edge update (threshold={threshold})..."
+            f"🚀 Starting node matching and edge update (threshold={threshold})..."
         )
 
         nodes, edges = self.nodes, self.edges

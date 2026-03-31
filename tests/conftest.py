@@ -7,6 +7,14 @@ import pytest
 from dotenv import load_dotenv
 
 
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers",
+        "integration: marks tests as integration tests (requires OPENAI_API_KEY env var)",
+    )
+
+
 # Load .env file if it exists
 def _load_env():
     """Load environment variables from .env file."""

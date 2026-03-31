@@ -8,16 +8,21 @@ Usage:
     python examples/en/autotypes/model_demo.py
 """
 
-import sys
 from pathlib import Path
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
-from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pydantic import BaseModel, Field
+
 from hyperextract import AutoModel
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "en" / "tesla.md"
+QUESTION_FILE = project_root / "en" / "tesla_question.md"
 
 
 class BiographySummary(BaseModel):
@@ -32,13 +37,14 @@ class BiographySummary(BaseModel):
     major_inventions: List[str] = Field(default_factory=list, description="Major inventions")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "en" / "tesla.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  AutoModel Demo - Tesla Summary")
@@ -66,12 +72,15 @@ def main():
 
     model.build_index()
 
-    for q in ["inventions", "Edison", "legacy"]:
-        print(f"\nQuery: {q}")
-        results = model.search(q, top_k=2)
-        for r in results:
-            print(f"  {r}")
+    print("-" * 60)
+    print("Q&A")
+    print("-" * 60)
+    for q in questions:
+        print(f"\nQ: {q}")
+        try:
+            result = model.chat(q)
+            print(f"A: {result.content}")
+        except Exception as e:
+            print(f"Error: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    model.show(label_extractor=lambda x: x.title)

@@ -7,16 +7,21 @@ AutoModel 示例 - 苏轼传记摘要
     python examples/zh/autotypes/model_demo.py
 """
 
-import sys
 from pathlib import Path
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-import dotenv
-
-dotenv.load_dotenv()
-
-from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pydantic import BaseModel, Field
+
 from hyperextract import AutoModel
+
+project_root = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv()
+
+INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
+QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 
 
 class BiographySummary(BaseModel):
@@ -32,13 +37,14 @@ class BiographySummary(BaseModel):
     major_works: List[str] = Field(default_factory=list, description="代表作品")
 
 
-def main():
+if __name__ == "__main__":
+    with open(INPUT_FILE, encoding="utf-8") as f:
+        text = f.read()
+    with open(QUESTION_FILE, encoding="utf-8") as f:
+        questions = [line.strip() for line in f if line.strip()]
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    input_file = Path(__file__).parent.parent.parent / "zh" / "sushi.md"
-    with open(input_file, "r", encoding="utf-8") as f:
-        text = f.read()
 
     print("\n" + "=" * 60)
     print("  AutoModel 示例 - 苏轼传记摘要")
@@ -66,12 +72,15 @@ def main():
 
     model.build_index()
 
-    for q in ["作品", "黄州", "影响"]:
-        print(f"\n查询：{q}")
-        results = model.search(q, top_k=2)
-        for r in results:
-            print(f"  {r}")
+    print("-" * 60)
+    print("问答")
+    print("-" * 60)
+    for q in questions:
+        print(f"\n问: {q}")
+        try:
+            result = model.chat(q)
+            print(f"答: {result.content}")
+        except Exception as e:
+            print(f"错误: {e}")
 
-
-if __name__ == "__main__":
-    main()
+    model.show(label_extractor=lambda x: x.title)
