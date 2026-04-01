@@ -1,21 +1,18 @@
-# 🔍 Hyper-Extract
+# Hyper-Extract
+
+[📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
 > **"Stop reading. Start understanding."**
 
 > *"告别文档焦虑，让信息一目了然"*
 
-将文档转化为**知识摘要** —— 一行命令即可。
+**将文档转化为知识摘要 —— 一行命令即可。**
 
-<p align="center">
-  <img alt="Python版本" src="https://img.shields.io/badge/python-3.9%2B-blue">
-  <img alt="开源协议" src="https://img.shields.io/badge/license-Apache%202.0-blue">
-  <img alt="状态" src="https://img.shields.io/badge/status-active-success">
-</p>
+[![Python版本](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+[![开源协议](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![状态](https://img.shields.io/badge/status-active-success)]()
 
-[📖 English Version](./README.md) · [中文版](./README_ZH.md)
-
-## 🚀 什么是 Hyper-Extract？
-
+## 🚀 什么是 Hyper-Extract
 Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的知识摘要的过程。无论从基础的**集合（Collection/List）**和**结构化模型（Model）**，还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
 
 ![Hero & Workflow](docs/assets/hero-v2.jpg)
@@ -50,20 +47,6 @@ he search ./output/ "有哪些关键事件？"
 he feed ./output/ new_document.md
 ```
 
-### 3. Python API 深度集成
-
-```python
-from hyperextract import Template
-
-# 一行加载内置的 YAML 模板策略
-ka = Template.create("finance/event_timeline")
-
-# 解析提取
-result = ka.parse(annual_report_text)
-```
-
-> 🔗 更多高阶命令，请参阅 [CLI 指南](./hyperextract/cli/README.md)
-
 <details>
 <summary><b>🛠️ 如何定义知识模板（YAML）？</b></summary>
 <br>
@@ -90,17 +73,31 @@ schema:
 ```
 </details>
 
+### 3. Python API 深度集成
+
+```python
+from hyperextract import Template
+
+# 一行加载内置的 YAML 模板策略
+ka = Template.create("finance/event_timeline")
+
+# 解析提取
+result = ka.parse(annual_report_text)
+```
+
+> 🔗 完整示例代码，请参阅 [examples/zh](./examples/zh/)
+
 ## 🧩 深入探究：8 种核心抽象类型
 
 拒绝样板代码，纯干货聚焦数据本身。
 
-![Knowledge Structures Matrix](docs/assets/8-types-v3.jpg)
+![Knowledge Structures Matrix](docs/assets/8-types.jpg)
 
 ## 🛠️ 系统架构揭秘
 
 系统底座基于坚实的铁三角架构：**Auto-Types** (提取结构)、**Methods** (执行策略)、以及 **Templates** (声明式配置)。
 
-![Architecture](docs/assets/architecture-v5.jpg)
+![Architecture](docs/assets/architecture-v10.jpg)
 
 * **设计指南**: [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
 * **内置模板**: [预设模板目录](./hyperextract/templates/presets/)

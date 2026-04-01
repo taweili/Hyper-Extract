@@ -1,18 +1,16 @@
-# 🔍 Hyper-Extract
+# Hyper-Extract
+
+[📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
 > **"Stop reading. Start understanding."**
 
 > *"告别文档焦虑，让信息一目了然"*
 
-Transform documents into **knowledge abstracts** — with just one command.
+**Transform documents into knowledge abstracts — with just one command.**
 
-<p align="center">
-  <img alt="Python Version" src="https://img.shields.io/badge/python-3.9%2B-blue">
-  <img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue">
-  <img alt="Status" src="https://img.shields.io/badge/status-active-success">
-</p>
-
-[📖 English Version](./README.md) · [中文版](./README_ZH.md)
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Status](https://img.shields.io/badge/status-active-success)]()
 
 ## 🚀 What is Hyper-Extract?
 
@@ -50,20 +48,6 @@ he search ./output/ "What are the key events?"
 he feed ./output/ new_document.md
 ```
 
-### 3. The Python API Way
-
-```python
-from hyperextract import Template
-
-# Load a preset YAML template
-ka = Template.create("finance/event_timeline")
-
-# Extract and auto-parse the document
-result = ka.parse(annual_report_text)
-```
-
-> 🔗 For detailed CLI usage, see [CLI Guide](./hyperextract/cli/README.md)
-
 <details>
 <summary><b>🛠️ How to define a Knowledge Template (YAML)?</b></summary>
 <br>
@@ -90,17 +74,31 @@ schema:
 ```
 </details>
 
+### 3. The Python API Way
+
+```python
+from hyperextract import Template
+
+# Load a preset YAML template
+ka = Template.create("finance/event_timeline")
+
+# Extract and auto-parse the document
+result = ka.parse(annual_report_text)
+```
+
+> 🔗 For complete examples, see [examples/en](./examples/en/)
+
 ## 🧩 Deep Dive: The 8 Auto-Types
 
 Our framework embraces complexity without making you write boilerplate code. 
 
-![Knowledge Structures Matrix](docs/assets/8-types-v3.jpg)
+![Knowledge Structures Matrix](docs/assets/8-types.jpg)
 
 ## 🛠️ Architecture Overview
 
 The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 
-![Architecture](docs/assets/architecture-v5.jpg)
+![Architecture](docs/assets/architecture-v10.jpg)
 
 * **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
 * **Preset Templates**: [presets directory](./hyperextract/templates/presets/)
@@ -119,10 +117,11 @@ The system is built on a robust triad: **Auto-Types** (Multi-typed structures), 
 
 ## 📚 Related Documentation
 
-* [CLI Guide](./hyperextract/cli/README.md)
-* [Template Gallery](./hyperextract/templates/)
-* [Example Code](./examples/)
-* [Full Documentation](./docs/)
+* [Full Documentation](https://hyper-extract.github.io/en/) - Complete documentation site
+* [中文文档](https://hyper-extract.github.io/zh/) - 中文文档
+* [CLI Guide](https://hyper-extract.github.io/en/guides/cli/) - Command-line interface
+* [Template Gallery](https://hyper-extract.github.io/en/reference/template-gallery/) - Available templates
+* [Example Code](./examples/) - Working examples
 
 ## 🤝 Contributing & License
 
