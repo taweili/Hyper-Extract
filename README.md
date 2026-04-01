@@ -14,22 +14,16 @@ Transform documents into **knowledge abstracts** — with just one command.
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
----
-
 ## 🚀 What is Hyper-Extract?
 
 Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed knowledge summaries. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
 
 ![Hero & Workflow](docs/assets/hero-v2.jpg)
 
-*A seamless pipeline from messy documents to neat structured nodes.*
-
----
-
 ## ✨ Core Features
 
 - 🔷 **8 Auto-Types:** From basic `AutoModel`/`AutoList` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`.
-- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `graph_rag`, `light_rag`, and `cog_rag`.
+- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `graph_rag`, `light_rag`, and `hyper_rag`.
 - 📝 **Declarative YAML Templates:** Zero-code extraction definition. Includes 80+ presets across 6 domains.
 - 🔄 **Incremental Evolution:** Feed new documents on the fly to continuously map out and expand the extracted knowledge.
 
@@ -46,7 +40,8 @@ uv pip install hyper-extract
 ### 2. The Command Line Way
 
 Extract, search, and manage directly from CLI.
-*(Note: By default, the CLI relies on `gpt-4o-mini` as the foundation model and `text-embedding-3-small` for embeddings to balance performance and speed.)*
+
+> By default, the CLI uses `gpt-4o-mini` and `text-embedding-3-small`.
 
 ```bash
 he config init -k YOUR_API_KEY
@@ -65,42 +60,50 @@ ka = Template.create("finance/event_timeline")
 
 # Extract and auto-parse the document
 result = ka.parse(annual_report_text)
-# result.timeline yields beautifully parsed list of Event objects!
 ```
 
 > 🔗 For detailed CLI usage, see [CLI Guide](./hyperextract/cli/README.md)
 
----
+<details>
+<summary><b>🛠️ How to define a Knowledge Template (YAML)?</b></summary>
+<br>
+
+Zero-code approach to define what to extract from incoming texts:
+
+```yaml
+name: Event Timeline
+description: Extract financial events and their temporal relations.
+type: TemporalGraph
+schema:
+  nodes:
+    - type: Event
+      properties:
+        - name: description
+          type: string
+  edges:
+    - type: Timeline
+      source: Event
+      target: Event
+      properties:
+        - name: relation
+          type: string
+```
+</details>
 
 ## 🧩 Deep Dive: The 8 Auto-Types
 
 Our framework embraces complexity without making you write boilerplate code. 
-4
-![Knowledge Structures Matrix](docs/assets/8-types-v2.jpg)
 
-| Auto-Type | Best For | Real-World Example |
-|-----------|----------|--------------------|
-| **Model** | Structured reports | Financial summaries |
-| **List** | Ordered items | Meeting actions |
-| **Set** | Deduplicated queries | Product catalogs |
-| **Graph** | Binary relationships | Social networks |
-| **Hypergraph** | Multi-party events | Contract disputes |
-| **TemporalGraph** | Time sequencing | News timelines |
-| **SpatialGraph** | Geolocation | Delivery routes |
-| **SpatioTemporalGraph**| Time & Space hybrid | Historical battles |
-
----
+![Knowledge Structures Matrix](docs/assets/8-types-v3.jpg)
 
 ## 🛠️ Architecture Overview
 
-The system is built on a robust triad: **Auto-Types** (Multi-typed knowledge structures definition), **Templates** (Declarative extraction schema), and **Methods** (The LLM Execution strategy).
+The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 
-![Architecture](docs/assets/architecture-v4.png)
+![Architecture](docs/assets/architecture-v5.jpg)
 
-- **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
-- **Preset Templates**: [presets directory](./hyperextract/templates/presets/)
-
----
+* **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
+* **Preset Templates**: [presets directory](./hyperextract/templates/presets/)
 
 ## 📈 Comparison with Other Libraries
 
@@ -113,25 +116,15 @@ The system is built on a robust triad: **Auto-Types** (Multi-typed knowledge str
 | Domain Templates | ❌ | ❌ | ❌ | ❌ | ✅ |
 | CLI Tool | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Multi-language | Partial | ❌ | ❌ | ❌ | ✅ |
-| Visualization | Partial | ❌ | ❌ | ❌ | ✅ |
-
----
 
 ## 📚 Related Documentation
 
-| Documentation | Description |
-|---------------|-------------|
-| [CLI Guide](./hyperextract/cli/README.md) | Complete CLI reference |
-| [Template Gallery](./hyperextract/templates/) | 38+ domain templates |
-| [Example Code](./examples/) | Python API examples |
-| [Full Documentation](./docs/) | Architecture & implementation |
+* [CLI Guide](./hyperextract/cli/README.md)
+* [Template Gallery](./hyperextract/templates/)
+* [Example Code](./examples/)
+* [Full Documentation](./docs/)
 
----
-
-## 🤝 Contributing
+## 🤝 Contributing & License
 
 Contributions are welcome! Please submit Issues and PRs.
-
-## 📄 License
-
-Apache-2.0
+Licensed under **Apache-2.0**.
