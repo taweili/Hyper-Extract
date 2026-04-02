@@ -14,12 +14,12 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from hyperextract.methods.typical import KG_Gen
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "zh" / "sushi.md"
-QUESTION_FILE = project_root / "zh" / "sushi_question.md"
+INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
+QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 
 if __name__ == "__main__":
     with open(INPUT_FILE, encoding="utf-8") as f:
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         questions = [line.strip() for line in f if line.strip()]
 
     llm = ChatOpenAI(model="gpt-4o-mini")
-    embedder = OpenAIEmbeddings()
+    embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     print("=" * 60)
     print("KG Gen 示例")

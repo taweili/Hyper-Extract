@@ -15,12 +15,12 @@
 ## 🚀 什么是 Hyper-Extract
 Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的知识摘要的过程。无论从基础的**集合（Collection/List）**和**结构化模型（Model）**，还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
 
-![Hero & Workflow](docs/assets/hero-v2.jpg)
+![Hero & Workflow](docs/assets/hero.jpg)
 
 ## ✨ 核心亮点
 
 - 🔷 **8大自动数据结构（Auto-Types）：** 从基础的 `AutoModel`/`AutoList` 到高阶的 `AutoGraph`, `AutoHypergraph`, 以及 `AutoSpatioTemporalGraph`（时空图）。
-- 🧠 **10+ 前沿提取引擎：** 开箱即用整合了业界顶尖的检索范式，例如 `graph_rag`, `light_rag`, 和 `hyper_rag`。
+- 🧠 **10+ 前沿提取引擎：** 开箱即用整合了业界顶尖的检索范式，例如 `GraphRAG`、`LightRAG`、`Hyper-RAG` 和 `KG-Gen`。
 - 📝 **声明式 YAML 模板：** 零代码定义提取策略。内置覆盖 6 大领域的 80+ 预设模板。
 - 🔄 **知识增量演进：** 支持动态喂入新文档（Feed），让提取的知识图谱自动补全和扩展。
 
@@ -118,19 +118,25 @@ result = ka.parse(annual_report_text)
 
 > 🔗 完整示例代码，请参阅 [examples/zh](./examples/zh/)
 
-## 🧩 深入探究：8 种核心抽象类型
+## 🧩 8 种核心知识结构
 
 拒绝样板代码，纯干货聚焦数据本身。
 
-![Knowledge Structures Matrix](docs/assets/8-types-v2.png)
+![Knowledge Structures Matrix](docs/assets/autotypes.png)
 
-## 🛠️ 系统架构揭秘
+### 示例：AutoGraph 知识图谱可视化
+
+以下是 `AutoGraph` 类型提取后的知识图谱可视化效果：
+
+![AutoGraph 可视化](docs/assets/zh_show.png)
+
+## 🛠️ 系统架构
 
 系统底座基于坚实的铁三角架构：**Auto-Types** (提取结构)、**Methods** (执行策略)、以及 **Templates** (声明式配置)。
 
-![Architecture](docs/assets/architecture-v2.png)
+![Architecture](docs/assets/arch.png)
 
-* **设计指南**: [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
+* **设计指南**: [模板设计指南](./hyperextract/templates/DESIGN_GUIDE_ZH.md)
 * **内置模板**: [预设模板目录](./hyperextract/templates/presets/)
 
 ## 📈 与其他流行库的对比

@@ -4,7 +4,7 @@
 
 **Transform documents into knowledge abstracts — with just one command.**
 
-![Hero & Workflow](assets/hero-v2.jpg)
+![Hero & Workflow](assets/hero.jpg)
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
@@ -17,7 +17,7 @@ Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution 
 ## Core Features
 
 - 🔷 **8 Auto-Types:** From basic `AutoModel`/`AutoList` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`.
-- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `graph_rag`, `light_rag`, and `hyper_rag`.
+- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `GraphRAG`, `LightRAG`, `Hyper-RAG`, and `KG-Gen`.
 - 📝 **Declarative YAML Templates:** Zero-code extraction definition. Includes 80+ presets across 6 domains.
 - 🔄 **Incremental Evolution:** Feed new documents on the fly to continuously map out and expand the extracted knowledge.
 
@@ -70,9 +70,15 @@ result = ka.parse(annual_report_text)
 | AutoSpatialGraph | Spatial knowledge graph |
 | AutoSpatioTemporalGraph | Spatio-temporal knowledge graph |
 
+### Example: AutoGraph Visualization
+
+After extraction with `AutoGraph`, you can visualize your knowledge graph:
+
+![AutoGraph Visualization](assets/en_show.png)
+
 ## Architecture
 
-![Architecture](assets/architecture-v2.png)
+![Architecture](assets/arch.png)
 
 The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 

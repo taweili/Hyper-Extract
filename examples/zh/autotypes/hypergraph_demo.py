@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from hyperextract.types import AutoHypergraph
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
@@ -26,14 +26,15 @@ QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 class Entity(BaseModel):
     """实体节点"""
     name: str = Field(description="实体名称")
-    type: str = Field(description="类型：人物/地名/作品", default="人物")
+    type: str = Field(description="类型：人物/地名/事件/物品/作品等")
+    description: str = Field(description="实体描述") 
 
 
-class HyperEdge(BaseModel):
+class Relation(BaseModel):
     """超边（多实体关系）"""
-    description: str = Field(description="关系描述")
     members: list[str] = Field(description="参与的实体")
-    type: str = Field(description="关系类型")
+    type: str = Field(description="关系类型，例如：父亲/兄弟/发明/参与等")
+    description: str = Field(description="关系的详细描述")
 
 
 if __name__ == "__main__":
@@ -50,9 +51,9 @@ if __name__ == "__main__":
     print("=" * 60)
     print("提取多实体关系...")
 
-    graph = AutoHypergraph[Entity, HyperEdge](
+    graph = AutoHypergraph[Entity, Relation](
         node_schema=Entity,
-        edge_schema=HyperEdge,
+        edge_schema=Relation,
         node_key_extractor=lambda x: x.name,
         edge_key_extractor=lambda x: f"{x.type}_{'_'.join(sorted(x.members))}",
         nodes_in_edge_extractor=lambda x: tuple(x.members),

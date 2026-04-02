@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from hyperextract.types import AutoGraph
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
@@ -26,14 +26,16 @@ QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 class Entity(BaseModel):
     """知识图谱中的实体"""
     name: str = Field(description="实体名称")
-    type: str = Field(description="实体类型：人物/地名/作品", default="人物")
+    type: str = Field(description="实体类型，例如：人物/地名/事件/物品/作品等")
+    description: str = Field(description="实体的详细描述") 
 
 
 class Relation(BaseModel):
     """实体之间的关系"""
     source: str = Field(description="关系起点实体")
     target: str = Field(description="关系终点实体")
-    type: str = Field(description="关系类型：父亲/兄弟/师徒/朋友/政敌")
+    type: str = Field(description="关系类型，例如：父亲/兄弟/发明/参与等")
+    description: str = Field(description="关系的详细描述") 
 
 
 if __name__ == "__main__":

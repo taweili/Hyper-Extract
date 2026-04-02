@@ -16,12 +16,12 @@ from pydantic import BaseModel, Field
 
 from hyperextract import AutoList
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "en" / "tesla.md"
-QUESTION_FILE = project_root / "en" / "tesla_question.md"
+INPUT_FILE = project_root / "examples" / "en" / "tesla.md"
+QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
 
 
 class TimelineEvent(BaseModel):

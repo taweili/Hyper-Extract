@@ -4,7 +4,7 @@
 
 ## 类型选择
 
-![Knowledge Structures Matrix](../assets/8-types-v2.png)
+![Knowledge Structures Matrix](../assets/autotypes.png)
 
 在设计模板之前，先确定哪种类型适合您的需求：
 

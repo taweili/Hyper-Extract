@@ -4,7 +4,7 @@ Templates define WHAT to extract using declarative YAML. They provide a powerful
 
 ## Type Selection
 
-![Knowledge Structures Matrix](../assets/8-types-v2.png)
+![Knowledge Structures Matrix](../assets/autotypes.png)
 
 Before designing a template, determine which type fits your needs:
 

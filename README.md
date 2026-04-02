@@ -16,12 +16,12 @@
 
 Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed knowledge summaries. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
 
-![Hero & Workflow](docs/assets/hero-v2.jpg)
+![Hero & Workflow](docs/assets/hero.jpg)
 
 ## ✨ Core Features
 
 - 🔷 **8 Auto-Types:** From basic `AutoModel`/`AutoList` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`.
-- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `graph_rag`, `light_rag`, and `hyper_rag`.
+- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `GraphRAG`, `LightRAG`, `Hyper-RAG`, and `KG-Gen`.
 - 📝 **Declarative YAML Templates:** Zero-code extraction definition. Includes 80+ presets across 6 domains.
 - 🔄 **Incremental Evolution:** Feed new documents on the fly to continuously map out and expand the extracted knowledge.
 
@@ -123,13 +123,19 @@ result = ka.parse(annual_report_text)
 
 Our framework embraces complexity without making you write boilerplate code. 
 
-![Knowledge Structures Matrix](docs/assets/8-types-v2.png)
+![Knowledge Structures Matrix](docs/assets/autotypes.png)
+
+### Example: AutoGraph Visualization
+
+Here is the knowledge graph visualization after `AutoGraph` extraction:
+
+![AutoGraph Visualization](docs/assets/en_show.png)
 
 ## 🛠️ Architecture Overview
 
 The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 
-![Architecture](docs/assets/architecture-v2.png)
+![Architecture](docs/assets/arch.png)
 
 * **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
 * **Preset Templates**: [presets directory](./hyperextract/templates/presets/)

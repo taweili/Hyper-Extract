@@ -99,6 +99,10 @@ print(result.relations)
 he search output/ "有哪些财务事件？"
 ```
 
+**AutoGraph 可视化示例：**
+
+![AutoGraph 可视化](../assets/zh_show.png)
+
 ## 下一步
 
 - 了解 [8 种自动类型](../concepts/auto-types.md)

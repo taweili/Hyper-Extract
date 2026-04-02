@@ -53,7 +53,7 @@ def main():
     print("=" * 80)
 
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    embedder = OpenAIEmbeddings()
+    embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     extractor = Template.create(
         template_name,

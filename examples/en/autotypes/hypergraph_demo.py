@@ -16,25 +16,27 @@ from pydantic import BaseModel, Field
 
 from hyperextract.types import AutoHypergraph
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "en" / "tesla.md"
-QUESTION_FILE = project_root / "en" / "tesla_question.md"
+INPUT_FILE = project_root / "examples" / "en" / "tesla.md"
+QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
 
 
 class Entity(BaseModel):
     """Entity node"""
     name: str = Field(description="Entity name")
     type: str = Field(description="Type: person/location/invention", default="person")
+    description: str = Field(description="Entity description") 
 
 
-class HyperEdge(BaseModel):
-    """Hyper-edge (multi-entity relationship)"""
+class Relation(BaseModel):
+    """Hyperedge (multi-entity relationship)"""
     description: str = Field(description="Relationship description")
     members: list[str] = Field(description="Entities involved")
     type: str = Field(description="Relationship type")
+    description: str = Field(description="Relationship description") 
 
 
 if __name__ == "__main__":
@@ -51,9 +53,9 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Extracting multi-entity relationships...")
 
-    graph = AutoHypergraph[Entity, HyperEdge](
+    graph = AutoHypergraph[Entity, Relation](
         node_schema=Entity,
-        edge_schema=HyperEdge,
+        edge_schema=Relation,
         node_key_extractor=lambda x: x.name,
         edge_key_extractor=lambda x: f"{x.type}_{'_'.join(sorted(x.members))}",
         nodes_in_edge_extractor=lambda x: tuple(x.members),

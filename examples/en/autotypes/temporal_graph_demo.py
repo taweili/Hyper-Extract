@@ -1,20 +1,21 @@
 """
-Graph Extraction Demo - Tesla Biography
+Temporal Graph Demo - Tesla Biography
 
-Extract entities and relationships from text using AutoGraph.
-This demo shows how to build a knowledge graph from unstructured text.
+Extract temporal relationships from text using AutoTemporalGraph.
+This demo shows how to understand time-based relationships between entities.
 
 Usage:
-    python examples/en/autotypes/graph_demo.py
+    python examples/en/autotypes/temporal_demo.py
 """
 
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import BaseModel, Field
 
-from hyperextract.types import AutoGraph
+from hyperextract.types import AutoTemporalGraph
 
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -25,19 +26,18 @@ QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
 
 
 class Entity(BaseModel):
-    """Entity in the knowledge graph"""
-
+    """Entity node"""
     name: str = Field(description="Entity name")
-    type: str = Field(description="Entity type: person/location/invention/etc")
+    category: str = Field(description="Category, e.g., person, location, invention, etc.")
     description: str = Field(description="Entity description")
 
 
-class Relation(BaseModel):
-    """Relation between entities"""
-
+class TemporalRelation(BaseModel):
+    """Temporal relation"""
     source: str = Field(description="Source entity")
     target: str = Field(description="Target entity")
-    type: str = Field(description="Relation type: employer/partner/rival/invented/etc")
+    relation_type: str = Field(description="Relation type, e.g., father, brother, invention, etc.")
+    event_date: Optional[str] = Field(description="Event date, e.g., 2023-01-01", default=None)
     description: str = Field(description="Relation description")
 
 
@@ -51,23 +51,30 @@ if __name__ == "__main__":
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     print("\n" + "=" * 60)
-    print("  Graph Extraction Demo")
+    print("  Temporal Graph Demo")
     print("=" * 60)
-    print("Extracting entities and relationships from Tesla's biography...")
+    print("Extracting temporal relationships...")
 
-    graph = AutoGraph[Entity, Relation](
+    graph = AutoTemporalGraph[Entity, TemporalRelation](
         node_schema=Entity,
-        edge_schema=Relation,
+        edge_schema=TemporalRelation,
         node_key_extractor=lambda x: x.name,
-        edge_key_extractor=lambda x: f"{x.source}-{x.type}-{x.target}",
+        edge_key_extractor=lambda x: f"{x.source}-{x.relation_type}-{x.target}",
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
+        time_in_edge_extractor=lambda x: x.event_date or "",
         llm_client=llm,
         embedder=embedder,
+        observation_time="2024-01-01",
     )
 
     graph.feed_text(text)
 
     print(f"\nExtracted {len(graph.nodes)} entities and {len(graph.edges)} relations")
+
+    sorted_edges = sorted(graph.edges, key=lambda x: x.event_date or "")
+    for edge in sorted_edges[:5]:
+        time_info = f" ({edge.event_date})" if edge.event_date else ""
+        print(f"  {edge.source} --[{edge.relation_type}]--> {edge.target}{time_info}")
 
     graph.build_index()
 
@@ -84,5 +91,5 @@ if __name__ == "__main__":
 
     graph.show(
         node_label_extractor=lambda x: x.name,
-        edge_label_extractor=lambda x: f"{x.type}",
+        edge_label_extractor=lambda x: f"{x.relation_type}@{x.event_date}" if x.event_date else x.relation_type,
     )

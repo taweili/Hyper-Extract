@@ -99,6 +99,10 @@ The extracted knowledge will be saved in your output directory. You can use the 
 he search output/ "What financial events were mentioned?"
 ```
 
+**AutoGraph Visualization Example:**
+
+![AutoGraph Visualization](../assets/en_show.png)
+
 ## Next Steps
 
 - Learn about the [8 Auto-Types](../concepts/auto-types.md)

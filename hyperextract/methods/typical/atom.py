@@ -203,7 +203,7 @@ Given an input paragraph and an `observation_time`, generate a list of all disti
 """
 
 # Atom FACToid prompt ends, edge prompt begins
-Atom_EDGE_EXTRACTION_PROMPT = f"""
+Atom_EDGE_EXTRACTION_PROMPT = """
 Observation Date: {observation_time}
 
 You are a precise knowledge extraction engine designed to distill unstructured text into a structured Knowledge Graph.
@@ -500,21 +500,14 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             fact_chunks.append(formatted_chunk)
 
         # 6. Batch Extract Edges directly from Fact Chunks
-        # Format the edge prompt with observation date
-        edge_prompt_with_date = self.edge_prompt.format(observation_time=obs_date_str)
-        edge_prompt_template = ChatPromptTemplate.from_template(edge_prompt_with_date)
-        edge_chain = edge_prompt_template | self.llm_client.with_structured_output(
-            self.edge_list_schema
-        )
-
-        edge_inputs = [{"source_text": chunk} for chunk in fact_chunks]
-        chunk_edge_lists = edge_chain.batch(
+        edge_inputs = [{"source_text": chunk, "observation_time": obs_date_str} for chunk in fact_chunks]
+        chunk_edge_lists = self.edge_extractor.batch(
             edge_inputs, config={"max_concurrency": self.max_workers}
         )
 
         # ==================== Step 3: Post-process & Merge ====================
 
-        # 8. Post-process: Derive Nodes & Set t_obs
+        # 7. Post-process: Derive Nodes & Set t_obs
         all_nodes_lists, all_edges_lists = [], []
 
         for edge_list in chunk_edge_lists:
@@ -534,10 +527,10 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             all_nodes_lists.append(derived_nodes)
             all_edges_lists.append(processed_edges)
 
-        # 9. Construct Partial Graphs
+        # 8. Construct Partial Graphs
         partial_graphs = (all_nodes_lists, all_edges_lists)
 
-        # 10. Global Merge
+        # 9. Global Merge
         raw_graph = self.merge_batch_data(partial_graphs)
 
         return self._prune_dangling_edges(raw_graph)

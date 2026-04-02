@@ -2,12 +2,14 @@
 空间图示例 - 苏轼传记
 
 使用 AutoSpatialGraph 从文本中提取空间关系。
+展示如何理解实体之间的空间位置关系。
 
 使用方法：
-    python examples/zh/autotypes/spatial_demo.py
+    python examples/zh/autotypes/spatial_graph_demo.py
 """
 
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -15,7 +17,7 @@ from pydantic import BaseModel, Field
 
 from hyperextract.types import AutoSpatialGraph
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
@@ -23,18 +25,18 @@ INPUT_FILE = project_root / "examples" / "zh" / "sushi.md"
 QUESTION_FILE = project_root / "examples" / "zh" / "sushi_question.md"
 
 
-class Location(BaseModel):
-    """地点实体"""
-    name: str = Field(description="地点名称")
-    category: str = Field(description="类别：城市/建筑/地区", default="地区")
-    description: str = Field(description="简要描述", default="")
+class Entity(BaseModel):
+    """实体节点"""
+    name: str = Field(description="实体名称")
+    category: str = Field(description="类别，例如：人物/地点/发明等")
 
 
 class SpatialRelation(BaseModel):
     """空间关系"""
-    source: str = Field(description="起点地点")
-    target: str = Field(description="终点地点")
-    relation: str = Field(description="空间关系类型")
+    source: str = Field(description="源实体")
+    target: str = Field(description="目标实体")
+    relation_type: str = Field(description="关系类型，例如：父亲/兄弟/发明/参与等")
+    location: Optional[str] = Field(description="关系发生地点，例如：北京等", default=None)
 
 
 if __name__ == "__main__":
@@ -51,13 +53,13 @@ if __name__ == "__main__":
     print("=" * 60)
     print("提取空间关系...")
 
-    graph = AutoSpatialGraph[Location, SpatialRelation](
-        node_schema=Location,
+    graph = AutoSpatialGraph[Entity, SpatialRelation](
+        node_schema=Entity,
         edge_schema=SpatialRelation,
         node_key_extractor=lambda x: x.name,
-        edge_key_extractor=lambda x: f"{x.source}-{x.relation}-{x.target}",
+        edge_key_extractor=lambda x: f"{x.source}-{x.relation_type}-{x.target}",
         nodes_in_edge_extractor=lambda x: (x.source, x.target),
-        location_in_edge_extractor=lambda x: x.target,
+        location_in_edge_extractor=lambda x: x.location or "",
         llm_client=llm,
         embedder=embedder,
         observation_location="北宋疆域",
@@ -65,10 +67,7 @@ if __name__ == "__main__":
 
     graph.feed_text(text)
 
-    print(f"\n提取了 {len(graph.nodes)} 个地点和 {len(graph.edges)} 个关系")
-
-    for node in graph.nodes[:5]:
-        print(f"  {node.name}")
+    print(f"\n提取了 {len(graph.nodes)} 个实体和 {len(graph.edges)} 个关系")
 
     graph.build_index()
 
@@ -83,4 +82,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"错误: {e}")
 
-    graph.show(node_label_extractor=lambda x: x.name, edge_label_extractor=lambda x: x.relation)
+    graph.show(
+        node_label_extractor=lambda x: x.name,
+        edge_label_extractor=lambda x: f"{x.relation_type}@{x.location}" if x.location else x.relation_type,
+    )

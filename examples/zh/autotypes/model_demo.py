@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from hyperextract import AutoModel
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 

@@ -14,12 +14,12 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from hyperextract.methods.rag import Light_RAG
 
-project_root = Path(__file__).resolve().parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 load_dotenv()
 
-INPUT_FILE = project_root / "en" / "tesla.md"
-QUESTION_FILE = project_root / "en" / "tesla_question.md"
+INPUT_FILE = project_root / "examples" / "en" / "tesla.md"
+QUESTION_FILE = project_root / "examples" / "en" / "tesla_question.md"
 
 if __name__ == "__main__":
     with open(INPUT_FILE) as f:
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         questions = [line.strip() for line in f if line.strip()]
 
     llm = ChatOpenAI(model="gpt-4o-mini")
-    embedder = OpenAIEmbeddings()
+    embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
     print("=" * 60)
     print("Light RAG Demo")
