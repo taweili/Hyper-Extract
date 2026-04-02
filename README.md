@@ -1,23 +1,28 @@
-# Hyper-Extract
+<div align="center">
 
-## 🚀 Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.
+# 🚀 Hyper-Extract
+
+**Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.**
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
-
-> **"Stop reading. Start understanding."**
-
-> *"告别文档焦虑，让信息一目了然"*
-
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
 
-## 🚀 What is Hyper-Extract?
+<br/>
+
+> **"Stop reading. Start understanding."**  
+> *"告别文档焦虑，让信息一目了然"*
+
+<br/>
+
+<img src="docs/assets/hero.jpg" alt="Hero & Workflow" width="100%">
+
+<br/>
+</div>
 
 Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed knowledge summaries. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
-
-![Hero & Workflow](docs/assets/hero.jpg)
 
 ## ✨ Core Features
 

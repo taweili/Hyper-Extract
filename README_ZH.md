@@ -1,22 +1,28 @@
-# Hyper-Extract
+<div align="center">
 
-## 🚀 智能知识提取 CLI —— 一行命令，将文档转化为结构化知识
+# 🚀 Hyper-Extract
+
+**智能知识提取 CLI —— 一行命令，将文档转化为结构化知识。**
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
-
-> **"Stop reading. Start understanding."**
-
-> *"告别文档焦虑，让信息一目了然"*
 
 [![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![开源协议](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![状态](https://img.shields.io/badge/status-active-success)]()
 
-## 🚀 什么是 Hyper-Extract
+<br/>
+
+> **"Stop reading. Start understanding."**  
+> *"告别文档焦虑，让信息一目了然"*
+
+<br/>
+
+<img src="docs/assets/hero.jpg" alt="Hero & Workflow" width="100%">
+
+<br/>
+</div>
 
 Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的知识摘要的过程。无论从基础的**集合（Collection/List）和**结构化模型（Model），还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
-
-![Hero & Workflow](docs/assets/hero.jpg)
 
 ## ✨ 核心亮点
 
