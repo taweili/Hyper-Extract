@@ -69,7 +69,7 @@ See the [Template Design Guide](../concepts/templates.md) for creating custom te
 
 Solution: Set your API key using:
 ```bash
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 ```
 
 ### Extraction Quality

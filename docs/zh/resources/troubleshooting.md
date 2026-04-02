@@ -138,7 +138,7 @@ pip install hyper-extract
 
 **解决方案**: 初始化配置：
 ```bash
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 ```
 
 ## 仍然有问题？

@@ -51,7 +51,7 @@ def main(
         is_eager=True,
     ),
 ):
-    """Hyper-Extract CLI - Transform unstructured text into structured knowledge."""
+    """Hyper-Extract CLI - Transform document into knowledge-abstract."""
     if version:
         from . import __version__
         console.print(f"[bold]Hyper-Extract CLI[/bold] version {__version__}")
@@ -65,7 +65,7 @@ def main(
         
         title_text = Text("HYPER-EXTRACT", style="bold cyan")
         version_text = Text(f"v{__version__}", style="dim white")
-        desc_text = Text("Transform unstructured text into structured knowledge", style="dim")
+        desc_text = Text("Transform document into knowledge-abstract", style="dim", no_wrap=True)
         
         header = Table(box=None, show_header=False, pad_edge=False)
         header.add_column(no_wrap=True)
@@ -95,7 +95,7 @@ def main(
                 border_style="cyan dim",
                 padding=(0, 1),
                 title_align="center",
-                width=70,
+                width=80,
             )
         
         sections = [
@@ -104,16 +104,16 @@ def main(
                 ("he list method", "List extraction methods"),
                 ("he config --help", "Manage LLM/Embedder config"),
             ]),
-            make_section("✨ Create KA", [
-                ("he parse <input> -o <ka_path>", "Extract knowledge to new KA"),
-                ("he feed <ka_path> <input>", "Add knowledge to existing KA"),
+            make_section("✨ Create Knowledge Abstract (KA)", [
+                ("he parse <input_document> -o <ka_path>", "Extract KA from document"),
+                ("he feed <ka_path> <input_document>", "Add document to existing KA"),
                 ("he build-index <ka_path>", "Build semantic search index"),
             ]),
-            make_section("🔍 Explore KA", [
-                ("he info <ka_path>", "View Knowledge Abstract info & stats"),
-                ("he talk <ka_path> [-i]", "Chat with Knowledge Abstract"),
+            make_section("🔍 Explore Knowledge Abstract (KA)", [
+                ("he info <ka_path>", "View KA info & stats"),
+                ("he talk <ka_path> [-i]", "Chat with KA"),
                 ("he search <ka_path> <query>", "Semantic search"),
-                ("he show <ka_path>", "Visualize knowledge graph"),
+                ("he show <ka_path>", "Visualize KA"),
             ]),
         ]
         

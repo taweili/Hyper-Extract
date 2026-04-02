@@ -6,11 +6,11 @@ Hyper-Extract uses a TOML configuration file. Default location: `~/.he/config.to
 
 ```bash
 # Initialize with API key (recommended)
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 
 # Or configure LLM and Embedder separately
-he config llm --api-key YOUR_API_KEY
-he config embedder --api-key YOUR_API_KEY
+he config llm --api-key <your-api-key>
+he config embedder --api-key <your-api-key>
 ```
 
 ## Configuration Options
@@ -18,7 +18,7 @@ he config embedder --api-key YOUR_API_KEY
 ### LLM Settings
 
 ```bash
-he config llm --api-key YOUR_KEY --model gpt-4o-mini
+he config llm --api-key <your-api-key> --model gpt-4o-mini
 ```
 
 | Option | Description | Default |
@@ -30,7 +30,7 @@ he config llm --api-key YOUR_KEY --model gpt-4o-mini
 ### Embedder Settings
 
 ```bash
-he config embedder --api-key YOUR_KEY --model text-embedding-3-small
+he config embedder --api-key <your-api-key> --model text-embedding-3-small
 ```
 
 | Option | Description | Default |

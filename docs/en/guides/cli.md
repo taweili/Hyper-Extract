@@ -15,13 +15,13 @@ pip install hyper-extract
 ### Initialize Configuration
 
 ```bash
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 ```
 
 ### Parse a Document
 
 ```bash
-he parse document.txt -o output/
+he parse sample.txt -o output/
 ```
 
 ### Search Extracted Knowledge
@@ -33,7 +33,7 @@ he search output/ "What are the key events?"
 ### Feed New Documents
 
 ```bash
-he feed output/ new_document.txt
+he feed output/ another_sample.txt
 ```
 
 ## Commands
@@ -44,8 +44,8 @@ Manage configuration:
 
 ```bash
 # Initialize
-he config init -k API_KEY
-
+he config init -k <your-api-key>
+```
 # Show current config
 he config show
 

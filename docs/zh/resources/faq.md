@@ -69,7 +69,7 @@ result = ka.parse(document_text)
 
 解决方案：使用以下方式设置 API 密钥：
 ```bash
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 ```
 
 ### 提取质量问题

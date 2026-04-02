@@ -26,7 +26,7 @@
 1. Fork 仓库
 2. 克隆您的 fork：
    ```bash
-   git clone https://github.com/YOUR_USERNAME/hyper-extract.git
+   git clone https://github.com/yifanfeng97/hyper-extract.git
    cd hyper-extract
    ```
 

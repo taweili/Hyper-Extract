@@ -1,12 +1,13 @@
 # Hyper-Extract
 
+## 🚀 Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.
+
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
 > **"Stop reading. Start understanding."**
 
 > *"告别文档焦虑，让信息一目了然"*
 
-**Transform documents into knowledge abstracts — with just one command.**
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
@@ -25,7 +26,7 @@ Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution 
 - 📝 **Declarative YAML Templates:** Zero-code extraction definition. Includes 80+ presets across 6 domains.
 - 🔄 **Incremental Evolution:** Feed new documents on the fly to continuously map out and expand the extracted knowledge.
 
----
+***
 
 ## ⚡ Quick Start
 
@@ -42,17 +43,55 @@ Extract, search, and manage directly from CLI.
 > By default, the CLI uses `gpt-4o-mini` and `text-embedding-3-small`.
 
 ```bash
-he config init -k YOUR_API_KEY
-he parse document.md -o ./output/ -l zh
-he search ./output/ "What are the key events?"
-he feed ./output/ new_document.md
+# Configure OpenAI API Key
+he config init -k YOUR_OPENAI_API_KEY
+
+# Extract knowledge (using examples/en/tesla.md as sample input)
+he parse examples/en/tesla.md -t general/biography_graph -o ./output/ -l en
+
+# Query the knowledge base
+he search ./output/ "What are Tesla's major achievements?"
+
+# Incrementally supplement knowledge
+he feed ./output/ another_tesla_document.md
 ```
 
 <details>
-<summary><b>🛠️ How to define a Knowledge Template (YAML)?</b></summary>
+<summary><b> The Python API Way</b></summary>
 <br>
 
-Zero-code approach to define what to extract from incoming texts:
+```python
+from hyperextract import Template
+
+ka = Template.create("general/biography_graph")
+result = ka.parse(text)
+```
+
+> 🔗 For complete examples, see [examples/en](./examples/en/)
+
+</details>
+
+## 🧩 Deep Dive: The 8 Auto-Types
+
+Our framework embraces complexity without making you write boilerplate code.
+
+!\[Knowledge Structures Matrix]\(docs/assets/autotypes.png null)
+
+### Example: AutoGraph Visualization
+
+Here is the knowledge graph visualization after `AutoGraph` extraction:
+
+![AutoGraph Visualization](docs/assets/en_show.png)
+
+## 🛠️ Architecture Overview
+
+The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
+
+![Architecture](docs/assets/arch.png)
+
+### 📋 Template Structure Example
+
+Here's a complete YAML template example that defines a Knowledge Graph extraction:
 
 ```yaml
 language: en
@@ -103,62 +142,31 @@ display:
   entity_label: '{name} ({type})'
   relation_label: '{type}'
 ```
-</details>
 
-### 3. The Python API Way
+### 📚 Related Documentation
 
-```python
-from hyperextract import Template
-
-# Load a preset YAML template
-ka = Template.create("finance/event_timeline")
-
-# Extract and auto-parse the document
-result = ka.parse(annual_report_text)
-```
-
-> 🔗 For complete examples, see [examples/en](./examples/en/)
-
-## 🧩 Deep Dive: The 8 Auto-Types
-
-Our framework embraces complexity without making you write boilerplate code. 
-
-![Knowledge Structures Matrix](docs/assets/autotypes.png)
-
-### Example: AutoGraph Visualization
-
-Here is the knowledge graph visualization after `AutoGraph` extraction:
-
-![AutoGraph Visualization](docs/assets/en_show.png)
-
-## 🛠️ Architecture Overview
-
-The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
-
-![Architecture](docs/assets/arch.png)
-
-* **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
-* **Preset Templates**: [presets directory](./hyperextract/templates/presets/)
+- **Preset Templates**: Browse [80+ ready-to-use templates](./hyperextract/templates/presets/) across 6 domains
+- **Design Guide**: Learn how to [create custom templates](./hyperextract/templates/DESIGN_GUIDE.md)
 
 ## 📈 Comparison with Other Libraries
 
-| Feature | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
-|---------|:---:|:---:|:---:|:---:|:---:|
-| Knowledge Graph | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Temporal Graph | ✅ | ❌ | ❌ | ✅ | ✅ |
-| Spatial Graph | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Hypergraph | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Domain Templates | ❌ | ❌ | ❌ | ❌ | ✅ |
-| CLI Tool | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Multi-language | Partial | ❌ | ❌ | ❌ | ✅ |
+| Feature          | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
+| ---------------- | :------: | :------: | :----: | :--: | :---------------: |
+| Knowledge Graph  |     ✅    |     ✅    |    ✅   |   ✅  |         ✅         |
+| Temporal Graph   |     ✅    |     ❌    |    ❌   |   ✅  |         ✅         |
+| Spatial Graph    |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
+| Hypergraph       |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
+| Domain Templates |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
+| CLI Tool         |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
+| Multi-language   |  Partial |     ❌    |    ❌   |   ❌  |         ✅         |
 
 ## 📚 Related Documentation
 
-* [Full Documentation](https://hyper-extract.github.io/en/) - Complete documentation site
-* [中文文档](https://hyper-extract.github.io/zh/) - 中文文档
-* [CLI Guide](https://hyper-extract.github.io/en/guides/cli/) - Command-line interface
-* [Template Gallery](https://hyper-extract.github.io/en/reference/template-gallery/) - Available templates
-* [Example Code](./examples/) - Working examples
+- [Full Documentation](https://hyper-extract.github.io/en/) - Complete documentation site
+- [中文文档](https://hyper-extract.github.io/zh/) - 中文文档
+- [CLI Guide](https://hyper-extract.github.io/en/guides/cli/) - Command-line interface
+- [Template Gallery](https://hyper-extract.github.io/en/reference/template-gallery/) - Available templates
+- [Example Code](./examples/) - Working examples
 
 ## 🤝 Contributing & License
 

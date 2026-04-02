@@ -32,10 +32,10 @@ uv pip install hyper-extract
 ### The Command Line Way
 
 ```bash
-he config init -k YOUR_API_KEY
-he parse document.md -o ./output/ -l zh
+he config init -k <your-api-key>
+he parse sample.md -t general/biography_graph -o ./output/ -l en
 he search ./output/ "What are the key events?"
-he feed ./output/ new_document.md
+he feed ./output/ another_sample.md
 ```
 
 ### The Python API Way
@@ -43,11 +43,8 @@ he feed ./output/ new_document.md
 ```python
 from hyperextract import Template
 
-# Load a preset YAML template
-ka = Template.create("finance/event_timeline")
-
-# Extract and auto-parse the document
-result = ka.parse(annual_report_text)
+ka = Template.create("general/biography_graph")
+result = ka.parse(text)
 ```
 
 ## Documentation

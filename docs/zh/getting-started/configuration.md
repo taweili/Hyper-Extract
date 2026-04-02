@@ -30,7 +30,7 @@ he config llm --api-key YOUR_KEY --model gpt-4o-mini
 ### Embedder 设置
 
 ```bash
-he config embedder --api-key YOUR_KEY --model text-embedding-3-small
+he config embedder --api-key <your-api-key> --model text-embedding-3-small
 ```
 
 | 选项 | 说明 | 默认值 |

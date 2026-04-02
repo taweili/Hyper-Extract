@@ -15,13 +15,13 @@ pip install hyper-extract
 ### 初始化配置
 
 ```bash
-he config init -k YOUR_API_KEY
+he config init -k <your-api-key>
 ```
 
 ### 解析文档
 
 ```bash
-he parse document.txt -o output/
+he parse sample.txt -o output/
 ```
 
 ### 搜索提取的知识
@@ -33,7 +33,7 @@ he search output/ "关键事件有哪些？"
 ### 添加新文档
 
 ```bash
-he feed output/ new_document.txt
+he feed output/ another_sample.txt
 ```
 
 ## 命令
@@ -44,7 +44,7 @@ he feed output/ new_document.txt
 
 ```bash
 # 初始化
-he config init -k API_KEY
+he config init -k <your-api-key>
 
 # 显示当前配置
 he config show

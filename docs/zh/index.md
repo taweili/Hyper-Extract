@@ -32,10 +32,10 @@ uv pip install hyper-extract
 ### 命令行方式
 
 ```bash
-he config init -k YOUR_API_KEY
-he parse document.md -o ./output/ -l zh
+he config init -k <your-api-key>
+he parse sample.md -t general/biography_graph -o ./output/ -l zh
 he search ./output/ "关键事件有哪些？"
-he feed ./output/ new_document.md
+he feed ./output/ another_sample.md
 ```
 
 ### Python API 方式
@@ -43,11 +43,8 @@ he feed ./output/ new_document.md
 ```python
 from hyperextract import Template
 
-# 加载预设 YAML 模板
-ka = Template.create("finance/event_timeline")
-
-# 提取并自动解析文档
-result = ka.parse(annual_report_text)
+ka = Template.create("general/biography_graph")
+result = ka.parse(text)
 ```
 
 ## 文档

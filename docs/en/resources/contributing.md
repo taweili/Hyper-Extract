@@ -26,7 +26,7 @@ We welcome feature suggestions! Please:
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/hyper-extract.git
+   git clone https://github.com/yifanfeng97/hyper-extract.git
    cd hyper-extract
    ```
 
