@@ -37,6 +37,7 @@ if __name__ == "__main__":
     rag = Light_RAG(llm_client=llm, embedder=embedder)
     rag.feed_text(text)
 
+    print("从苏轼传记中提取实体和关系...")
     print(f"\n✓ 提取了 {len(rag.nodes)} 个实体，{len(rag.edges)} 条关系\n")
 
     print("-" * 60)
@@ -49,3 +50,5 @@ if __name__ == "__main__":
             print(f"答: {result.content}")
         except Exception as e:
             print(f"错误: {e}")
+
+    rag.show()

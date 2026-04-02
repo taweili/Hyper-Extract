@@ -72,7 +72,7 @@ def template(
     )
     table.add_column("Template ID", style="cyan", width=26)
     table.add_column("Type", style="yellow", no_wrap=True, width=22)
-    table.add_column("Description", style="white")
+    table.add_column("Description", style="green")
 
     for tid, template_type, desc in templates:
         domain, name = tid.split("/", 1)
@@ -116,16 +116,20 @@ def method(
         show_header=True,
         header_style="bold magenta",
         expand=True,
+        show_lines=True,
     )
-    table.add_column("Method", style="cyan", no_wrap=True, width=18)
+    table.add_column("Method", style="cyan")
     table.add_column("Type", style="yellow", no_wrap=True, width=12)
     table.add_column("Description", style="green")
 
     for name, info in items.items():
-        method_id = f"method/{name}"
         method_type = info["type"]
         description = info["description"]
-        table.add_row(method_id, method_type, description)
+        table.add_row(
+            Text(f"method/\n{name}", style="cyan"),
+            method_type,
+            description
+        )
 
     console.print(table)
     console.print(f"\n[dim]Total: {len(items)} methods[/dim]")

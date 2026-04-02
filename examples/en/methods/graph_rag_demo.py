@@ -37,6 +37,7 @@ if __name__ == "__main__":
     rag = Graph_RAG(llm_client=llm, embedder=embedder)
     rag.feed_text(text)
 
+    print("Extracting entities and relations from Tesla's biography...")
     print(f"\n✓ Extracted {len(rag.nodes)} entities, {len(rag.edges)} relations\n")
 
     print("-" * 60)
@@ -49,3 +50,5 @@ if __name__ == "__main__":
             print(f"A: {result.content}")
         except Exception as e:
             print(f"Error: {e}")
+
+    rag.show()

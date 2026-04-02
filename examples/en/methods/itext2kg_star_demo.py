@@ -37,6 +37,7 @@ if __name__ == "__main__":
     ka = iText2KG_Star(llm_client=llm, embedder=embedder)
     ka.feed_text(text)
 
+    print("Extracting deduplicated knowledge from Tesla's biography...")
     print(f"\n✓ Extracted {len(ka.nodes)} entities, {len(ka.edges)} relations\n")
 
     print("-" * 60)
@@ -49,3 +50,5 @@ if __name__ == "__main__":
             print(f"A: {result.content}")
         except Exception as e:
             print(f"Error: {e}")
+
+    ka.show()

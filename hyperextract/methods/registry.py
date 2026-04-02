@@ -132,7 +132,7 @@ def _init_registry():
     register_method(
         name="cog_rag",
         method_class=Cog_RAG,
-        autotype="graph",
+        autotype="hypergraph",
         description="Cognitive RAG implementation for intelligent knowledge retrieval",
     )
 

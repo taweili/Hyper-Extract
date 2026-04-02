@@ -37,6 +37,9 @@ if __name__ == "__main__":
     atom = Atom(llm_client=llm, embedder=embedder)
     atom.feed_text(text)
 
+    print("从苏轼传记中提取时序事实...")
+    print(f"\n✓ 提取了 {len(atom.facts)} 个时序事实\n")
+
     print("-" * 60)
     print("问答")
     print("-" * 60)
@@ -47,3 +50,5 @@ if __name__ == "__main__":
             print(f"答: {result.content}")
         except Exception as e:
             print(f"错误: {e}")
+
+    atom.show()

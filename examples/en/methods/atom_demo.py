@@ -37,6 +37,7 @@ if __name__ == "__main__":
     atom = Atom(llm_client=llm, embedder=embedder)
     atom.feed_text(text)
 
+    print("Extracting temporal facts from Tesla's biography...")
     print(f"\n✓ Extracted {len(atom.facts)} temporal facts\n")
 
     print("-" * 60)
@@ -49,3 +50,5 @@ if __name__ == "__main__":
             print(f"A: {result.content}")
         except Exception as e:
             print(f"Error: {e}")
+
+    atom.show()
