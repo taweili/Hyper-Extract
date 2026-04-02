@@ -18,32 +18,58 @@ Services revenue reached an all-time high of $22.3 billion.
 Hyper-Extract uses YAML templates to define what to extract. Create `template.yaml`:
 
 ```yaml
+language: en
+
 name: Company News Summary
-description: Extract key financial events from news articles
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Company
-      properties:
-        - name: name
-          type: string
-        - name: ticker
-          type: string
-    - type: FinancialEvent
-      properties:
-        - name: description
-          type: string
-        - name: amount
-          type: number
-        - name: category
-          type: string
-  edges:
-    - type: ANNOUNCED
-      source: Company
-      target: FinancialEvent
+type: graph
+tags: [finance]
+
+description: 'Extract key financial events and entity relationships from news articles.'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Entity name'
+    - name: type
+      type: str
+      description: 'Entity type (company/person/event/amount)'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source entity'
+    - name: target
+      type: str
+      description: 'Target entity'
+    - name: type
+      type: str
+      description: 'Relation type'
+
+guideline:
+  target: 'Extract entities and relationships from news articles.'
+  rules_for_entities:
+    - 'Extract companies, persons, amounts, etc.'
+    - 'Maintain consistent naming'
+  rules_for_relations:
+    - 'Create relations only when explicitly expressed'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{type}'
 ```
 
 ## Step 3: Extract Knowledge (CLI)
+
+![CLI](../assets/cli.png)
 
 ```bash
 he parse document.txt -o output/ -t template.yaml
@@ -55,14 +81,14 @@ he parse document.txt -o output/ -t template.yaml
 from hyperextract import Template
 
 # Create template from YAML
-ka = Template.from_yaml("template.yaml")
+ka = Template.create("template.yaml", "en")
 
 # Parse document
 result = ka.parse("Apple Inc. reported record quarterly revenue...")
 
 # Access results
-print(result.nodes)
-print(result.edges)
+print(result.entities)
+print(result.relations)
 ```
 
 ## Step 5: View Results

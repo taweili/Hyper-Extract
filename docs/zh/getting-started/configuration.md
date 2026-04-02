@@ -1,76 +1,60 @@
 # 配置
 
-本指南介绍 Hyper-Extract 的高级配置选项。
+Hyper-Extract 使用 TOML 配置文件。默认位置：`~/.he/config.toml`
 
-## 配置文件
+## 快速配置
 
-Hyper-Extract 使用 YAML 配置文件。默认位置：`~/.hyper-extract/config.yaml`
+```bash
+# 使用 API 密钥初始化（推荐）
+he config init -k YOUR_API_KEY
+
+# 或者分别配置 LLM 和 Embedder
+he config llm --api-key YOUR_API_KEY
+he config embedder --api-key YOUR_API_KEY
+```
 
 ## 配置选项
 
 ### LLM 设置
 
-```yaml
-llm:
-  provider: openai  # openai, anthropic, azure 等
-  model: gpt-4o
-  api_key: ${OPENAI_API_KEY}  # 或使用环境变量
-  temperature: 0.0
-  max_tokens: 4096
+```bash
+he config llm --api-key YOUR_KEY --model gpt-4o-mini
 ```
 
-### Embedding 设置
+| 选项 | 说明 | 默认值 |
+|------|------|---------|
+| `--api-key`, `-k` | LLM API 密钥 | 必需 |
+| `--model`, `-m` | 模型名称 | gpt-4o-mini |
+| `--base-url`, `-u` | 自定义 API 基础 URL | (默认) |
 
-```yaml
-embedding:
-  provider: openai  # openai, huggingface 等
-  model: text-embedding-3-small
-  api_key: ${OPENAI_API_KEY}
-```
-
-### 提取设置
-
-```yaml
-extraction:
-  default_type: AutoGraph
-  max_retries: 3
-  timeout: 60
-  batch_size: 10
-```
-
-### 存储设置
-
-```yaml
-storage:
-  type: local  # local, s3 等
-  path: ./output
-  format: json  # json, yaml, parquet
-```
-
-## 环境变量
-
-| 变量 | 描述 |
-|------|------|
-| `OPENAI_API_KEY` | OpenAI API 密钥 |
-| `ANTHROPIC_API_KEY` | Anthropic API 密钥 |
-| `HYPER_EXTRACT_CONFIG` | 配置文件路径 |
-
-## CLI 配置
-
-通过 CLI 初始化配置：
+### Embedder 设置
 
 ```bash
-# 使用 OpenAI 初始化
-he config init -k your-api-key
-
-# 显示当前配置
-he config show
-
-# 更新特定选项
-he config set llm.model gpt-4o-mini
+he config embedder --api-key YOUR_KEY --model text-embedding-3-small
 ```
+
+| 选项 | 说明 | 默认值 |
+|------|------|---------|
+| `--api-key`, `-k` | Embedder API 密钥 | 必需 |
+| `--model`, `-m` | 模型名称 | text-embedding-3-small |
+| `--base-url`, `-u` | 自定义 API 基础 URL | (默认) |
+
+## 查看配置
+
+```bash
+he config show
+```
+
+## 命令
+
+| 命令 | 说明 |
+|------|------|
+| `he config init -k KEY` | 使用 API 密钥初始化 LLM 和 Embedder |
+| `he config llm` | 配置 LLM 设置 |
+| `he config embedder` | 配置 Embedder 设置 |
+| `he config show` | 显示当前配置 |
 
 ## 下一步
 
-- 探索[核心概念](../concepts/index.md) 了解提取类型
-- 查看 [CLI 参考](../reference/cli-reference.md) 了解所有命令
+- 了解[模板](../concepts/templates.md)
+- 浏览[预设模板](../concepts/templates.md#preset-templates)

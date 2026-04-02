@@ -18,32 +18,58 @@ CEO Tim Cook 宣布公司实现了史上最强的 iPhone 销量。
 Hyper-Extract 使用 YAML 模板来定义要提取的内容。创建 `template.yaml`：
 
 ```yaml
+language: zh
+
 name: 公司新闻摘要
-description: 从新闻文章中提取关键财务事件
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Company
-      properties:
-        - name: name
-          type: string
-        - name: ticker
-          type: string
-    - type: FinancialEvent
-      properties:
-        - name: description
-          type: string
-        - name: amount
-          type: number
-        - name: category
-          type: string
-  edges:
-    - type: ANNOUNCED
-      source: Company
-      target: FinancialEvent
+type: graph
+tags: [finance]
+
+description: '从新闻文章中提取关键财务事件和实体关系。'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: '实体名称'
+    - name: type
+      type: str
+      description: '实体类型（公司/人物/事件/金额）'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: '源实体'
+    - name: target
+      type: str
+      description: '目标实体'
+    - name: type
+      type: str
+      description: '关系类型'
+
+guideline:
+  target: '从新闻中提取实体和关系。'
+  rules_for_entities:
+    - '提取公司、人物、金额等实体'
+    - '保持命名一致'
+  rules_for_relations:
+    - '仅在文本明确表达时创建关系'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{type}'
 ```
 
 ## 第三步：提取知识（CLI）
+
+![CLI](../assets/cli.png)
 
 ```bash
 he parse document.txt -o output/ -t template.yaml
@@ -55,14 +81,14 @@ he parse document.txt -o output/ -t template.yaml
 from hyperextract import Template
 
 # 从 YAML 创建模板
-ka = Template.from_yaml("template.yaml")
+ka = Template.create("template.yaml", "zh")
 
 # 解析文档
 result = ka.parse("Apple Inc. 报告创纪录的季度收入...")
 
 # 访问结果
-print(result.nodes)
-print(result.edges)
+print(result.entities)
+print(result.relations)
 ```
 
 ## 第五步：查看结果

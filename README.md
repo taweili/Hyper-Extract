@@ -8,7 +8,7 @@
 
 **Transform documents into knowledge abstracts — with just one command.**
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
 
@@ -55,22 +55,53 @@ he feed ./output/ new_document.md
 Zero-code approach to define what to extract from incoming texts:
 
 ```yaml
-name: Event Timeline
-description: Extract financial events and their temporal relations.
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Event
-      properties:
-        - name: description
-          type: string
-  edges:
-    - type: Timeline
-      source: Event
-      target: Event
-      properties:
-        - name: relation
-          type: string
+language: en
+
+name: Knowledge Graph
+type: graph
+tags: [general]
+
+description: 'Extract entities and their relationships to construct a knowledge graph.'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Entity name'
+    - name: type
+      type: str
+      description: 'Entity type'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source entity'
+    - name: target
+      type: str
+      description: 'Target entity'
+    - name: type
+      type: str
+      description: 'Relation type'
+
+guideline:
+  target: 'Extract entities and their relationships from the text.'
+  rules_for_entities:
+    - 'Extract meaningful entities'
+    - 'Maintain consistent naming'
+  rules_for_relations:
+    - 'Create relations only when explicitly expressed in the text'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{type}'
 ```
 </details>
 
@@ -92,13 +123,13 @@ result = ka.parse(annual_report_text)
 
 Our framework embraces complexity without making you write boilerplate code. 
 
-![Knowledge Structures Matrix](docs/assets/8-types.jpg)
+![Knowledge Structures Matrix](docs/assets/8-types-v2.png)
 
 ## 🛠️ Architecture Overview
 
 The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 
-![Architecture](docs/assets/architecture-v10.jpg)
+![Architecture](docs/assets/architecture-v2.png)
 
 * **Design Guide**: [Template Design Guide](./hyperextract/templates/DESIGN_GUIDE.md)
 * **Preset Templates**: [presets directory](./hyperextract/templates/presets/)

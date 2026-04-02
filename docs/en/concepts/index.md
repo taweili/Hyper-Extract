@@ -1,52 +1,52 @@
-# Concepts
+# Core Concepts
 
-This section explains the core concepts behind Hyper-Extract.
+## Overview
 
-## What's in This Section
-
-- [Auto-Types](auto-types.md) - The 8 data structures for knowledge representation
-- [Extraction Methods](methods.md) - The 10+ engines for knowledge extraction
-- [Templates](templates.md) - Declarative YAML schemas for extraction
+Hyper-Extract is a knowledge extraction framework that extracts structured knowledge from various documents. This section introduces core concepts to help you understand how the system works.
 
 ## Core Concepts
 
-### Auto-Types
+### Template
 
-Hyper-Extract provides 8 auto-types, ranging from simple collections to complex graphs:
+Templates use YAML to define what to extract, providing a declarative way to specify extraction schemas without writing code.
 
-| Type | Use Case |
-|------|----------|
-| AutoModel | Structured data extraction |
-| AutoList | List/collection extraction |
-| AutoSet | Unique item extraction |
-| AutoGraph | Knowledge graph extraction |
-| AutoHypergraph | Complex relationship extraction |
-| AutoTemporalGraph | Time-aware knowledge graphs |
-| AutoSpatialGraph | Location-aware knowledge graphs |
-| AutoSpatioTemporalGraph | Time and location aware graphs |
+Learn more: [Templates](./templates.md)
 
-### Extraction Methods
+### AutoType
 
-Choose the right method for your extraction task:
+Hyper-Extract supports 8 auto types, each designed for different extraction scenarios:
 
-| Method | Best For |
-|--------|----------|
-| atom | Simple, direct extraction |
-| graph_rag | Graph-based retrieval |
-| light_rag | Lightweight retrieval |
-| hyper_rag | Hypergraph extraction |
-| cog_rag | Cognitive retrieval |
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `model` | Single structured object | Extract single record |
+| `list` | Ordered list | Extract ranked items |
+| `set` | Deduplicated set | Extract unique entities |
+| `graph` | Binary relation graph | Extract entity relations |
+| `hypergraph` | Multi-entity relation | Extract multi-party relations |
+| `temporal_graph` | Temporal graph | Add time dimension |
+| `spatial_graph` | Spatial graph | Add space dimension |
+| `spatio_temporal_graph` | Spatio-temporal graph | Add both time and space |
 
-### Templates
+Learn more: [AutoTypes](./auto-types.md)
 
-Templates define WHAT to extract using declarative YAML. They provide:
+### Methods
 
-- Type-safe schemas
-- Validation rules
-- Custom extraction logic
+Hyper-Extract supports multiple extraction methods:
 
-## Learn More
+- **Local Models**: Use locally deployed models
+- **API Models**: Use cloud APIs (e.g., OpenAI, Claude)
+- **Hybrid Mode**: Combine multiple methods
 
-- [Auto-Types](auto-types.md) - Deep dive into each type
-- [Methods](methods.md) - Compare extraction methods
-- [Templates](templates.md) - Create custom templates
+Learn more: [Methods](./methods.md)
+
+## Quick Start
+
+1. [Installation](../getting-started/installation.md)
+2. [Quick Start Tutorial](../getting-started/quickstart.md)
+3. [Template Design](./templates.md)
+
+## Next Steps
+
+- Browse the [Template Gallery](../reference/template-gallery.md)
+- Explore [Domain Templates](../guides/domain-templates/index.md)
+- Learn the [Python API](../guides/python-api.md)

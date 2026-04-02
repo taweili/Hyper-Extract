@@ -13,56 +13,65 @@ theme:
   name: material
   language: en
   features:
-    - navigation.instant
+    - navigation.tracking
     - navigation.tabs
-    - navigation.sections
+    - navigation.tabs.sticky
     - navigation.indexes
-    - toc.integrate
-    - toc.follow
     - search.suggest
     - search.highlight
     - content.code.copy
-    - content.code.annotate
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-  font:
-    text: Roboto
-    code: Roboto Mono
+    primary: purple
+    accent: deep purple
 
 plugins:
-  - search:
-      separator: '[\s\-,:!=\[\]()"/]+|(?<!:)(?://|(?<!--))'
+  - search
   - i18n:
       docs_structure: folder
       fallback_to_default: true
-      reconfigure_material: true
-      reconfigure_search: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: zh
+          name: 中文
+          build: true
+          nav:
+            - 首页: zh/index.md
+            - 开始使用:
+                - zh/getting-started/index.md
+                - zh/getting-started/installation.md
+                - zh/getting-started/quickstart.md
+                - zh/getting-started/configuration.md
+            - 核心概念:
+                - zh/concepts/index.md
+                - zh/concepts/auto-types.md
+                - zh/concepts/methods.md
+                - zh/concepts/templates.md
+            - 使用指南:
+                - zh/guides/index.md
+                - zh/guides/cli.md
+                - zh/guides/python-api.md
+                - zh/guides/domain-templates/index.md
+                - zh/guides/domain-templates/finance.md
+                - zh/guides/domain-templates/legal.md
+                - zh/guides/domain-templates/medicine.md
+                - zh/guides/domain-templates/tcm.md
+            - 参考资料:
+                - zh/reference/index.md
+                - zh/reference/cli-reference.md
+                - zh/reference/template-gallery.md
+            - 资源:
+                - zh/resources/index.md
+                - zh/resources/faq.md
+                - zh/resources/troubleshooting.md
+                - zh/resources/contributing.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/hyper-extract/hyper-extract
-  generator: false
-  alternate:
-    - name: English
-      link: /en/
-      lang: en
-    - name: 中文
-      link: /zh/
-      lang: zh
+      link: https://github.com/yifanfeng97/hyper-extract
 
 nav:
   - Home: en/index.md
@@ -96,22 +105,11 @@ nav:
 
 markdown_extensions:
   - pymdownx.highlight:
-      anchor_linenums: true
+      use_pygments: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.superfences
   - admonition
-  - pymdownx.details
   - tables
   - toc:
       permalink: true
   - attr_list
-  - md_in_html
-  - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.material
-      emoji_generator: !!python/name:materialx.emoji.material
-  - pymdownx.mark
-  - attr_list
-
-extra_css:
-  - stylesheets/extra.css

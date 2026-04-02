@@ -1,194 +1,74 @@
 # Python API
 
-本指南介绍如何在 Python 应用程序中使用 Hyper-Extract。
+Hyper-Extract 提供 Python API 用于程序化提取。
 
 ## 安装
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
-## 基本用法
+## 基础用法
 
-### 导入和初始化
+### 加载预设模板
 
 ```python
 from hyperextract import Template
 
 # 加载预设模板
-ka = Template.create("general/biography")
-
-# 解析文档
-result = ka.parse(text)
-```
-
-### 使用自定义模板
-
-```python
-from hyperextract import Template
-
-# 从 YAML 加载
-ka = Template.from_yaml("template.yaml")
+ka = Template.create("general/graph", "zh")
 
 # 解析文档
 result = ka.parse(document_text)
 
 # 访问结果
-print(result.nodes)
-print(result.edges)
+print(result.entities)
+print(result.relations)
 ```
 
-## 自动类型
-
-### AutoModel
-
-```python
-from hyperextract import AutoModel
-from pydantic import BaseModel
-
-class Person(BaseModel):
-    name: str
-    age: int
-    occupation: str
-
-extractor = AutoModel(schema=Person)
-result = extractor.parse("John 是一位 30 岁的工程师。")
-```
-
-### AutoList
-
-```python
-from hyperextract import AutoList
-
-extractor = AutoList(item_type="string")
-result = extractor.parse("配料包括面粉、糖和鸡蛋。")
-print(result.items)  # ["面粉", "糖", "鸡蛋"]
-```
-
-### AutoGraph
-
-```python
-from hyperextract import AutoGraph
-
-extractor = AutoGraph(
-    node_types=["Person", "Organization"],
-    edge_types=["WORKS_AT"]
-)
-result = extractor.parse("Alice 在 Google 工作。")
-```
-
-### AutoHypergraph
-
-```python
-from hyperextract import AutoHypergraph
-
-extractor = AutoHypergraph()
-result = extractor.parse("Alice、Bob 和 Carol 合作了。")
-```
-
-## 提取方法
-
-### 使用 atom
-
-```python
-from hyperextract.methods import atom
-
-result = atom.extract(text, schema=MySchema)
-```
-
-### 使用 graph_rag
-
-```python
-from hyperextract.methods import graph_rag
-
-result = graph_rag.extract(
-    text,
-    node_types=["Person", "Company"],
-    edge_types=["WORKS_AT"]
-)
-```
-
-### 使用 cog_rag
-
-```python
-from hyperextract.methods import cog_rag
-
-result = cog_rag.extract(
-    text,
-    task="提取因果关系"
-)
-```
-
-## 配置
-
-### LLM 配置
-
-```python
-from hyperextract import Config
-
-config = Config(
-    llm_provider="openai",
-    llm_model="gpt-4o",
-    api_key="your-api-key"
-)
-
-ka = Template.create("general/biography", config=config)
-```
-
-### Embedding 配置
-
-```python
-config = Config(
-    embedding_provider="openai",
-    embedding_model="text-embedding-3-small"
-)
-```
-
-## 处理结果
-
-### 访问节点
-
-```python
-result = ka.parse(text)
-
-for node in result.nodes:
-    print(f"{node.type}: {node.properties}")
-```
-
-### 访问边
-
-```python
-for edge in result.edges:
-    print(f"{edge.source} --[{edge.type}]--> {edge.target}")
-```
-
-### 序列化
-
-```python
-# 保存为 JSON
-result.to_json("output.json")
-
-# 保存为 YAML
-result.to_yaml("output.yaml")
-
-# 从文件加载
-loaded = Result.from_json("output.json")
-```
-
-## 高级用法
-
-### 自定义解析器
+### 加载自定义模板
 
 ```python
 from hyperextract import Template
-from hyperextract.parsers import CustomParser
 
-class MyParser(CustomParser):
-    def parse(self, text):
-        # 自定义解析逻辑
-        return processed_result
+# 从 YAML 文件加载
+ka = Template.create("template.yaml", "zh")
 
-ka = Template(parser=MyParser())
+# 从字符串加载
+yaml_content = """
+language: zh
+name: 自定义模板
+type: graph
+tags: [custom]
+description: '...'
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: '名称'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: '源'
+    - name: target
+      type: str
+      description: '目标'
+    - name: type
+      type: str
+      description: '类型'
+guideline:
+  target: '...'
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+"""
+
+ka = Template.create(yaml_content, "zh")
 ```
 
 ### 批量处理
@@ -196,14 +76,92 @@ ka = Template(parser=MyParser())
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography")
+ka = Template.create("general/graph", "zh")
 
-documents = ["doc1.txt", "doc2.txt", "doc3.txt"]
-results = ka.batch_parse(documents)
+documents = ["文档1内容...", "文档2内容...", "文档3内容..."]
+
+results = []
+for doc in documents:
+    result = ka.parse(doc)
+    results.append(result)
+```
+
+### 结果导出
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/graph", "zh")
+result = ka.parse(document_text)
+
+# 导出为 JSON
+json_output = result.to_json()
+
+# 导出为 Dict
+dict_output = result.to_dict()
+
+# 导出为三元组
+triples = result.to_triples()
+```
+
+## 模板创建
+
+### 创建新模板
+
+```python
+from hyperextract import Template
+
+template = Template.create("template.yaml", "zh")
+```
+
+### 保存模板
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/graph", "zh")
+ka.save("my_template.yaml")
+```
+
+## 配置选项
+
+### 设置语言
+
+```python
+from hyperextract import Template
+
+# 单语言
+ka = Template.create("general/graph", "zh")
+
+# 多语言
+ka = Template.create("general/graph", ["zh", "en"])
+```
+
+### 设置模型
+
+```python
+from hyperextract import Template
+
+# 使用指定模型
+ka = Template.create("general/graph", "zh", model="gpt-4")
+
+# 使用本地模型
+ka = Template.create("general/graph", "zh", model="local-model")
+```
+
+## 错误处理
+
+```python
+from hyperextract import Template
+
+try:
+    ka = Template.create("template.yaml", "zh")
+    result = ka.parse(document_text)
+except Exception as e:
+    print(f"提取失败: {e}")
 ```
 
 ## 下一步
 
-- 探索 [CLI](cli.md)
-- 浏览 [领域模板](domain-templates/index.md)
-- 查看 [参考](../reference/index.md)
+- 浏览 [预设模板](../concepts/templates.md)
+- 查看 [领域模板](./domain-templates/index.md)

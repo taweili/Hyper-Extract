@@ -90,8 +90,7 @@
 
 我们欢迎翻译贡献：
 1. 检查现有翻译
-2. 遵循[翻译指南](./translation-guide.md)
-3. 通过 PR 提交翻译
+2. 通过 PR 提交翻译
 
 ## Pull Request 指南
 

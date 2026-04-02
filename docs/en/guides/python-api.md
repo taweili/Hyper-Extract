@@ -1,194 +1,74 @@
 # Python API
 
-This guide covers using Hyper-Extract in your Python applications.
+Hyper-Extract provides a Python API for programmatic extraction.
 
 ## Installation
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ## Basic Usage
 
-### Import and Initialize
+### Load Preset Template
 
 ```python
 from hyperextract import Template
 
-# Load a preset template
-ka = Template.create("general/biography")
-
-# Parse document
-result = ka.parse(text)
-```
-
-### Using Custom Templates
-
-```python
-from hyperextract import Template
-
-# Load from YAML
-ka = Template.from_yaml("template.yaml")
+# Load preset template
+ka = Template.create("general/graph", "en")
 
 # Parse document
 result = ka.parse(document_text)
 
 # Access results
-print(result.nodes)
-print(result.edges)
+print(result.entities)
+print(result.relations)
 ```
 
-## Auto-Types
-
-### AutoModel
-
-```python
-from hyperextract import AutoModel
-from pydantic import BaseModel
-
-class Person(BaseModel):
-    name: str
-    age: int
-    occupation: str
-
-extractor = AutoModel(schema=Person)
-result = extractor.parse("John is a 30-year-old engineer.")
-```
-
-### AutoList
-
-```python
-from hyperextract import AutoList
-
-extractor = AutoList(item_type="string")
-result = extractor.parse("The ingredients are flour, sugar, and eggs.")
-print(result.items)  # ["flour", "sugar", "eggs"]
-```
-
-### AutoGraph
-
-```python
-from hyperextract import AutoGraph
-
-extractor = AutoGraph(
-    node_types=["Person", "Organization"],
-    edge_types=["WORKS_AT"]
-)
-result = extractor.parse("Alice works at Google.")
-```
-
-### AutoHypergraph
-
-```python
-from hyperextract import AutoHypergraph
-
-extractor = AutoHypergraph()
-result = extractor.parse("Alice, Bob, and Carol collaborated.")
-```
-
-## Extraction Methods
-
-### Using atom
-
-```python
-from hyperextract.methods import atom
-
-result = atom.extract(text, schema=MySchema)
-```
-
-### Using graph_rag
-
-```python
-from hyperextract.methods import graph_rag
-
-result = graph_rag.extract(
-    text,
-    node_types=["Person", "Company"],
-    edge_types=["WORKS_AT"]
-)
-```
-
-### Using cog_rag
-
-```python
-from hyperextract.methods import cog_rag
-
-result = cog_rag.extract(
-    text,
-    task="Extract causal relationships"
-)
-```
-
-## Configuration
-
-### LLM Configuration
-
-```python
-from hyperextract import Config
-
-config = Config(
-    llm_provider="openai",
-    llm_model="gpt-4o",
-    api_key="your-api-key"
-)
-
-ka = Template.create("general/biography", config=config)
-```
-
-### Embedding Configuration
-
-```python
-config = Config(
-    embedding_provider="openai",
-    embedding_model="text-embedding-3-small"
-)
-```
-
-## Working with Results
-
-### Accessing Nodes
-
-```python
-result = ka.parse(text)
-
-for node in result.nodes:
-    print(f"{node.type}: {node.properties}")
-```
-
-### Accessing Edges
-
-```python
-for edge in result.edges:
-    print(f"{edge.source} --[{edge.type}]--> {edge.target}")
-```
-
-### Serialization
-
-```python
-# Save to JSON
-result.to_json("output.json")
-
-# Save to YAML
-result.to_yaml("output.yaml")
-
-# Load from file
-loaded = Result.from_json("output.json")
-```
-
-## Advanced Usage
-
-### Custom Parsers
+### Load Custom Template
 
 ```python
 from hyperextract import Template
-from hyperextract.parsers import CustomParser
 
-class MyParser(CustomParser):
-    def parse(self, text):
-        # Custom parsing logic
-        return processed_result
+# Load from YAML file
+ka = Template.create("template.yaml", "en")
 
-ka = Template(parser=MyParser())
+# Load from string
+yaml_content = """
+language: en
+name: Custom Template
+type: graph
+tags: [custom]
+description: '...'
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Name'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source'
+    - name: target
+      type: str
+      description: 'Target'
+    - name: type
+      type: str
+      description: 'Type'
+guideline:
+  target: '...'
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+"""
+
+ka = Template.create(yaml_content, "en")
 ```
 
 ### Batch Processing
@@ -196,14 +76,92 @@ ka = Template(parser=MyParser())
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography")
+ka = Template.create("general/graph", "en")
 
-documents = ["doc1.txt", "doc2.txt", "doc3.txt"]
-results = ka.batch_parse(documents)
+documents = ["Document 1 content...", "Document 2 content...", "Document 3 content..."]
+
+results = []
+for doc in documents:
+    result = ka.parse(doc)
+    results.append(result)
+```
+
+### Export Results
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/graph", "en")
+result = ka.parse(document_text)
+
+# Export to JSON
+json_output = result.to_json()
+
+# Export to Dict
+dict_output = result.to_dict()
+
+# Export to triples
+triples = result.to_triples()
+```
+
+## Template Creation
+
+### Create New Template
+
+```python
+from hyperextract import Template
+
+template = Template.create("template.yaml", "en")
+```
+
+### Save Template
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/graph", "en")
+ka.save("my_template.yaml")
+```
+
+## Configuration Options
+
+### Set Language
+
+```python
+from hyperextract import Template
+
+# Single language
+ka = Template.create("general/graph", "en")
+
+# Multiple languages
+ka = Template.create("general/graph", ["zh", "en"])
+```
+
+### Set Model
+
+```python
+from hyperextract import Template
+
+# Use specified model
+ka = Template.create("general/graph", "en", model="gpt-4")
+
+# Use local model
+ka = Template.create("general/graph", "en", model="local-model")
+```
+
+## Error Handling
+
+```python
+from hyperextract import Template
+
+try:
+    ka = Template.create("template.yaml", "en")
+    result = ka.parse(document_text)
+except Exception as e:
+    print(f"Extraction failed: {e}")
 ```
 
 ## Next Steps
 
-- Explore [CLI](cli.md)
-- Browse [Domain Templates](domain-templates/index.md)
-- Check [Reference](../reference/index.md)
+- Browse [Preset Templates](../concepts/templates.md)
+- Explore [Domain Templates](./domain-templates/index.md)

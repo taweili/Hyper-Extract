@@ -1,118 +1,129 @@
-# Auto-Types
+# AutoTypes
 
-Hyper-Extract provides 8 auto-types for representing knowledge. Each type is optimized for specific extraction scenarios.
+Hyper-Extract uses auto types to determine extraction patterns, supporting 8 types in total.
 
-## Overview
+## Type Overview
 
-| Type | Module | Description |
-|------|--------|-------------|
-| AutoModel | `hyperextract.types.model` | Pydantic model extraction |
-| AutoList | `hyperextract.types.list` | List/collection extraction |
-| AutoSet | `hyperextract.types.set` | Unique set extraction |
-| AutoGraph | `hyperextract.types.graph` | Knowledge graph extraction |
-| AutoHypergraph | `hyperextract.types.hypergraph` | Hypergraph extraction |
-| AutoTemporalGraph | `hyperextract.types.temporal_graph` | Temporal knowledge graph |
-| AutoSpatialGraph | `hyperextract.types.spatial_graph` | Spatial knowledge graph |
-| AutoSpatioTemporalGraph | `hyperextract.types.spatio_temporal_graph` | Spatio-temporal graph |
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `model` | Single structured object | Extract single record |
+| `list` | Ordered list | Extract ranked items |
+| `set` | Deduplicated set | Extract unique entities |
+| `graph` | Binary relation graph | Extract entity relations |
+| `hypergraph` | Multi-entity relation | Extract multi-party relations |
+| `temporal_graph` | Temporal graph | Add time dimension |
+| `spatial_graph` | Spatial graph | Add space dimension |
+| `spatio_temporal_graph` | Spatio-temporal graph | Add both time and space |
 
-## Usage Examples
+## Selection Decision Tree
 
-### AutoModel
+```
+Need relationships?
+├─ No → Record types
+│   ├─ Single object → model
+│   ├─ Ordered list → list
+│   └─ Deduplicated set → set
+└─ Yes → Graph types
+    ├─ Binary relations (A→B) → graph
+    └─ Multi-entity relations (A+B+C→D) → hypergraph
 
-Extract structured data into Pydantic models:
-
-```python
-from hyperextract import AutoModel
-from pydantic import BaseModel
-
-class Person(BaseModel):
-    name: str
-    age: int
-    occupation: str
-
-extractor = AutoModel(schema=Person)
-result = extractor.parse("John Smith is a 35-year-old software engineer.")
++ time dimension → temporal_graph
++ space dimension → spatial_graph
++ both → spatio_temporal_graph
 ```
 
-### AutoList
+## Detailed Usage
 
-Extract lists of items:
+### Model
 
-```python
-from hyperextract import AutoList
-
-extractor = AutoList(item_type="string")
-result = extractor.parse("The ingredients are flour, sugar, eggs, and milk.")
-# result: ["flour", "sugar", "eggs", "milk"]
-```
-
-### AutoGraph
-
-Extract knowledge graphs:
+Used for extracting a single structured object.
 
 ```python
-from hyperextract import AutoGraph
+from hyperextract import Template
 
-extractor = AutoGraph(node_types=["Person", "Company"], edge_types=["WORKS_AT"])
-result = extractor.parse("Alice works at Google.")
-# result: Graph with nodes and edges
+ka = Template.create("finance/earnings_summary", "en")
+result = ka.parse(text)
+
+print(result.fields["company_name"])
+print(result.fields["revenue"])
 ```
 
-### AutoHypergraph
+### List
 
-Extract hypergraphs (edges connecting multiple nodes):
+Used for extracting an ordered list.
 
 ```python
-from hyperextract import AutoHypergraph
+from hyperextract import Template
 
-extractor = AutoHypergraph()
-result = extractor.parse("Alice, Bob, and Carol collaborated on Project X.")
+ka = Template.create("finance/risk_factor_set", "en")
+result = ka.parse(text)
+
+for item in result.fields:
+    print(item)
 ```
 
-### AutoTemporalGraph
+### Set
 
-Extract graphs with temporal information:
+Used for extracting a deduplicated set.
 
 ```python
-from hyperextract import AutoTemporalGraph
+from hyperextract import Template
 
-extractor = AutoTemporalGraph()
-result = extractor.parse("On Monday, Alice joined Google. On Tuesday, she started working.")
+ka = Template.create("general/entity_registry", "en")
+result = ka.parse(text)
+
+for entity in result.fields:
+    print(entity)
 ```
 
-## Choosing the Right Type
+### Graph
 
-### When to Use AutoModel
-- Need structured, validated output
-- Working with well-defined schemas
-- Want Pydantic validation
+Used for extracting binary relations.
 
-### When to Use AutoList
-- Extracting collections of items
-- Order matters
-- Simple item extraction
+```python
+from hyperextract import Template
 
-### When to Use AutoSet
-- Need unique items only
-- Don't care about order
-- Deduplication required
+ka = Template.create("finance/ownership_graph", "en")
+result = ka.parse(text)
 
-### When to Use AutoGraph
-- Complex relationships between entities
-- Knowledge graphs
-- Network analysis
+for entity in result.entities:
+    print(f"{entity['name']} ({entity['type']})")
 
-### When to Use AutoHypergraph
-- Many-to-many relationships
-- Group entities together
-- Complex network structures
+for relation in result.relations:
+    print(f"{relation['source']} --[{relation['type']}]--> {relation['target']}")
+```
 
-### When to Use Temporal/Spatial Variants
-- Time-aware: Use `AutoTemporalGraph`
-- Location-aware: Use `AutoSpatialGraph`
-- Both: Use `AutoSpatioTemporalGraph`
+### Hypergraph
+
+Used for extracting multi-entity relations.
+
+```python
+from hyperextract import Template
+
+ka = Template.create("tcm/formula_composition", "en")
+result = ka.parse(text)
+
+for relation in result.relations:
+    print(f"Formula: {relation['formula_name']}")
+    print(f"Herbs: {relation['herbs']}")
+```
+
+### Temporal Graph
+
+Used for extracting temporal relations.
+
+```python
+from hyperextract import Template
+
+ka = Template.create("finance/event_timeline", "en")
+result = ka.parse(text)
+
+for relation in result.relations:
+    print(f"{relation['source']} --[{relation['type']}]--> {relation['target']} @ {relation['time']}")
+```
 
 ## Next Steps
 
-- Learn about [Extraction Methods](methods.md)
-- Explore [Templates](templates.md)
+- Learn about [Templates](./templates.md)
+- Browse [Preset Templates](./templates.md)
+- Explore [Domain Templates](../guides/domain-templates/index.md)

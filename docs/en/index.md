@@ -4,7 +4,9 @@
 
 **Transform documents into knowledge abstracts — with just one command.**
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+![Hero & Workflow](assets/hero-v2.jpg)
+
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
 
@@ -69,6 +71,8 @@ result = ka.parse(annual_report_text)
 | AutoSpatioTemporalGraph | Spatio-temporal knowledge graph |
 
 ## Architecture
+
+![Architecture](assets/architecture-v2.png)
 
 The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
 

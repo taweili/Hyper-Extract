@@ -1,76 +1,60 @@
 # Configuration
 
-This guide covers advanced configuration options for Hyper-Extract.
+Hyper-Extract uses a TOML configuration file. Default location: `~/.he/config.toml`
 
-## Configuration File
+## Quick Setup
 
-Hyper-Extract uses a YAML configuration file. Default location: `~/.hyper-extract/config.yaml`
+```bash
+# Initialize with API key (recommended)
+he config init -k YOUR_API_KEY
+
+# Or configure LLM and Embedder separately
+he config llm --api-key YOUR_API_KEY
+he config embedder --api-key YOUR_API_KEY
+```
 
 ## Configuration Options
 
 ### LLM Settings
 
-```yaml
-llm:
-  provider: openai  # openai, anthropic, azure, etc.
-  model: gpt-4o
-  api_key: ${OPENAI_API_KEY}  # Or use environment variable
-  temperature: 0.0
-  max_tokens: 4096
+```bash
+he config llm --api-key YOUR_KEY --model gpt-4o-mini
 ```
 
-### Embedding Settings
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--api-key`, `-k` | LLM API key | Required |
+| `--model`, `-m` | Model name | gpt-4o-mini |
+| `--base-url`, `-u` | Custom API base URL | (default) |
 
-```yaml
-embedding:
-  provider: openai  # openai, huggingface, etc.
-  model: text-embedding-3-small
-  api_key: ${OPENAI_API_KEY}
-```
-
-### Extraction Settings
-
-```yaml
-extraction:
-  default_type: AutoGraph
-  max_retries: 3
-  timeout: 60
-  batch_size: 10
-```
-
-### Storage Settings
-
-```yaml
-storage:
-  type: local  # local, s3, etc.
-  path: ./output
-  format: json  # json, yaml, parquet
-```
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `OPENAI_API_KEY` | OpenAI API key |
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `HYPER_EXTRACT_CONFIG` | Path to config file |
-
-## CLI Configuration
-
-Initialize configuration via CLI:
+### Embedder Settings
 
 ```bash
-# Initialize with OpenAI
-he config init -k your-api-key
-
-# Show current configuration
-he config show
-
-# Update specific option
-he config set llm.model gpt-4o-mini
+he config embedder --api-key YOUR_KEY --model text-embedding-3-small
 ```
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--api-key`, `-k` | Embedder API key | Required |
+| `--model`, `-m` | Model name | text-embedding-3-small |
+| `--base-url`, `-u` | Custom API base URL | (default) |
+
+## View Configuration
+
+```bash
+he config show
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `he config init -k KEY` | Initialize with API key for both LLM and Embedder |
+| `he config llm` | Configure LLM settings |
+| `he config embedder` | Configure Embedder settings |
+| `he config show` | Show current configuration |
 
 ## Next Steps
 
-- Explore [Concepts](../concepts/index.md) to understand extraction types
-- Check [CLI Reference](../reference/cli-reference.md) for all commands
+- Learn about [Templates](../concepts/templates.md)
+- Browse [Preset Templates](../concepts/templates.md#preset-templates)

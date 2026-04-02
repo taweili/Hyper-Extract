@@ -9,15 +9,52 @@ Hyper-Extract provides specialized templates for medical document extraction.
 Extract drug interaction information:
 
 ```yaml
-name: drug_interactions
-type: Graph
-schema:
-  nodes:
-    - type: Drug
-    - type: Interaction
-  edges:
-    - type: INTERACTS_WITH
-    - type: CAUSES
+language: en
+
+name: Drug Interaction Graph
+type: graph
+tags: [medicine]
+
+description: 'Extract drug interaction information.'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Drug name'
+    - name: type
+      type: str
+      description: 'Drug type'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source drug'
+    - name: target
+      type: str
+      description: 'Target drug'
+    - name: type
+      type: str
+      description: 'Interaction type'
+
+guideline:
+  target: 'Extract drug interactions.'
+  rules_for_entities:
+    - 'Extract drug names'
+  rules_for_relations:
+    - 'Extract interactions between drugs'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name}'
+  relation_label: '{type}'
 ```
 
 ### Treatment Plan
@@ -25,33 +62,110 @@ schema:
 Extract treatment plan details:
 
 ```yaml
-name: treatment_plan
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Treatment
-    - type: Medication
-    - type: Procedure
-  edges:
-    - type: INCLUDES
-    - type: SCHEDULED_FOR
+language: en
+
+name: Treatment Plan Timeline
+type: temporal_graph
+tags: [medicine]
+
+description: 'Extract treatment plan details.'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Entity name'
+    - name: type
+      type: str
+      description: 'Type (treatment/medication/procedure)'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source entity'
+    - name: target
+      type: str
+      description: 'Target entity'
+    - name: type
+      type: str
+      description: 'Relation type'
+    - name: time
+      type: str
+      description: 'Time'
+      required: false
+
+guideline:
+  target: 'Extract treatment plan.'
+  rules_for_entities:
+    - 'Extract treatment plans and medications'
+  rules_for_relations:
+    - 'Extract treatment steps'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}|{time}'
+  relation_members:
+    source: source
+    target: target
+  time_field: time
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{type}@{time}'
 ```
 
-### Patient History
+### Anatomy Graph
 
-Extract patient medical history:
+Extract anatomy structure relationships:
 
 ```yaml
-name: patient_history
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Condition
-    - type: Treatment
-    - type: Medication
-  edges:
-    - type: DIAGNOSED_ON
-    - type: TREATED_WITH
+language: en
+
+name: Anatomy Structure Graph
+type: graph
+tags: [medicine]
+
+description: 'Extract anatomy structure relationships.'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: 'Anatomy structure name'
+    - name: type
+      type: str
+      description: 'Structure type'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: 'Source structure'
+    - name: target
+      type: str
+      description: 'Target structure'
+    - name: type
+      type: str
+      description: 'Relation type'
+
+guideline:
+  target: 'Extract anatomy structure relationships.'
+  rules_for_entities:
+    - 'Extract anatomy structures'
+  rules_for_relations:
+    - 'Extract relationships between structures'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name}'
+  relation_label: '{type}'
 ```
 
 ## Usage Examples
@@ -60,10 +174,10 @@ schema:
 
 ```bash
 # Extract drug interactions
-he parse clinical_note.txt -t medicine/drug_interactions -o output/
+he parse clinical_note.txt -t medicine/drug_interaction -o output/
 
 # Extract treatment plan
-he parse discharge_summary.pdf -t medicine/treatment_plan -o output/
+he parse discharge_summary.pdf -t medicine/treatment_map -o output/
 ```
 
 ### Python API
@@ -72,14 +186,13 @@ he parse discharge_summary.pdf -t medicine/treatment_plan -o output/
 from hyperextract import Template
 
 # Load medicine template
-ka = Template.create("medicine/drug_interactions")
+ka = Template.create("medicine/drug_interaction", "en")
 
 # Extract from document
 result = ka.parse(clinical_text)
 
-# Access drug information
-for drug in result.get_nodes("Drug"):
-    print(f"Drug: {drug.name}")
+# Access results
+print(result.entities)
 ```
 
 ## Supported Document Types

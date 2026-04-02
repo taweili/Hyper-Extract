@@ -90,8 +90,7 @@ Documentation improvements are always welcome:
 
 We welcome translation contributions:
 1. Check the existing translations
-2. Follow the [Translation Guide](./translation-guide.md)
-3. Submit translations via PR
+2. Submit translations via PR
 
 ## Pull Request Guidelines
 

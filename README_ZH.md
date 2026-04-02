@@ -8,7 +8,7 @@
 
 **将文档转化为知识摘要 —— 一行命令即可。**
 
-[![Python版本](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+[![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![开源协议](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![状态](https://img.shields.io/badge/status-active-success)]()
 
@@ -54,22 +54,53 @@ he feed ./output/ new_document.md
 无需编写长篇代码，只需使用优雅的 YAML 结构直接声明你想要的信息形态：
 
 ```yaml
-name: Event Timeline
-description: 提取金融动态及其时间依赖关系。
-type: TemporalGraph
-schema:
-  nodes:
-    - type: Event
-      properties:
-        - name: description
-          type: string
-  edges:
-    - type: Timeline
-      source: Event
-      target: Event
-      properties:
-        - name: relation
-          type: string
+language: zh
+
+name: 知识图谱
+type: graph
+tags: [general]
+
+description: '从文本中提取实体及其关系，构建知识图谱。'
+
+output:
+  entities:
+    fields:
+    - name: name
+      type: str
+      description: '实体名称'
+    - name: type
+      type: str
+      description: '实体类型'
+  relations:
+    fields:
+    - name: source
+      type: str
+      description: '源实体'
+    - name: target
+      type: str
+      description: '目标实体'
+    - name: type
+      type: str
+      description: '关系类型'
+
+guideline:
+  target: '从文本中提取实体及其关系。'
+  rules_for_entities:
+    - '提取有意义的实体'
+    - '保持命名一致'
+  rules_for_relations:
+    - '仅在文本明确表达时创建关系'
+
+identifiers:
+  entity_id: name
+  relation_id: '{source}|{type}|{target}'
+  relation_members:
+    source: source
+    target: target
+
+display:
+  entity_label: '{name} ({type})'
+  relation_label: '{type}'
 ```
 </details>
 
@@ -91,13 +122,13 @@ result = ka.parse(annual_report_text)
 
 拒绝样板代码，纯干货聚焦数据本身。
 
-![Knowledge Structures Matrix](docs/assets/8-types.jpg)
+![Knowledge Structures Matrix](docs/assets/8-types-v2.png)
 
 ## 🛠️ 系统架构揭秘
 
 系统底座基于坚实的铁三角架构：**Auto-Types** (提取结构)、**Methods** (执行策略)、以及 **Templates** (声明式配置)。
 
-![Architecture](docs/assets/architecture-v10.jpg)
+![Architecture](docs/assets/architecture-v2.png)
 
 * **设计指南**: [模板设计指南](./hyperextract/templates/DESIGN_GUIDE.md)
 * **内置模板**: [预设模板目录](./hyperextract/templates/presets/)

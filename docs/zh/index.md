@@ -4,7 +4,9 @@
 
 **一行命令，将文档转化为结构化知识摘要。**
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+![Hero & Workflow](assets/hero-v2.jpg)
+
+[![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
 
@@ -69,6 +71,8 @@ result = ka.parse(annual_report_text)
 | AutoSpatioTemporalGraph | 时空知识图谱 |
 
 ## 架构
+
+![Architecture](assets/architecture-v2.png)
 
 系统构建在稳固的三元组上：**自动类型**（多类型结构）、**方法**（执行策略）和**模板**（声明式模式）。
 
