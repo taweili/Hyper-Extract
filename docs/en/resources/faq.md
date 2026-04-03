@@ -1,106 +1,262 @@
-# FAQ
+# Frequently Asked Questions
 
-Frequently asked questions about Hyper-Extract.
+Common questions about Hyper-Extract.
+
+---
 
 ## General
 
 ### What is Hyper-Extract?
 
-Hyper-Extract is an intelligent, LLM-powered knowledge extraction framework that transforms unstructured documents into structured knowledge representations.
+Hyper-Extract is an LLM-powered knowledge extraction framework that transforms unstructured text into structured knowledge graphs, lists, models, and more.
 
-### What types of documents can Hyper-Extract process?
+### What can I use it for?
 
-Hyper-Extract can process various document types including:
-- Plain text files
-- PDFs
-- Markdown files
-- HTML documents
-- Word documents
+- Research paper analysis
+- Knowledge base construction
+- Document processing
+- Information extraction
+- Question-answering systems
 
-### What languages are supported?
+### Is it free?
 
-Hyper-Extract supports multiple languages including English, Chinese, Japanese, Korean, and more.
+The software is open-source (Apache-2.0). You need to provide your own OpenAI API key for LLM calls.
+
+---
 
 ## Installation
 
-### How do I install Hyper-Extract?
+### What are the requirements?
+
+- Python 3.11+
+- OpenAI API key
+
+### How do I install it?
 
 ```bash
 pip install hyper-extract
 ```
 
-### What are the system requirements?
+### Installation fails with "No module named 'hyperextract'"
 
-- Python 3.9 or higher
-- OpenAI API key (or compatible LLM API)
+Try:
+```bash
+pip install --upgrade hyper-extract
+```
+
+Or use a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install hyper-extract
+```
+
+---
+
+## Configuration
+
+### Where do I set my API key?
+
+**Option 1**: CLI
+```bash
+he config init -k YOUR_API_KEY
+```
+
+**Option 2**: Environment variable
+```bash
+export OPENAI_API_KEY=your-api-key
+```
+
+**Option 3**: .env file
+```
+OPENAI_API_KEY=your-api-key
+```
+
+### Can I use a different LLM provider?
+
+Yes, set the base URL:
+```bash
+he config set llm.base_url https://your-provider.com/v1
+```
+
+### Which models are supported?
+
+- OpenAI models (gpt-4o, gpt-4o-mini, etc.)
+- Any OpenAI-compatible API
+
+---
 
 ## Usage
 
-### How do I extract knowledge from a document?
+### Which template should I use?
 
-Using CLI:
+See the [How to Choose](../templates/how-to-choose.md) guide or use:
 ```bash
-he parse document.txt -o output/
+he list template
 ```
 
-Using Python API:
+### How do I process a PDF?
+
+Convert to text first:
+```bash
+pdftotext document.pdf document.txt
+he parse document.txt -t general/knowledge_graph -l en
+```
+
+### Can I process multiple documents?
+
+**Option 1**: Feed incrementally
+```bash
+he parse doc1.md -t general/graph -o ./kb/ -l en
+he feed ./kb/ doc2.md
+he feed ./kb/ doc3.md
+```
+
+**Option 2**: Process directory
+```bash
+he parse ./docs/ -t general/graph -o ./kb/ -l en
+```
+
+### How do I extract in Chinese?
+
+```bash
+he parse doc.md -t general/biography_graph -l zh
+```
+
+---
+
+## Performance
+
+### Why is extraction slow?
+
+- Long documents are chunked and processed in parallel
+- Each chunk requires an LLM call
+- Consider using `--no-index` during batch processing
+
+### How can I speed it up?
+
+1. Use smaller chunk sizes
+2. Reduce `max_workers` if hitting rate limits
+3. Process documents in parallel (manually)
+
+### Memory issues with large documents?
+
+Process in smaller batches:
 ```python
-from hyperextract import Template
-ka = Template.create("general/biography")
-result = ka.parse(document_text)
+for batch in chunks(documents, 5):
+    for doc in batch:
+        kb.feed_text(doc)
+    kb.dump("./checkpoint/")
 ```
 
-### How do I choose the right template?
+---
 
-Choose a template based on:
-1. Document type (finance, legal, medical, etc.)
-2. Extraction goal (entities, relationships, lists, etc.)
-3. Output format needed (graph, list, model, etc.)
+## Results
 
-### How do I create a custom template?
+### Where is my data stored?
 
-See the [Domain Templates](../templates/index.md) for creating custom templates.
+```
+./output/
+├── data.json      # Extracted knowledge
+├── metadata.json  # Extraction info
+└── index/         # Search index
+```
+
+### How do I visualize results?
+
+```bash
+he show ./output/
+```
+
+Or in Python:
+```python
+result.show()
+```
+
+### Can I export to other formats?
+
+```python
+import json
+
+# To JSON
+json_data = result.data.model_dump_json()
+
+# To dict
+data_dict = result.data.model_dump()
+```
+
+---
 
 ## Troubleshooting
 
-### API Key Issues
+### "API key not found"
 
-**Error: "API key not found"**
-
-Solution: Set your API key using:
+Run:
 ```bash
-he config init -k <your-api-key>
+he config init -k YOUR_API_KEY
 ```
 
-### Extraction Quality
+### "Template not found"
 
-**Low quality extractions**
+List available templates:
+```bash
+he list template
+```
 
-Tips for better results:
-1. Use domain-specific templates
-2. Provide clear extraction instructions
-3. Use longer context windows
-4. Adjust temperature settings
+### "Index not found" error
 
-### Performance
+Build the index:
+```bash
+he build-index ./output/
+```
 
-**Slow extraction times**
+### Search returns no results
 
-Optimization tips:
-1. Use `light_rag` method for faster extraction
-2. Batch process multiple documents
-3. Use appropriate batch sizes
+Try:
+- Different search terms
+- Increase `top_k`: `he search ./kb/ "query" -n 10`
+- Check if index is built: `he info ./kb/`
 
-## Contributing
+---
 
-### How can I contribute?
+## Advanced
 
-See the [Contributing Guide](contributing.md) for information on how to contribute.
+### Can I create custom templates?
 
-### How do I report bugs?
+Yes! See [Custom Templates](../python/guides/custom-templates.md).
 
-Please open an issue on our GitHub repository with:
-- Detailed description of the bug
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment information
+### Can I use my own extraction method?
+
+Yes, implement and register:
+```python
+from hyperextract.methods import register_method
+
+class MyMethod:
+    def extract(self, text):
+        # Your logic
+        pass
+
+register_method("my_method", MyMethod, "graph", "Description")
+```
+
+### How do I integrate with my application?
+
+```python
+from hyperextract import Template
+
+class MyApp:
+    def __init__(self):
+        self.ka = Template.create("general/graph", "en")
+    
+    def process_document(self, text):
+        return self.ka.parse(text)
+```
+
+---
+
+## Getting More Help
+
+- [GitHub Issues](https://github.com/yifanfeng97/hyper-extract/issues)
+- [Troubleshooting Guide](troubleshooting.md)
+- [CLI Documentation](../cli/index.md)
+- [Python SDK](../python/index.md)

@@ -1,230 +1,237 @@
 # Finance Templates
 
-Hyper-Extract provides specialized templates for financial document extraction.
+Financial document analysis and extraction.
 
-## Available Templates
+---
 
-### Earnings Summary
+## Overview
 
-Extract key financial metrics from earnings reports:
+Finance templates are optimized for extracting structured information from financial documents.
 
-```yaml
-language: en
+---
 
-name: Earnings Summary
-type: model
-tags: [finance]
+## Templates
 
-description: 'Extract key financial metrics from earnings reports.'
+### earnings_summary
 
-output:
-  fields:
-  - name: company_name
-    type: str
-    description: 'Company name'
-  - name: revenue
-    type: str
-    description: 'Revenue amount'
-  - name: quarter
-    type: str
-    description: 'Quarter'
+**Type**: model
 
-guideline:
-  target: 'Extract key financial information.'
-  rules:
-    - 'Extract company name and financial data'
-    - 'Use numbers from the source text'
+**Purpose**: Extract key metrics from earnings reports
 
-display:
-  label: '{company_name}'
-```
+**Best for**: 
+- Quarterly earnings (10-Q)
+- Annual reports (10-K)
+- Earnings call transcripts
 
-### Risk Factors
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `company_name` | str | Company name |
+| `quarter` | str | Fiscal quarter |
+| `revenue` | float | Total revenue |
+| `net_income` | float | Net income |
+| `eps` | float | Earnings per share |
+| `yoy_growth` | float | Year-over-year growth |
 
-Extract risk factors from financial documents:
-
-```yaml
-language: en
-
-name: Risk Factor List
-type: list
-tags: [finance]
-
-description: 'Extract risk factor list.'
-
-output:
-  fields:
-  - name: category
-    type: str
-    description: 'Risk category'
-  - name: description
-    type: str
-    description: 'Risk description'
-
-guideline:
-  target: 'Extract risk factors.'
-  rules:
-    - 'Extract all risk factors'
-    - 'Each risk factor includes category and description'
-
-display:
-  label: '{category}'
-```
-
-### Ownership Graph
-
-Extract ownership relationships:
-
-```yaml
-language: en
-
-name: Ownership Graph
-type: graph
-tags: [finance]
-
-description: 'Extract ownership relationships.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Entity name'
-    - name: type
-      type: str
-      description: 'Entity type (company/person/organization)'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Owner'
-    - name: target
-      type: str
-      description: 'Owned entity'
-    - name: type
-      type: str
-      description: 'Relation type'
-
-guideline:
-  target: 'Extract ownership relationships.'
-  rules_for_entities:
-    - 'Extract companies and individuals'
-    - 'Maintain consistent naming'
-  rules_for_relations:
-    - 'Create relations only when explicitly expressed'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}'
-  relation_members:
-    source: source
-    target: target
-
-display:
-  entity_label: '{name} ({type})'
-  relation_label: '{type}'
-```
-
-### Event Timeline
-
-Extract financial events and their temporal relationships:
-
-```yaml
-language: en
-
-name: Event Timeline
-type: temporal_graph
-tags: [finance]
-
-description: 'Extract financial events and their temporal relationships.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Event name'
-    - name: type
-      type: str
-      description: 'Event type'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source event'
-    - name: target
-      type: str
-      description: 'Target event'
-    - name: type
-      type: str
-      description: 'Relation type'
-    - name: time
-      type: str
-      description: 'Time'
-      required: false
-
-guideline:
-  target: 'Extract financial events and temporal relationships.'
-  rules_for_entities:
-    - 'Extract key financial events'
-  rules_for_relations:
-    - 'Extract temporal relationships between events'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}|{time}'
-  relation_members:
-    source: source
-    target: target
-  time_field: time
-
-display:
-  entity_label: '{name} ({type})'
-  relation_label: '{type}@{time}'
-```
-
-## Usage Examples
-
-### CLI
-
+**Example:**
 ```bash
-# Extract earnings summary
-he parse earnings_report.pdf -t finance/earnings_summary -o output/
-
-# Extract risk factors
-he parse 10k_filing.txt -t finance/risk_factor_set -o output/
-
-# Extract ownership relationships
-he parse ownership.txt -t finance/ownership_graph -o output/
+he parse 10q.md -t finance/earnings_summary -l en
 ```
 
-### Python API
+**Python:**
+```python
+ka = Template.create("finance/earnings_summary", "en")
+result = ka.parse(earnings_text)
+
+print(f"Revenue: ${result.data.revenue}B")
+print(f"EPS: ${result.data.eps}")
+```
+
+---
+
+### ownership_graph
+
+**Type**: graph
+
+**Purpose**: Extract company ownership structures
+
+**Best for**:
+- Shareholder reports
+- Proxy statements
+- Corporate structures
+
+**Entities**:
+- Companies
+- Shareholders
+- Subsidiaries
+
+**Relations**:
+- `owns` — Ownership relationships
+- `controls` — Control relationships
+- `subsidiary_of` — Subsidiary relationships
+
+**Example:**
+```bash
+he parse proxy.md -t finance/ownership_graph -l en
+```
+
+**Visualization:**
+```python
+result.show()  # Shows ownership network
+```
+
+---
+
+### event_timeline
+
+**Type**: temporal_graph
+
+**Purpose**: Extract financial events with dates
+
+**Best for**:
+- Corporate event histories
+- M&A timelines
+- Market events
+
+**Features**:
+- Event dates
+- Event types (merger, acquisition, IPO, etc.)
+- Related entities
+
+**Example:**
+```bash
+he parse history.md -t finance/event_timeline -l en
+```
+
+---
+
+### risk_factor_set
+
+**Type**: set
+
+**Purpose**: Extract unique risk factors
+
+**Best for**:
+- Risk factor sections
+- Due diligence reports
+- Risk assessments
+
+**Example:**
+```bash
+he parse 10k.md -t finance/risk_factor_set -l en
+```
+
+**Output:**
+```python
+{
+    "items": [
+        "Market volatility",
+        "Regulatory changes",
+        "Competition",
+        "Supply chain risks"
+    ]
+}
+```
+
+---
+
+### sentiment_model
+
+**Type**: model
+
+**Purpose**: Extract sentiment indicators
+
+**Best for**:
+- News articles
+- Analyst reports
+- Social media sentiment
+
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `sentiment` | str | Overall sentiment (positive/negative/neutral) |
+| `confidence` | float | Confidence score |
+| `key_points` | list[str] | Key sentiment indicators |
+
+**Example:**
+```bash
+he parse article.md -t finance/sentiment_model -l en
+```
+
+---
+
+## Use Cases
+
+### Use Case 1: Quarterly Report Analysis
 
 ```python
 from hyperextract import Template
 
-# Load finance template
+# Extract earnings
 ka = Template.create("finance/earnings_summary", "en")
+q1 = ka.parse(q1_report)
+q2 = ka.parse(q2_report)
 
-# Extract from document
-result = ka.parse(earnings_text)
-
-# Access results
-print(result.fields)
+# Compare
+print(f"Q1 Revenue: ${q1.data.revenue}B")
+print(f"Q2 Revenue: ${q2.data.revenue}B")
+print(f"Growth: {(q2.data.revenue - q1.data.revenue) / q1.data.revenue * 100:.1f}%")
 ```
 
-## Supported Document Types
+### Use Case 2: Ownership Structure
 
-- Annual reports
-- Quarterly earnings
-- 10-K/10-Q filings
-- Equity research reports
-- Financial news articles
-- IPO prospectuses
-- Supply chain analysis
+```python
+ka = Template.create("finance/ownership_graph", "en")
+ownership = ka.parse(proxy_statement)
 
-## Next Steps
+# Find major shareholders
+shareholders = [
+    e for e in ownership.data.entities 
+    if e.type == "shareholder"
+]
 
-- [Legal Templates](legal.md)
-- [Medicine Templates](medicine.md)
+for sh in sorted(shareholders, key=lambda x: x.stake, reverse=True)[:5]:
+    print(f"{sh.name}: {sh.stake}%")
+```
 
+### Use Case 3: Risk Assessment
+
+```python
+ka = Template.create("finance/risk_factor_set", "en")
+risk_factors = ka.parse(risk_section)
+
+# Categorize risks
+for risk in risk_factors.data.items:
+    if "regulatory" in risk.lower():
+        print(f"Regulatory Risk: {risk}")
+    elif "market" in risk.lower():
+        print(f"Market Risk: {risk}")
+```
+
+---
+
+## Data Sources
+
+These templates work well with:
+- SEC filings (10-K, 10-Q, 8-K)
+- Earnings call transcripts
+- Investor presentations
+- Analyst reports
+- Financial news
+
+---
+
+## Tips
+
+1. **Use earnings_summary for quick metrics** — Fast extraction of key numbers
+2. **Use ownership_graph for structure** — Visualize corporate hierarchies
+3. **Use event_timeline for history** — Track corporate events
+4. **Combine templates** — Use multiple templates for comprehensive analysis
+
+---
+
+## See Also
+
+- [Browse All Templates](browse.md)
+- [How to Choose](how-to-choose.md)
+- [General Templates](general/index.md)

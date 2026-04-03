@@ -1,211 +1,226 @@
-# Medicine Templates
+# Medical Templates
 
-Hyper-Extract provides specialized templates for medical document extraction.
+Medical text analysis and extraction.
 
-## Available Templates
+---
 
-### Drug Interactions
+## Overview
 
-Extract drug interaction information:
+Medical templates are designed for extracting clinical information from medical texts.
 
-```yaml
-language: en
+**Disclaimer**: These templates are for research and analysis purposes only. Not for clinical decision-making without professional review.
 
-name: Drug Interaction Graph
-type: graph
-tags: [medicine]
+---
 
-description: 'Extract drug interaction information.'
+## Templates
 
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Drug name'
-    - name: type
-      type: str
-      description: 'Drug type'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source drug'
-    - name: target
-      type: str
-      description: 'Target drug'
-    - name: type
-      type: str
-      description: 'Interaction type'
+### anatomy_graph
 
-guideline:
-  target: 'Extract drug interactions.'
-  rules_for_entities:
-    - 'Extract drug names'
-  rules_for_relations:
-    - 'Extract interactions between drugs'
+**Type**: graph
 
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}'
-  relation_members:
-    source: source
-    target: target
+**Purpose**: Extract anatomical structures and relationships
 
-display:
-  entity_label: '{name}'
-  relation_label: '{type}'
-```
+**Best for**:
+- Anatomy textbooks
+- Surgical reports
+- Medical education materials
 
-### Treatment Plan
+**Entities**:
+- Body parts
+- Organs
+- Systems
+- Structures
 
-Extract treatment plan details:
+**Relations**:
+- `part_of` — Anatomical hierarchy
+- `connected_to` — Structural connections
+- `supplies` — Blood/nerve supply
 
-```yaml
-language: en
-
-name: Treatment Plan Timeline
-type: temporal_graph
-tags: [medicine]
-
-description: 'Extract treatment plan details.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Entity name'
-    - name: type
-      type: str
-      description: 'Type (treatment/medication/procedure)'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source entity'
-    - name: target
-      type: str
-      description: 'Target entity'
-    - name: type
-      type: str
-      description: 'Relation type'
-    - name: time
-      type: str
-      description: 'Time'
-      required: false
-
-guideline:
-  target: 'Extract treatment plan.'
-  rules_for_entities:
-    - 'Extract treatment plans and medications'
-  rules_for_relations:
-    - 'Extract treatment steps'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}|{time}'
-  relation_members:
-    source: source
-    target: target
-  time_field: time
-
-display:
-  entity_label: '{name} ({type})'
-  relation_label: '{type}@{time}'
-```
-
-### Anatomy Graph
-
-Extract anatomy structure relationships:
-
-```yaml
-language: en
-
-name: Anatomy Structure Graph
-type: graph
-tags: [medicine]
-
-description: 'Extract anatomy structure relationships.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Anatomy structure name'
-    - name: type
-      type: str
-      description: 'Structure type'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source structure'
-    - name: target
-      type: str
-      description: 'Target structure'
-    - name: type
-      type: str
-      description: 'Relation type'
-
-guideline:
-  target: 'Extract anatomy structure relationships.'
-  rules_for_entities:
-    - 'Extract anatomy structures'
-  rules_for_relations:
-    - 'Extract relationships between structures'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}'
-  relation_members:
-    source: source
-    target: target
-
-display:
-  entity_label: '{name}'
-  relation_label: '{type}'
-```
-
-## Usage Examples
-
-### CLI
-
+**Example:**
 ```bash
-# Extract drug interactions
-he parse clinical_note.txt -t medicine/drug_interaction -o output/
-
-# Extract treatment plan
-he parse discharge_summary.pdf -t medicine/treatment_map -o output/
+he parse anatomy.md -t medicine/anatomy_graph -l en
 ```
 
-### Python API
+---
+
+### discharge_instruction
+
+**Type**: model
+
+**Purpose**: Extract discharge summary information
+
+**Best for**:
+- Discharge summaries
+- Transfer notes
+- After-visit summaries
+
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `diagnosis` | str | Primary diagnosis |
+| `procedures` | list[str] | Procedures performed |
+| `medications` | list[str] | Prescribed medications |
+| `follow_up` | str | Follow-up instructions |
+| `warnings` | list[str] | Warning signs |
+
+**Example:**
+```bash
+he parse discharge.md -t medicine/discharge_instruction -l en
+```
+
+**Python:**
+```python
+ka = Template.create("medicine/discharge_instruction", "en")
+summary = ka.parse(discharge_text)
+
+print(f"Diagnosis: {summary.data.diagnosis}")
+print(f"Follow-up: {summary.data.follow_up}")
+```
+
+---
+
+### drug_interaction
+
+**Type**: graph
+
+**Purpose**: Extract drug interactions and relationships
+
+**Best for**:
+- Drug databases
+- Pharmacy references
+- Medication reconciliation
+
+**Entities**:
+- Drugs
+- Drug classes
+- Effects
+
+**Relations**:
+- `interacts_with` — Drug interactions
+- `contraindicated_with` — Contraindications
+- `synergizes_with` — Synergistic effects
+
+**Example:**
+```bash
+he parse drug_ref.md -t medicine/drug_interaction -l en
+```
+
+---
+
+### hospital_timeline
+
+**Type**: temporal_graph
+
+**Purpose**: Extract hospital stay timeline
+
+**Best for**:
+- Hospital course notes
+- Progress notes
+- Transfer summaries
+
+**Features**:
+- Admission/discharge dates
+- Procedures and events
+- Timeline visualization
+
+**Example:**
+```bash
+he parse hospital_notes.md -t medicine/hospital_timeline -l en
+```
+
+---
+
+### treatment_map
+
+**Type**: graph
+
+**Purpose**: Extract treatment protocols and pathways
+
+**Best for**:
+- Treatment guidelines
+- Care pathways
+- Protocol documents
+
+**Example:**
+```bash
+he parse protocol.md -t medicine/treatment_map -l en
+```
+
+---
+
+## Use Cases
+
+### Discharge Summary Analysis
 
 ```python
 from hyperextract import Template
 
-# Load medicine template
-ka = Template.create("medicine/drug_interaction", "en")
+ka = Template.create("medicine/discharge_instruction", "en")
+discharges = []
 
-# Extract from document
-result = ka.parse(clinical_text)
+for file in discharge_files:
+    summary = ka.parse(file.read_text())
+    discharges.append(summary.data)
 
-# Access results
-print(result.entities)
+# Analyze common diagnoses
+from collections import Counter
+diagnoses = Counter(d.diagnosis for d in discharges)
+print(diagnoses.most_common(10))
 ```
 
-## Supported Document Types
+### Drug Interaction Network
 
-- Clinical guidelines
-- Discharge summaries
-- Package inserts
-- Pathology reports
-- Medical textbooks
-- Clinical notes
+```python
+ka = Template.create("medicine/drug_interaction", "en")
+network = ka.parse(drug_database)
 
-## Next Steps
+# Find interactions for specific drug
+drug = "Warfarin"
+interactions = [
+    r for r in network.data.relations
+    if r.source == drug or r.target == drug
+]
 
+for i in interactions:
+    print(f"{i.source} {i.type} {i.target}")
+```
+
+### Anatomy Education
+
+```python
+ka = Template.create("medicine/anatomy_graph", "en")
+anatomy = ka.parse(textbook_chapter)
+
+# Visualize
+anatomy.show()
+
+# Search
+anatomy.build_index()
+results = anatomy.search("nerves in hand")
+```
+
+---
+
+## Tips
+
+1. **discharge_instruction for summaries** — Quick extraction of key discharge info
+2. **drug_interaction for safety** — Build interaction checking tools
+3. **anatomy_graph for education** — Create interactive anatomy maps
+4. **hospital_timeline for courses** — Track patient journeys
+
+---
+
+## Data Privacy
+
+When working with medical data:
+- Ensure HIPAA compliance
+- De-identify data before processing
+- Use secure environments
+- Follow institutional policies
+
+---
+
+## See Also
+
+- [Browse All Templates](browse.md)
 - [TCM Templates](tcm.md)
-- [Finance Templates](finance.md)
-

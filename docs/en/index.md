@@ -1,167 +1,216 @@
-# 🚀 Hyper-Extract
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/logo/logo-horizontal-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/logo/logo-horizontal.svg">
+    <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
+  </picture>
+</div>
 
-> **"Stop reading. Start understanding."**
+<br/>
+
+> **Transform documents into structured knowledge with one command.**
+> 
 > *"告别文档焦虑，让信息一目了然"*
 
-**Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.**
+**Hyper-Extract** is an intelligent, LLM-powered knowledge extraction framework. It transforms unstructured text into persistent, predictable, and strongly-typed knowledge structures—from simple lists to complex knowledge graphs, hypergraphs, and spatio-temporal graphs.
 
-![Hero & Workflow](assets/hero.png)
+---
 
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-success)]()
+## ⚡ 5-Minute Quick Start
 
-## What is Hyper-Extract?
+=== "CLI (Terminal)"
 
-Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed knowledge summaries. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
+    ```bash
+    # 1. Install
+    pip install hyper-extract
 
-## ✨ Core Features
+    # 2. Configure API Key
+    he config init -k YOUR_OPENAI_API_KEY
 
-- 🔷 **8 Auto-Types:** From basic `AutoModel`/`AutoList` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`.
-- 🧠 **10+ Extraction Engines:** Out-of-the-box support for cutting-edge retrieval paradigms like `GraphRAG`, `LightRAG`, `Hyper-RAG`, and `KG-Gen`.
-- 📝 **Declarative YAML Templates:** Zero-code extraction definition. Includes 80+ presets across 6 domains.
-- 🔄 **Incremental Evolution:** Feed new documents on the fly to continuously map out and expand the extracted knowledge.
+    # 3. Extract knowledge from a document
+    he parse tesla.md -t general/biography_graph -o ./output/ -l en
 
-## ⚡ Quick Start
+    # 4. Visualize the knowledge graph
+    he show ./output/
+    ```
 
-### Installation
+=== "Python"
 
-```bash
-uv pip install hyper-extract
-```
+    ```python
+    from hyperextract import Template
 
-### The Command Line Way
+    # 1. Create a template
+    ka = Template.create("general/biography_graph", "en")
 
-```bash
-# Configure OpenAI API Key
-he config init -k YOUR_OPENAI_API_KEY
+    # 2. Extract knowledge
+    with open("tesla.md") as f:
+        result = ka.parse(f.read())
 
-# Extract knowledge
-he parse examples/en/tesla.md -t general/biography_graph -o ./output/ -l en
+    # 3. Visualize
+    ka.show(result)
+    ```
 
-# Query the knowledge base
-he search ./output/ "What are Tesla's major achievements?"
+**→ Ready to dive deeper?** Check out the [Getting Started Guide](getting-started/index.md) or jump to [CLI](cli/index.md) / [Python SDK](python/index.md) documentation.
 
-# Visualize the knowledge graph
-he show ./output/
+---
 
-# Incrementally supplement knowledge
-he feed ./output/ examples/en/tesla_question.md
+## ✨ What Makes Hyper-Extract Different?
 
-# Show the updated knowledge graph
-he show ./output/
-```
+<div class="grid cards" markdown>
 
-### The Python API Way
+-   :material-shape:{ .lg .middle } **8 Auto-Types**
 
-#### Installation
+    ---
 
-```bash
-# Clone the repository
-git clone https://github.com/yifanfeng97/hyper-extract.git
-cd hyper-extract
+    From simple `AutoList`/`AutoModel` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`. Pick the right structure for your data.
 
-# Install dependencies
-uv sync
-```
+-   :material-brain:{ .lg .middle } **10+ Extraction Engines**
 
-#### Configuration
+    ---
 
-```bash
-# Copy the example env file
-cp .env.example .env
+    Built-in support for GraphRAG, LightRAG, Hyper-RAG, KG-Gen, iText2KG, and more. Choose the best method for your use case.
 
-# Edit .env with your API key and base URL
-# OPENAI_API_KEY=your-api-key
-# OPENAI_BASE_URL=https://api.openai.com/v1
-```
+-   :material-file-document:{ .lg .middle } **80+ Domain Templates**
 
-#### Usage
+    ---
 
-```python
-import os
-from dotenv import load_dotenv
+    Ready-to-use templates for Finance, Legal, Medical, TCM, and Industry. Zero configuration needed.
 
-# Load environment variables from .env file
-load_dotenv()
+-   :material-sync:{ .lg .middle } **Incremental Evolution**
 
-from hyperextract import Template
+    ---
 
-# Create a template
-ka = Template.create("general/biography_graph")
+    Feed new documents to continuously expand your knowledge base. No need to reprocess everything.
 
-# Parse a document
-with open("examples/en/tesla.md", "r") as f:
-    text = f.read()
-result = ka.parse(text)
+</div>
 
-# Visualize the knowledge graph
-ka.show(result)
+---
 
-# Incrementally supplement knowledge
-with open("examples/en/tesla_question.md", "r") as f:
-    new_text = f.read()
-ka.feed(result, new_text)
+## 🎯 Choose Your Path
 
-# Show the updated knowledge graph
-ka.show(result)
-```
+<div class="grid cards" markdown>
 
-## 🧩 The 8 Auto-Types
+-   :material-console:{ .lg .middle } __CLI User__
 
-Our framework embraces complexity without making you write boilerplate code.
+    ---
 
-![Knowledge Structures Matrix](assets/autotypes.png)
+    Process documents directly from your terminal. Perfect for:
+    
+    - Quick knowledge extraction
+    - Batch document processing
+    - Building knowledge bases without coding
+    
+    [:octicons-arrow-right-24: CLI Guide](cli/index.md)
 
-| Type | Description |
-|------|-------------|
-| AutoModel | Pydantic model extraction |
-| AutoList | List/collection extraction |
-| AutoSet | Unique set extraction |
-| AutoGraph | Knowledge graph extraction |
-| AutoHypergraph | Hypergraph extraction |
-| AutoTemporalGraph | Temporal knowledge graph |
-| AutoSpatialGraph | Spatial knowledge graph |
-| AutoSpatioTemporalGraph | Spatio-temporal knowledge graph |
+-   :material-language-python:{ .lg .middle } __Python Developer__
 
-### Example: AutoGraph Visualization
+    ---
 
-Here is the knowledge graph visualization after `AutoGraph` extraction:
+    Integrate into your Python applications. Perfect for:
+    
+    - Custom extraction pipelines
+    - Integration with existing workflows
+    - Building AI-powered applications
+    
+    [:octicons-arrow-right-24: Python SDK](python/index.md)
 
-![AutoGraph Visualization](assets/en_show.png)
+-   :material-school:{ .lg .middle } __Want to Learn More?__
 
-## 🛠️ Architecture
+    ---
+
+    Understand the concepts and architecture:
+    
+    - How Auto-Types work
+    - Choosing extraction methods
+    - Creating custom templates
+    
+    [:octicons-arrow-right-24: Concepts](concepts/index.md)
+
+</div>
+
+---
+
+## 🧩 The 8 Auto-Types at a Glance
+
+| Type | Use Case | Example Output |
+|------|----------|----------------|
+| **AutoModel** | Structured summaries | A pydantic model with specific fields |
+| **AutoList** | Collections of items | A list of entities or facts |
+| **AutoSet** | Deduplicated collections | A set of unique items |
+| **AutoGraph** | Entity-relationship networks | Knowledge graph with nodes and edges |
+| **AutoHypergraph** | Multi-entity relationships | Hyperedges connecting multiple nodes |
+| **AutoTemporalGraph** | Time-based relationships | Graph with temporal information |
+| **AutoSpatialGraph** | Location-based relationships | Graph with geographic data |
+| **AutoSpatioTemporalGraph** | Time + Space combined | Full context with when and where |
+
+→ [Learn which Auto-Type to choose](concepts/autotypes.md)
+
+---
+
+## 🏗️ Architecture Overview
 
 Hyper-Extract follows a **three-layer architecture**:
 
-- **Auto-Types** define the data structures for knowledge extraction. With 8 strong-typed structures (AutoModel, AutoList, AutoSet, AutoGraph, AutoHypergraph, AutoTemporalGraph, AutoSpatialGraph, AutoSpatioTemporalGraph), they serve as the output format for all extractions.
+```mermaid
+graph TD
+    A[Your Document] --> B[Template / Method]
+    B --> C[Auto-Type]
+    C --> D[Structured Knowledge]
+    
+    subgraph "Layer 3: Templates"
+    B
+    end
+    
+    subgraph "Layer 2: Methods"
+    B
+    end
+    
+    subgraph "Layer 1: Auto-Types"
+    C
+    end
+```
 
-- **Methods** provide extraction algorithms built on Auto-Types. This includes Typical methods (KG-Gen, iText2KG, iText2KG*) and RAG-based methods (GraphRAG, LightRAG, Hyper-RAG, HypergraphRAG, Cog-RAG).
+1. **Auto-Types** — Define the output data structure (8 types)
+2. **Methods** — Provide extraction algorithms (RAG-based and Typical)
+3. **Templates** — Offer domain-specific, ready-to-use configurations
 
-- **Templates** offer domain-specific configurations with ready-to-use prompts and data structures. Covering 6 domains (Finance, Legal, Medical, TCM, Industry, General) with 80+ preset templates, users can extract knowledge without dealing with Auto-Types or Methods directly.
+You can use Hyper-Extract at any level: pick a template for quick results, choose a method for more control, or work directly with Auto-Types for full customization.
 
-Use via **CLI** (`he parse`, `he search`, `he show`...) or **Python API** (`Template.create()`).
+---
 
-![Architecture](assets/arch.png)
+## 📊 Comparison with Other Tools
 
-## 📈 Comparison with Other Libraries
+| Feature | GraphRAG | LightRAG | KG-Gen | **Hyper-Extract** |
+|---------|:--------:|:--------:|:------:|:-----------------:|
+| Knowledge Graph | ✅ | ✅ | ✅ | ✅ |
+| Temporal Graph | ✅ | ❌ | ❌ | ✅ |
+| Spatial Graph | ❌ | ❌ | ❌ | ✅ |
+| Hypergraph | ❌ | ❌ | ❌ | ✅ |
+| Domain Templates | ❌ | ❌ | ❌ | ✅ |
+| CLI Tool | ✅ | ❌ | ❌ | ✅ |
+| Multi-language | ✅ | ❌ | ❌ | ✅ |
 
-| Feature          | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
-| ---------------- | :------: | :------: | :----: | :--: | :---------------: |
-| Knowledge Graph  |     ✅    |     ✅    |    ✅   |   ✅  |         ✅         |
-| Temporal Graph   |     ✅    |     ❌    |    ❌   |   ✅  |         ✅         |
-| Spatial Graph    |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| Hypergraph       |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| Domain Templates |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| CLI Tool         |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
-| Multi-language   |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
+---
 
-## 📚 Documentation
+## 📚 Documentation Structure
 
-- [Getting Started](cli/index.md) - Get up and running quickly
-- [Domain Templates](templates/index.md) - Ready-to-use templates
+- **[Getting Started](getting-started/index.md)** — Installation and your first extraction
+- **[CLI Guide](cli/index.md)** — Complete terminal workflow documentation
+- **[Python SDK](python/index.md)** — API reference and developer guides
+- **[Concepts](concepts/index.md)** — Understanding the architecture
+- **[Templates](templates/index.md)** — Domain-specific extraction templates
+- **[Resources](resources/index.md)** — FAQ, troubleshooting, and contributing
 
-## 🤝 Contributing & License
+---
 
-Contributions are welcome! Please submit Issues and PRs.
-Licensed under **Apache-2.0**.
+## 🤝 Contributing
+
+Contributions are welcome! Whether it's bug reports, feature requests, or documentation improvements, please feel free to submit an issue or pull request.
+
+[:fontawesome-brands-github: GitHub Repository](https://github.com/yifanfeng97/hyper-extract){ .md-button .md-button--primary }
+
+---
+
+## 📄 License
+
+Hyper-Extract is licensed under the [Apache-2.0 License](https://github.com/yifanfeng97/hyper-extract/blob/main/LICENSE).

@@ -1,228 +1,224 @@
 # TCM Templates
 
-Hyper-Extract provides specialized templates for Traditional Chinese Medicine (TCM) document extraction.
+Traditional Chinese Medicine text analysis.
 
-## Available Templates
+---
 
-### Herb Properties
+## Overview
 
-Extract properties of medicinal herbs:
+TCM (Traditional Chinese Medicine) templates are designed for extracting knowledge from TCM texts, including herbal medicine, formulas, and syndrome differentiation.
 
-```yaml
-language: en
+---
 
-name: Herb Properties
-type: model
-tags: [tcm]
+## Templates
 
-description: 'Extract herb property information.'
+### herb_property
 
-output:
-  fields:
-  - name: herb_name
-    type: str
-    description: 'Herb name'
-  - name: properties
-    type: str
-    description: 'Properties'
-  - name: channels
-    type: str
-    description: 'Meridian channels'
-  - name: indications
-    type: str
-    description: 'Indications'
+**Type**: model
 
-guideline:
-  target: 'Extract herb properties.'
-  rules:
-    - 'Extract herb name and properties'
-    - 'Keep original expressions'
+**Purpose**: Extract herb properties and characteristics
 
-display:
-  label: '{herb_name}'
-```
+**Best for**:
+- Materia medica texts
+- Herb databases
+- Prescription references
 
-### Formula Composition
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | str | Herb name (Chinese/pinyin) |
+| `properties` | list[str] | Nature (hot, warm, cool, cold, neutral) |
+| `flavors` | list[str] | Five flavors (sour, bitter, sweet, pungent, salty) |
+| `meridians` | list[str] | Entered meridians |
+| `functions` | list[str] | Main functions |
+| `indications` | list[str] | Clinical indications |
 
-Extract herbal formula composition:
-
-```yaml
-language: en
-
-name: Formula Composition List
-type: list
-tags: [tcm]
-
-description: 'Extract formula composition.'
-
-output:
-  fields:
-  - name: herb_name
-    type: str
-    description: 'Herb name'
-  - name: dosage
-    type: str
-    description: 'Dosage'
-  - name: role
-    type: str
-    description: 'Role (jun/chen/zuo/shi)'
-    required: false
-
-guideline:
-  target: 'Extract formula composition.'
-  rules:
-    - 'Extract all herbs in the formula'
-    - 'Record dosage and role'
-
-display:
-  label: '{herb_name}'
-```
-
-### Meridian Graph
-
-Extract meridian relationships:
-
-```yaml
-language: en
-
-name: Meridian Relationship Graph
-type: graph
-tags: [tcm]
-
-description: 'Extract meridian relationships.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Entity name (herb/meridian)'
-    - name: type
-      type: str
-      description: 'Type'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source entity'
-    - name: target
-      type: str
-      description: 'Target entity'
-    - name: type
-      type: str
-      description: 'Relation type'
-
-guideline:
-  target: 'Extract meridian relationships.'
-  rules_for_entities:
-    - 'Extract herbs and meridians'
-  rules_for_relations:
-    - 'Extract relationships of herbs entering meridians'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}'
-  relation_members:
-    source: source
-    target: target
-
-display:
-  entity_label: '{name}'
-  relation_label: '{type}'
-```
-
-### Syndrome Reasoning
-
-Extract syndrome diagnosis and reasoning:
-
-```yaml
-language: en
-
-name: Syndrome Reasoning Hypergraph
-type: hypergraph
-tags: [tcm]
-
-description: 'Extract syndrome diagnosis and reasoning.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Entity name'
-    - name: type
-      type: str
-      description: 'Type (syndrome/symptom/treatment)'
-  relations:
-    fields:
-    - name: syndrome
-      type: str
-      description: 'Syndrome name'
-    - name: symptoms
-      type: list
-      description: 'Related symptoms'
-    - name: treatment
-      type: str
-      description: 'Treatment method'
-      required: false
-
-guideline:
-  target: 'Extract syndrome diagnosis and reasoning.'
-  rules_for_entities:
-    - 'Extract syndromes and symptoms'
-  rules_for_relations:
-    - 'Extract relationships between syndrome and symptoms/treatment'
-
-identifiers:
-  entity_id: name
-  relation_id: '{syndrome}'
-  relation_members: symptoms
-
-display:
-  entity_label: '{name}'
-  relation_label: '{syndrome}'
-```
-
-## Usage Examples
-
-### CLI
-
+**Example:**
 ```bash
-# Extract herb properties
-he parse herbal_compendium.txt -t tcm/herb_property -o output/
-
-# Extract formula composition
-he parse prescription.txt -t tcm/formula_composition -o output/
-
-# Extract meridian relationships
-he parse meridian.txt -t tcm/meridian_graph -o output/
+he parse herb_text.md -t tcm/herb_property -l zh
 ```
 
-### Python API
+**Python:**
+```python
+ka = Template.create("tcm/herb_property", "zh")
+herb = ka.parse(huang_qi_text)
+
+print(f"Name: {herb.data.name}")
+print(f"Nature: {', '.join(herb.data.properties)}")
+print(f"Functions: {', '.join(herb.data.functions)}")
+```
+
+---
+
+### formula_composition
+
+**Type**: graph
+
+**Purpose**: Extract herbal formula compositions
+
+**Best for**:
+- Formula collections (方剂学)
+- Prescription texts
+- Classic texts (伤寒论, 金匮要略)
+
+**Entities**:
+- Herbs (药物)
+- Formulas (方剂)
+- Conditions (病症)
+
+**Relations**:
+- `contains` — Formula contains herb
+- `treats` — Formula treats condition
+- `modifies` — Modified formula relationship
+
+**Example:**
+```bash
+he parse formula_book.md -t tcm/formula_composition -l zh
+```
+
+---
+
+### herb_relation
+
+**Type**: graph
+
+**Purpose**: Extract herb-to-herb relationships
+
+**Best for**:
+- Herb pairing references (药对)
+- Compatibility texts (十八反, 十九畏)
+- Combination guides
+
+**Relations**:
+- `pairs_with` — Common pairing
+- `synergizes_with` — Synergistic effect
+- `incompatible_with` — Contraindicated combination
+
+**Example:**
+```bash
+he parse herb_pairs.md -t tcm/herb_relation -l zh
+```
+
+---
+
+### meridian_graph
+
+**Type**: graph
+
+**Purpose**: Extract meridian pathway information
+
+**Best for**:
+- Acupuncture texts
+- Meridian studies
+- Point location references
+
+**Entities**:
+- Meridians (经脉)
+- Acupoints (穴位)
+- Organs (脏腑)
+
+**Relations**:
+- `connects_to` — Meridian connections
+- `belongs_to` — Point to meridian
+- `influences` — Meridian-organ relationship
+
+**Example:**
+```bash
+he parse acupuncture.md -t tcm/meridian_graph -l zh
+```
+
+---
+
+### syndrome_reasoning
+
+**Type**: graph
+
+**Purpose**: Extract syndrome differentiation logic
+
+**Best for**:
+- Diagnostics texts (中医诊断学)
+- Case studies
+- Syndrome differentiation guides
+
+**Entities**:
+- Symptoms (症状)
+- Syndromes (证型)
+- Patterns (病机)
+
+**Relations**:
+- `indicates` — Symptom indicates syndrome
+- `differentiates_from` — Differential diagnosis
+- `leads_to` — Pattern progression
+
+**Example:**
+```bash
+he parse diagnostics.md -t tcm/syndrome_reasoning -l zh
+```
+
+---
+
+## Use Cases
+
+### Herb Database Building
 
 ```python
 from hyperextract import Template
 
-# Load TCM template
-ka = Template.create("tcm/herb_property", "en")
+ka = Template.create("tcm/herb_property", "zh")
+herb_db = {}
 
-# Extract from document
-result = ka.parse(herbal_text)
+for herb_file in herb_files:
+    herb = ka.parse(herb_file.read_text())
+    herb_db[herb.data.name] = herb.data
 
-# Access results
-print(result.fields)
+# Query by function
+for name, data in herb_db.items():
+    if "补气" in data.functions:
+        print(f"{name}: Qi tonic herb")
 ```
 
-## Supported Document Types
+### Formula Analysis
 
-- Herbal compendiums
-- Prescription forms
-- Medical case records
-- Meridian treatises
-- Formula pharmacopoeias
+```python
+ka = Template.create("tcm/formula_composition", "zh")
+formula = ka.parse(si_jun_zi_tang_text)
 
-## Next Steps
+# List herbs
+print("Formula composition:")
+for relation in formula.data.relations:
+    if relation.type == "contains":
+        print(f"  - {relation.target}")
+```
 
-- [Medicine Templates](medicine.md)
-- [Finance Templates](finance.md)
+### Syndrome Study
 
+```python
+ka = Template.create("tcm/syndrome_reasoning", "zh")
+syndromes = ka.parse(diagnostics_text)
+
+# Find what symptom indicates what syndrome
+symptom = "舌淡苔白"
+related = [
+    r for r in syndromes.data.relations
+    if r.source == symptom and r.type == "indicates"
+]
+
+for r in related:
+    print(f"{symptom} indicates {r.target}")
+```
+
+---
+
+## Tips
+
+1. **Use Chinese language (`-l zh`)** — Better extraction from TCM texts
+2. **herb_property for materia medica** — Build herb databases
+3. **formula_composition for方剂学** — Study classic formulas
+4. **meridian_graph for acupuncture** — Map meridian pathways
+
+---
+
+## See Also
+
+- [Browse All Templates](browse.md)
+- [Medical Templates](medicine.md)

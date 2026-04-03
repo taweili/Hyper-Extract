@@ -1,6 +1,8 @@
 # Python SDK
 
-Python API for Hyper-Extract.
+Build knowledge extraction pipelines with the Hyper-Extract Python API.
+
+---
 
 ## Installation
 
@@ -8,48 +10,226 @@ Python API for Hyper-Extract.
 pip install hyper-extract
 ```
 
-## Quick Start
+For development:
 
-```python
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-from hyperextract import Template
-
-# Create a template
-ka = Template.create("general/biography_graph", "en")
-
-# Parse a document
-with open("examples/en/tesla.md", "r") as f:
-    text = f.read()
-result = ka.parse(text)
-
-# Access results
-print(result.entities)
-print(result.relations)
+```bash
+pip install hyper-extract[dev]
 ```
 
-## Core APIs
+---
 
-| API | Purpose |
-|-----|---------|
-| `Template.create()` | Create template instance |
-| `ka.parse()` | Parse document |
-| `ka.feed()` | Incrementally supplement |
-| `ka.search()` | Query knowledge base |
+## Quick Example
+
+```python
+from hyperextract import Template
+
+# Create template
+ka = Template.create("general/biography_graph", language="en")
+
+# Extract knowledge
+with open("document.md") as f:
+    result = ka.parse(f.read())
+
+# Access data
+print(f"Entities: {len(result.data.entities)}")
+print(f"Relations: {len(result.data.relations)}")
+
+# Visualize
+result.show()
+```
+
+---
+
+## Core Classes
+
+### Template
+
+The main entry point for template-based extraction.
+
+```python
+from hyperextract import Template
+
+# Create from preset
+ka = Template.create("general/biography_graph", language="en")
+
+# Create from custom YAML
+ka = Template.create("/path/to/custom_template.yaml", language="en")
+
+# Create from method
+ka = Template.create("method/light_rag")
+```
+
+### Auto-Types
+
+Eight data structure types for different extraction needs:
+
+| Class | Use Case |
+|-------|----------|
+| `AutoModel` | Structured data models |
+| `AutoList` | Ordered collections |
+| `AutoSet` | Deduplicated collections |
+| `AutoGraph` | Entity-relationship graphs |
+| `AutoHypergraph` | Multi-entity relationships |
+| `AutoTemporalGraph` | Time-based relationships |
+| `AutoSpatialGraph` | Location-based relationships |
+| `AutoSpatioTemporalGraph` | Combined time + space |
+
+---
+
+## API Overview
+
+### Template API
+
+```python
+# Create
+ka = Template.create(template_path, language="en")
+
+# Extract
+result = ka.parse(text)           # New extraction
+result.feed_text(text)            # Add to existing
+
+# Query
+result.build_index()              # Build search index
+results = result.search(query)    # Semantic search
+response = result.chat(query)     # Chat with knowledge
+
+# Persist
+result.dump("./output/")          # Save to disk
+result.load("./output/")          # Load from disk
+
+# Visualize
+result.show()                     # Interactive visualization
+```
+
+---
+
+## Documentation Structure
+
+- **[Quickstart](quickstart.md)** — Your first Python extraction
+- **[Core Concepts](core-concepts.md)** — Template, AutoType, Method explained
+- **Guides:**
+  - [Using Templates](guides/using-templates.md)
+  - [Choosing Methods](guides/choosing-methods.md)
+  - [Working with Auto-Types](guides/working-with-autotypes.md)
+  - [Search and Chat](guides/search-and-chat.md)
+  - [Incremental Updates](guides/incremental-updates.md)
+  - [Saving and Loading](guides/saving-loading.md)
+- **API Reference:**
+  - [Template](api-reference/template.md)
+  - [Auto-Types](api-reference/autotypes.md)
+  - [Methods](api-reference/methods.md)
+
+---
+
+## Examples by Use Case
+
+### Research Paper Analysis
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/concept_graph", language="en")
+
+with open("paper.md") as f:
+    paper = ka.parse(f.read())
+
+# Build searchable knowledge base
+paper.build_index()
+
+# Ask questions
+response = paper.chat("What are the main contributions?")
+print(response.content)
+```
+
+### Financial Report Extraction
+
+```python
+from hyperextract import Template
+
+ka = Template.create("finance/earnings_summary", language="en")
+
+report = ka.parse(earnings_text)
+print(report.data.revenue)
+print(report.data.eps)
+```
+
+### Building a Knowledge Base
+
+```python
+from hyperextract import Template
+
+ka = Template.create("general/knowledge_graph", language="en")
+
+# Initial extraction
+kb = ka.parse(doc1_text)
+
+# Add more documents
+kb.feed_text(doc2_text)
+kb.feed_text(doc3_text)
+
+# Save for later
+kb.dump("./my_kb/")
+```
+
+---
 
 ## Configuration
 
-[→ Python SDK Configuration Guide](./config.md)
+### Environment Variables
 
-## Detailed Guide
+```python
+import os
 
-[→ Python API Details](./python-api.md)
+os.environ["OPENAI_API_KEY"] = "your-api-key"
+os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+```
 
-## Usage Examples
+### Using .env File
 
-- [Finance Domain Templates](../templates/finance.md)
-- [Legal Domain Templates](../templates/legal.md)
-- [Medical Domain Templates](../templates/medicine.md)
+```python
+from dotenv import load_dotenv
+load_dotenv()  # Loads from .env file
+```
+
+### Custom Clients
+
+```python
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from hyperextract import Template
+
+llm = ChatOpenAI(model="gpt-4o")
+embedder = OpenAIEmbeddings(model="text-embedding-3-large")
+
+ka = Template.create(
+    "general/biography_graph",
+    language="en",
+    llm_client=llm,
+    embedder=embedder
+)
+```
+
+---
+
+## Type Hints
+
+Hyper-Extract is fully typed for IDE support:
+
+```python
+from hyperextract import Template, AutoGraph
+
+ka: AutoGraph = Template.create("general/knowledge_graph", "en")
+result = ka.parse(text)
+
+# IDE autocomplete works
+entities = result.data.entities
+relations = result.data.relations
+```
+
+---
+
+## Next Steps
+
+- Follow the [Quickstart](quickstart.md)
+- Learn [Core Concepts](core-concepts.md)
+- Browse [Guides](guides/using-templates.md)
+- Read [API Reference](api-reference/template.md)

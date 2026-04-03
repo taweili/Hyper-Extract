@@ -1,167 +1,216 @@
-# 🚀 Hyper-Extract
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/logo/logo-horizontal-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/logo/logo-horizontal.svg">
+    <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
+  </picture>
+</div>
 
+<br/>
+
+> **Transform documents into structured knowledge with one command.**
+> 
 > *"告别文档焦虑，让信息一目了然"*
-> **"Stop reading. Start understanding."**
 
-**智能知识提取 CLI — 一条命令，将文档转化为结构化知识。**
+**Hyper-Extract** 是一个智能的、由 LLM（大型语言模型）驱动的知识提取框架。它将非结构化文本转换为持久的、可预测的、强类型的知识结构——从简单的列表到复杂的知识图谱、超图谱和时空图谱。
 
-![Hero & Workflow](assets/hero.png)
+---
 
-[![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-success)]()
+## ⚡ 5分钟快速入门
 
-## 什么是 Hyper-Extract？
+=== "CLI (终端)"
 
-Hyper-Extract 是一个智能的、基于 LLM 的知识提取与演化框架。它极大地简化了将高度非结构化文本转换为持久化、可预测、强类型知识摘要的过程。它能够轻松地将信息提取为多种格式——从简单的**集合**（列表/集合）和 **Pydantic 模型**，到复杂的**知识图谱**、**超图**，甚至**时空图**。
+    ```bash
+    # 1. 安装
+    pip install hyper-extract
 
-## ✨ 核心特性
+    # 2. 配置 API 密钥
+    he config init -k YOUR_OPENAI_API_KEY
 
-- 🔷 **8 种自动类型：** 从基础的 `AutoModel`/`AutoList` 到高级的 `AutoGraph`、`AutoHypergraph` 和 `AutoSpatioTemporalGraph`。
-- 🧠 **10+ 提取引擎：** 开箱即用的前沿检索范式支持，如 `GraphRAG`、`LightRAG`、`Hyper-RAG` 和 `KG-Gen`。
-- 📝 **声明式 YAML 模板：** 零代码提取定义。包含 6 个领域 80+ 预设模板。
-- 🔄 **增量演化：** 动态输入新文档，持续扩展和更新提取的知识。
+    # 3. 从文档中提取知识
+    he parse tesla.md -t general/biography_graph -o ./output/ -l en
 
-## ⚡ 快速开始
+    # 4. 可视化知识图谱
+    he show ./output/
+    ```
 
-### 安装
+=== "Python"
 
-```bash
-uv pip install hyper-extract
-```
+    ```python
+    from hyperextract import Template
 
-### 命令行方式
+    # 1. 创建模板
+    ka = Template.create("general/biography_graph", "en")
 
-```bash
-# 配置 OpenAI API Key
-he config init -k YOUR_OPENAI_API_KEY
+    # 2. 提取知识
+    with open("tesla.md") as f:
+        result = ka.parse(f.read())
 
-# 提取知识
-he parse examples/en/tesla.md -t general/biography_graph -o ./output/ -l en
+    # 3. 可视化
+    ka.show(result)
+    ```
 
-# 查询知识库
-he search ./output/ "Tesla 的主要成就有哪些？"
+**→ 想要深入了解？** 查看[入门指南](getting-started/index.md)或直接跳转至 [CLI](cli/index.md) / [Python SDK](python/index.md) 文档。
 
-# 可视化知识图谱
-he show ./output/
+---
 
-# 增量补充知识
-he feed ./output/ examples/en/tesla_question.md
+## ✨ Hyper-Extract 的独特之处
 
-# 查看更新后的知识图谱
-he show ./output/
-```
+<div class="grid cards" markdown>
 
-### Python API 方式
+-   :material-shape:{ .lg .middle } **8 种自动类型**
 
-#### 安装
+    ---
 
-```bash
-# 克隆仓库
-git clone https://github.com/yifanfeng97/hyper-extract.git
-cd hyper-extract
+    从简单的 `AutoList`/`AutoModel` 到高级的 `AutoGraph`、`AutoHypergraph` 和 `AutoSpatioTemporalGraph`。为您的数据选择正确的结构。
 
-# 安装依赖
-uv sync
-```
+-   :material-brain:{ .lg .middle } **10+ 种提取引擎**
 
-#### 配置
+    ---
 
-```bash
-# 复制环境变量示例文件
-cp .env.example .env
+    内置支持 GraphRAG、LightRAG、Hyper-RAG、KG-Gen、iText2KG 等。选择最适合您用例的方法。
 
-# 编辑 .env 文件配置 API Key 和 Base URL
-# OPENAI_API_KEY=your-api-key
-# OPENAI_BASE_URL=https://api.openai.com/v1
-```
+-   :material-file-document:{ .lg .middle } **80+ 个领域模板**
 
-#### 使用
+    ---
 
-```python
-import os
-from dotenv import load_dotenv
+    开箱即用的金融、法律、医疗、中医和工业模板。无需配置即可使用。
 
-# 从 .env 文件加载环境变量
-load_dotenv()
+-   :material-sync:{ .lg .middle } **增量演进**
 
-from hyperextract import Template
+    ---
 
-# 创建模板
-ka = Template.create("general/biography_graph")
+    向知识库持续添加新文档。无需重新处理所有内容。
 
-# 解析文档
-with open("examples/en/tesla.md", "r") as f:
-    text = f.read()
-result = ka.parse(text)
+</div>
 
-# 可视化知识图谱
-ka.show(result)
+---
 
-# 增量补充知识
-with open("examples/en/tesla_question.md", "r") as f:
-    new_text = f.read()
-ka.feed(result, new_text)
+## 🎯 选择您的路径
 
-# 查看更新后的知识图谱
-ka.show(result)
-```
+<div class="grid cards" markdown>
 
-## 🧩 8 种自动类型
+-   :material-console:{ .lg .middle } __CLI 用户__
 
-我们的框架化繁为简，让您无需编写样板代码。
+    ---
 
-![知识结构矩阵](assets/autotypes.png)
+    直接从终端处理文档。非常适合：
+    
+    - 快速知识提取
+    - 批量文档处理
+    - 无需编码构建知识库
+    
+    [:octicons-arrow-right-24: CLI 指南](cli/index.md)
 
-| 类型 | 描述 |
-|------|------|
-| AutoModel | Pydantic 模型提取 |
-| AutoList | 列表/集合提取 |
-| AutoSet | 唯一集合提取 |
-| AutoGraph | 知识图谱提取 |
-| AutoHypergraph | 超图提取 |
-| AutoTemporalGraph | 时序知识图谱 |
-| AutoSpatialGraph | 空间知识图谱 |
-| AutoSpatioTemporalGraph | 时空知识图谱 |
+-   :material-language-python:{ .lg .middle } __Python 开发者__
 
-### 示例：AutoGraph 可视化
+    ---
 
-使用 `AutoGraph` 提取后的知识图谱可视化：
+    集成到您的 Python 应用程序中。非常适合：
+    
+    - 自定义提取管道
+    - 与现有工作流程集成
+    - 构建 AI 驱动的应用程序
+    
+    [:octicons-arrow-right-24: Python SDK](python/index.md)
 
-![AutoGraph 可视化](assets/zh_show.png)
+-   :material-school:{ .lg .middle } __想了解更多？__
 
-## 🛠️ 系统架构
+    ---
+
+    了解核心概念和架构：
+    
+    - 自动类型如何工作
+    - 选择提取方法
+    - 创建自定义模板
+    
+    [:octicons-arrow-right-24: 核心概念](concepts/index.md)
+
+</div>
+
+---
+
+## 🧩 8 种自动类型一览
+
+| 类型 | 用例 | 示例输出 |
+|------|----------|----------------|
+| **AutoModel** | 结构化摘要 | 带有特定字段的 Pydantic 模型 |
+| **AutoList** | 项目集合 | 实体或事实的列表 |
+| **AutoSet** | 去重集合 | 唯一项目的集合 |
+| **AutoGraph** | 实体关系网络 | 带节点和边的知识图谱 |
+| **AutoHypergraph** | 多实体关系 | 连接多个节点的超级边 |
+| **AutoTemporalGraph** | 时间关系 | 带时间信息的图谱 |
+| **AutoSpatialGraph** | 位置关系 | 带地理数据的图谱 |
+| **AutoSpatioTemporalGraph** | 时间 + 空间组合 | 完整的上下文信息 |
+
+→ [了解如何选择自动类型](concepts/autotypes.md)
+
+---
+
+## 🏗️ 架构概述
 
 Hyper-Extract 采用**三层架构**：
 
-- **Auto-Types** 定义了知识提取的数据结构。8 种强类型结构（AutoModel、AutoList、AutoSet、AutoGraph、AutoHypergraph、AutoTemporalGraph、AutoSpatialGraph、AutoSpatioTemporalGraph）作为所有提取的输出格式。
+```mermaid
+graph TD
+    A[Your Document] --> B[Template / Method]
+    B --> C[Auto-Type]
+    C --> D[Structured Knowledge]
+    
+    subgraph "Layer 3: Templates"
+    B
+    end
+    
+    subgraph "Layer 2: Methods"
+    B
+    end
+    
+    subgraph "Layer 1: Auto-Types"
+    C
+    end
+```
 
-- **Methods** 基于 Auto-Types 提供提取算法。包括典型方法（KG-Gen、iText2KG、iText2KG*）和 RAG 增强方法（GraphRAG、LightRAG、Hyper-RAG、HypergraphRAG、Cog-RAG）。
+1. **自动类型** — 定义输出数据结构（8种类型）
+2. **方法** — 提供提取算法（基于 RAG 和典型方法）
+3. **模板** — 提供特定领域的开箱即用配置
 
-- **Templates** 提供领域特定的配置，包含开箱即用的 prompt 和数据结构。覆盖 6 大领域（金融、法律、医疗、中医、工业、通用），提供 80+ 预设模板，用户无需了解底层 Auto-Types 和 Methods 即可直接使用。
+您可以在任意层级使用 Hyper-Extract：选择模板快速获得结果，选择方法获得更多控制，或直接使用自动类型进行完全定制。
 
-可通过 **CLI**（`he parse`、`he search`、`he show`...）或 **Python API**（`Template.create()`）使用。
+---
 
-![架构图](assets/arch.png)
+## 📊 与其他工具对比
 
-## 📈 与其他库对比
+| 功能 | GraphRAG | LightRAG | KG-Gen | **Hyper-Extract** |
+|---------|:--------:|:--------:|:------:|:-----------------:|
+| 知识图谱 | ✅ | ✅ | ✅ | ✅ |
+| 时间图谱 | ✅ | ❌ | ❌ | ✅ |
+| 空间图谱 | ❌ | ❌ | ❌ | ✅ |
+| 超图谱 | ❌ | ❌ | ❌ | ✅ |
+| 领域模板 | ❌ | ❌ | ❌ | ✅ |
+| CLI 工具 | ✅ | ❌ | ❌ | ✅ |
+| 多语言 | ✅ | ❌ | ❌ | ✅ |
 
-| 特性 | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
-|------|:--------:|:--------:|:------:|:----:|:-----------------:|
-| 知识图谱 |    ✅    |    ✅    |   ✅   |  ✅  |        ✅         |
-| 时序图谱 |    ✅    |    ❌    |   ❌   |  ✅  |        ✅         |
-| 空间图谱 |    ❌    |    ❌    |   ❌   |  ❌  |        ✅         |
-| 超图 |    ❌    |    ❌    |   ❌   |  ❌  |        ✅         |
-| 领域模板 |    ❌    |    ❌    |   ❌   |  ❌  |        ✅         |
-| CLI 工具 |    ✅    |    ❌    |   ❌   |  ❌  |        ✅         |
-| 多语言 |    ✅    |    ❌    |   ❌   |  ❌  |        ✅         |
+---
 
-## 📚 文档
+## 📚 文档结构
 
-- [快速开始](cli/index.md) - 快速上手
-- [领域模板](templates/index.md) - 开箱即用的模板
+- **[入门指南](getting-started/index.md)** — 安装和首次提取
+- **[CLI 指南](cli/index.md)** — 完整的终端工作流程文档
+- **[Python SDK](python/index.md)** — API 参考和开发者指南
+- **[核心概念](concepts/index.md)** — 了解架构
+- **[模板库](templates/index.md)** — 特定领域的提取模板
+- **[资源](resources/index.md)** — 常见问题、故障排除和贡献指南
 
-## 🤝 贡献与许可
+---
 
-欢迎贡献！请提交 Issues 和 PRs。
-基于 **Apache-2.0** 许可证。
+## 🤝 贡献
+
+欢迎贡献！无论是错误报告、功能请求还是文档改进，请随时提交 Issue 或 Pull Request。
+
+[:fontawesome-brands-github: GitHub 仓库](https://github.com/yifanfeng97/hyper-extract){ .md-button .md-button--primary }
+
+---
+
+## 📄 许可证
+
+Hyper-Extract 采用 [Apache-2.0 许可证](https://github.com/yifanfeng97/hyper-extract/blob/main/LICENSE)。

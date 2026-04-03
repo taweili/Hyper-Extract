@@ -1,50 +1,201 @@
-# CLI
+# CLI Guide
 
-Command-line interface for Hyper-Extract.
+The Hyper-Extract CLI (`he`) provides a powerful, easy-to-use interface for knowledge extraction directly from your terminal.
+
+---
 
 ## Installation
 
 ```bash
-uv pip install hyper-extract
+pip install hyper-extract
 ```
 
-## Quick Start
+Verify installation:
 
 ```bash
-# Configure API Key
+he --version
+```
+
+---
+
+## Quick Command Reference
+
+| Command | Purpose | Common Flags |
+|---------|---------|--------------|
+| `he parse` | Extract knowledge from documents | `-t` template, `-o` output, `-l` language |
+| `he show` | Visualize knowledge graph | — |
+| `he search` | Semantic search in knowledge base | `-n` top-k results |
+| `he talk` | Chat with knowledge base | `-i` interactive, `-q` query |
+| `he feed` | Add documents incrementally | — |
+| `he info` | Show knowledge base statistics | — |
+| `he build-index` | Build/rebuild search index | `-f` force rebuild |
+| `he list` | List templates and methods | `template` or `method` |
+| `he config` | Manage configuration | `init`, `show`, `set` |
+
+---
+
+## Complete Workflow
+
+The typical workflow for extracting and interacting with knowledge:
+
+```mermaid
+graph LR
+    A[Document] -->|he parse| B[Knowledge Base]
+    B -->|he show| C[Visualize]
+    B -->|he search| D[Search]
+    B -->|he talk| E[Chat]
+    B -->|he feed| B[Update]
+```
+
+1. **Parse** — Extract knowledge from documents
+2. **Show** — Visualize the knowledge graph
+3. **Search** — Find specific information
+4. **Talk** — Have a conversation about the content
+5. **Feed** — Add more documents incrementally
+
+→ [Detailed Workflow Walkthrough](workflow.md)
+
+---
+
+## Getting Started
+
+### 1. Configure API Key
+
+```bash
 he config init -k YOUR_OPENAI_API_KEY
+```
 
-# Extract knowledge
-he parse document.txt -t general/biography_graph -o ./output/
+### 2. Extract Knowledge
 
-# Query the knowledge base
-he search ./output/ "What are the key events?"
+```bash
+he parse document.md -t general/biography_graph -o ./output/ -l en
+```
 
-# Visualize the knowledge graph
+### 3. Visualize
+
+```bash
 he show ./output/
 ```
 
-## Core Commands
+---
 
-| Command | Purpose |
-|---------|---------|
-| `he config init` | Configure API Key |
-| `he parse` | Extract knowledge |
-| `he search` | Query knowledge base |
-| `he show` | Visualize graph |
-| `he feed` | Incrementally supplement |
-| `he list` | List templates |
+## Commands in Detail
+
+### Knowledge Extraction
+
+- **[`he parse`](commands/parse.md)** — Extract knowledge from documents
+- **[`he feed`](commands/feed.md)** — Add documents to existing knowledge base
+
+### Exploration
+
+- **[`he show`](commands/show.md)** — Visualize knowledge graph
+- **[`he search`](commands/search.md)** — Semantic search
+- **[`he talk`](commands/talk.md)** — Chat with knowledge base
+- **[`he info`](commands/info.md)** — View knowledge base statistics
+
+### Management
+
+- **[`he build-index`](commands/build-index.md)** — Build search index
+- **[`he list`](commands/list.md)** — List available templates/methods
+- **[`he config`](commands/config.md)** — Configuration management
+
+---
 
 ## Configuration
 
-[→ CLI Configuration Guide](./config.md)
+The CLI stores configuration in `~/.he/config.toml`.
 
-## Detailed Guide
+→ [Configuration Reference](configuration.md)
 
-[→ CLI Command Details](./cli.md)
+---
 
-## Usage Examples
+## Template vs Method
 
-- [Finance Domain Templates](../templates/finance.md)
-- [Legal Domain Templates](../templates/legal.md)
-- [Medical Domain Templates](../templates/medicine.md)
+Hyper-Extract offers two ways to extract knowledge:
+
+### Templates (Recommended for Most Users)
+
+Domain-specific, ready-to-use configurations:
+
+```bash
+he parse doc.md -t general/biography_graph -l en
+```
+
+### Methods (Advanced)
+
+Underlying extraction algorithms:
+
+```bash
+he parse doc.md -m light_rag
+```
+
+→ [Learn when to use each](../concepts/architecture.md)
+
+---
+
+## Language Support
+
+Templates support multiple languages:
+
+```bash
+# English
+he parse doc.md -t general/biography_graph -l en
+
+# Chinese
+he parse doc.md -t general/biography_graph -l zh
+```
+
+Method templates always use English prompts.
+
+---
+
+## Examples by Use Case
+
+### Research
+
+```bash
+# Extract from a research paper
+he parse paper.md -t general/concept_graph -o ./paper_kb/ -l en
+
+# Ask questions about it
+he talk ./paper_kb/ -q "What are the main contributions?"
+```
+
+### Biography Analysis
+
+```bash
+# Extract from a biography
+he parse biography.md -t general/biography_graph -o ./bio_kb/ -l en
+
+# Visualize life events
+he show ./bio_kb/
+```
+
+### Legal Document Analysis
+
+```bash
+# Extract contract obligations
+he parse contract.md -t legal/contract_obligation -o ./contract_kb/ -l en
+
+# Search for specific clauses
+he search ./contract_kb/ "termination conditions"
+```
+
+---
+
+## Tips and Best Practices
+
+1. **Use templates for domain-specific tasks** — They're optimized for specific use cases
+2. **Build the index** — Required for search and chat functionality
+3. **Feed incrementally** — Add documents over time without reprocessing
+4. **Choose the right language** — Improves extraction quality for non-English documents
+
+---
+
+## Getting Help
+
+- View help for any command: `he <command> --help`
+- List all templates: `he list template`
+- List all methods: `he list method`
+- [FAQ](../resources/faq.md)
+- [Troubleshooting](../resources/troubleshooting.md)

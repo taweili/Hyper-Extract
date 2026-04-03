@@ -1,18 +1,86 @@
-# Concepts
+# 核心概念
 
-Hyper-Extract 采用**三层架构**：
+了解 Hyper-Extract 的基本概念。
 
-- **Auto-Types** 定义了知识提取的数据结构
-- **Methods** 基于 Auto-Types 提供提取算法
-- **Templates** 提供领域特定的配置，包含开箱即用的 prompt
+---
 
-## Auto-Types
+## 三层架构
 
-Auto-Types 是基础层 - 它们定义了知识提取的输出数据结构。
+Hyper-Extract 构建在三层架构之上：
 
-[→ 了解更多 Auto-Types](./auto-types.md)
+```mermaid
+graph TD
+    subgraph "Layer 3: Interface"
+    A[CLI] --> B[Python SDK]
+    B --> C[Template API]
+    end
+    
+    subgraph "Layer 2: Methods"
+    C --> D[RAG-Based]
+    C --> E[Typical]
+    end
+    
+    subgraph "Layer 1: Data"
+    D --> F[Auto-Types]
+    E --> F
+    end
+    
+    F --> G[Structured Knowledge]
+```
+
+| 层级 | 目的 | 组件 |
+|-------|---------|------------|
+| **自动类型** | 定义数据结构 | 8 种类型类 |
+| **方法** | 提取算法 | RAG + 典型方法 |
+| **模板** | 特定领域配置 | 80+ 预设模板 |
+
+---
+
+## 核心概念
+
+### [自动类型](autotypes.md)
+
+8 种定义提取输出的数据结构类型：
+
+- **标量类型**：AutoModel、AutoList、AutoSet
+- **图谱类型**：AutoGraph、AutoHypergraph
+- **时序类型**：AutoTemporalGraph、AutoSpatialGraph、AutoSpatioTemporalGraph
+
+→ [了解自动类型](autotypes.md)
+
+### [方法](methods.md)
+
+提取算法：
+
+- **基于 RAG**：GraphRAG、LightRAG、Hyper-RAG
+- **典型方法**：iText2KG、KG-Gen、Atom
+
+→ [了解方法](methods.md)
+
+### [模板格式](templates-format.md)
+
+定义提取模板的 YAML 格式：
+
+- 模式定义
+- 提示工程
+- 指南和规则
+
+→ [了解模板格式](templates-format.md)
+
+### [架构](architecture.md)
+
+深入了解系统设计：
+
+- 数据流
+- 处理管道
+- 扩展点
+
+→ [了解架构](architecture.md)
+
+---
 
 ## 快速链接
 
-- [Auto-Types](./auto-types.md) - 8 种强类型的知识结构
-- [Templates](../templates/index.md) - 开箱即用的模板
+- [CLI 文档](../cli/index.md) — 终端使用
+- [Python SDK](../python/index.md) — 编程使用
+- [模板库](../templates/index.md) — 可用模板

@@ -1,115 +1,211 @@
 # Contributing
 
-Thank you for your interest in contributing to Hyper-Extract!
+How to contribute to Hyper-Extract.
+
+---
 
 ## Ways to Contribute
 
-### Report Bugs
+- **Report bugs** — Open GitHub issues
+- **Request features** — Suggest new functionality
+- **Improve documentation** — Fix typos, add examples
+- **Add templates** — Share domain-specific templates
+- **Submit code** — Fix bugs or add features
 
-Report bugs by opening a GitHub issue with:
-- Clear description of the bug
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment information (Python version, OS, etc.)
+---
 
-### Suggest Features
+## Getting Started
 
-We welcome feature suggestions! Please:
-1. Check existing issues to avoid duplicates
-2. Describe the use case clearly
-3. Explain the expected behavior
+### 1. Fork the Repository
 
-### Contribute Code
+```bash
+git clone https://github.com/your-username/hyper-extract.git
+cd hyper-extract
+```
 
-#### Development Setup
+### 2. Set Up Development Environment
 
-1. Fork the repository
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/yifanfeng97/hyper-extract.git
-   cd hyper-extract
-   ```
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-3. Create a virtual environment:
-   ```bash
-   python -m venv env
-   source env/bin/activate  # Windows: env\Scripts\activate
-   ```
+# Install in editable mode
+pip install -e ".[dev]"
+```
 
-4. Install development dependencies:
-   ```bash
-   pip install -e ".[dev]"
-   ```
+### 3. Run Tests
 
-5. Install pre-commit hooks:
-   ```bash
-   pre-commit install
-   ```
+```bash
+pytest
+```
 
-#### Development Workflow
+---
 
-1. Create a feature branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+## Development Guidelines
 
-2. Make your changes
-3. Run tests:
-   ```bash
-   pytest tests/
-   ```
-
-4. Run linting:
-   ```bash
-   ruff check .
-   ```
-
-5. Commit your changes:
-   ```bash
-   git commit -m "Add your feature"
-   ```
-
-6. Push and create a Pull Request
-
-#### Code Style
+### Code Style
 
 - Follow PEP 8
 - Use type hints
-- Write docstrings
-- Add tests for new features
+- Write docstrings (Google style)
 
-### Contribute Documentation
+### Example
 
-Documentation improvements are always welcome:
-- Fix typos or unclear explanations
-- Add examples
-- Improve translations
-- Update outdated content
+```python
+def process_data(text: str, max_length: int = 1000) -> dict:
+    """Process input text and return structured data.
+    
+    Args:
+        text: Input text to process
+        max_length: Maximum length to process
+        
+    Returns:
+        Dictionary containing processed data
+        
+    Raises:
+        ValueError: If text is empty
+    """
+    if not text:
+        raise ValueError("Text cannot be empty")
+    
+    # Processing logic
+    return {"result": text[:max_length]}
+```
 
-### Translation Contributions
+### Testing
 
-We welcome translation contributions:
-1. Check the existing translations
-2. Submit translations via PR
+Write tests for new features:
 
-## Pull Request Guidelines
+```python
+def test_new_feature():
+    result = new_feature("input")
+    assert result["status"] == "success"
+```
 
-1. Reference related issues
-2. Include tests for new features
-3. Update documentation as needed
-4. Follow the code style guidelines
-5. Ensure all tests pass
+Run tests:
+```bash
+pytest tests/test_new_feature.py -v
+```
 
-## Development Resources
+---
 
-- [GitHub Repository](https://github.com/yifanfeng97/hyper-extract)
-- [Issue Tracker](https://github.com/yifanfeng97/hyper-extract/issues)
-- [Discussions](https://github.com/yifanfeng97/hyper-extract/discussions)
+## Adding Templates
 
-## Code of Conduct
+### Template Structure
 
-Please be respectful and constructive in all interactions. We follow the [Contributor Covenant](https://www.contributor-covenant.org/).
+Create a YAML file in `hyperextract/templates/presets/<domain>/`:
+
+```yaml
+language: [zh, en]
+
+name: my_template
+type: graph
+tags: [domain, category]
+
+description:
+  zh: "中文描述"
+  en: "English description"
+
+output:
+  # Schema definition
+  
+guideline:
+  # LLM instructions
+
+identifiers:
+  # ID rules
+
+display:
+  # Visualization settings
+```
+
+### Testing Templates
+
+```python
+from hyperextract import Template
+
+# Test your template
+ka = Template.create("domain/my_template", "en")
+result = ka.parse(test_text)
+
+# Verify output
+assert len(result.data.entities) > 0
+```
+
+### Submitting Templates
+
+1. Add template YAML file
+2. Add test case
+3. Update documentation
+4. Submit PR with description
+
+---
+
+## Documentation
+
+### Building Docs
+
+```bash
+# Install docs dependencies
+pip install mkdocs mkdocs-material mkdocstrings[python]
+
+# Serve locally
+mkdocs serve
+
+# Build
+mkdocs build
+```
+
+### Documentation Guidelines
+
+- Write clear, concise instructions
+- Include code examples
+- Test all examples
+- Use markdown formatting
+
+---
+
+## Pull Request Process
+
+1. **Create a branch**:
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+
+2. **Make changes** with clear commit messages
+
+3. **Add tests** for new functionality
+
+4. **Update documentation** as needed
+
+5. **Submit PR** with:
+   - Clear description
+   - What changed and why
+   - Testing performed
+   - Screenshots (if UI changes)
+
+---
+
+## Code Review
+
+All submissions require review. We'll check:
+
+- Code quality and style
+- Test coverage
+- Documentation
+- Backward compatibility
+
+---
+
+## Questions?
+
+- Open a [GitHub Discussion](https://github.com/yifanfeng97/hyper-extract/discussions)
+- Comment on existing issues
+- Email: evanfeng97@gmail.com
+
+---
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the Apache 2.0 License.
+By contributing, you agree that your contributions will be licensed under the Apache-2.0 License.

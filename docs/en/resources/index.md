@@ -1,15 +1,57 @@
 # Resources
 
-Additional resources and information.
+Help and reference materials.
 
-## FAQ
+---
 
-Frequently asked questions about Hyper-Extract.
+## Getting Help
 
-## Troubleshooting
+### FAQ
 
-Solutions to common issues.
+Common questions and answers.
+
+→ [FAQ](faq.md)
+
+### Troubleshooting
+
+Solutions to common problems.
+
+→ [Troubleshooting](troubleshooting.md)
+
+### GitHub
+
+Report issues, request features, or contribute.
+
+→ [GitHub Repository](https://github.com/yifanfeng97/hyper-extract)
+
+---
 
 ## Contributing
 
-Guidelines for contributing to the project.
+Want to contribute to Hyper-Extract?
+
+→ [Contributing Guide](contributing.md)
+
+---
+
+## Quick Links
+
+- [Getting Started](../getting-started/index.md)
+- [CLI Documentation](../cli/index.md)
+- [Python SDK](../python/index.md)
+- [Template Library](../templates/index.md)
+- [Core Concepts](../concepts/index.md)
+
+---
+
+## Community
+
+- **GitHub Discussions**: Ask questions and share ideas
+- **Issues**: Report bugs and request features
+- **Pull Requests**: Contribute code and documentation
+
+---
+
+## License
+
+Hyper-Extract is licensed under the [Apache-2.0 License](https://github.com/yifanfeng97/hyper-extract/blob/main/LICENSE).

@@ -1,230 +1,223 @@
 # Legal Templates
 
-Hyper-Extract provides specialized templates for legal document extraction.
+Legal document processing and analysis.
 
-## Available Templates
+---
 
-### Case Facts
+## Overview
 
-Extract facts from court judgments:
+Legal templates are designed for extracting structured information from legal documents.
 
-```yaml
-language: en
+---
 
-name: Case Fact Timeline
-type: temporal_graph
-tags: [legal]
+## Templates
 
-description: 'Extract case facts from court judgments.'
+### contract_obligation
 
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Entity name'
-    - name: type
-      type: str
-      description: 'Entity type (party/event/fact)'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Source entity'
-    - name: target
-      type: str
-      description: 'Target entity'
-    - name: type
-      type: str
-      description: 'Relation type'
-    - name: time
-      type: str
-      description: 'Time'
-      required: false
+**Type**: list
 
-guideline:
-  target: 'Extract case facts.'
-  rules_for_entities:
-    - 'Extract parties and events'
-  rules_for_relations:
-    - 'Extract fact relationships'
+**Purpose**: Extract contract obligations and terms
 
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}|{time}'
-  relation_members:
-    source: source
-    target: target
-  time_field: time
+**Best for**:
+- Service agreements
+- Employment contracts
+- Purchase agreements
+- License agreements
 
-display:
-  entity_label: '{name} ({type})'
-  relation_label: '{type}@{time}'
-```
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `party` | str | Obligated party |
+| `obligation` | str | Description of obligation |
+| `deadline` | str | Due date/timeline |
+| `conditions` | str | Conditions or caveats |
 
-### Contract Terms
-
-Extract contract obligations:
-
-```yaml
-language: en
-
-name: Contract Terms List
-type: list
-tags: [legal]
-
-description: 'Extract contract terms.'
-
-output:
-  fields:
-  - name: clause_type
-    type: str
-    description: 'Clause type'
-  - name: parties
-    type: str
-    description: 'Parties involved'
-  - name: obligations
-    type: str
-    description: 'Obligation content'
-
-guideline:
-  target: 'Extract contract terms.'
-  rules:
-    - 'Extract all contract terms'
-    - 'Each term includes type, parties, and obligations'
-
-display:
-  label: '{clause_type}'
-```
-
-### Compliance Requirements
-
-Extract compliance requirements:
-
-```yaml
-language: en
-
-name: Compliance Requirements List
-type: list
-tags: [legal]
-
-description: 'Extract compliance requirements.'
-
-output:
-  fields:
-  - name: regulation
-    type: str
-    description: 'Regulation name'
-  - name: requirement
-    type: str
-    description: 'Compliance requirement'
-  - name: deadline
-    type: str
-    description: 'Deadline'
-    required: false
-
-guideline:
-  target: 'Extract compliance requirements.'
-  rules:
-    - 'Extract all compliance requirements'
-
-display:
-  label: '{regulation}'
-```
-
-### Case Citation
-
-Extract case citation relationships:
-
-```yaml
-language: en
-
-name: Case Citation Graph
-type: graph
-tags: [legal]
-
-description: 'Extract case citation relationships.'
-
-output:
-  entities:
-    fields:
-    - name: name
-      type: str
-      description: 'Case name'
-    - name: type
-      type: str
-      description: 'Case type'
-  relations:
-    fields:
-    - name: source
-      type: str
-      description: 'Citing case'
-    - name: target
-      type: str
-      description: 'Cited case'
-    - name: type
-      type: str
-      description: 'Citation type'
-
-guideline:
-  target: 'Extract case citation relationships.'
-  rules_for_entities:
-    - 'Extract case names'
-  rules_for_relations:
-    - 'Extract citation relationships between cases'
-
-identifiers:
-  entity_id: name
-  relation_id: '{source}|{type}|{target}'
-  relation_members:
-    source: source
-    target: target
-
-display:
-  entity_label: '{name}'
-  relation_label: '{type}'
-```
-
-## Usage Examples
-
-### CLI
-
+**Example:**
 ```bash
-# Extract case facts
-he parse judgment.txt -t legal/case_fact_timeline -o output/
-
-# Extract contract terms
-he parse contract.pdf -t legal/contract_obligation -o output/
-
-# Extract compliance requirements
-he parse compliance.txt -t legal/compliance_list -o output/
+he parse contract.md -t legal/contract_obligation -l en
 ```
 
-### Python API
+**Python:**
+```python
+ka = Template.create("legal/contract_obligation", "en")
+result = ka.parse(contract_text)
+
+for obl in result.data.items:
+    print(f"{obl.party}: {obl.obligation}")
+    if obl.deadline:
+        print(f"  Due: {obl.deadline}")
+```
+
+---
+
+### case_citation
+
+**Type**: graph
+
+**Purpose**: Extract legal case citations and relationships
+
+**Best for**:
+- Legal briefs
+- Court opinions
+- Research memos
+- Case law analysis
+
+**Entities**:
+- Cases
+- Statutes
+- Regulations
+- Courts
+
+**Relations**:
+- `cited_by` — Citation relationships
+- `overruled` — Overruling relationships
+- `distinguished` — Distinction relationships
+
+**Example:**
+```bash
+he parse brief.md -t legal/case_citation -l en
+```
+
+---
+
+### case_fact_timeline
+
+**Type**: temporal_graph
+
+**Purpose**: Extract chronological case facts
+
+**Best for**:
+- Case summaries
+- Investigative reports
+- Litigation timelines
+
+**Features**:
+- Event dates
+- Fact descriptions
+- Related parties
+
+**Example:**
+```bash
+he parse case_summary.md -t legal/case_fact_timeline -l en
+```
+
+---
+
+### compliance_list
+
+**Type**: list
+
+**Purpose**: Extract compliance requirements
+
+**Best for**:
+- Regulatory documents
+- Compliance manuals
+- Policy documents
+
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `requirement` | str | Compliance requirement |
+| `regulation` | str | Source regulation |
+| `priority` | str | Priority level |
+
+**Example:**
+```bash
+he parse compliance.md -t legal/compliance_list -l en
+```
+
+---
+
+### defined_term_set
+
+**Type**: set
+
+**Purpose**: Extract defined terms and their meanings
+
+**Best for**:
+- Contracts with definitions sections
+- Technical legal documents
+- Glossary extraction
+
+**Example:**
+```bash
+he parse agreement.md -t legal/defined_term_set -l en
+```
+
+**Output:**
+```python
+{
+    "items": [
+        "Confidential Information: means any and all non-public...",
+        "Effective Date: means the date of execution...",
+        "Party: means either signatory..."
+    ]
+}
+```
+
+---
+
+## Use Cases
+
+### Contract Review
 
 ```python
 from hyperextract import Template
 
-# Load legal template
-ka = Template.create("legal/case_fact_timeline", "en")
+ka = Template.create("legal/contract_obligation", "en")
+obligations = ka.parse(contract)
 
-# Extract from document
-result = ka.parse(judgment_text)
-
-# Access results
-print(result.entities)
+# Find all deadlines
+deadlines = [o for o in obligations.data.items if o.deadline]
+for d in sorted(deadlines, key=lambda x: x.deadline):
+    print(f"{d.deadline}: {d.party} - {d.obligation}")
 ```
 
-## Supported Document Types
+### Case Law Analysis
 
-- Court judgments
-- Legal contracts
-- Compliance filings
-- Legal treatises
-- Regulatory documents
+```python
+ka = Template.create("legal/case_citation", "en")
+case_graph = ka.parse(brief)
 
-## Next Steps
+# Find most cited cases
+citations = {}
+for rel in case_graph.data.relations:
+    if rel.type == "cited_by":
+        citations[rel.target] = citations.get(rel.target, 0) + 1
 
+top_cases = sorted(citations.items(), key=lambda x: x[1], reverse=True)
+```
+
+### Due Diligence
+
+```python
+# Extract obligations
+ka = Template.create("legal/contract_obligation", "en")
+obligations = ka.parse(agreement)
+
+# Extract risks
+ka2 = Template.create("finance/risk_factor_set", "en")
+risks = ka2.parse(agreement)
+
+# Analyze
+high_risk_obligations = [
+    o for o in obligations.data.items
+    if any(r in o.obligation.lower() for r in risks.data.items)
+]
+```
+
+---
+
+## Tips
+
+1. **contract_obligation for deadlines** — Track contractual obligations
+2. **case_citation for research** — Build citation networks
+3. **defined_term_set for clarity** — Extract key definitions
+4. **Combine with search** — Use `he search` to find specific clauses
+
+---
+
+## See Also
+
+- [Browse All Templates](browse.md)
 - [Finance Templates](finance.md)
-- [Medicine Templates](medicine.md)
-

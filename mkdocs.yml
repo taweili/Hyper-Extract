@@ -17,15 +17,38 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.indexes
+    - navigation.path
+    - navigation.top
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
   palette:
     primary: purple
     accent: deep purple
+  logo: assets/logo/logo-icon-white.svg
+  favicon: assets/logo/logo-icon.svg
 
 plugins:
   - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [hyperextract]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: false
+            members_order: source
+            group_by_category: true
+            filters:
+              - "!^_"  # Hide private methods
+            merge_init_into_class: true
+            show_signature_annotations: true
   - i18n:
       docs_structure: folder
       fallback_to_default: true
@@ -34,30 +57,120 @@ plugins:
           name: English
           default: true
           build: true
+          nav:
+            - Home: index.md
+            - Getting Started:
+                - getting-started/index.md
+                - getting-started/installation.md
+                - getting-started/cli-quickstart.md
+                - getting-started/python-quickstart.md
+            - CLI Guide:
+                - cli/index.md
+                - cli/workflow.md
+                - Commands:
+                    - cli/commands/parse.md
+                    - cli/commands/show.md
+                    - cli/commands/search.md
+                    - cli/commands/talk.md
+                    - cli/commands/feed.md
+                    - cli/commands/info.md
+                    - cli/commands/build-index.md
+                    - cli/commands/list.md
+                    - cli/commands/config.md
+                - cli/configuration.md
+            - Python SDK:
+                - python/index.md
+                - python/quickstart.md
+                - python/core-concepts.md
+                - Guides:
+                    - python/guides/using-templates.md
+                    - python/guides/choosing-methods.md
+                    - python/guides/working-with-autotypes.md
+                    - python/guides/search-and-chat.md
+                    - python/guides/incremental-updates.md
+                    - python/guides/saving-loading.md
+                - API Reference:
+                    - python/api-reference/template.md
+                    - python/api-reference/autotypes.md
+                    - python/api-reference/methods.md
+            - Concepts:
+                - concepts/index.md
+                - concepts/architecture.md
+                - concepts/autotypes.md
+                - concepts/methods.md
+                - concepts/templates-format.md
+            - Templates:
+                - templates/index.md
+                - templates/how-to-choose.md
+                - templates/browse.md
+                - General: templates/general/index.md
+                - Finance: templates/finance.md
+                - Legal: templates/legal.md
+                - Medical: templates/medicine.md
+                - TCM: templates/tcm.md
+                - Industry: templates/industry.md
+            - Resources:
+                - resources/index.md
+                - resources/faq.md
+                - resources/troubleshooting.md
+                - resources/contributing.md
         - locale: zh
           name: 中文
           build: true
           nav:
             - 首页: zh/index.md
-            - CLI 使用指南:
+            - 入门指南:
+                - zh/getting-started/index.md
+                - zh/getting-started/installation.md
+                - zh/getting-started/cli-quickstart.md
+                - zh/getting-started/python-quickstart.md
+            - CLI 指南:
                 - zh/cli/index.md
-                - zh/cli/cli.md
-                - zh/cli/config.md
-            - Python 开发者指南:
+                - zh/cli/workflow.md
+                - 命令详解:
+                    - zh/cli/commands/parse.md
+                    - zh/cli/commands/show.md
+                    - zh/cli/commands/search.md
+                    - zh/cli/commands/talk.md
+                    - zh/cli/commands/feed.md
+                    - zh/cli/commands/info.md
+                    - zh/cli/commands/build-index.md
+                    - zh/cli/commands/list.md
+                    - zh/cli/commands/config.md
+                - zh/cli/configuration.md
+            - Python SDK:
                 - zh/python/index.md
-                - zh/python/python-api.md
-                - zh/python/config.md
+                - zh/python/quickstart.md
+                - zh/python/core-concepts.md
+                - 使用指南:
+                    - zh/python/guides/using-templates.md
+                    - zh/python/guides/choosing-methods.md
+                    - zh/python/guides/working-with-autotypes.md
+                    - zh/python/guides/search-and-chat.md
+                    - zh/python/guides/incremental-updates.md
+                    - zh/python/guides/saving-loading.md
+                - API 参考:
+                    - zh/python/api-reference/template.md
+                    - zh/python/api-reference/autotypes.md
+                    - zh/python/api-reference/methods.md
             - 核心概念:
                 - zh/concepts/index.md
-                - zh/concepts/auto-types.md
-            - 知识摘要模板:
+                - zh/concepts/architecture.md
+                - zh/concepts/autotypes.md
+                - zh/concepts/methods.md
+                - zh/concepts/templates-format.md
+            - 模板库:
                 - zh/templates/index.md
-                - zh/templates/domain/index.md
-                - zh/templates/domain/finance.md
-                - zh/templates/domain/legal.md
-                - zh/templates/domain/medicine.md
-                - zh/templates/domain/tcm.md
-            - 帮助指南:
+                - zh/templates/how-to-choose.md
+                - zh/templates/browse.md
+                - 通用: zh/templates/general/index.md
+                - 金融: zh/templates/finance.md
+                - 法律: zh/templates/legal.md
+                - 医学: zh/templates/medicine.md
+                - 中医: zh/templates/tcm.md
+                - 工业: zh/templates/industry.md
+            - 资源:
+                - zh/resources/index.md
                 - zh/resources/faq.md
                 - zh/resources/troubleshooting.md
                 - zh/resources/contributing.md
@@ -66,39 +179,29 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/yifanfeng97/hyper-extract
-
-nav:
-  - Home: en/index.md
-  - CLI:
-      - en/cli/index.md
-      - en/cli/cli.md
-      - en/cli/config.md
-  - Python SDK:
-      - en/python/index.md
-      - en/python/python-api.md
-      - en/python/config.md
-  - Concepts:
-      - en/concepts/index.md
-      - en/concepts/auto-types.md
-  - Templates:
-      - en/templates/index.md
-      - en/templates/domain/index.md
-      - en/templates/domain/finance.md
-      - en/templates/domain/legal.md
-      - en/templates/domain/medicine.md
-      - en/templates/domain/tcm.md
-  - Help:
-      - en/resources/faq.md
-      - en/resources/troubleshooting.md
-      - en/resources/contributing.md
+  version:
+    provider: mike
 
 markdown_extensions:
   - pymdownx.highlight:
       use_pygments: true
+      anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.superfences
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
   - admonition
+  - details
   - tables
   - toc:
       permalink: true
   - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

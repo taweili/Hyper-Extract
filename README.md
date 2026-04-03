@@ -1,6 +1,13 @@
 <div align="center">
 
-# 🚀 Hyper-Extract
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/logo-horizontal-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo/logo-horizontal.svg">
+  <img alt="Hyper-Extract Logo" src="docs/assets/logo/logo-horizontal.svg" width="600">
+</picture>
+
+<br/>
+<br/>
 
 **Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.**
 
