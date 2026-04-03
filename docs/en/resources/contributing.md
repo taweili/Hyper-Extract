@@ -102,9 +102,9 @@ We welcome translation contributions:
 
 ## Development Resources
 
-- [GitHub Repository](https://github.com/hyper-extract/hyper-extract)
-- [Issue Tracker](https://github.com/hyper-extract/hyper-extract/issues)
-- [Discussions](https://github.com/hyper-extract/hyper-extract/discussions)
+- [GitHub Repository](https://github.com/yifanfeng97/hyper-extract)
+- [Issue Tracker](https://github.com/yifanfeng97/hyper-extract/issues)
+- [Discussions](https://github.com/yifanfeng97/hyper-extract/discussions)
 
 ## Code of Conduct
 

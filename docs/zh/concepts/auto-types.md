@@ -1,129 +1,91 @@
-# 自动类型 (AutoTypes)
+# AutoTypes
 
-Hyper-Extract 使用自动类型来确定提取模式，共支持 8 种类型。
+AutoTypes 定义了知识提取的**输出数据结构**。共有 8 种类型：
 
-## 类型概览
+## 记录型
 
-| 类型 | 说明 | 使用场景 |
-|------|------|---------|
-| `model` | 单个结构化对象 | 提取单一记录 |
-| `list` | 有序列表 | 提取排序项目 |
-| `set` | 去重集合 | 提取唯一实体 |
-| `graph` | 二元关系图 | 提取实体关系 |
-| `hypergraph` | 多元关系图 | 提取多方关系 |
-| `temporal_graph` | 时序图 | 添加时间维度 |
-| `spatial_graph` | 空间图 | 添加空间维度 |
-| `spatio_temporal_graph` | 时空图 | 添加时间和空间 |
+### AutoModel
 
-## 选择决策树
-
-```
-需要关系？
-├─ 否 → 记录类型
-│   ├─ 单个对象 → model
-│   ├─ 有序列表 → list
-│   └─ 去重集合 → set
-└─ 是 → 图类型
-    ├─ 二元关系 (A→B) → graph
-    └─ 多元关系 (A+B+C→D) → hypergraph
-
-+ 时间维度 → temporal_graph
-+ 空间维度 → spatial_graph
-+ 两者都有 → spatio_temporal_graph
-```
-
-## 详细说明
-
-### Model
-
-用于提取单个结构化对象。
+使用 Pydantic 模型提取结构化数据。
 
 ```python
-from hyperextract import Template
+from pydantic import BaseModel, Field
+from hyperextract import AutoModel
 
-ka = Template.create("finance/earnings_summary", "zh")
-result = ka.parse(text)
+class Summary(BaseModel):
+    title: str = Field(description="标题")
+    summary: str = Field(description="摘要")
 
-print(result.fields["company_name"])
-print(result.fields["revenue"])
+model = AutoModel(data_schema=Summary, llm_client=llm)
 ```
 
-### List
+### AutoList
 
-用于提取有序列表。
+提取列表项。
 
 ```python
-from hyperextract import Template
+from hyperextract.types import AutoList
 
-ka = Template.create("finance/risk_factor_set", "zh")
-result = ka.parse(text)
-
-for item in result.fields:
-    print(item)
+lst = AutoList[str](item_schema=str, llm_client=llm)
+lst.feed_text(text)
 ```
 
-### Set
+### AutoSet
 
-用于提取去重集合。
+提取唯一项（去重）。
 
 ```python
-from hyperextract import Template
+from hyperextract.types import AutoSet
 
-ka = Template.create("general/entity_registry", "zh")
-result = ka.parse(text)
-
-for entity in result.fields:
-    print(entity)
+s = AutoSet[str](item_schema=str, llm_client=llm)
+s.feed_text(text)
 ```
 
-### Graph
+## 图谱型
 
-用于提取二元关系。
+### AutoGraph
+
+实体-关系提取。
 
 ```python
-from hyperextract import Template
+from hyperextract.types import AutoGraph
 
-ka = Template.create("finance/ownership_graph", "zh")
-result = ka.parse(text)
-
-for entity in result.entities:
-    print(f"{entity['name']} ({entity['type']})")
-
-for relation in result.relations:
-    print(f"{relation['source']} --[{relation['type']}]--> {relation['target']}")
+graph = AutoGraph(node_schema=Entity, edge_schema=Relation, llm_client=llm)
+graph.feed_text(text)
 ```
 
-### Hypergraph
+### AutoHypergraph
 
-用于提取多元关系。
+多元关系（n 元关系）。
 
 ```python
-from hyperextract import Template
-
-ka = Template.create("tcm/formula_composition", "zh")
-result = ka.parse(text)
-
-for relation in result.relations:
-    print(f"Formula: {relation['formula_name']}")
-    print(f"Herbs: {relation['herbs']}")
+from hyperextract.types import AutoHypergraph
 ```
 
-### Temporal Graph
+### AutoTemporalGraph
 
-用于提取带时间的关系。
+时间相关的关嗧。
 
 ```python
-from hyperextract import Template
-
-ka = Template.create("finance/event_timeline", "zh")
-result = ka.parse(text)
-
-for relation in result.relations:
-    print(f"{relation['source']} --[{relation['type']}]--> {relation['target']} @ {relation['time']}")
+from hyperextract.types import AutoTemporalGraph
 ```
 
-## 下一步
+### AutoSpatialGraph
 
-- 了解 [模板](./templates.md)
-- 查看 [预设模板](./templates.md)
-- 浏览 [领域模板](../guides/domain-templates/index.md)
+位置相关的关嗧。
+
+```python
+from hyperextract.types import AutoSpatialGraph
+```
+
+### AutoSpatioTemporalGraph
+
+时间和位置同时相关的关嗧。
+
+```python
+from hyperextract.types import AutoSpatioTemporalGraph
+```
+
+## 快速链接
+
+- [领域模板](../templates/index.md) - 开箱即用的模板

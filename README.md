@@ -17,7 +17,7 @@
 
 <br/>
 
-<img src="docs/assets/hero.jpg" alt="Hero & Workflow" width="100%">
+<img src="docs/assets/hero.png" alt="Hero & Workflow" width="100%">
 
 <br/>
 </div>
@@ -51,25 +51,77 @@ Extract, search, and manage directly from CLI.
 # Configure OpenAI API Key
 he config init -k YOUR_OPENAI_API_KEY
 
-# Extract knowledge (using examples/en/tesla.md as sample input)
+# Extract knowledge
 he parse examples/en/tesla.md -t general/biography_graph -o ./output/ -l en
 
 # Query the knowledge base
 he search ./output/ "What are Tesla's major achievements?"
 
+# Visualize the knowledge graph
+he show ./output/
+
 # Incrementally supplement knowledge
-he feed ./output/ another_tesla_document.md
+he feed ./output/ examples/en/tesla_question.md
+
+# Show the updated knowledge graph
+he show ./output/
 ```
 
 <details>
-<summary><b> The Python API Way</b></summary>
+<summary><b>🐍 The Python API Way</b></summary>
 <br>
 
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yifanfeng97/hyper-extract.git
+cd hyper-extract
+
+# Install dependencies
+uv sync
+```
+
+### Configuration
+
+```bash
+# Copy the example env file
+cp .env.example .env
+
+# Edit .env with your API key and base URL
+# OPENAI_API_KEY=your-api-key
+# OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+### Usage
+
 ```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from hyperextract import Template
 
+# Create a template
 ka = Template.create("general/biography_graph")
+
+# Parse a document
+with open("examples/en/tesla.md", "r") as f:
+    text = f.read()
 result = ka.parse(text)
+
+# Visualize the knowledge graph
+ka.show(result)
+
+# Incrementally supplement knowledge
+with open("examples/en/tesla_question.md", "r") as f:
+    new_text = f.read()
+ka.feed(result, new_text)
+
+# Show the updated knowledge graph
+ka.show(result)
 ```
 
 > 🔗 For complete examples, see [examples/en](./examples/en/)
@@ -80,7 +132,7 @@ result = ka.parse(text)
 
 Our framework embraces complexity without making you write boilerplate code.
 
-!\[Knowledge Structures Matrix]\(docs/assets/autotypes.png null)
+![Knowledge Structures Matrix](docs/assets/autotypes.png)
 
 ### Example: AutoGraph Visualization
 
@@ -90,13 +142,27 @@ Here is the knowledge graph visualization after `AutoGraph` extraction:
 
 ## 🛠️ Architecture Overview
 
-The system is built on a robust triad: **Auto-Types** (Multi-typed structures), **Methods** (The Execution strategy), and **Templates** (Declarative schema).
+Hyper-Extract follows a **three-layer architecture**:
+
+- **Auto-Types** define the data structures for knowledge extraction. With 8 strong-typed structures (AutoModel, AutoList, AutoSet, AutoGraph, AutoHypergraph, AutoTemporalGraph, AutoSpatialGraph, AutoSpatioTemporalGraph), they serve as the output format for all extractions.
+
+- **Methods** provide extraction algorithms built on Auto-Types. This includes Typical methods (KG-Gen, iText2KG, iText2KG*) and RAG-based methods (GraphRAG, LightRAG, Hyper-RAG, HypergraphRAG, Cog-RAG).
+
+- **Templates** offer domain-specific configurations with ready-to-use prompts and data structures. Covering 6 domains (Finance, Legal, Medical, TCM, Industry, General) with 80+ preset templates, users can extract knowledge without dealing with Auto-Types or Methods directly.
+
+Use via **CLI** (`he parse`, `he search`, `he show`...) or **Python API** (`Template.create()`).
 
 ![Architecture](docs/assets/arch.png)
 
-### 📋 Template Structure Example
+### 📚 Related Documentation
 
-Here's a complete YAML template example that defines a Knowledge Graph extraction:
+- **Preset Templates**: Browse [80+ ready-to-use templates](./hyperextract/templates/presets/) across 6 domains
+- **Design Guide**: Learn how to [create custom templates](./hyperextract/templates/DESIGN_GUIDE.md)
+
+<details>
+<summary><b>📋 Template Structure Example (Graph Type)</b></summary>
+
+Here's a complete YAML template example for **Graph** type extraction (entity-relationship extraction):
 
 ```yaml
 language: en
@@ -115,7 +181,10 @@ output:
       description: 'Entity name'
     - name: type
       type: str
-      description: 'Entity type'
+      description: 'Entity type: e.g., person, organization, event'
+    - name: description
+      type: str
+      description: 'Entity description'
   relations:
     fields:
     - name: source
@@ -126,7 +195,10 @@ output:
       description: 'Target entity'
     - name: type
       type: str
-      description: 'Relation type'
+      description: 'Relation type: e.g., invention, collaboration, competition'
+    - name: description
+      type: str
+      description: 'Relation description'
 
 guideline:
   target: 'Extract entities and their relationships from the text.'
@@ -148,10 +220,7 @@ display:
   relation_label: '{type}'
 ```
 
-### 📚 Related Documentation
-
-- **Preset Templates**: Browse [80+ ready-to-use templates](./hyperextract/templates/presets/) across 6 domains
-- **Design Guide**: Learn how to [create custom templates](./hyperextract/templates/DESIGN_GUIDE.md)
+</details>
 
 ## 📈 Comparison with Other Libraries
 
@@ -162,8 +231,8 @@ display:
 | Spatial Graph    |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
 | Hypergraph       |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
 | Domain Templates |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| CLI Tool         |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| Multi-language   |  Partial |     ❌    |    ❌   |   ❌  |         ✅         |
+| CLI Tool         |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
+| Multi-language   |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
 
 ## 📚 Related Documentation
 

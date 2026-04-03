@@ -145,5 +145,5 @@ he config init -k <your-api-key>
 
 If you're still experiencing issues:
 1. Check the [FAQ](faq.md)
-2. Search existing [GitHub Issues](https://github.com/hyper-extract/hyper-extract/issues)
+2. Search existing [GitHub Issues](https://github.com/yifanfeng97/hyper-extract/issues)
 3. Create a new issue with detailed information

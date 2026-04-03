@@ -1,52 +1,18 @@
-# 核心概念
+# Concepts
 
-## 概述
+Hyper-Extract 采用**三层架构**：
 
-Hyper-Extract 是一个知识提取框架，可从各种文档中提取结构化知识。本文档介绍核心概念，帮助您理解系统的工作原理。
+- **Auto-Types** 定义了知识提取的数据结构
+- **Methods** 基于 Auto-Types 提供提取算法
+- **Templates** 提供领域特定的配置，包含开箱即用的 prompt
 
-## 核心概念
+## Auto-Types
 
-### 模板 (Template)
+Auto-Types 是基础层 - 它们定义了知识提取的输出数据结构。
 
-模板使用 YAML 定义要提取的内容，提供声明式的方式来指定提取模式，无需编写代码。
+[→ 了解更多 Auto-Types](./auto-types.md)
 
-详细了解：[模板](./templates.md)
+## 快速链接
 
-### 自动类型 (AutoType)
-
-Hyper-Extract 支持 8 种自动类型，每种类型针对不同的提取场景：
-
-| 类型 | 说明 | 使用场景 |
-|------|------|---------|
-| `model` | 单个结构化对象 | 提取单一记录 |
-| `list` | 有序列表 | 提取排序项目 |
-| `set` | 去重集合 | 提取唯一实体 |
-| `graph` | 二元关系图 | 提取实体关系 |
-| `hypergraph` | 多元关系图 | 提取多方关系 |
-| `temporal_graph` | 时序图 | 添加时间维度 |
-| `spatial_graph` | 空间图 | 添加空间维度 |
-| `spatio_temporal_graph` | 时空图 | 添加时间和空间 |
-
-详细了解：[自动类型](./auto-types.md)
-
-### 提取方法 (Methods)
-
-Hyper-Extract 支持多种提取方法：
-
-- **本地模型**：使用本地部署的模型
-- **API 模型**：使用云端 API（如 OpenAI、Claude）
-- **混合模式**：结合多种方法
-
-详细了解：[提取方法](./methods.md)
-
-## 快速开始
-
-1. [安装](../getting-started/installation.md)
-2. [快速教程](../getting-started/quickstart.md)
-3. [模板设计](./templates.md)
-
-## 下一步
-
-- 浏览 [模板库](../reference/template-gallery.md)
-- 查看 [领域模板](../guides/domain-templates/index.md)
-- 了解 [Python API](../guides/python-api.md)
+- [Auto-Types](./auto-types.md) - 8 种强类型的知识结构
+- [Templates](../templates/index.md) - 开箱即用的模板

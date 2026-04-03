@@ -1,52 +1,18 @@
-# Core Concepts
+# Concepts
 
-## Overview
+Hyper-Extract is built on a **three-layer architecture**:
 
-Hyper-Extract is a knowledge extraction framework that extracts structured knowledge from various documents. This section introduces core concepts to help you understand how the system works.
+- **Auto-Types** define the data structures for knowledge extraction
+- **Methods** provide extraction algorithms built on Auto-Types
+- **Templates** offer domain-specific configurations with ready-to-use prompts
 
-## Core Concepts
+## Auto-Types
 
-### Template
+Auto-Types are the foundation - they define the output data structure for knowledge extraction.
 
-Templates use YAML to define what to extract, providing a declarative way to specify extraction schemas without writing code.
+[→ Learn more about Auto-Types](./auto-types.md)
 
-Learn more: [Templates](./templates.md)
+## Quick Links
 
-### AutoType
-
-Hyper-Extract supports 8 auto types, each designed for different extraction scenarios:
-
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `model` | Single structured object | Extract single record |
-| `list` | Ordered list | Extract ranked items |
-| `set` | Deduplicated set | Extract unique entities |
-| `graph` | Binary relation graph | Extract entity relations |
-| `hypergraph` | Multi-entity relation | Extract multi-party relations |
-| `temporal_graph` | Temporal graph | Add time dimension |
-| `spatial_graph` | Spatial graph | Add space dimension |
-| `spatio_temporal_graph` | Spatio-temporal graph | Add both time and space |
-
-Learn more: [AutoTypes](./auto-types.md)
-
-### Methods
-
-Hyper-Extract supports multiple extraction methods:
-
-- **Local Models**: Use locally deployed models
-- **API Models**: Use cloud APIs (e.g., OpenAI, Claude)
-- **Hybrid Mode**: Combine multiple methods
-
-Learn more: [Methods](./methods.md)
-
-## Quick Start
-
-1. [Installation](../getting-started/installation.md)
-2. [Quick Start Tutorial](../getting-started/quickstart.md)
-3. [Template Design](./templates.md)
-
-## Next Steps
-
-- Browse the [Template Gallery](../reference/template-gallery.md)
-- Explore [Domain Templates](../guides/domain-templates/index.md)
-- Learn the [Python API](../guides/python-api.md)
+- [Auto-Types](./auto-types.md) - 8 strong-typed knowledge structures
+- [Templates](../templates/index.md) - Ready-to-use templates

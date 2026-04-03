@@ -102,9 +102,9 @@
 
 ## 开发资源
 
-- [GitHub 仓库](https://github.com/hyper-extract/hyper-extract)
-- [Issue 追踪器](https://github.com/hyper-extract/hyper-extract/issues)
-- [讨论区](https://github.com/hyper-extract/hyper-extract/discussions)
+- [GitHub 仓库](https://github.com/yifanfeng97/hyper-extract)
+- [Issue 追踪器](https://github.com/yifanfeng97/hyper-extract/issues)
+- [讨论区](https://github.com/yifanfeng97/hyper-extract/discussions)
 
 ## 行为准则
 

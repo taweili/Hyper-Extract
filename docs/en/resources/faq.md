@@ -59,7 +59,7 @@ Choose a template based on:
 
 ### How do I create a custom template?
 
-See the [Template Design Guide](../concepts/templates.md) for creating custom templates.
+See the [Domain Templates](../templates/index.md) for creating custom templates.
 
 ## Troubleshooting
 

@@ -17,7 +17,7 @@
 
 <br/>
 
-<img src="docs/assets/hero.jpg" alt="Hero & Workflow" width="100%">
+<img src="docs/assets/hero.png" alt="Hero & Workflow" width="100%">
 
 <br/>
 </div>
@@ -51,25 +51,77 @@ uv pip install hyper-extract
 # 配置 OpenAI API Key
 he config init -k YOUR_OPENAI_API_KEY
 
-# 提取知识（使用 examples/zh/sushi.md 作为示例输入）
+# 提取知识
 he parse examples/zh/sushi.md -t general/biography_graph -o ./output/ -l zh
 
 # 查询知识库
 he search ./output/ "苏轼有哪些重要的作品？"
 
+# 可视化知识图谱
+he show ./output/
+
 # 增量补充知识
-he feed ./output/ another_sushi_document.md
+he feed ./output/ examples/zh/sushi_question.md
+
+# 展示更新后的知识图谱
+he show ./output/
 ```
 
 <details>
 <summary><b>🐍 Python API 深度集成</b></summary>
 <br>
 
+### 安装
+
+```bash
+# 克隆仓库
+git clone https://github.com/yifanfeng97/hyper-extract.git
+cd hyper-extract
+
+# 安装依赖
+uv sync
+```
+
+### 配置
+
+```bash
+# 复制示例配置文件
+cp .env.example .env
+
+# 编辑 .env 文件，填入你的 API Key 和 Base URL
+# OPENAI_API_KEY=your-api-key
+# OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+### 使用
+
 ```python
+import os
+from dotenv import load_dotenv
+
+# 从 .env 文件加载环境变量
+load_dotenv()
+
 from hyperextract import Template
 
+# 创建模板
 ka = Template.create("general/biography_graph")
+
+# 解析文档
+with open("examples/zh/sushi.md", "r", encoding="utf-8") as f:
+    text = f.read()
 result = ka.parse(text)
+
+# 可视化知识图谱
+ka.show(result)
+
+# 增量补充知识
+with open("examples/zh/sushi_question.md", "r", encoding="utf-8") as f:
+    new_text = f.read()
+ka.feed(result, new_text)
+
+# 展示更新后的知识图谱
+ka.show(result)
 ```
 
 > 🔗 完整示例代码，请参阅 [examples/zh](./examples/zh/)
@@ -90,13 +142,27 @@ result = ka.parse(text)
 
 ## 🛠️ 系统架构
 
-系统底座基于坚实的铁三角架构：**Auto-Types** (提取结构)、**Methods** (执行策略)、以及 **Templates** (声明式配置)。
+Hyper-Extract 采用**三层架构**：
+
+- **Auto-Types** 定义了知识提取的数据结构。8 种强类型结构（AutoModel、AutoList、AutoSet、AutoGraph、AutoHypergraph、AutoTemporalGraph、AutoSpatialGraph、AutoSpatioTemporalGraph）作为所有提取的输出格式。
+
+- **Methods** 基于 Auto-Types 提供提取算法。包括典型方法（KG-Gen、iText2KG、iText2KG*）和 RAG 增强方法（GraphRAG、LightRAG、Hyper-RAG、HypergraphRAG、Cog-RAG）。
+
+- **Templates** 提供领域特定的配置，包含开箱即用的 prompt 和数据结构。覆盖 6 大领域（金融、法律、医疗、中医、工业、通用），提供 80+ 预设模板，用户无需了解底层 Auto-Types 和 Methods 即可直接使用。
+
+可通过 **CLI**（`he parse`、`he search`、`he show`...）或 **Python API**（`Template.create()`）使用。
 
 ![Architecture](docs/assets/arch.png)
 
-### 📋 模板结构示例
+### 📝 相关文档
 
-以下是一个完整的 YAML 模板示例，定义了知识图谱提取：
+- **预设模板**: 浏览覆盖 6 大领域的 [80+ 即用型模板](./hyperextract/templates/presets/)
+- **设计指南**: 学习如何[创建自定义模板](./hyperextract/templates/DESIGN_GUIDE_ZH.md)
+
+<details>
+<summary><b>📋 模板结构示例 (Graph 类型)</b></summary>
+
+以下是一个完整的 YAML 模板示例，用于 **Graph** 类型（实体关系）提取：
 
 ```yaml
 language: zh
@@ -115,7 +181,10 @@ output:
       description: '实体名称'
     - name: type
       type: str
-      description: '实体类型'
+      description: '实体类型：如人物、组织、事件等'
+    - name: description
+      type: str
+      description: '实体的详细介绍'
   relations:
     fields:
     - name: source
@@ -126,7 +195,10 @@ output:
       description: '目标实体'
     - name: type
       type: str
-      description: '关系类型'
+      description: '关系类型：如发明、合作、竞争等'
+    - name: description
+      type: str
+      description: '关系的详细介绍'
 
 guideline:
   target: '从文本中提取实体及其关系。'
@@ -148,12 +220,9 @@ display:
   relation_label: '{type}'
 ```
 
-### 📚 相关文档
+</details>
 
-- **预设模板**: 浏览覆盖 6 大领域的 [80+ 即用型模板](./hyperextract/templates/presets/)
-- **设计指南**: 学习如何[创建自定义模板](./hyperextract/templates/DESIGN_GUIDE_ZH.md)
-
-## 📈 与其他流行库的对比
+## 📈 与其他相关库的对比
 
 | 特性      | GraphRAG | LightRAG | KG-Gen | ATOM | **Hyper-Extract** |
 | ------- | :------: | :------: | :----: | :--: | :---------------: |
@@ -162,8 +231,9 @@ display:
 | 空间图谱    |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
 | 超图提取    |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
 | 领域模板驱动  |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| 交互式 CLI |     ❌    |     ❌    |    ❌   |   ❌  |         ✅         |
-| 多语言支持   |   部分支持   |     ❌    |    ❌   |   ❌  |         ✅         |
+| 交互式 CLI |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
+| 多语言支持   |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
+
 
 ## 📚 项目参考文档
 

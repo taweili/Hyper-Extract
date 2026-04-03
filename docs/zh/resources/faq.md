@@ -59,7 +59,7 @@ result = ka.parse(document_text)
 
 ### 如何创建自定义模板？
 
-请参阅[模板设计指南](../concepts/templates.md)了解如何创建自定义模板。
+请参阅[领域模板](../templates/index.md)了解如何创建自定义模板。
 
 ## 故障排除
 

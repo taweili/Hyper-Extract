@@ -2,11 +2,11 @@
 
 site_name: Hyper-Extract
 site_description: LLM-powered knowledge extraction framework
-site_author: Hyper-Extract Team
+site_author: Yifan Feng
 site_url: https://hyper-extract.github.io/
 
-repo_name: hyper-extract/hyper-extract
-repo_url: https://github.com/hyper-extract/hyper-extract
+repo_name: yifanfeng97/hyper-extract
+repo_url: https://github.com/yifanfeng97/hyper-extract
 edit_uri: edit/main/docs/
 
 theme:
@@ -39,31 +39,25 @@ plugins:
           build: true
           nav:
             - 首页: zh/index.md
-            - 开始使用:
-                - zh/getting-started/index.md
-                - zh/getting-started/installation.md
-                - zh/getting-started/quickstart.md
-                - zh/getting-started/configuration.md
+            - CLI 使用指南:
+                - zh/cli/index.md
+                - zh/cli/cli.md
+                - zh/cli/config.md
+            - Python 开发者指南:
+                - zh/python/index.md
+                - zh/python/python-api.md
+                - zh/python/config.md
             - 核心概念:
                 - zh/concepts/index.md
                 - zh/concepts/auto-types.md
-                - zh/concepts/methods.md
-                - zh/concepts/templates.md
-            - 使用指南:
-                - zh/guides/index.md
-                - zh/guides/cli.md
-                - zh/guides/python-api.md
-                - zh/guides/domain-templates/index.md
-                - zh/guides/domain-templates/finance.md
-                - zh/guides/domain-templates/legal.md
-                - zh/guides/domain-templates/medicine.md
-                - zh/guides/domain-templates/tcm.md
-            - 参考资料:
-                - zh/reference/index.md
-                - zh/reference/cli-reference.md
-                - zh/reference/template-gallery.md
-            - 资源:
-                - zh/resources/index.md
+            - 知识摘要模板:
+                - zh/templates/index.md
+                - zh/templates/domain/index.md
+                - zh/templates/domain/finance.md
+                - zh/templates/domain/legal.md
+                - zh/templates/domain/medicine.md
+                - zh/templates/domain/tcm.md
+            - 帮助指南:
                 - zh/resources/faq.md
                 - zh/resources/troubleshooting.md
                 - zh/resources/contributing.md
@@ -75,30 +69,25 @@ extra:
 
 nav:
   - Home: en/index.md
-  - Getting Started:
-      - en/getting-started/index.md
-      - en/getting-started/installation.md
-      - en/getting-started/quickstart.md
-      - en/getting-started/configuration.md
+  - CLI:
+      - en/cli/index.md
+      - en/cli/cli.md
+      - en/cli/config.md
+  - Python SDK:
+      - en/python/index.md
+      - en/python/python-api.md
+      - en/python/config.md
   - Concepts:
       - en/concepts/index.md
       - en/concepts/auto-types.md
-      - en/concepts/methods.md
-      - en/concepts/templates.md
-  - Guides:
-      - en/guides/index.md
-      - en/guides/cli.md
-      - en/guides/python-api.md
-      - en/guides/domain-templates/index.md
-      - en/guides/domain-templates/finance.md
-      - en/guides/domain-templates/legal.md
-      - en/guides/domain-templates/medicine.md
-      - en/guides/domain-templates/tcm.md
-  - Reference:
-      - en/reference/index.md
-      - en/reference/cli-reference.md
-      - en/reference/template-gallery.md
-  - Resources:
+  - Templates:
+      - en/templates/index.md
+      - en/templates/domain/index.md
+      - en/templates/domain/finance.md
+      - en/templates/domain/legal.md
+      - en/templates/domain/medicine.md
+      - en/templates/domain/tcm.md
+  - Help:
       - en/resources/faq.md
       - en/resources/troubleshooting.md
       - en/resources/contributing.md

@@ -145,5 +145,5 @@ he config init -k <your-api-key>
 
 如果您仍然遇到问题：
 1. 查看[常见问题](faq.md)
-2. 搜索现有的 [GitHub Issues](https://github.com/hyper-extract/hyper-extract/issues)
+2. 搜索现有的 [GitHub Issues](https://github.com/yifanfeng97/hyper-extract/issues)
 3. 创建包含详细信息的新问题

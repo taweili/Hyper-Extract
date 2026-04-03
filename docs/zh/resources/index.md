@@ -12,7 +12,7 @@
 
 - 查看 [常见问题](faq.md)
 - 阅读 [故障排除](troubleshooting.md)
-- 访问 [GitHub Issues](https://github.com/hyper-extract/hyper-extract/issues)
+- 访问 [GitHub Issues](https://github.com/yifanfeng97/hyper-extract/issues)
 
 ## 贡献
 

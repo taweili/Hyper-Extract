@@ -31,19 +31,59 @@ examples/
 │   │   ├── list_demo.py        # List extraction
 │   │   ├── set_demo.py         # Set extraction
 │   │   ├── model_demo.py       # Model extraction
-│   │   ├── temporal_demo.py     # Temporal graph
-│   │   ├── spatial_demo.py      # Spatial graph
-│   │   ├── spatio_temporal_demo.py  # Spatio-temporal
+│   │   ├── temporal_graph_demo.py     # Temporal graph
+│   │   ├── spatial_graph_demo.py      # Spatial graph
+│   │   ├── spatio_temporal_graph_demo.py  # Spatio-temporal
 │   │   └── hypergraph_demo.py  # Hypergraph
 │   ├── methods/               # RAG method demos
+│   │   ├── atom_demo.py
+│   │   ├── cog_rag_demo.py
+│   │   ├── graph_rag_demo.py
+│   │   ├── hyper_rag_demo.py
+│   │   ├── hypergraph_rag_demo.py
+│   │   ├── itext2kg_demo.py
+│   │   ├── itext2kg_star_demo.py
+│   │   ├── kg_gen_demo.py
+│   │   └── light_rag_demo.py
 │   └── templates/             # Template demos
+│       ├── finance_template.py
+│       ├── general_template.py
+│       ├── industry_template.py
+│       ├── legal_template.py
+│       ├── list_templates.py
+│       ├── medicine_template.py
+│       └── tcm_template.py
 │
 └── zh/                          # Chinese demos
     ├── sushi.md               # Su Shi biography data
     ├── sushi_question.md      # Query questions
     ├── autotypes/             # AutoType demos
+    │   ├── graph_demo.py
+    │   ├── list_demo.py
+    │   ├── set_demo.py
+    │   ├── model_demo.py
+    │   ├── temporal_graph_demo.py
+    │   ├── spatial_graph_demo.py
+    │   ├── spatio_temporal_graph_demo.py
+    │   └── hypergraph_demo.py
     ├── methods/               # RAG method demos
+    │   ├── atom_demo.py
+    │   ├── cog_rag_demo.py
+    │   ├── graph_rag_demo.py
+    │   ├── hyper_rag_demo.py
+    │   ├── hypergraph_rag_demo.py
+    │   ├── itext2kg_demo.py
+    │   ├── itext2kg_star_demo.py
+    │   ├── kg_gen_demo.py
+    │   └── light_rag_demo.py
     └── templates/             # Template demos
+        ├── finance_template.py
+        ├── general_template.py
+        ├── industry_template.py
+        ├── legal_template.py
+        ├── list_templates.py
+        ├── medicine_template.py
+        └── tcm_template.py
 ```
 
 ## AutoType Demos
@@ -56,9 +96,9 @@ Each demo showcases a specific extraction type:
 | `list_demo.py` | Extract list of items |
 | `set_demo.py` | Extract deduplicated set |
 | `model_demo.py` | Extract structured summary |
-| `temporal_demo.py` | Extract temporal relationships |
-| `spatial_demo.py` | Extract spatial relationships |
-| `spatio_temporal_demo.py` | Extract both time & space |
+| `temporal_graph_demo.py` | Extract temporal relationships |
+| `spatial_graph_demo.py` | Extract spatial relationships |
+| `spatio_temporal_graph_demo.py` | Extract both time & space |
 | `hypergraph_demo.py` | Extract multi-entity relationships |
 
 ## Data Files
@@ -83,6 +123,14 @@ Nikola Tesla biography (1856-1943):
 ## Requirements
 
 ```bash
-pip install hyperextract langchain-openai python-dotenv
+# Install hyper-extract (dependencies are automatically installed)
+uv pip install hyper-extract
+
+# Configure API key
+# Option 1: Use .env file (recommended)
+cp .env.example .env
+# Then edit .env with your OPENAI_API_KEY and OPENAI_BASE_URL
+
+# Option 2: Set environment variable
 export OPENAI_API_KEY=your-key
 ```
