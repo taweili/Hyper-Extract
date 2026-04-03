@@ -130,12 +130,12 @@ graph TD
 **Example Output**:
 ```python
 {
-    "entities": [
+    "nodes": [
         {"name": "Tesla", "type": "person"},
         {"name": "Edison", "type": "person"},
         {"name": "AC Motor", "type": "invention"}
     ],
-    "relations": [
+    "edges": [
         {"source": "Tesla", "target": "AC Motor", "type": "invented"},
         {"source": "Tesla", "target": "Edison", "type": "rivals"}
     ]
@@ -160,8 +160,8 @@ graph TD
 **Example Output**:
 ```python
 {
-    "entities": [...],
-    "hyperedges": [
+    "nodes": [...],
+    "edges": [
         {
             "entities": ["Tesla", "Westinghouse", "Niagara"],
             "type": "collaboration",
@@ -190,8 +190,8 @@ graph TD
 **Example Output**:
 ```python
 {
-    "entities": [...],
-    "relations": [
+    "nodes": [...],
+    "edges": [
         {
             "source": "Tesla",
             "target": "AC Motor",

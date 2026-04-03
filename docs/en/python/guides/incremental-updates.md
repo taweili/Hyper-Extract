@@ -23,11 +23,11 @@ ka = Template.create("general/biography_graph", "en")
 
 # Initial extraction
 result = ka.parse(initial_text)
-print(f"Initial: {len(result.data.entities)} entities")
+print(f"Initial: {len(result.data.nodes)} nodes")
 
 # Add more content
 result.feed_text(additional_text)
-print(f"After feed: {len(result.data.entities)} entities")
+print(f"After feed: {len(result.data.nodes)} nodes")
 ```
 
 ---
@@ -58,7 +58,7 @@ kb = ka.parse(documents[0])
 
 for doc in documents[1:]:
     kb.feed_text(doc)
-    print(f"Added document, now {len(kb.data.entities)} entities")
+    print(f"Added document, now {len(kb.data.nodes)} nodes")
 ```
 
 ### Updating with New Information
@@ -136,11 +136,11 @@ kb.dump("./kb_v2/")
 ### 4. Monitor Growth
 
 ```python
-initial_count = len(kb.data.entities)
+initial_count = len(kb.data.nodes)
 kb.feed_text(new_text)
-new_count = len(kb.data.entities)
+new_count = len(kb.data.nodes)
 
-print(f"Added {new_count - initial_count} new entities")
+print(f"Added {new_count - initial_count} new nodes")
 ```
 
 ---
@@ -171,7 +171,7 @@ def build_knowledge_base(source_dir, output_dir):
     for file in files[1:]:
         print(f"Adding {file.name}...")
         kb.feed_text(file.read_text())
-        print(f"  Now {len(kb.data.entities)} entities")
+        print(f"  Now {len(kb.data.nodes)} nodes")
     
     # Build index for search/chat
     print("Building search index...")

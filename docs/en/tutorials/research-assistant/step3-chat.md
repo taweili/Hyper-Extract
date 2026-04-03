@@ -159,11 +159,14 @@ def ask_with_citations(assistant, question):
     print(f"Answer: {response.content}\n")
     
     # Show retrieved sources
-    if "retrieved_items" in response.additional_kwargs:
+    retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
+    retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])
+    if retrieved_nodes or retrieved_edges:
         print("Sources:")
-        for item in response.additional_kwargs["retrieved_items"]:
-            if hasattr(item, 'name'):
-                print(f"  - {item.name}")
+        for node in retrieved_nodes:
+            print(f"  - {node.name}")
+        for edge in retrieved_edges:
+            print(f"  - {edge.source} -> {edge.target}")
 ```
 
 ### Question Suggestions
@@ -257,9 +260,11 @@ class ResearchAssistantApp:
                 break
             elif cmd == "search":
                 query = input("Search query: ")
-                results = self.search(query)
-                for r in results[:5]:
-                    print(f"  - {r.name if hasattr(r, 'name') else r}")
+                nodes, edges = self.search(query)
+                for node in nodes[:5]:
+                    print(f"  - {node.name}")
+                for edge in edges[:5]:
+                    print(f"  - {edge.source} -> {edge.target}")
             elif cmd == "ask":
                 question = input("Question: ")
                 answer = self.ask(question)

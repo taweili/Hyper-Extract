@@ -102,13 +102,13 @@ def main():
     
     # Display results
     print(f"\nExtraction Complete:")
-    print(f"  Entities: {len(result.data.entities)}")
-    print(f"  Relations: {len(result.data.relations)}")
-    
-    # Show sample entities
+    print(f"  Nodes: {len(result.data.nodes)}")
+    print(f"  Edges: {len(result.data.edges)}")
+
+    # Show sample nodes
     print("\nSample Concepts:")
-    for entity in result.data.entities[:5]:
-        print(f"  - {entity.name} ({entity.type})")
+    for node in result.data.nodes[:5]:
+        print(f"  - {node.name} ({node.type})")
     
     # Save
     print(f"\nSaving to: {OUTPUT_DIR}")

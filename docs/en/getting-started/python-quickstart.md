@@ -76,13 +76,13 @@ Died: January 7, 1943, New York City, NY
 result = ka.parse(text)
 
 # Access the extracted data
-print(f"Entities: {len(result.data.entities)}")
-print(f"Relations: {len(result.data.relations)}")
+print(f"Nodes: {len(result.data.nodes)}")
+print(f"Edges: {len(result.data.edges)}")
 
-# Print first entity
-if result.data.entities:
-    entity = result.data.entities[0]
-    print(f"\nFirst entity: {entity.name} ({entity.type})")
+# Print first node
+if result.data.nodes:
+    node = result.data.nodes[0]
+    print(f"\nFirst node: {node.name} ({node.type})")
 
 # Visualize
 result.show()
@@ -114,19 +114,21 @@ And a browser window will open showing the interactive knowledge graph.
 Access different parts of the extraction:
 
 ```python
-# Iterate over all entities
-for entity in result.data.entities:
-    print(f"- {entity.name}: {entity.description}")
+# Iterate over all nodes
+for node in result.data.nodes:
+    print(f"- {node.name}: {node.description}")
 
-# Iterate over all relations
-for relation in result.data.relations:
-    print(f"- {relation.source} --{relation.type}--> {relation.target}")
+# Iterate over all edges
+for edge in result.data.edges:
+    print(f"- {edge.source} --{edge.type}--> {edge.target}")
 
 # Search within the knowledge base
 result.build_index()
-search_results = result.search("inventions", top_k=3)
-for item in search_results:
-    print(item)
+nodes, edges = result.search("inventions", top_k=3)
+for node in nodes:
+    print(f"Node: {node.name}")
+for edge in edges:
+    print(f"Edge: {edge.source} -> {edge.target}")
 ```
 
 ---
@@ -201,8 +203,8 @@ def main():
     
     # Print summary
     print(f"\nExtraction complete:")
-    print(f"  - Entities: {len(result.data.entities)}")
-    print(f"  - Relations: {len(result.data.relations)}")
+    print(f"  - Nodes: {len(result.data.nodes)}")
+    print(f"  - Edges: {len(result.data.edges)}")
     
     # Build search index
     print("Building search index...")

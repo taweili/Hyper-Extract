@@ -156,9 +156,9 @@ with open("biography.md") as f:
     result = ka.parse(f.read())
 
 # Access timeline data
-for relation in result.data.relations:
-    if hasattr(relation, 'time'):
-        print(f"{relation.time}: {relation.source} -> {relation.target}")
+for edge in result.data.edges:
+    if hasattr(edge, 'time'):
+        print(f"{edge.time}: {edge.source} -> {edge.target}")
 
 result.show()  # Visualize life timeline
 ```

@@ -36,46 +36,49 @@ result.build_index()
 ### 基本搜索
 
 ```python
-# 搜索相关项目
-results = result.search("inventions", top_k=5)
+# 搜索相关项目（返回节点和边的元组）
+nodes, edges = result.search("inventions", top_k=5)
 
-for item in results:
-    print(item)
+for node in nodes:
+    print(f"节点: {node.name}")
+for edge in edges:
+    print(f"边: {edge.source} -> {edge.target}")
 ```
 
 ### 搜索参数
 
 ```python
-results = result.search(
+nodes, edges = result.search(
     query="electrical engineering achievements",
-    top_k=10  # 结果数量
+    top_k=10  # 节点和边的结果数量
 )
 ```
 
 ### 处理结果
 
 ```python
-results = result.search("Nobel Prize")
+nodes, edges = result.search("Nobel Prize")
 
-for item in results:
-    # 检查项目类型
-    if hasattr(item, 'name'):  # 实体
-        print(f"Entity: {item.name}")
-    elif hasattr(item, 'source'):  # 关系
-        print(f"Relation: {item.source} -> {item.target}")
+# 处理节点
+for node in nodes:
+    print(f"节点: {node.name} ({node.type})")
+
+# 处理边
+for edge in edges:
+    print(f"边: {edge.source} -> {edge.target}")
 ```
 
 ### 搜索用例
 
 ```python
 # 查找特定人物
-people = result.search("scientists who worked with Tesla", top_k=10)
+people_nodes, people_edges = result.search("scientists who worked with Tesla", top_k=10)
 
 # 查找概念
-concepts = result.search("alternating current system", top_k=5)
+concept_nodes, concept_edges = result.search("alternating current system", top_k=5)
 
 # 查找事件
-events = result.search("important dates in Tesla's life", top_k=10)
+event_nodes, event_edges = result.search("important dates in Tesla's life", top_k=10)
 ```
 
 ---
@@ -98,10 +101,10 @@ response = result.chat("特斯拉发明了什么？")
 
 print(response.content)
 
-# 访问用于生成响应的项目
-if "retrieved_items" in response.additional_kwargs:
-    items = response.additional_kwargs["retrieved_items"]
-    print(f"基于 {len(items)} 个项目")
+# 访问用于生成响应的节点和边
+retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
+retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])
+print(f"基于 {len(retrieved_nodes)} 个节点和 {len(retrieved_edges)} 条边")
 ```
 
 ### 聊天参数
@@ -162,12 +165,12 @@ timeline = result.chat("特斯拉在 1880-1890 年间发生了什么？")
 ### 先搜索后聊天
 
 ```python
-# 首先，搜索特定项目
-items = result.search("wireless technology", top_k=5)
+# 首先，搜索特定节点
+nodes, edges = result.search("wireless technology", top_k=5)
 
 # 然后，询问它们
-if items:
-    context = ", ".join([item.name for item in items if hasattr(item, 'name')])
+if nodes:
+    context = ", ".join([node.name for node in nodes])
     response = result.chat(f"解释 {context} 的意义")
     print(response.content)
 ```
@@ -229,7 +232,7 @@ print(assistant.ask("有哪些局限性？"))
 1. **提出清晰的问题** — 具体问题得到更好的答案
 2. **使用上下文** — 逐步构建理解
 3. **调整 top_k** — 复杂问题需要更多上下文
-4. **检查来源** — 审查 `retrieved_items` 以确保准确性
+4. **检查来源** — 审查 `retrieved_nodes` 和 `retrieved_edges` 以确保准确性
 
 ---
 

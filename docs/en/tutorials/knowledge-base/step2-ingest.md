@@ -162,16 +162,16 @@ def main():
         
         # Print stats
         print("\nKnowledge Base Stats:")
-        print(f"  Entities: {len(kb.data.entities)}")
-        print(f"  Relations: {len(kb.data.relations)}")
+        print(f"  Nodes: {len(kb.data.nodes)}")
+        print(f"  Edges: {len(kb.data.edges)}")
         
     elif args.add:
         # Add specific documents
         kb = manager.add_documents(args.add)
         
         print("\nKnowledge Base Stats:")
-        print(f"  Entities: {len(kb.data.entities)}")
-        print(f"  Relations: {len(kb.data.relations)}")
+        print(f"  Nodes: {len(kb.data.nodes)}")
+        print(f"  Edges: {len(kb.data.edges)}")
 
 if __name__ == "__main__":
     main()

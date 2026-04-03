@@ -23,11 +23,11 @@ ka = Template.create("general/biography_graph", "en")
 
 # 初始提取
 result = ka.parse(initial_text)
-print(f"初始: {len(result.data.entities)} 个实体")
+print(f"初始: {len(result.data.nodes)} 个节点")
 
 # 添加更多内容
 result.feed_text(additional_text)
-print(f"Feed 后: {len(result.data.entities)} 个实体")
+print(f"Feed 后: {len(result.data.nodes)} 个节点")
 ```
 
 ---
@@ -58,7 +58,7 @@ kb = ka.parse(documents[0])
 
 for doc in documents[1:]:
     kb.feed_text(doc)
-    print(f"已添加文档，现在有 {len(kb.data.entities)} 个实体")
+    print(f"已添加文档，现在有 {len(kb.data.nodes)} 个节点")
 ```
 
 ### 使用新信息更新
@@ -136,11 +136,11 @@ kb.dump("./kb_v2/")
 ### 4. 监控增长
 
 ```python
-initial_count = len(kb.data.entities)
+initial_count = len(kb.data.nodes)
 kb.feed_text(new_text)
-new_count = len(kb.data.entities)
+new_count = len(kb.data.nodes)
 
-print(f"添加了 {new_count - initial_count} 个新实体")
+print(f"添加了 {new_count - initial_count} 个新节点")
 ```
 
 ---
@@ -171,7 +171,7 @@ def build_knowledge_base(source_dir, output_dir):
     for file in files[1:]:
         print(f"添加 {file.name}...")
         kb.feed_text(file.read_text())
-        print(f"  现在有 {len(kb.data.entities)} 个实体")
+        print(f"  现在有 {len(kb.data.nodes)} 个节点")
     
     # 为搜索/聊天构建索引
     print("构建搜索索引...")

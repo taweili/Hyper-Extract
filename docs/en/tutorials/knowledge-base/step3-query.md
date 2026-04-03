@@ -94,14 +94,13 @@ Commands:
             print("No knowledge base loaded")
             return
         
-        results = self.kb.search(arg, top_k=5)
-        
-        print(f"\nFound {len(results)} results:\n")
-        for i, item in enumerate(results, 1):
-            if hasattr(item, 'name'):
-                print(f"{i}. [{item.type}] {item.name}")
-            elif hasattr(item, 'source'):
-                print(f"{i}. {item.source} -> {item.target}")
+        nodes, edges = self.kb.search(arg, top_k=5)
+
+        print(f"\nFound {len(nodes)} nodes and {len(edges)} edges:\n")
+        for i, node in enumerate(nodes, 1):
+            print(f"{i}. [Node] {node.name} ({node.type})")
+        for i, edge in enumerate(edges, len(nodes) + 1):
+            print(f"{i}. [Edge] {edge.source} -> {edge.target}")
         print()
     
     def do_ask(self, arg):
@@ -125,14 +124,14 @@ Commands:
             return
         
         print("\nKnowledge Base Statistics:")
-        print(f"  Entities: {len(self.kb.data.entities)}")
-        print(f"  Relations: {len(self.kb.data.relations)}")
+        print(f"  Nodes: {len(self.kb.data.nodes)}")
+        print(f"  Edges: {len(self.kb.data.edges)}")
         print(f"  Template: {self.manager.config.template}")
-        
-        # Entity types
+
+        # Node types
         from collections import Counter
-        types = Counter(e.type for e in self.kb.data.entities)
-        print("\nEntity Types:")
+        types = Counter(n.type for n in self.kb.data.nodes)
+        print("\nNode Types:")
         for t, count in types.most_common():
             print(f"  {t}: {count}")
         print()

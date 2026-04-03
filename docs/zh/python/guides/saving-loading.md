@@ -64,7 +64,7 @@ ka = Template.create("general/biography_graph", "en")
 ka.load("./my_kb/")
 
 # 使用
-print(f"加载了 {len(ka.data.entities)} 个实体")
+print(f"加载了 {len(ka.data.nodes)} 个节点")
 ```
 
 ### 验证加载的数据
@@ -76,8 +76,8 @@ ka.load("./my_kb/")
 if ka.empty():
     print("警告：未加载数据")
 else:
-    print(f"实体: {len(ka.data.entities)}")
-    print(f"关系: {len(ka.data.relations)}")
+    print(f"节点: {len(ka.data.nodes)}")
+    print(f"边: {len(ka.data.edges)}")
 ```
 
 ---
@@ -276,7 +276,8 @@ ka2.load("./kb/")
 ka.load("./kb/")
 
 # 索引可能需要重建
-if not ka.has_index():  # 检查索引是否加载
+index_path = Path("./kb/") / "index"
+if not index_path.exists():
     ka.build_index()
 ```
 

@@ -64,7 +64,7 @@ ka = Template.create("general/biography_graph", "en")
 ka.load("./my_kb/")
 
 # Use
-print(f"Loaded {len(ka.data.entities)} entities")
+print(f"Loaded {len(ka.data.nodes)} nodes")
 ```
 
 ### Verify Loaded Data
@@ -76,8 +76,8 @@ ka.load("./my_kb/")
 if ka.empty():
     print("Warning: No data loaded")
 else:
-    print(f"Entities: {len(ka.data.entities)}")
-    print(f"Relations: {len(ka.data.relations)}")
+    print(f"Nodes: {len(ka.data.nodes)}")
+    print(f"Edges: {len(ka.data.edges)}")
 ```
 
 ---
@@ -275,8 +275,9 @@ ka2.load("./kb/")
 ```python
 ka.load("./kb/")
 
-# Index may need rebuild
-if not ka.has_index():  # Check if index loaded
+# Check if index exists, otherwise rebuild
+index_path = Path("./kb/") / "index"
+if not index_path.exists():
     ka.build_index()
 ```
 

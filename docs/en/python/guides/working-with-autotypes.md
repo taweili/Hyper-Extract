@@ -80,14 +80,14 @@ from hyperextract import Template
 ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
-# Access entities
-for entity in result.data.entities:
-    print(f"{entity.name} ({entity.type})")
-    print(f"  Description: {entity.description}")
+# Access nodes
+for node in result.data.nodes:
+    print(f"{node.name} ({node.type})")
+    print(f"  Description: {node.description}")
 
-# Access relations
-for relation in result.data.relations:
-    print(f"{relation.source} --{relation.type}--> {relation.target}")
+# Access edges
+for edge in result.data.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
 #### AutoHypergraph
@@ -101,9 +101,9 @@ ka = Template.create("general/base_hypergraph", "en")
 result = ka.parse(text)
 
 # Hyperedges connect multiple entities
-for hyperedge in result.data.hyperedges:
-    print(f"Type: {hyperedge.type}")
-    print(f"Entities: {hyperedge.entities}")
+for edge in result.data.edges:
+    print(f"Type: {edge.type}")
+    print(f"Entities: {edge.entities}")
 ```
 
 #### AutoTemporalGraph
@@ -117,10 +117,10 @@ ka = Template.create("general/base_temporal_graph", "en")
 result = ka.parse(text)
 
 # Relations include time information
-for relation in result.data.relations:
-    print(f"{relation.source} --{relation.type}--> {relation.target}")
-    if hasattr(relation, 'time'):
-        print(f"  Time: {relation.time}")
+for edge in result.data.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
+    if hasattr(edge, 'time'):
+        print(f"  Time: {edge.time}")
 ```
 
 #### AutoSpatialGraph
@@ -133,10 +133,10 @@ from hyperextract import Template
 ka = Template.create("general/base_spatial_graph", "en")
 result = ka.parse(text)
 
-# Entities/relation include location
-for entity in result.data.entities:
-    if hasattr(entity, 'location'):
-        print(f"{entity.name} at {entity.location}")
+# Nodes/edges include location
+for node in result.data.nodes:
+    if hasattr(node, 'location'):
+        print(f"{node.name} at {node.location}")
 ```
 
 #### AutoSpatioTemporalGraph
@@ -150,12 +150,12 @@ ka = Template.create("general/base_spatio_temporal_graph", "en")
 result = ka.parse(text)
 
 # Full context: who, what, when, where
-for relation in result.data.relations:
-    print(f"Event: {relation.type}")
-    if hasattr(relation, 'time'):
-        print(f"  When: {relation.time}")
-    if hasattr(relation, 'location'):
-        print(f"  Where: {relation.location}")
+for edge in result.data.edges:
+    print(f"Event: {edge.type}")
+    if hasattr(edge, 'time'):
+        print(f"  When: {edge.time}")
+    if hasattr(edge, 'location'):
+        print(f"  Where: {edge.location}")
 ```
 
 ---
@@ -168,7 +168,7 @@ for relation in result.data.relations:
 if result.empty():
     print("No data extracted")
 else:
-    print(f"Extracted {len(result.data.entities)} entities")
+    print(f"Extracted {len(result.data.nodes)} nodes")
 ```
 
 ### Clearing Data
@@ -202,8 +202,8 @@ combined = result1 + result2
 result = ka.parse(text)
 
 # Direct property access (Pydantic model)
-entities = result.data.entities
-relations = result.data.relations
+nodes = result.data.nodes
+edges = result.data.edges
 
 # Dictionary conversion
 data_dict = result.data.model_dump()
@@ -229,44 +229,44 @@ with open("output.json", "w") as f:
 ### Iteration Patterns
 
 ```python
-# Iterate entities
-for entity in result.data.entities:
-    print(f"Name: {entity.name}")
-    print(f"Type: {entity.type}")
-    if hasattr(entity, 'description'):
-        print(f"Description: {entity.description}")
+# Iterate nodes
+for node in result.data.nodes:
+    print(f"Name: {node.name}")
+    print(f"Type: {node.type}")
+    if hasattr(node, 'description'):
+        print(f"Description: {node.description}")
 
-# Iterate relations with filtering
-for relation in result.data.relations:
-    if relation.type == "worked_with":
-        print(f"{relation.source} worked with {relation.target}")
+# Iterate edges with filtering
+for edge in result.data.edges:
+    if edge.type == "worked_with":
+        print(f"{edge.source} worked with {edge.target}")
 ```
 
 ### Filtering
 
 ```python
-# Filter entities by type
-people = [e for e in result.data.entities if e.type == "person"]
-organizations = [e for e in result.data.entities if e.type == "organization"]
+# Filter nodes by type
+people = [n for n in result.data.nodes if n.type == "person"]
+organizations = [n for n in result.data.nodes if n.type == "organization"]
 
-# Filter relations
-inventions = [r for r in result.data.relations if "invent" in r.type.lower()]
+# Filter edges
+inventions = [e for e in result.data.edges if "invent" in e.type.lower()]
 ```
 
 ### Statistics
 
 ```python
 # Basic counts
-entity_count = len(result.data.entities)
-relation_count = len(result.data.relations)
+node_count = len(result.data.nodes)
+edge_count = len(result.data.edges)
 
 # Type distribution
 from collections import Counter
-entity_types = Counter(e.type for e in result.data.entities)
-relation_types = Counter(r.type for r in result.data.relations)
+node_types = Counter(n.type for n in result.data.nodes)
+edge_types = Counter(e.type for e in result.data.edges)
 
-print(f"Entities: {entity_types}")
-print(f"Relations: {relation_types}")
+print(f"Nodes: {node_types}")
+print(f"Edges: {edge_types}")
 ```
 
 ---

@@ -31,8 +31,8 @@ with open("document.md") as f:
     result = ka.parse(f.read())
 
 # Access data
-print(f"Entities: {len(result.data.entities)}")
-print(f"Relations: {len(result.data.relations)}")
+print(f"Nodes: {len(result.data.nodes)}")
+print(f"Edges: {len(result.data.edges)}")
 
 # Visualize
 result.show()
@@ -221,8 +221,8 @@ ka: AutoGraph = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # IDE autocomplete works
-entities = result.data.entities
-relations = result.data.relations
+nodes = result.data.nodes
+edges = result.data.edges
 ```
 
 ---

@@ -89,11 +89,11 @@ ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # 访问图谱数据
-for entity in result.data.entities:
-    print(f"Entity: {entity.name}")
+for node in result.data.nodes:
+    print(f"Node: {node.name}")
 
-for relation in result.data.relations:
-    print(f"{relation.source} --{relation.type}--> {relation.target}")
+for edge in result.data.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
 ### 选择自动类型

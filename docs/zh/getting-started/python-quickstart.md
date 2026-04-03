@@ -33,8 +33,8 @@ with open("document.md") as f:
 ### 3. 访问数据
 
 ```python
-print(f"实体数量: {len(result.data.entities)}")
-print(f"关系数量: {len(result.data.relations)}")
+print(f"节点数量: {len(result.data.nodes)}")
+print(f"边数量: {len(result.data.edges)}")
 ```
 
 ### 4. 可视化
@@ -58,8 +58,8 @@ with open("tesla.md") as f:
     result = ka.parse(f.read())
 
 # 访问数据
-print(f"实体: {len(result.data.entities)}")
-print(f"关系: {len(result.data.relations)}")
+print(f"节点: {len(result.data.nodes)}")
+print(f"边: {len(result.data.edges)}")
 
 # 构建搜索索引
 result.build_index()

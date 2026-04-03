@@ -36,46 +36,49 @@ result.build_index()
 ### Basic Search
 
 ```python
-# Search for relevant items
-results = result.search("inventions", top_k=5)
+# Search for relevant items (returns tuple of nodes, edges)
+nodes, edges = result.search("inventions", top_k=5)
 
-for item in results:
-    print(item)
+for node in nodes:
+    print(f"Node: {node.name}")
+for edge in edges:
+    print(f"Edge: {edge.source} -> {edge.target}")
 ```
 
 ### Search Parameters
 
 ```python
-results = result.search(
+nodes, edges = result.search(
     query="electrical engineering achievements",
-    top_k=10  # Number of results
+    top_k=10  # Number of results for both nodes and edges
 )
 ```
 
 ### Working with Results
 
 ```python
-results = result.search("Nobel Prize")
+nodes, edges = result.search("Nobel Prize")
 
-for item in results:
-    # Check item type
-    if hasattr(item, 'name'):  # Entity
-        print(f"Entity: {item.name}")
-    elif hasattr(item, 'source'):  # Relation
-        print(f"Relation: {item.source} -> {item.target}")
+# Process nodes
+for node in nodes:
+    print(f"Node: {node.name} ({node.type})")
+
+# Process edges
+for edge in edges:
+    print(f"Edge: {edge.source} -> {edge.target}")
 ```
 
 ### Search Use Cases
 
 ```python
 # Find specific people
-people = result.search("scientists who worked with Tesla", top_k=10)
+people_nodes, people_edges = result.search("scientists who worked with Tesla", top_k=10)
 
 # Find concepts
-concepts = result.search("alternating current system", top_k=5)
+concept_nodes, concept_edges = result.search("alternating current system", top_k=5)
 
 # Find events
-events = result.search("important dates in Tesla's life", top_k=10)
+event_nodes, event_edges = result.search("important dates in Tesla's life", top_k=10)
 ```
 
 ---
@@ -98,10 +101,10 @@ response = result.chat("What did Tesla invent?")
 
 print(response.content)
 
-# Access items used to generate response
-if "retrieved_items" in response.additional_kwargs:
-    items = response.additional_kwargs["retrieved_items"]
-    print(f"Based on {len(items)} items")
+# Access nodes and edges used to generate response
+retrieved_nodes = response.additional_kwargs.get("retrieved_nodes", [])
+retrieved_edges = response.additional_kwargs.get("retrieved_edges", [])
+print(f"Based on {len(retrieved_nodes)} nodes and {len(retrieved_edges)} edges")
 ```
 
 ### Chat Parameters
@@ -162,12 +165,12 @@ timeline = result.chat("What happened in Tesla's life between 1880-1890?")
 ### Search then Chat
 
 ```python
-# First, search for specific items
-items = result.search("wireless technology", top_k=5)
+# First, search for specific nodes
+nodes, edges = result.search("wireless technology", top_k=5)
 
 # Then, ask about them
-if items:
-    context = ", ".join([item.name for item in items if hasattr(item, 'name')])
+if nodes:
+    context = ", ".join([node.name for node in nodes])
     response = result.chat(f"Explain the significance of {context}")
     print(response.content)
 ```
@@ -229,7 +232,7 @@ print(assistant.ask("What are the limitations?"))
 1. **Ask clear questions** — Specific questions get better answers
 2. **Use context** — Build understanding progressively
 3. **Adjust top_k** — Complex questions need more context
-4. **Check sources** — Review `retrieved_items` for accuracy
+4. **Check sources** — Review `retrieved_nodes` and `retrieved_edges` for accuracy
 
 ---
 

@@ -51,14 +51,14 @@ scientific fields.
 result = ka.parse(text)
 
 # Access results
-print(f"Entities: {len(result.data.entities)}")
-print(f"Relations: {len(result.data.relations)}")
+print(f"Nodes: {len(result.data.nodes)}")
+print(f"Edges: {len(result.data.edges)}")
 
-# Print first entity
-if result.data.entities:
-    entity = result.data.entities[0]
-    print(f"\nFirst: {entity.name} ({entity.type})")
-    print(f"Description: {entity.description}")
+# Print first node
+if result.data.nodes:
+    node = result.data.nodes[0]
+    print(f"\nFirst: {node.name} ({node.type})")
+    print(f"Description: {node.description}")
 ```
 
 **Output:**
@@ -139,20 +139,20 @@ def main():
     
     # Display results
     print(f"\nExtraction Results:")
-    print(f"  Entities: {len(result.data.entities)}")
-    print(f"  Relations: {len(result.data.relations)}")
-    
-    # List entities
-    print("\nEntities found:")
-    for entity in result.data.entities:
-        print(f"  - {entity.name} ({entity.type})")
+    print(f"  Nodes: {len(result.data.nodes)}")
+    print(f"  Edges: {len(result.data.edges)}")
+
+    # List nodes
+    print("\nNodes found:")
+    for node in result.data.nodes:
+        print(f"  - {node.name} ({node.type})")
     
     # Build index and search
     print("\nBuilding search index...")
     result.build_index()
     
-    search_results = result.search("computer programming", top_k=2)
-    print(f"\nSearch results: {len(search_results)} items")
+    search_nodes, search_edges = result.search("computer programming", top_k=2)
+    print(f"\nSearch results: {len(search_nodes)} nodes, {len(search_edges)} edges")
     
     # Save
     print("\nSaving knowledge base...")

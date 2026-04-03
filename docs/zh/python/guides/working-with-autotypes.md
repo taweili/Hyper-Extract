@@ -80,14 +80,14 @@ from hyperextract import Template
 ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
-# 访问实体
-for entity in result.data.entities:
-    print(f"{entity.name} ({entity.type})")
-    print(f"  描述: {entity.description}")
+# 访问节点
+for node in result.data.nodes:
+    print(f"{node.name} ({node.type})")
+    print(f"  描述: {node.description}")
 
-# 访问关系
-for relation in result.data.relations:
-    print(f"{relation.source} --{relation.type}--> {relation.target}")
+# 访问边
+for edge in result.data.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
 #### AutoHypergraph
@@ -101,9 +101,9 @@ ka = Template.create("general/base_hypergraph", "en")
 result = ka.parse(text)
 
 # 超边连接多个实体
-for hyperedge in result.data.hyperedges:
-    print(f"类型: {hyperedge.type}")
-    print(f"实体: {hyperedge.entities}")
+for edge in result.data.edges:
+    print(f"类型: {edge.type}")
+    print(f"实体: {edge.entities}")
 ```
 
 #### AutoTemporalGraph
@@ -116,11 +116,11 @@ from hyperextract import Template
 ka = Template.create("general/base_temporal_graph", "en")
 result = ka.parse(text)
 
-# 关系包含时间信息
-for relation in result.data.relations:
-    print(f"{relation.source} --{relation.type}--> {relation.target}")
-    if hasattr(relation, 'time'):
-        print(f"  时间: {relation.time}")
+# 边包含时间信息
+for edge in result.data.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
+    if hasattr(edge, 'time'):
+        print(f"  时间: {edge.time}")
 ```
 
 #### AutoSpatialGraph
@@ -133,10 +133,10 @@ from hyperextract import Template
 ka = Template.create("general/base_spatial_graph", "en")
 result = ka.parse(text)
 
-# 实体/关系包含位置
-for entity in result.data.entities:
-    if hasattr(entity, 'location'):
-        print(f"{entity.name} at {entity.location}")
+# 节点/边包含位置
+for node in result.data.nodes:
+    if hasattr(node, 'location'):
+        print(f"{node.name} at {node.location}")
 ```
 
 #### AutoSpatioTemporalGraph
@@ -150,12 +150,12 @@ ka = Template.create("general/base_spatio_temporal_graph", "en")
 result = ka.parse(text)
 
 # 完整上下文：谁、什么、何时、何地
-for relation in result.data.relations:
-    print(f"事件: {relation.type}")
-    if hasattr(relation, 'time'):
-        print(f"  何时: {relation.time}")
-    if hasattr(relation, 'location'):
-        print(f"  何地: {relation.location}")
+for edge in result.data.edges:
+    print(f"事件: {edge.type}")
+    if hasattr(edge, 'time'):
+        print(f"  何时: {edge.time}")
+    if hasattr(edge, 'location'):
+        print(f"  何地: {edge.location}")
 ```
 
 ---
@@ -168,7 +168,7 @@ for relation in result.data.relations:
 if result.empty():
     print("未提取到数据")
 else:
-    print(f"提取了 {len(result.data.entities)} 个实体")
+    print(f"提取了 {len(result.data.nodes)} 个节点")
 ```
 
 ### 清除数据
@@ -202,8 +202,8 @@ combined = result1 + result2
 result = ka.parse(text)
 
 # 直接属性访问（Pydantic 模型）
-entities = result.data.entities
-relations = result.data.relations
+nodes = result.data.nodes
+edges = result.data.edges
 
 # 字典转换
 data_dict = result.data.model_dump()
@@ -229,44 +229,44 @@ with open("output.json", "w") as f:
 ### 迭代模式
 
 ```python
-# 遍历实体
-for entity in result.data.entities:
-    print(f"名称: {entity.name}")
-    print(f"类型: {entity.type}")
-    if hasattr(entity, 'description'):
-        print(f"描述: {entity.description}")
+# 遍历节点
+for node in result.data.nodes:
+    print(f"名称: {node.name}")
+    print(f"类型: {node.type}")
+    if hasattr(node, 'description'):
+        print(f"描述: {node.description}")
 
-# 带筛选的关系迭代
-for relation in result.data.relations:
-    if relation.type == "worked_with":
-        print(f"{relation.source} 与 {relation.target} 合作")
+# 带筛选的边迭代
+for edge in result.data.edges:
+    if edge.type == "worked_with":
+        print(f"{edge.source} 与 {edge.target} 合作")
 ```
 
 ### 筛选
 
 ```python
-# 按类型筛选实体
-people = [e for e in result.data.entities if e.type == "person"]
-organizations = [e for e in result.data.entities if e.type == "organization"]
+# 按类型筛选节点
+people = [n for n in result.data.nodes if n.type == "person"]
+organizations = [n for n in result.data.nodes if n.type == "organization"]
 
-# 筛选关系
-inventions = [r for r in result.data.relations if "invent" in r.type.lower()]
+# 筛选边
+inventions = [e for e in result.data.edges if "invent" in e.type.lower()]
 ```
 
 ### 统计
 
 ```python
 # 基本计数
-entity_count = len(result.data.entities)
-relation_count = len(result.data.relations)
+node_count = len(result.data.nodes)
+edge_count = len(result.data.edges)
 
 # 类型分布
 from collections import Counter
-entity_types = Counter(e.type for e in result.data.entities)
-relation_types = Counter(r.type for r in result.data.relations)
+node_types = Counter(n.type for n in result.data.nodes)
+edge_types = Counter(e.type for e in result.data.edges)
 
-print(f"实体: {entity_types}")
-print(f"关系: {relation_types}")
+print(f"节点: {node_types}")
+print(f"边: {edge_types}")
 ```
 
 ---

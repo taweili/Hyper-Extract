@@ -130,12 +130,12 @@ graph TD
 **示例输出**：
 ```python
 {
-    "entities": [
+    "nodes": [
         {"name": "Tesla", "type": "person"},
         {"name": "Edison", "type": "person"},
         {"name": "AC Motor", "type": "invention"}
     ],
-    "relations": [
+    "edges": [
         {"source": "Tesla", "target": "AC Motor", "type": "invented"},
         {"source": "Tesla", "target": "Edison", "type": "rivals"}
     ]
@@ -160,8 +160,8 @@ graph TD
 **示例输出**：
 ```python
 {
-    "entities": [...],
-    "hyperedges": [
+    "nodes": [...],
+    "edges": [
         {
             "entities": ["Tesla", "Westinghouse", "Niagara"],
             "type": "collaboration",
@@ -190,8 +190,8 @@ graph TD
 **示例输出**：
 ```python
 {
-    "entities": [...],
-    "relations": [
+    "nodes": [...],
+    "edges": [
         {
             "source": "Tesla",
             "target": "AC Motor",
@@ -226,14 +226,14 @@ graph TD
 **示例输出**：
 ```python
 {
-    "entities": [
+    "nodes": [
         {
             "name": "Colorado Springs",
             "type": "location",
             "coordinates": "38.8339,-104.8214"
         }
     ],
-    "relations": [
+    "edges": [
         {
             "source": "Tesla",
             "target": "Colorado Springs",
@@ -261,8 +261,8 @@ graph TD
 **示例输出**：
 ```python
 {
-    "entities": [...],
-    "relations": [
+    "nodes": [...],
+    "edges": [
         {
             "source": "Tesla",
             "target": "AC Motor",

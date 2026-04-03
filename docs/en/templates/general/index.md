@@ -262,11 +262,11 @@ ka = Template.create("general/concept_graph", "en")
 result = ka.parse(paper_text)
 
 # Get concept map
-for entity in result.data.entities:
-    print(f"Concept: {entity.name}")
+for node in result.data.nodes:
+    print(f"Concept: {node.name}")
 
-for relation in result.data.relations:
-    print(f"{relation.source} → {relation.target}")
+for edge in result.data.edges:
+    print(f"{edge.source} → {edge.target}")
 ```
 
 ---

@@ -51,14 +51,14 @@ scientific fields.
 result = ka.parse(text)
 
 # 访问结果
-print(f"实体数: {len(result.data.entities)}")
-print(f"关系数: {len(result.data.relations)}")
+print(f"节点数: {len(result.data.nodes)}")
+print(f"边数: {len(result.data.edges)}")
 
-# 打印第一个实体
-if result.data.entities:
-    entity = result.data.entities[0]
-    print(f"\n第一个: {entity.name} ({entity.type})")
-    print(f"描述: {entity.description}")
+# 打印第一个节点
+if result.data.nodes:
+    node = result.data.nodes[0]
+    print(f"\n第一个: {node.name} ({node.type})")
+    print(f"描述: {node.description}")
 ```
 
 **输出：**
@@ -84,9 +84,11 @@ result.show()
 result.build_index()
 
 # 搜索
-results = result.search("Nobel Prize", top_k=3)
-for item in results:
-    print(item)
+nodes, edges = result.search("Nobel Prize", top_k=3)
+for node in nodes:
+    print(f"节点: {node.name}")
+for edge in edges:
+    print(f"边: {edge.source} -> {edge.target}")
 ```
 
 ### 5. 聊天
@@ -138,21 +140,21 @@ def main():
     result = ka.parse(text)
     
     # 显示结果
-    print(f"\nExtraction Results:")
-    print(f"  Entities: {len(result.data.entities)}")
-    print(f"  Relations: {len(result.data.relations)}")
-    
-    # 列出实体
-    print("\nEntities found:")
-    for entity in result.data.entities:
-        print(f"  - {entity.name} ({entity.type})")
+    print(f"\n提取结果：")
+    print(f"  节点数: {len(result.data.nodes)}")
+    print(f"  边数: {len(result.data.edges)}")
+
+    # 列出节点
+    print("\n发现的节点：")
+    for node in result.data.nodes:
+        print(f"  - {node.name} ({node.type})")
     
     # 构建索引和搜索
     print("\nBuilding search index...")
     result.build_index()
     
-    search_results = result.search("computer programming", top_k=2)
-    print(f"\nSearch results: {len(search_results)} items")
+    search_nodes, search_edges = result.search("computer programming", top_k=2)
+    print(f"\n搜索结果: {len(search_nodes)} 个节点, {len(search_edges)} 条边")
     
     # 保存
     print("\nSaving knowledge base...")

@@ -169,6 +169,20 @@ plugins:
                 - 医学: zh/templates/medicine.md
                 - 中医: zh/templates/tcm.md
                 - 工业: zh/templates/industry.md
+            - 教程:
+                - zh/tutorials/index.md
+                - 研究助手:
+                    - zh/tutorials/research-assistant/index.md
+                    - zh/tutorials/research-assistant/step1-extract.md
+                    - zh/tutorials/research-assistant/step2-search.md
+                    - zh/tutorials/research-assistant/step3-chat.md
+                - 知识库:
+                    - zh/tutorials/knowledge-base/index.md
+                    - zh/tutorials/knowledge-base/step1-setup.md
+                    - zh/tutorials/knowledge-base/step2-ingest.md
+                    - zh/tutorials/knowledge-base/step3-query.md
+                - 文档分析:
+                    - zh/tutorials/document-analysis/index.md
             - 资源:
                 - zh/resources/index.md
                 - zh/resources/faq.md
@@ -196,7 +210,7 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - admonition
-  - details
+  - pymdownx.details
   - tables
   - toc:
       permalink: true

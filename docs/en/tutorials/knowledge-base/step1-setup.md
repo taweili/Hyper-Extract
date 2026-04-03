@@ -214,8 +214,8 @@ test_text = "This is a test document for template validation."
 result = ka.parse(test_text)
 
 print(f"Template: {config['template']}")
-print(f"Entities: {len(result.data.entities)}")
-print(f"Relations: {len(result.data.relations)}")
+print(f"Nodes: {len(result.data.nodes)}")
+print(f"Edges: {len(result.data.edges)}")
 ```
 
 ---
