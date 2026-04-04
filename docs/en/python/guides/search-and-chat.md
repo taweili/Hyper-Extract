@@ -1,6 +1,9 @@
 # Search and Chat
 
-Query your knowledge base using semantic search and conversational AI.
+!!! tip "Advanced - Post-Extraction"
+    This guide covers using extracted knowledge. You should be comfortable with [Level 1: Using Templates](using-templates.md) first.
+
+Query your knowledge abstract using semantic search and conversational AI.
 
 ---
 
@@ -195,9 +198,9 @@ print(response.content)
 
 ```python
 class ResearchAssistant:
-    def __init__(self, kb_path):
+    def __init__(self, ka_path):
         self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(kb_path)
+        self.ka.load(ka_path)
         self.ka.build_index()
     
     def ask(self, question):
@@ -271,6 +274,10 @@ response = result.chat("Be more specific: ...")
 
 ## See Also
 
-- [Working with Auto-Types](working-with-autotypes.md)
-- [Incremental Updates](incremental-updates.md)
-- [Saving and Loading](saving-loading.md)
+**Related Workflows:**
+- [Incremental Updates](incremental-updates.md) — Add more content
+- [Saving and Loading](saving-loading.md) — Persist for later use
+
+**Basics:**
+- [Using Templates](using-templates.md) — Level 1 fundamentals
+- [Working with Auto-Types](working-with-autotypes.md) — Level 2 customization

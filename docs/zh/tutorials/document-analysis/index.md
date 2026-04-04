@@ -117,7 +117,7 @@ class BatchDocumentProcessor:
     
     def __init__(
         self,
-        template: str = "general/knowledge_graph",
+        template: str = "general/graph",
         language: str = "en",
         batch_size: int = 10,
         max_workers: int = 4
@@ -300,15 +300,15 @@ class BatchDocumentProcessor:
         
         # 合并剩余结果
         for output_dir in output_dirs[1:]:
-            kb = Template.create(self.template, self.language)
-            kb.load(str(output_dir))
+            ka = Template.create(self.template, self.language)
+            ka.load(str(output_dir))
             
             # 合并实体和关系
-            for entity in kb.data.entities:
+            for entity in ka.data.entities:
                 if entity not in combined.data.entities:
                     combined.data.entities.append(entity)
             
-            for relation in kb.data.relations:
+            for relation in ka.data.relations:
                 if relation not in combined.data.relations:
                     combined.data.relations.append(relation)
         
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="批处理文档处理器")
-    parser.add_argument("--template", default="general/knowledge_graph", help="使用的模板")
+    parser.add_argument("--template", default="general/graph", help="使用的模板")
     parser.add_argument("--language", default="en", help="文档语言")
     parser.add_argument("--batch-size", type=int, default=10, help="批次大小")
     parser.add_argument("--parallel", action="store_true", help="启用并行处理")

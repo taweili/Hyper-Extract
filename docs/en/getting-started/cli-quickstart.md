@@ -84,6 +84,7 @@ Template resolved: Biography Graph Template
 
 What's next?
   he show ./output/                    # Visualize knowledge graph
+  he feed ./output/ <new_document>     # Append more documents
   he search ./output/ "keyword"        # Semantic search
   he talk ./output/ -i                 # Interactive chat
 ```
@@ -104,7 +105,7 @@ This opens an interactive visualization in your browser, showing:
 
 ---
 
-## Step 5: Search Your Knowledge Base
+## Step 5: Search Your Knowledge Abstract
 
 ```bash
 he search ./output/ "What were Tesla's major inventions?"

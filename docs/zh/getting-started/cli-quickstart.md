@@ -79,7 +79,8 @@ Template resolved: Biography Graph Template
 
 What's next?
   he show ./output/                    # 可视化知识图谱
-  he search ./output/ "keyword"        # 语义搜索
+  he feed ./output/ <new_document>     # 追加更多文档
+  he search ./output/ "关键词"        # 语义搜索
   he talk ./output/ -i                 # 交互式对话
 ```
 
@@ -158,13 +159,13 @@ he show ./output/
 
 ```bash
 # 1. 提取知识
-he parse document.md -t general/biography_graph -o ./output/ -l en
+he parse document.md -t general/biography_graph -o ./output/ -l zh
 
 # 2. 可视化
 he show ./output/
 
 # 3. 搜索
-he search ./output/ "your query"
+he search ./output/ "你的查询"
 
 # 4. 对话
 he talk ./output/ -i

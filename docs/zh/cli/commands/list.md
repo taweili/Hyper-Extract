@@ -32,9 +32,9 @@ he list template
 Available Templates:
 
 Path                          Type              Description
-general/base_model            model             Basic model extraction
-general/base_list             list              Basic list extraction
-general/base_graph            graph             Basic graph extraction
+general/model            model             Basic model extraction
+general/list             list              Basic list extraction
+general/graph            graph             Basic graph extraction
 general/biography_graph       temporal_graph    Biography graph with timeline
 finance/earnings_summary      model             Financial earnings summary
 finance/ownership_graph       graph             Company ownership structure
@@ -102,7 +102,7 @@ atom              graph        Temporal knowledge graph
 he list template
 
 # 然后使用一个
-he parse doc.md -t general/biography_graph -o ./out/ -l en
+he parse doc.md -t general/biography_graph -o ./out/ -l zh
 ```
 
 ### 选择方法

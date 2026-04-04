@@ -790,7 +790,7 @@ class AutoGraph(
 
         Example:
             >>> # Chat using 5 nodes and 2 edges as context
-            >>> response = kb.chat("What is X?", top_k_nodes=5, top_k_edges=2)
+            >>> response = ka.chat("What is X?", top_k_nodes=5, top_k_edges=2)
             >>> print(response.content)  # Print the generated answer
         """
         if top_k is not None:
@@ -830,7 +830,7 @@ class AutoGraph(
 
         # Step 4: Combine context or use fallback
         if not context_parts:
-            context = "No relevant information found in the knowledge base."
+            context = "No relevant information found in the knowledge abstract."
         else:
             context = "\n\n".join(context_parts)
 

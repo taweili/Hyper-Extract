@@ -400,7 +400,7 @@ class AutoModel(BaseAutoType[T]):
                 )
 
             # Create new AutoList
-            list_kb = AutoList(
+            list_ka = AutoList(
                 item_schema=self._data_schema,
                 llm_client=self.llm_client,
                 embedder=self.embedder,
@@ -412,15 +412,15 @@ class AutoModel(BaseAutoType[T]):
             )
 
             # Set items from both units
-            list_kb._data.items = [self._data, other._data]
+            list_ka._data.items = [self._data, other._data]
 
             # Merge metadata
-            list_kb.metadata["created_at"] = min(
+            list_ka.metadata["created_at"] = min(
                 self.metadata["created_at"], other.metadata["created_at"]
             )
-            list_kb.metadata["updated_at"] = datetime.now()
+            list_ka.metadata["updated_at"] = datetime.now()
 
-            return list_kb
+            return list_ka
 
         # Case 2: AutoModel + AutoList → AutoList (prepend model)
         elif isinstance(other, AutoList):

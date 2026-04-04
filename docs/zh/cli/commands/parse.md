@@ -36,7 +36,7 @@ he parse INPUT [OPTIONS]
 从单个文件提取：
 
 ```bash
-he parse document.md -t general/biography_graph -o ./output/ -l en
+he parse document.md -t general/biography_graph -o ./output/ -l zh
 ```
 
 ### 交互式模板选择
@@ -44,12 +44,12 @@ he parse document.md -t general/biography_graph -o ./output/ -l en
 省略 `-t` 以从可用模板中选择：
 
 ```bash
-he parse document.md -o ./output/ -l en
+he parse document.md -o ./output/ -l zh
 
 # 您将看到：
 # Select a template:
 #   [1] general/biography_graph
-#   [2] general/knowledge_graph
+#   [2] general/graph
 #   [3] finance/earnings_summary
 #   ...
 # Enter number or search keyword: 
@@ -60,7 +60,7 @@ he parse document.md -o ./output/ -l en
 从目录中的所有 `.md` 和 `.txt` 文件提取：
 
 ```bash
-he parse ./documents/ -t general/concept_graph -o ./output/ -l en
+he parse ./documents/ -t general/concept_graph -o ./output/ -l zh
 ```
 
 文件按字母顺序组合后进行提取。
@@ -80,7 +80,7 @@ he parse document.md -m light_rag -o ./output/
 覆盖现有输出目录：
 
 ```bash
-he parse document.md -t general/biography_graph -o ./output/ -l en -f
+he parse document.md -t general/biography_graph -o ./output/ -l zh -f
 ```
 
 ### 跳过索引构建
@@ -88,7 +88,7 @@ he parse document.md -t general/biography_graph -o ./output/ -l en -f
 如果您不需要搜索/聊天，可以加快提取速度：
 
 ```bash
-he parse document.md -t general/biography_graph -o ./output/ -l en --no-index
+he parse document.md -t general/biography_graph -o ./output/ -l zh --no-index
 ```
 
 之后使用 `he build-index` 构建索引。
@@ -96,7 +96,7 @@ he parse document.md -t general/biography_graph -o ./output/ -l en --no-index
 ### 从标准输入读取
 
 ```bash
-cat document.md | he parse - -t general/biography_graph -o ./output/ -l en
+cat document.md | he parse - -t general/biography_graph -o ./output/ -l zh
 ```
 
 ---
@@ -124,7 +124,7 @@ cat document.md | he parse - -t general/biography_graph -o ./output/ -l en
 
 ```bash
 # 英文
-he parse doc.md -t general/biography_graph -l en -o ./output/
+he parse doc.md -t general/biography_graph -o ./output/ -l zh -o ./output/
 
 # 中文
 he parse doc.md -t general/biography_graph -l zh -o ./output/
@@ -139,25 +139,25 @@ he parse doc.md -t general/biography_graph -l zh -o ./output/
 ### 研究论文
 
 ```bash
-he parse paper.md -t general/concept_graph -o ./paper_kb/ -l en
+he parse paper.md -t general/concept_graph -o ./paper_kb/ -l zh
 ```
 
 ### 传记
 
 ```bash
-he parse biography.md -t general/biography_graph -o ./bio_kb/ -l en
+he parse biography.md -t general/biography_graph -o ./output/ -l zh
 ```
 
 ### 法律合同
 
 ```bash
-he parse contract.md -t legal/contract_obligation -o ./contract_kb/ -l en
+he parse contract.md -t legal/contract_obligation -o ./contract_kb/ -l zh
 ```
 
 ### 财务报告
 
 ```bash
-he parse earnings.md -t finance/earnings_summary -o ./finance_kb/ -l en
+he parse earnings.md -t finance/earnings_summary -o ./finance_kb/ -l zh
 ```
 
 ---
@@ -186,7 +186,7 @@ he parse earnings.md -t finance/earnings_summary -o ./finance_kb/ -l en
 
 ```bash
 # 模板 - 需要 -l
-he parse doc.md -t general/biography_graph -o ./out/ -l en
+he parse doc.md -t general/biography_graph -o ./output/ -l zh
 
 # 方法 - 不需要 -l
 he parse doc.md -m light_rag -o ./out/

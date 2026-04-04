@@ -115,7 +115,7 @@ http://localhost:xxxx
 检查提取是否成功：
 
 ```bash
-he info ./kb/
+he info ./ka/
 # 应该显示 Nodes > 0 和 Edges > 0
 ```
 
@@ -125,10 +125,10 @@ he info ./kb/
 
 ```bash
 # 检查数据文件存在
-ls ./kb/data.json
+ls ./ka/data.json
 
 # 尝试重新加载
-he show ./kb/
+he show ./ka/
 ```
 
 ---

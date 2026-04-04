@@ -55,7 +55,7 @@
 knowledge-base/
 ├── config.yaml          # 配置
 ├── documents/           # 源文档
-├── kb/                  # 知识库存储
+├── ka/                  # 知识库存储
 │   ├── v1/             # 版本 1
 │   ├── v2/             # 版本 2
 │   └── current/        # 当前版本

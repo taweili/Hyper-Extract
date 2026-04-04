@@ -10,7 +10,7 @@
     >>> from hyperextract.utils.template_engine import Template
 
     # 使用preset模板
-    >>> template = Template.create("general/knowledge_graph", "zh", llm, embedder)
+    >>> template = Template.create("general/graph", "zh", llm, embedder)
 
     # 使用自定义模板（文件路径）
     >>> template = Template.create("/path/to/my_template.yaml", "zh", llm, embedder)

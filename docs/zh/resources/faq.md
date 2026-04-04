@@ -100,21 +100,21 @@ he list template
 先转换为文本：
 ```bash
 pdftotext document.pdf document.txt
-he parse document.txt -t general/knowledge_graph -l en
+he parse document.txt -t general/graph -l zh
 ```
 
 ### 可以处理多个文档吗？
 
 **选项 1**：增量添加
 ```bash
-he parse doc1.md -t general/graph -o ./kb/ -l en
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he parse doc1.md -t general/graph -o ./ka/ -l zh
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 ```
 
 **选项 2**：处理目录
 ```bash
-he parse ./docs/ -t general/graph -o ./kb/ -l en
+he parse ./docs/ -t general/graph -o ./ka/ -l zh
 ```
 
 ### 如何提取中文内容？
@@ -145,8 +145,8 @@ he parse doc.md -t general/biography_graph -l zh
 ```python
 for batch in chunks(documents, 5):
     for doc in batch:
-        kb.feed_text(doc)
-    kb.dump("./checkpoint/")
+        ka.feed_text(doc)
+    ka.dump("./checkpoint/")
 ```
 
 ---
@@ -175,6 +175,8 @@ result.build_index()
 
 result.show()
 ```
+
+![交互式可视化](../../assets/zh_show.png)
 
 ### 可以导出为其他格式吗？
 
@@ -217,8 +219,8 @@ he build-index ./output/
 
 尝试：
 - 使用不同的搜索词
-- 增加 `top_k`：`he search ./kb/ "query" -n 10`
-- 检查索引是否已构建：`he info ./kb/`
+- 增加 `top_k`：`he search ./ka/ "查询" -n 10`
+- 检查索引是否已构建：`he info ./ka/`
 
 ---
 
@@ -249,7 +251,7 @@ from hyperextract import Template
 
 class MyApp:
     def __init__(self):
-        self.ka = Template.create("general/graph", "en")
+        self.ka = Template.create("general/graph", "zh")
     
     def process_document(self, text):
         return self.ka.parse(text)

@@ -774,7 +774,7 @@ class AutoHypergraph(
 
         # Step 4: Combine context or use fallback
         if not context_parts:
-            context = "No relevant information found in the knowledge base."
+            context = "No relevant information found in the knowledge abstract."
         else:
             context = "\n\n".join(context_parts)
 

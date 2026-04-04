@@ -85,7 +85,7 @@ for path, cfg in templates.items():
 from hyperextract import Template
 
 # Graph extraction
-ka = Template.create("general/knowledge_graph", "en")
+ka = Template.create("general/graph", "en")
 result = ka.parse(text)
 
 # Access graph data
@@ -227,6 +227,8 @@ result.build_index()
 result.show()
 ```
 
+![Interactive Visualization](../../assets/en_show.png)
+
 ### Method Approach (Advanced)
 
 ```python
@@ -243,15 +245,16 @@ result.build_index()
 results = result.search("query")
 ```
 
-### Direct Auto-Type (Full Control)
+### Direct Auto-Type Usage (Advanced)
+
+For full control over extraction, you can instantiate Auto-Types directly. This requires defining your own schemas and extraction logic.
 
 ```python
 from hyperextract import AutoGraph
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-# 1. Define schema
 from pydantic import BaseModel
 
+# Define schemas
 class Entity(BaseModel):
     name: str
     type: str
@@ -261,29 +264,34 @@ class Relation(BaseModel):
     target: str
     type: str
 
-class MyGraph(BaseModel):
-    entities: list[Entity]
-    relations: list[Relation]
-
-# 2. Create Auto-Type
+# Create with full control
 llm = ChatOpenAI()
 emb = OpenAIEmbeddings()
 
-ka = AutoGraph(
-    data_schema=MyGraph,
+ka = AutoGraph[Entity, Relation](
+    node_schema=Entity,
+    edge_schema=Relation,
     llm_client=llm,
-    embedder=emb
+    embedder=emb,
+    # Plus additional configuration...
 )
 
-# 3. Extract
 result = ka.parse(text)
 ```
+
+!!! note "Advanced Topic"
+    Direct Auto-Type usage requires understanding of:
+    - Pydantic schema definitions
+    - LLM client configuration
+    - Key extractors for deduplication
+    
+    See [Working with Auto-Types](guides/working-with-autotypes.md#advanced-usage) for complete examples.
 
 ---
 
 ## Next Steps
 
 - [Using Templates](guides/using-templates.md)
-- [Choosing Methods](guides/choosing-methods.md)
+- [Using Methods](guides/using-methods.md)
 - [Working with Auto-Types](guides/working-with-autotypes.md)
 - [Auto-Types Reference](../concepts/autotypes.md)

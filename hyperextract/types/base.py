@@ -14,11 +14,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 T = TypeVar("T", bound=BaseModel)
 
 
-# ===================== Knowledge Base Class =====================
+# ===================== Knowledge Abstract Class =====================
 
 
 class BaseAutoType(ABC, Generic[T]):
-    """Unified knowledge base class integrating extraction, storage, and aggregation.
+    """Unified knowledge abstract class integrating extraction, storage, and aggregation.
 
     This abstract base class provides a complete framework for managing structured knowledge
     extracted from text. It handles the full lifecycle from extraction to serialization.
@@ -145,7 +145,7 @@ class BaseAutoType(ABC, Generic[T]):
 
     @abstractmethod
     def empty(self) -> bool:
-        """Checks if the knowledge base is currently empty.
+        """Checks if the knowledge abstract is currently empty.
 
         Returns:
             True if no data is stored, False otherwise.
@@ -261,7 +261,7 @@ class BaseAutoType(ABC, Generic[T]):
         """
         Parses knowledge into a NEW instance without modifying the current one.
 
-        Use this for previewing data or branching knowledge bases.
+        Use this for previewing data or branching knowledge abstracts.
 
         Args:
             text: Input text.
@@ -281,10 +281,10 @@ class BaseAutoType(ABC, Generic[T]):
 
     def feed_text(self, text: str) -> "BaseAutoType[T]":
         """
-        Ingests text into the CURRENT knowledge base instance.
+        Ingests text into the CURRENT knowledge abstract instance.
 
         This modifies the internal state by merging new data with existing data.
-        Supports method chaining (e.g., kb.feed_text(text1).feed_text(text2)).
+        Supports method chaining (e.g., ka.feed_text(text1).feed_text(text2)).
 
         Args:
             text: Input text.
@@ -336,7 +336,7 @@ class BaseAutoType(ABC, Generic[T]):
 
     @abstractmethod
     def search(self, query: str, top_k: int = 3) -> List[Any]:
-        """Performs semantic search over the knowledge base.
+        """Performs semantic search over the knowledge abstract.
 
         Standard search workflow:
             1. Ensure index is built (call build_index if needed)
@@ -355,7 +355,7 @@ class BaseAutoType(ABC, Generic[T]):
         pass
 
     def chat(self, query: str, top_k: int = 3) -> AIMessage:
-        """Performs a chat-like interaction with the knowledge base.
+        """Performs a chat-like interaction with the knowledge abstract.
 
         This generic method retrieves relevant items and generates a response.
         Subclasses with complex data structures (like graphs) should override this
@@ -368,14 +368,14 @@ class BaseAutoType(ABC, Generic[T]):
         Returns:
             An AIMessage object containing the LLM-generated response.
         """
-        # Step 1: Retrieve relevant items from knowledge base
+        # Step 1: Retrieve relevant items from knowledge abstract
         search_results = self.search(query, top_k)
 
         # Step 2: Format context from retrieved items
         formatted_context = []
 
         if not search_results:
-            context = "No relevant information found in the knowledge base."
+            context = "No relevant information found in the knowledge abstract."
         else:
             for item in search_results:
                 if isinstance(item, BaseModel):
@@ -394,7 +394,7 @@ class BaseAutoType(ABC, Generic[T]):
 
         # Step 3: Create QA prompt template and invoke LLM
         qa_prompt = ChatPromptTemplate.from_template(
-            "Based on the following context from the knowledge base, answer the user's question.\n\n"
+            "Based on the following context from the knowledge abstract, answer the user's question.\n\n"
             "Context:\n{context}\n\n"
             "Question: {question}\n\n"
             "Answer:"
@@ -415,7 +415,7 @@ class BaseAutoType(ABC, Generic[T]):
     # ==================== Serialization: Orchestrator ====================
 
     def dump(self, folder_path: str | Path) -> None:
-        """Saves the entire knowledge base (data, metadata, index) to a directory.
+        """Saves the entire knowledge abstract (data, metadata, index) to a directory.
 
         This is the main entry point for serialization. It creates a directory structure:
             /folder_path
@@ -448,14 +448,14 @@ class BaseAutoType(ABC, Generic[T]):
             print(f"Warning: Failed to save vector index: {e}")
 
     def load(self, folder_path: str | Path) -> None:
-        """Loads the entire knowledge base from a directory.
+        """Loads the entire knowledge abstract from a directory.
 
         Args:
             folder_path: Source directory path.
         """
         root = Path(folder_path)
         if not root.exists():
-            raise FileNotFoundError(f"Knowledge base directory not found: {root}")
+            raise FileNotFoundError(f"Knowledge abstract directory not found: {root}")
 
         # 1. Load Core Data (Critical)
         self.load_data(root / "data.json")

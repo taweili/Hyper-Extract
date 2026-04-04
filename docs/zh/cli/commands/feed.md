@@ -57,23 +57,23 @@ he feed ./sushi_kb/ more_sushi.md
 ### 喂养多个文档
 
 ```bash
-he feed ./kb/ doc1.md
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he feed ./ka/ doc1.md
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 ```
 
 或使用循环：
 
 ```bash
 for file in updates/*.md; do
-    he feed ./kb/ "$file"
+    he feed ./ka/ "$file"
 done
 ```
 
 ### 从标准输入
 
 ```bash
-cat new_content.md | he feed ./kb/ -
+cat new_content.md | he feed ./ka/ -
 ```
 
 ---
@@ -97,7 +97,7 @@ cat new_content.md | he feed ./kb/ -
 
 ```bash
 # 第 1 天：初始论文
-he parse paper_v1.md -t general/concept_graph -o ./research_kb/ -l en
+he parse paper_v1.md -t general/concept_graph -o ./research_kb/ -l zh
 he show ./research_kb/
 
 # 第 7 天：更新版本
@@ -114,7 +114,7 @@ he talk ./research_kb/ -q "所有论文中的关键概念是什么？"
 
 ```bash
 # 从早年生活开始
-he parse early_life.md -t general/biography_graph -o ./bio_kb/ -l en
+he parse early_life.md -t general/biography_graph -o ./bio_kb/ -l zh
 
 # 添加职业生涯
 he feed ./bio_kb/ career.md
@@ -133,7 +133,7 @@ he show ./bio_kb/
 检查 feed 是否成功：
 
 ```bash
-he info ./kb/
+he info ./ka/
 ```
 
 查看：
@@ -147,8 +147,8 @@ he info ./kb/
 
 1. **使用相同模板** — Feed 应使用兼容的模板
 2. **匹配语言** — 为获得最佳效果，使用一致的语言
-3. **之后重建索引** — 搜索/聊天需要 `he build-index ./kb/`
-4. **可视化更改** — 使用 `he show ./kb/` 查看更新
+3. **之后重建索引** — 搜索/聊天需要 `he build-index ./ka/`
+4. **可视化更改** — 使用 `he show ./ka/` 查看更新
 
 ---
 
@@ -159,7 +159,7 @@ he info ./kb/
 目录不包含有效的知识库。检查：
 
 ```bash
-ls ./kb/
+ls ./ka/
 # 应该包含：data.json, metadata.json
 ```
 
@@ -168,7 +168,7 @@ ls ./kb/
 Feed 最适合使用相同类型的模板。如有需要可以覆盖：
 
 ```bash
-he feed ./kb/ doc.md -t general/biography_graph
+he feed ./ka/ doc.md -t general/biography_graph
 ```
 
 ---

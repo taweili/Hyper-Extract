@@ -31,7 +31,7 @@
 <br/>
 </div>
 
-Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的知识摘要的过程。无论从基础的**集合（Collection/List）和**结构化模型（Model），还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
+Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的**知识摘要（Knowledge Abstracts）**的过程。无论从基础的**集合（Collection/List）和**结构化模型（Model），还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
 
 ## ✨ 核心亮点
 
@@ -63,7 +63,7 @@ he config init -k YOUR_OPENAI_API_KEY
 # 提取知识
 he parse examples/zh/sushi.md -t general/biography_graph -o ./output/ -l zh
 
-# 查询知识库
+# 查询知识摘要
 he search ./output/ "苏轼有哪些重要的作品？"
 
 # 可视化知识图谱

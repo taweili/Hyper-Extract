@@ -48,15 +48,15 @@ he search ./output/ "苏轼的代表作"
 ### 获取更多结果
 
 ```bash
-he search ./output/ "electrical engineering" -n 10
+he search ./output/ "电气工程" -n 10
 ```
 
 ### 自然语言查询
 
 ```bash
-he search ./kb/ "主要成就是什么？"
-he search ./kb/ "与欧阳修相关的人"
-he search ./kb/ "苏轼生平重要年份"
+he search ./ka/ "主要成就是什么？"
+he search ./ka/ "与欧阳修相关的人"
+he search ./ka/ "苏轼生平重要年份"
 ```
 
 ### 构建索引后
@@ -66,7 +66,7 @@ he search ./kb/ "苏轼生平重要年份"
 he build-index ./output/
 
 # 然后搜索
-he search ./output/ "innovation"
+he search ./output/ "创新"
 ```
 
 ---

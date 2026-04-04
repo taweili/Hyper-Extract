@@ -1,5 +1,8 @@
 # 使用模板
 
+!!! tip "Level 1 入门"
+    本指南适合初学者。阅读本指南前，请先完成 [快速入门](../quickstart.md)。
+
 学习如何使用和自定义模板进行知识提取。
 
 ---
@@ -7,6 +10,7 @@
 ## 什么是模板？
 
 模板是预配置的提取设置，组合了：
+
 - **自动类型** — 输出数据结构
 - **提示** — LLM 指令
 - **Schema** — 字段定义和类型
@@ -37,7 +41,7 @@ Hyper-Extract 包含 80+ 个跨 6 个领域的模板：
 from hyperextract import Template
 
 # 基本用法
-ka = Template.create("general/biography_graph", language="en")
+ka = Template.create("general/biography_graph", language="zh")
 
 # 使用自定义客户端
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -47,7 +51,7 @@ emb = OpenAIEmbeddings()
 
 ka = Template.create(
     "general/biography_graph",
-    language="en",
+    language="zh",
     llm_client=llm,
     embedder=emb
 )
@@ -59,7 +63,7 @@ ka = Template.create(
 # 加载自定义 YAML 模板
 ka = Template.create(
     "/path/to/my_template.yaml",
-    language="en"
+    language="zh"
 )
 ```
 
@@ -100,7 +104,7 @@ zh_templates = Template.list(filter_by_language="zh")
 # 组合
 results = Template.list(
     filter_by_type="graph",
-    filter_by_language="en"
+    filter_by_language="zh"
 )
 ```
 
@@ -143,6 +147,72 @@ print(cfg.language)       # 支持的语言
 
 ---
 
+## 理解模板返回值
+
+`Template.create` 返回的是**自动类型（AutoType）**对象。不同模板对应的 AutoType 不同，访问提取结果的方式也不同：
+
+| 类型 | AutoType | 典型访问方式 | 适用场景 |
+|------|----------|--------------|----------|
+| **模型** | `AutoModel` | `result.data.field_name` | 财报、档案等结构化对象 |
+| **列表** | `AutoList` | `result.data.items` | 有序集合、流程步骤 |
+| **集合** | `AutoSet` | `result.data.items` | 去重标签、关键词 |
+| **图谱** | `AutoGraph` | `result.nodes` / `result.edges` | 二元实体关系 |
+| **超图** | `AutoHypergraph` | `result.nodes` / `result.edges` | 多实体关系 |
+| **时序图** | `AutoTemporalGraph` | `result.nodes` / `result.edges`（边含 `time`） | 时间线、传记 |
+| **空间图** | `AutoSpatialGraph` | `result.nodes` / `result.edges`（含 `location`） | 地理网络 |
+| **时空图** | `AutoSpatioTemporalGraph` | `result.nodes` / `result.edges`（含 `time` + `location`） | 历史事件 |
+
+!!! info "相关文档"
+    - 想了解更多每种 AutoType 的设计理念和适用场景？参见 [自动类型概念](../../concepts/autotypes.md)。
+    - 想学习如何自定义 schema 和配置参数？参见 [使用自动类型](working-with-autotypes.md)。
+
+### 快速示例
+
+#### 模型（AutoModel）
+
+```python
+ka = Template.create("finance/earnings_summary", "zh")
+result = ka.parse(report_text)
+
+print(result.data.company_name)
+print(result.data.revenue)
+```
+
+#### 列表（AutoList）
+
+```python
+ka = Template.create("general/list", "zh")
+result = ka.parse(text)
+
+for item in result.data.items:
+    print(item)
+```
+
+#### 集合（AutoSet）
+
+```python
+ka = Template.create("general/set", "zh")
+result = ka.parse(text)
+
+for item in result.data.items:
+    print(item)  # 自动去重
+```
+
+#### 图谱（AutoGraph）
+
+```python
+ka = Template.create("general/graph", "zh")
+result = ka.parse(text)
+
+for node in result.nodes:
+    print(f"{node.name} ({node.type})")
+
+for edge in result.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
+```
+
+---
+
 ## 常见模板模式
 
 ### 模式 1：传记分析
@@ -150,7 +220,7 @@ print(cfg.language)       # 支持的语言
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 with open("biography.md") as f:
     result = ka.parse(f.read())
@@ -166,12 +236,14 @@ result.build_index()
 result.show()  # 可视化生平时间线（支持搜索/对话功能）
 ```
 
+![交互式可视化](../../../assets/zh_show.png)
+
 ### 模式 2：财务报告
 
 ```python
 from hyperextract import Template
 
-ka = Template.create("finance/earnings_summary", "en")
+ka = Template.create("finance/earnings_summary", "zh")
 
 report = ka.parse(earnings_text)
 
@@ -186,7 +258,7 @@ print(f"同比增长: {report.data.yoy_growth}%")
 ```python
 from hyperextract import Template
 
-ka = Template.create("legal/contract_obligation", "en")
+ka = Template.create("legal/contract_obligation", "zh")
 
 contract = ka.parse(contract_text)
 
@@ -202,7 +274,7 @@ for obligation in contract.data.obligations:
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/concept_graph", "en")
+ka = Template.create("general/concept_graph", "zh")
 
 paper = ka.parse(paper_text)
 
@@ -240,10 +312,10 @@ result_zh = ka_zh.parse(chinese_text)
 
 ```python
 # 首次调用加载模板
-ka1 = Template.create("general/biography_graph", "en")
+ka1 = Template.create("general/biography_graph", "zh")
 
 # 第二次调用使用缓存版本
-ka2 = Template.create("general/biography_graph", "en")
+ka2 = Template.create("general/biography_graph", "zh")
 
 # 两者是具有相同配置但独立的实例
 ```
@@ -290,6 +362,10 @@ ka = Template.create("general/biography_graph", "fr")  # 可能失败
 
 ## 另请参见
 
+**下一步：**
+- [使用自动类型](working-with-autotypes.md) — Level 2: 自定义 schema
+- [创建自定义模板](custom-templates.md) — Level 2+: 编写自己的模板
+
+**参考：**
 - [模板库](../../templates/index.md) — 浏览所有模板
-- [创建自定义模板](custom-templates.md) — 编写自己的模板
-- [选择方法](choosing-methods.md) — 何时使用方法
+- [使用方法](using-methods.md) — 何时使用方法

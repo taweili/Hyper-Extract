@@ -9,6 +9,9 @@ repo_name: yifanfeng97/hyper-extract
 repo_url: https://github.com/yifanfeng97/hyper-extract
 edit_uri: edit/main/docs/
 
+hooks:
+  - docs_hooks.py
+
 theme:
   name: material
   language: en
@@ -38,7 +41,7 @@ plugins:
           paths: [hyperextract]
           options:
             docstring_style: google
-            show_source: true
+            show_source: false
             show_root_heading: true
             show_object_full_path: false
             show_category_heading: true
@@ -47,7 +50,7 @@ plugins:
             group_by_category: true
             filters:
               - "!^_"  # Hide private methods
-            merge_init_into_class: true
+            merge_init_into_class: false
             show_signature_annotations: true
   - i18n:
       docs_structure: folder
@@ -69,12 +72,12 @@ plugins:
                 - cli/workflow.md
                 - Commands:
                     - cli/commands/parse.md
+                    - cli/commands/feed.md
                     - cli/commands/show.md
+                    - cli/commands/build-index.md
                     - cli/commands/search.md
                     - cli/commands/talk.md
-                    - cli/commands/feed.md
                     - cli/commands/info.md
-                    - cli/commands/build-index.md
                     - cli/commands/list.md
                     - cli/commands/config.md
                 - cli/configuration.md
@@ -84,16 +87,22 @@ plugins:
                 - python/core-concepts.md
                 - Guides:
                     - python/guides/using-templates.md
-                    - python/guides/choosing-methods.md
+                    - python/guides/using-methods.md
                     - python/guides/working-with-autotypes.md
                     - python/guides/custom-templates.md
                     - python/guides/search-and-chat.md
                     - python/guides/incremental-updates.md
                     - python/guides/saving-loading.md
                 - API Reference:
-                    - python/api-reference/template.md
-                    - python/api-reference/autotypes.md
-                    - python/api-reference/methods.md
+                    - Template API: python/api-reference/template.md
+                    - Auto-Types:
+                        - Base Type: python/api-reference/autotypes/base.md
+                        - Record Types: python/api-reference/autotypes/structures.md
+                        - Graph Types: python/api-reference/autotypes/graphs.md
+                    - Methods:
+                        - Registry: python/api-reference/methods/registry.md
+                        - Typical Methods: python/api-reference/methods/typical.md
+                        - RAG Methods: python/api-reference/methods/rag.md
             - Concepts:
                 - concepts/index.md
                 - concepts/architecture.md
@@ -102,14 +111,22 @@ plugins:
                 - concepts/templates-format.md
             - Templates:
                 - templates/index.md
-                - templates/how-to-choose.md
-                - templates/browse.md
-                - General: templates/general/index.md
-                - Finance: templates/finance.md
-                - Legal: templates/legal.md
-                - Medical: templates/medicine.md
-                - TCM: templates/tcm.md
-                - Industry: templates/industry.md
+                - Choosing:
+                    - templates/how-to-choose.md
+                    - templates/choosing/by-task.md
+                    - templates/choosing/by-output.md
+                - Examples:
+                    - templates/examples/research-paper.md
+                    - templates/examples/financial-report.md
+                    - templates/examples/legal-contract.md
+                - Reference:
+                    - templates/reference/overview.md
+                    - General: templates/reference/general.md
+                    - Finance: templates/reference/finance.md
+                    - Legal: templates/reference/legal.md
+                    - Medical: templates/reference/medicine.md
+                    - TCM: templates/reference/tcm.md
+                    - Industry: templates/reference/industry.md
             - Resources:
                 - resources/index.md
                 - resources/faq.md
@@ -143,12 +160,12 @@ plugins:
                 - zh/cli/workflow.md
                 - 命令详解:
                     - zh/cli/commands/parse.md
+                    - zh/cli/commands/feed.md
                     - zh/cli/commands/show.md
+                    - zh/cli/commands/build-index.md
                     - zh/cli/commands/search.md
                     - zh/cli/commands/talk.md
-                    - zh/cli/commands/feed.md
                     - zh/cli/commands/info.md
-                    - zh/cli/commands/build-index.md
                     - zh/cli/commands/list.md
                     - zh/cli/commands/config.md
                 - zh/cli/configuration.md
@@ -158,15 +175,22 @@ plugins:
                 - zh/python/core-concepts.md
                 - 使用指南:
                     - zh/python/guides/using-templates.md
-                    - zh/python/guides/choosing-methods.md
+                    - zh/python/guides/using-methods.md
                     - zh/python/guides/working-with-autotypes.md
+                    - zh/python/guides/custom-templates.md
                     - zh/python/guides/search-and-chat.md
                     - zh/python/guides/incremental-updates.md
                     - zh/python/guides/saving-loading.md
                 - API 参考:
-                    - zh/python/api-reference/template.md
-                    - zh/python/api-reference/autotypes.md
-                    - zh/python/api-reference/methods.md
+                    - Template API: zh/python/api-reference/template.md
+                    - 自动类型:
+                        - 基础类型: zh/python/api-reference/autotypes/base.md
+                        - 记录类型: zh/python/api-reference/autotypes/structures.md
+                        - 图谱类型: zh/python/api-reference/autotypes/graphs.md
+                    - 方法:
+                        - 注册表: zh/python/api-reference/methods/registry.md
+                        - 典型方法: zh/python/api-reference/methods/typical.md
+                        - RAG 方法: zh/python/api-reference/methods/rag.md
             - 核心概念:
                 - zh/concepts/index.md
                 - zh/concepts/architecture.md
@@ -175,14 +199,22 @@ plugins:
                 - zh/concepts/templates-format.md
             - 模板库:
                 - zh/templates/index.md
-                - zh/templates/how-to-choose.md
-                - zh/templates/browse.md
-                - 通用: zh/templates/general/index.md
-                - 金融: zh/templates/finance.md
-                - 法律: zh/templates/legal.md
-                - 医学: zh/templates/medicine.md
-                - 中医: zh/templates/tcm.md
-                - 工业: zh/templates/industry.md
+                - 选择指南:
+                    - 如何选择: zh/templates/how-to-choose.md
+                    - 按任务选择: zh/templates/choosing/by-task.md
+                    - 按输出类型选择: zh/templates/choosing/by-output.md
+                - 使用示例:
+                    - 研究论文分析: zh/templates/examples/research-paper.md
+                    - 财报分析: zh/templates/examples/financial-report.md
+                    - 合同分析: zh/templates/examples/legal-contract.md
+                - 参考:
+                    - 模板概览: zh/templates/reference/overview.md
+                    - 通用: zh/templates/reference/general.md
+                    - 金融: zh/templates/reference/finance.md
+                    - 法律: zh/templates/reference/legal.md
+                    - 医学: zh/templates/reference/medicine.md
+                    - 中医: zh/templates/reference/tcm.md
+                    - 工业: zh/templates/reference/industry.md
             - 教程:
                 - zh/tutorials/index.md
                 - 研究助手:

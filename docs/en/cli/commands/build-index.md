@@ -1,6 +1,6 @@
 # he build-index
 
-Build or rebuild the vector search index for a knowledge base.
+Build or rebuild the vector search index for a knowledge abstract.
 
 ---
 
@@ -14,7 +14,7 @@ he build-index KA_PATH [OPTIONS]
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to knowledge base directory |
+| `KA_PATH` | Path to knowledge abstract directory |
 
 ## Options
 
@@ -28,7 +28,7 @@ he build-index KA_PATH [OPTIONS]
 
 Builds a vector search index for semantic search and chat functionality:
 
-1. **Reads all entities/relations** — From the knowledge base data
+1. **Reads all entities/relations** — From the knowledge abstract data
 2. **Generates embeddings** — Using the configured embedding model
 3. **Builds FAISS index** — For fast similarity search
 4. **Saves to disk** — In the `index/` subdirectory
@@ -74,14 +74,14 @@ he build-index ./output/ -f
 By default, `he parse` builds the index automatically:
 
 ```bash
-he parse doc.md -t general/biography_graph -o ./kb/ -l en
+he parse doc.md -t general/biography_graph -o ./ka/ -l en
 # Index is built automatically
 ```
 
 Skip with `--no-index` if you don't need search/chat:
 
 ```bash
-he parse doc.md -t general/biography_graph -o ./kb/ -l en --no-index
+he parse doc.md -t general/biography_graph -o ./ka/ -l en --no-index
 ```
 
 ### After Feed
@@ -89,8 +89,8 @@ he parse doc.md -t general/biography_graph -o ./kb/ -l en --no-index
 Always rebuild after feeding new documents:
 
 ```bash
-he feed ./kb/ new_doc.md
-he build-index ./kb/
+he feed ./ka/ new_doc.md
+he build-index ./ka/
 ```
 
 ### After Manual Changes
@@ -98,17 +98,17 @@ he build-index ./kb/
 If you modify `data.json` manually:
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ---
 
 ## Index Storage
 
-The index is stored in the knowledge base directory:
+The index is stored in the knowledge abstract directory:
 
 ```
-./kb/
+./ka/
 ├── data.json
 ├── metadata.json
 └── index/              # Index directory
@@ -122,7 +122,7 @@ The index is stored in the knowledge base directory:
 
 ### Build Time
 
-| Knowledge Base Size | Approximate Build Time |
+| Knowledge Abstract Size | Approximate Build Time |
 |---------------------|----------------------|
 | Small (< 100 items) | < 5 seconds |
 | Medium (100-1000) | 5-30 seconds |
@@ -133,7 +133,7 @@ The index is stored in the knowledge base directory:
 Once built, searches are fast:
 
 ```bash
-he search ./kb/ "query"  # Typically < 1 second
+he search ./ka/ "query"  # Typically < 1 second
 ```
 
 ---
@@ -153,16 +153,16 @@ For processing multiple documents efficiently:
 
 ```bash
 # Parse all without building index
-he parse doc1.md -t general/biography_graph -o ./kb/ -l en --no-index
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he parse doc1.md -t general/biography_graph -o ./ka/ -l en --no-index
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 
 # Build index once at the end
-he build-index ./kb/
+he build-index ./ka/
 
 # Now ready for search/chat
-he search ./kb/ "query"
-he talk ./kb/ -q "question"
+he search ./ka/ "query"
+he talk ./ka/ -q "question"
 ```
 
 ---
@@ -174,13 +174,13 @@ he talk ./kb/ -q "question"
 Use `-f` to force rebuild:
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ### "Failed to build index"
 
 Check:
-1. Knowledge base has data: `he info ./kb/`
+1. Knowledge base has data: `he info ./ka/`
 2. API key is configured: `he config show`
 3. Sufficient disk space for index
 
@@ -189,7 +189,7 @@ Check:
 Try force rebuild:
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ---

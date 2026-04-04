@@ -24,13 +24,13 @@ ka = Template.create("general/biography_graph", "zh")
 result = ka.parse(text)
 
 # 保存到目录
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ### 保存结构
 
 ```
-./my_kb/
+./my_ka/
 ├── data.json          # 提取的知识
 ├── metadata.json      # 提取信息
 └── index/             # 搜索索引（如已构建）
@@ -45,7 +45,7 @@ result.dump("./my_kb/")
 result.build_index()
 
 # 然后保存
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ---
@@ -61,7 +61,7 @@ from hyperextract import Template
 ka = Template.create("general/biography_graph", "zh")
 
 # 加载保存的数据
-ka.load("./my_kb/")
+ka.load("./my_ka/")
 
 # 使用
 print(f"加载了 {len(ka.nodes)} 个节点")
@@ -70,7 +70,7 @@ print(f"加载了 {len(ka.nodes)} 个节点")
 ### 验证加载的数据
 
 ```python
-ka.load("./my_kb/")
+ka.load("./my_ka/")
 
 # 检查是否为空
 if ka.empty():
@@ -88,13 +88,13 @@ else:
 
 ```python
 # 提取并保存
-ka = Template.create("general/concept_graph", "en")
+ka = Template.create("general/concept_graph", "zh")
 result = ka.parse(research_paper)
 result.build_index()
 result.dump("./research_paper_kb/")
 
 # 数周后使用
-ka2 = Template.create("general/concept_graph", "en")
+ka2 = Template.create("general/concept_graph", "zh")
 ka2.load("./research_paper_kb/")
 response = ka2.chat("主要发现是什么？")
 ```
@@ -103,10 +103,10 @@ response = ka2.chat("主要发现是什么？")
 
 ```python
 # 保存到共享位置
-result.dump("/shared/kb/project_x/")
+result.dump("/shared/ka/project_x/")
 
 # 其他人可以加载
-ka.load("/shared/kb/project_x/")
+ka.load("/shared/ka/project_x/")
 ```
 
 ### 备份和版本控制
@@ -128,23 +128,23 @@ result.dump("./kb_v2/")
 
 ## 使用文件系统
 
-### 检查现有 KB
+### 检查现有 KA
 
 ```python
 from pathlib import Path
 
-kb_path = Path("./my_kb/")
+ka_path = Path("./my_ka/")
 
-if kb_path.exists() and (kb_path / "data.json").exists():
+if ka_path.exists() and (ka_path / "data.json").exists():
     print("知识库存在，正在加载...")
-    ka.load(kb_path)
+    ka.load(ka_path)
 else:
     print("创建新知识库...")
     result = ka.parse(text)
-    result.dump(kb_path)
+    result.dump(ka_path)
 ```
 
-### 列出保存的 KB
+### 列出保存的 KA
 
 ```python
 import os
@@ -172,7 +172,7 @@ shutil.move("./old_location/", "./new_location/")
 ### 访问元数据
 
 ```python
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 
 # 元数据自动保存
 # 内容：
@@ -189,7 +189,7 @@ result.dump("./my_kb/")
 result.metadata["project"] = "研究项目 X"
 result.metadata["version"] = "1.0"
 
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ---
@@ -208,22 +208,22 @@ class KnowledgeBaseManager:
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
     
-    def save(self, kb, name):
+    def save(self, ka, name):
         """保存知识库。"""
-        kb_path = self.storage_dir / name
-        kb.dump(kb_path)
-        print(f"保存到 {kb_path}")
-        return kb_path
+        ka_path = self.storage_dir / name
+        ka.dump(ka_path)
+        print(f"保存到 {ka_path}")
+        return ka_path
     
-    def load(self, name, template="general/biography_graph", lang="en"):
+    def load(self, name, template="general/biography_graph", lang="zh"):
         """加载知识库。"""
-        kb_path = self.storage_dir / name
+        ka_path = self.storage_dir / name
         
-        if not kb_path.exists():
+        if not ka_path.exists():
             raise FileNotFoundError(f"未找到知识库: {name}")
         
         ka = Template.create(template, lang)
-        ka.load(kb_path)
+        ka.load(ka_path)
         return ka
     
     def list(self):
@@ -232,8 +232,8 @@ class KnowledgeBaseManager:
     
     def info(self, name):
         """获取知识库信息。"""
-        kb_path = self.storage_dir / name
-        meta_path = kb_path / "metadata.json"
+        ka_path = self.storage_dir / name
+        meta_path = ka_path / "metadata.json"
         
         if meta_path.exists():
             return json.loads(meta_path.read_text())
@@ -251,8 +251,8 @@ manager.save(result, "苏轼传记")
 print(manager.list())  # ['苏轼传记']
 
 # 加载
-kb = manager.load("苏轼传记")
-print(kb.chat("苏轼创作了哪些代表作？"))
+ka = manager.load("苏轼传记")
+print(ka.chat("苏轼创作了哪些代表作？"))
 ```
 
 ---
@@ -266,17 +266,17 @@ print(kb.chat("苏轼创作了哪些代表作？"))
 ka = Template.create("general/biography_graph", "zh")
 
 # 使用相同模板加载
-ka2 = Template.create("general/biography_graph", "en")
-ka2.load("./kb/")
+ka2 = Template.create("general/biography_graph", "zh")
+ka2.load("./ka/")
 ```
 
 ### 2. 加载后构建索引
 
 ```python
-ka.load("./kb/")
+ka.load("./ka/")
 
 # 索引可能需要重建
-index_path = Path("./kb/") / "index"
+index_path = Path("./ka/") / "index"
 if not index_path.exists():
     ka.build_index()
 ```
@@ -285,7 +285,7 @@ if not index_path.exists():
 
 ```python
 try:
-    ka.load("./kb/")
+    ka.load("./ka/")
     if ka.empty():
         print("警告：空知识库")
 except FileNotFoundError:
@@ -296,10 +296,10 @@ except FileNotFoundError:
 
 ```python
 # 好
-result.dump("./kb/sushi_2024_01_15/")
+result.dump("./ka/sushi_2024_01_15/")
 
 # 避免
-result.dump("./kb/temp/")
+result.dump("./ka/temp/")
 ```
 
 ---
@@ -311,9 +311,9 @@ result.dump("./kb/temp/")
 ```python
 from pathlib import Path
 
-kb_path = Path("./my_kb/")
-if not kb_path.exists():
-    print(f"未找到目录: {kb_path}")
+ka_path = Path("./my_ka/")
+if not ka_path.exists():
+    print(f"未找到目录: {ka_path}")
     print(f"可用: {list(Path('.').glob('*/'))}")
 ```
 
@@ -322,17 +322,17 @@ if not kb_path.exists():
 ```python
 # 检查数据文件
 import json
-data = json.load(open("./my_kb/data.json"))
+data = json.load(open("./my_ka/data.json"))
 print(f"Keys: {data.keys()}")
 ```
 
 ### "索引未加载"
 
 ```python
-ka.load("./kb/")
+ka.load("./ka/")
 
 # 检查索引是否存在
-if (Path("./kb/") / "index").exists():
+if (Path("./ka/") / "index").exists():
     print("索引目录存在")
 else:
     print("无索引，正在构建...")
@@ -343,6 +343,10 @@ else:
 
 ## 另请参见
 
-- [增量更新](incremental-updates.md)
-- [搜索和聊天](search-and-chat.md)
-- [CLI `he parse` 命令](../../cli/commands/parse.md)
+**相关工作流：**
+- [增量更新](incremental-updates.md) — 添加更多内容
+- [搜索和聊天](search-and-chat.md) — 使用加载的知识
+
+**基础知识：**
+- [使用模板](using-templates.md) — Level 1 基础
+- [CLI `he parse` 命令](../../cli/commands/parse.md) — 命令行提取

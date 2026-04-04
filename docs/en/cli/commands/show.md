@@ -14,7 +14,7 @@ he show KA_PATH
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to knowledge base directory |
+| `KA_PATH` | Path to knowledge abstract directory |
 
 ---
 
@@ -115,20 +115,20 @@ http://localhost:xxxx
 Check that extraction worked:
 
 ```bash
-he info ./kb/
+he info ./ka/
 # Should show Nodes > 0 and Edges > 0
 ```
 
 ### "Error loading visualization"
 
-Ensure the knowledge base is valid:
+Ensure the knowledge abstract is valid:
 
 ```bash
 # Check data file exists
-ls ./kb/data.json
+ls ./ka/data.json
 
 # Try reloading
-he show ./kb/
+he show ./ka/
 ```
 
 ---
@@ -137,4 +137,4 @@ he show ./kb/
 
 - [`he parse`](parse.md) — Extract knowledge
 - [`he feed`](feed.md) — Add documents incrementally
-- [`he info`](info.md) — View knowledge base statistics
+- [`he info`](info.md) — View knowledge abstract statistics

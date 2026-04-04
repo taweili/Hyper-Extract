@@ -1,6 +1,6 @@
 # he config
 
-Manage Hyper-Extract configuration.
+Manage Hyper-Extract configuration for LLM and embedder settings.
 
 ---
 
@@ -14,16 +14,19 @@ he config [COMMAND] [OPTIONS]
 
 | Command | Description |
 |---------|-------------|
-| `init` | Initialize configuration |
+| `init` | Initialize configuration (lazy defaults: `gpt-4o-mini` + `text-embedding-3-small`) |
 | `show` | Display current configuration |
-| `set` | Set a configuration value |
-| `get` | Get a configuration value |
+| `llm` | Configure LLM settings |
+| `embedder` | Configure embedder settings |
 
 ---
 
 ## he config init
 
-Initialize configuration with API credentials.
+Initialize configuration. This is the **lazy one-step setup** — if you pass `-k`, it skips all prompts and uses the built-in defaults:
+
+- **LLM**: `gpt-4o-mini`
+- **Embedder**: `text-embedding-3-small`
 
 ```bash
 he config init [OPTIONS]
@@ -33,36 +36,30 @@ he config init [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--key` | `-k` | OpenAI API key |
-| `--base-url` | `-u` | API base URL (optional) |
-| `--model` | `-m` | Default model (default: gpt-4o-mini) |
-| `--embedder` | `-e` | Embedding model (default: text-embedding-3-small) |
+| `--api-key` | `-k` | API key for both LLM and embedder |
+| `--base-url` | `-u` | Custom API base URL (optional) |
 
 ### Examples
 
-#### Basic Setup
+#### Lazy one-step setup (recommended)
 
 ```bash
 he config init -k sk-your-api-key-here
 ```
 
-#### With Custom Base URL
+This saves `gpt-4o-mini` and `text-embedding-3-small` automatically.
+
+#### With custom base URL
 
 ```bash
 he config init -k sk-your-key -u https://api.openai.com/v1
 ```
 
-#### With Custom Models
-
-```bash
-he config init -k sk-your-key -m gpt-4o -e text-embedding-3-large
-```
-
-#### Interactive Mode
+#### Interactive setup
 
 ```bash
 he config init
-# Prompts for API key interactively
+# Prompts for model names and API keys step by step
 ```
 
 ---
@@ -76,65 +73,85 @@ he config show
 ```
 
 **Output:**
+
 ```
-Configuration (from ~/.he/config.toml):
-
-[llm]
-model = "gpt-4o-mini"
-api_key = "sk-...***"
-base_url = "https://api.openai.com/v1"
-
-[embedder]
-model = "text-embedding-3-small"
-api_key = "sk-...***"
-
-[defaults]
-language = "en"
-chunk_size = 2048
-max_workers = 10
+┌─────────────────────────────────────────────────────────┐
+│         Hyper-Extract Configuration                     │
+├──────────┬─────────────────────┬─────────────┬──────────┤
+│ Service  │ Model               │ API Key     │ Base URL │
+├──────────┼─────────────────────┼─────────────┼──────────┤
+│ LLM      │ gpt-4o-mini         │ sk-xxxxx... │ (default)│
+│ Embedder │ text-embedding-3... │ sk-xxxxx... │ (default)│
+└──────────┴─────────────────────┴─────────────┴──────────┘
 ```
 
 ---
 
-## he config set
+## he config llm
 
-Set a configuration value.
+Configure LLM settings individually.
 
 ```bash
-he config set <KEY> <VALUE>
+he config llm [OPTIONS]
 ```
+
+### Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--api-key` | `-k` | LLM API key |
+| `--model` | `-m` | LLM model name |
+| `--base-url` | `-u` | Custom API base URL |
+| `--show` | — | Show current LLM configuration |
+| `--unset` | — | Clear LLM configuration |
 
 ### Examples
 
 ```bash
-# Change default model
-he config set llm.model gpt-4o
+# View LLM config
+he config llm --show
 
-# Change embedding model
-he config set embedder.model text-embedding-3-large
+# Update LLM model
+he config llm --model gpt-4o
 
-# Set default language
-he config set defaults.language zh
+# Update LLM API key and endpoint
+he config llm --api-key sk-your-key --base-url https://api.openai.com/v1
+
+# Reset LLM config
+he config llm --unset
 ```
 
 ---
 
-## he config get
+## he config embedder
 
-Get a configuration value.
+Configure embedder settings individually.
 
 ```bash
-he config get <KEY>
+he config embedder [OPTIONS]
 ```
+
+### Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--api-key` | `-k` | Embedder API key |
+| `--model` | `-m` | Embedder model name |
+| `--base-url` | `-u` | Custom API base URL |
+| `--show` | — | Show current embedder configuration |
+| `--unset` | — | Clear embedder configuration |
 
 ### Examples
 
 ```bash
-he config get llm.model
-# Output: gpt-4o-mini
+# View embedder config
+he config embedder --show
 
-he config get defaults.language
-# Output: en
+# Use a different embedding model
+he config embedder --model text-embedding-3-large
+
+# Reset embedder config
+he config embedder --unset
 ```
 
 ---
@@ -146,7 +163,7 @@ Configuration is stored at:
 - **Linux/macOS**: `~/.he/config.toml`
 - **Windows**: `%USERPROFILE%\.he\config.toml`
 
-### Example Configuration
+### Example
 
 ```toml
 [llm]
@@ -156,39 +173,18 @@ base_url = "https://api.openai.com/v1"
 
 [embedder]
 model = "text-embedding-3-small"
-api_key = "sk-your-api-key"
-
-[defaults]
-language = "en"
-chunk_size = 2048
-chunk_overlap = 256
-max_workers = 10
-verbose = false
+api_key = ""  # Empty inherits from llm.api_key
+base_url = ""  # Empty inherits from llm.base_url
 ```
-
----
 
 ## Environment Variables
 
-Configuration can also be set via environment variables (higher priority):
-
 | Variable | Description |
 |----------|-------------|
-| `OPENAI_API_KEY` | API key for LLM and embedder |
-| `OPENAI_BASE_URL` | Custom API base URL |
-| `HE_LLM_MODEL` | Default LLM model |
-| `HE_EMBEDDER_MODEL` | Default embedding model |
+| `OPENAI_API_KEY` | API key fallback for LLM and embedder |
+| `OPENAI_BASE_URL` | Custom API base URL fallback |
 
----
-
-## Priority Order
-
-Configuration is resolved in this order (highest first):
-
-1. Command-line flags
-2. Environment variables
-3. Configuration file
-4. Built-in defaults
+**Priority (highest first):** command-line flags → environment variables → config file → defaults.
 
 ---
 
@@ -196,30 +192,17 @@ Configuration is resolved in this order (highest first):
 
 ### "API key not found"
 
-Initialize configuration:
-
 ```bash
 he config init -k your-api-key
 ```
 
-Or set environment variable:
+Or:
 
 ```bash
 export OPENAI_API_KEY=your-api-key
 ```
 
-### "Invalid API key"
-
-Check your API key:
-
-```bash
-he config show
-# Verify the key is correct
-```
-
 ### "Configuration file not found"
-
-Run init to create it:
 
 ```bash
 he config init -k your-api-key

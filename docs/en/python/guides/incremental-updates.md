@@ -1,12 +1,15 @@
 # Incremental Updates
 
-Add new information to existing knowledge bases without reprocessing.
+!!! tip "Advanced - Post-Extraction"
+    This guide covers adding more documents after initial extraction. You should be comfortable with [Level 1: Using Templates](using-templates.md) first.
+
+Add new information to existing knowledge abstracts without reprocessing.
 
 ---
 
 ## Overview
 
-The `feed_text()` method allows you to incrementally add documents to an existing knowledge base:
+The `feed_text()` method allows you to incrementally add documents to an existing knowledge abstract:
 
 1. **Preserves existing data** — Won't overwrite what's already there
 2. **Intelligent merging** — Handles duplicates and conflicts
@@ -38,43 +41,45 @@ print(f"After feed: {len(result.nodes)} nodes")
 
 ```python
 ka = Template.create("general/biography_graph", "en")
-kb = ka.parse(early_life_text)
+ka = ka.parse(early_life_text)
 
 # Add career information
-kb.feed_text(career_text)
+ka.feed_text(career_text)
 
 # Add later years
-kb.feed_text(later_years_text)
+ka.feed_text(later_years_text)
 
 # Rebuild index after feeding new data
-kb.build_index()
+ka.build_index()
 
 # Final result combines all periods (with interactive search/chat)
-kb.show()
+ka.show()
 ```
+
+![Interactive Visualization](../../../assets/en_show.png)
 
 ### Processing Multiple Documents
 
 ```python
 ka = Template.create("general/concept_graph", "en")
-kb = ka.parse(documents[0])
+ka = ka.parse(documents[0])
 
 for doc in documents[1:]:
-    kb.feed_text(doc)
-    print(f"Added document, now {len(kb.nodes)} nodes")
+    ka.feed_text(doc)
+    print(f"Added document, now {len(ka.nodes)} nodes")
 ```
 
 ### Updating with New Information
 
 ```python
 # Original extraction
-kb = ka.parse(original_paper)
+ka = ka.parse(original_paper)
 
 # Add corrections/updates
-kb.feed_text(corrections)
+ka.feed_text(corrections)
 
 # Save updated version
-kb.dump("./updated_kb/")
+ka.dump("./updated_ka/")
 ```
 
 ---
@@ -112,8 +117,8 @@ Ensure you're using compatible Auto-Types:
 
 ```python
 # Good: Same template type
-kb = ka.parse(text1)  # biography_graph
-kb.feed_text(text2)   # same type
+ka = ka.parse(text1)  # biography_graph
+ka.feed_text(text2)   # same type
 
 # Be careful: Mixing types may cause issues
 ```
@@ -121,27 +126,27 @@ kb.feed_text(text2)   # same type
 ### 2. Rebuild Index After Feeding
 
 ```python
-kb.feed_text(new_text)
-kb.build_index()  # Required for search/chat
+ka.feed_text(new_text)
+ka.build_index()  # Required for search/chat
 ```
 
 ### 3. Save Intermediate States
 
 ```python
 # Save after major updates
-kb.feed_text(chapter1)
-kb.dump("./kb_v1/")
+ka.feed_text(chapter1)
+ka.dump("./kb_v1/")
 
-kb.feed_text(chapter2)
-kb.dump("./kb_v2/")
+ka.feed_text(chapter2)
+ka.dump("./kb_v2/")
 ```
 
 ### 4. Monitor Growth
 
 ```python
-initial_count = len(kb.nodes)
-kb.feed_text(new_text)
-new_count = len(kb.nodes)
+initial_count = len(ka.nodes)
+ka.feed_text(new_text)
+new_count = len(ka.nodes)
 
 print(f"Added {new_count - initial_count} new nodes")
 ```
@@ -151,7 +156,7 @@ print(f"Added {new_count - initial_count} new nodes")
 ## Complete Example
 
 ```python
-"""Build a knowledge base incrementally from multiple sources."""
+"""Build a knowledge abstract incrementally from multiple sources."""
 
 from hyperextract import Template
 from pathlib import Path
@@ -168,27 +173,27 @@ def build_knowledge_base(source_dir, output_dir):
     
     # Initial extraction from first file
     print(f"Processing {files[0].name}...")
-    kb = ka.parse(files[0].read_text())
+    ka = ka.parse(files[0].read_text())
     
     # Feed remaining files
     for file in files[1:]:
         print(f"Adding {file.name}...")
-        kb.feed_text(file.read_text())
-        print(f"  Now {len(kb.nodes)} nodes")
+        ka.feed_text(file.read_text())
+        print(f"  Now {len(ka.nodes)} nodes")
     
     # Build index for search/chat
     print("Building search index...")
-    kb.build_index()
+    ka.build_index()
     
     # Save
     print(f"Saving to {output_dir}...")
-    kb.dump(output_dir)
+    ka.dump(output_dir)
     
     print("Done!")
-    return kb
+    return ka
 
 # Usage
-kb = build_knowledge_base("./sources/", "./combined_kb/")
+ka = build_knowledge_base("./sources/", "./combined_ka/")
 ```
 
 ---
@@ -197,8 +202,8 @@ kb = build_knowledge_base("./sources/", "./combined_kb/")
 
 | Operation | Use When | Result |
 |-----------|----------|--------|
-| `parse()` | Starting fresh | New knowledge base |
-| `feed_text()` | Adding to existing | Updated knowledge base |
+| `parse()` | Starting fresh | New knowledge abstract |
+| `feed_text()` | Adding to existing | Updated knowledge abstract |
 
 ### Chaining Operations
 
@@ -217,12 +222,12 @@ result1.feed_text(text2)   # result1 is updated
 
 ### 1. Memory Usage
 
-Large knowledge bases consume memory:
+Large knowledge abstracts consume memory:
 
 ```python
 # Monitor size
 import sys
-size = sys.getsizeof(kb.data)
+size = sys.getsizeof(ka.data)
 print(f"Knowledge base size: {size} bytes")
 ```
 
@@ -230,15 +235,15 @@ print(f"Knowledge base size: {size} bytes")
 
 Merging isn't perfect:
 - Similar but not identical entities may not merge
-- Very large knowledge bases may slow down
+- Very large knowledge abstracts may slow down
 
 ### 3. Index Staleness
 
 Always rebuild after feeding:
 
 ```python
-kb.feed_text(text)
-kb.build_index()  # Don't forget!
+ka.feed_text(text)
+ka.build_index()  # Don't forget!
 ```
 
 ---
@@ -252,8 +257,8 @@ Process in smaller batches:
 ```python
 for batch in chunks(documents, batch_size=5):
     for doc in batch:
-        kb.feed_text(doc)
-    kb.dump(f"./kb_checkpoint/")  # Save periodically
+        ka.feed_text(doc)
+    ka.dump(f"./kb_checkpoint/")  # Save periodically
 ```
 
 ### "Duplicate entities"
@@ -269,13 +274,17 @@ Normalize entity names in your text:
 
 ```python
 # Forgot to rebuild?
-kb.build_index()
+ka.build_index()
 ```
 
 ---
 
 ## See Also
 
-- [Saving and Loading](saving-loading.md)
-- [Search and Chat](search-and-chat.md)
-- [Working with Auto-Types](working-with-autotypes.md)
+**Related Workflows:**
+- [Search and Chat](search-and-chat.md) — Query your updated knowledge
+- [Saving and Loading](saving-loading.md) — Persist merged results
+
+**Basics:**
+- [Using Templates](using-templates.md) — Level 1 fundamentals
+- [Working with Auto-Types](working-with-autotypes.md) — Level 2 customization

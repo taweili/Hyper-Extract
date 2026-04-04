@@ -34,7 +34,7 @@ graph TD
 | Template | Output | Best For |
 |----------|--------|----------|
 | `general/biography_graph` | Temporal graph | Life stories, profiles |
-| `general/base_model` | Model | Person summaries |
+| `general/model` | Model | Person summaries |
 
 **Example:**
 ```bash
@@ -46,7 +46,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 | Template | Output | Best For |
 |----------|--------|----------|
 | `general/concept_graph` | Graph | Research papers |
-| `general/knowledge_graph` | Graph | Technical documents |
+| `general/graph` | Graph | Technical documents |
 | `general/doc_structure` | Model | Document outlines |
 
 ### Financial
@@ -55,7 +55,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 |----------|--------|----------|
 | `finance/earnings_summary` | Model | Earnings reports |
 | `finance/ownership_graph` | Graph | Company structures |
-| `finance/event_timeline` | Temporal | Financial events |
+| `finance/event_timeline` | Graph (Temporal) | Financial events |
 | `finance/risk_factor_set` | Set | Risk assessments |
 
 ### Legal
@@ -64,7 +64,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 |----------|--------|----------|
 | `legal/contract_obligation` | List | Contract terms |
 | `legal/case_citation` | Graph | Legal precedents |
-| `legal/case_fact_timeline` | Temporal | Case chronologies |
+| `legal/case_fact_timeline` | Graph (Temporal) | Case chronologies |
 
 ### Medical
 
@@ -112,7 +112,7 @@ ka = Template.create("legal/defined_term_set", "en")
 
 ```python
 # General knowledge
-ka = Template.create("general/knowledge_graph", "en")
+ka = Template.create("general/graph", "en")
 
 # Company ownership
 ka = Template.create("finance/ownership_graph", "en")
@@ -227,7 +227,7 @@ ka = Template.create("method/graph_rag")
 ka = Template.create("method/itext2kg")
 ```
 
-→ [Choosing Methods](../python/guides/choosing-methods.md)
+→ [Using Methods](../python/guides/using-methods.md)
 
 ---
 
@@ -259,6 +259,6 @@ print(cfg.description)
 
 ## See Also
 
-- [Browse All Templates](browse.md)
+- [Template Overview](reference/overview.md)
 - [Template Library](index.md)
 - [Custom Templates](../python/guides/custom-templates.md)

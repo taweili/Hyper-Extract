@@ -1,5 +1,8 @@
 # Using Templates
 
+!!! tip "Level 1 - Beginner"
+    This guide is for beginners. Before reading, please complete the [Quickstart](../quickstart.md).
+
 Learn how to use and customize templates for knowledge extraction.
 
 ---
@@ -7,6 +10,7 @@ Learn how to use and customize templates for knowledge extraction.
 ## What Are Templates?
 
 Templates are pre-configured extraction setups that combine:
+
 - **Auto-Type** — Output data structure
 - **Prompts** — Instructions for the LLM
 - **Schema** — Field definitions and types
@@ -143,6 +147,72 @@ print(cfg.language)       # Supported languages
 
 ---
 
+## Understanding Template Outputs
+
+`Template.create` returns an **AutoType** object. Different templates use different AutoTypes, so the way you access extracted results varies:
+
+| Type | AutoType | Typical Access | Use Case |
+|------|----------|----------------|----------|
+| **Model** | `AutoModel` | `result.data.field_name` | Reports, profiles, structured objects |
+| **List** | `AutoList` | `result.data.items` | Ordered collections, steps |
+| **Set** | `AutoSet` | `result.data.items` | Deduplicated tags, keywords |
+| **Graph** | `AutoGraph` | `result.nodes` / `result.edges` | Binary entity relationships |
+| **Hypergraph** | `AutoHypergraph` | `result.nodes` / `result.edges` | Multi-entity relationships |
+| **Temporal Graph** | `AutoTemporalGraph` | `result.nodes` / `result.edges` (with `time`) | Timelines, biographies |
+| **Spatial Graph** | `AutoSpatialGraph` | `result.nodes` / `result.edges` (with `location`) | Geographic networks |
+| **Spatio-Temporal Graph** | `AutoSpatioTemporalGraph` | `result.nodes` / `result.edges` (with `time` + `location`) | Historical events |
+
+!!! info "Related Docs"
+    - Learn more about the design and use cases of each AutoType in [Auto-Types Concepts](../../concepts/autotypes.md).
+    - Learn how to customize schemas and configs in [Working with Auto-Types](working-with-autotypes.md).
+
+### Quick Examples
+
+#### Model (AutoModel)
+
+```python
+ka = Template.create("finance/earnings_summary", "en")
+result = ka.parse(report_text)
+
+print(result.data.company_name)
+print(result.data.revenue)
+```
+
+#### List (AutoList)
+
+```python
+ka = Template.create("general/list", "en")
+result = ka.parse(text)
+
+for item in result.data.items:
+    print(item)
+```
+
+#### Set (AutoSet)
+
+```python
+ka = Template.create("general/set", "en")
+result = ka.parse(text)
+
+for item in result.data.items:
+    print(item)  # deduplicated
+```
+
+#### Graph (AutoGraph)
+
+```python
+ka = Template.create("general/graph", "en")
+result = ka.parse(text)
+
+for node in result.nodes:
+    print(f"{node.name} ({node.type})")
+
+for edge in result.edges:
+    print(f"{edge.source} --{edge.type}--> {edge.target}")
+```
+
+---
+
 ## Common Template Patterns
 
 ### Pattern 1: Biography Analysis
@@ -165,6 +235,8 @@ result.build_index()
 
 result.show()  # Visualize life timeline with search/chat
 ```
+
+![Interactive Visualization](../../../assets/en_show.png)
 
 ### Pattern 2: Financial Report
 
@@ -206,7 +278,7 @@ ka = Template.create("general/concept_graph", "en")
 
 paper = ka.parse(paper_text)
 
-# Build searchable knowledge base
+# Build searchable knowledge abstract
 paper.build_index()
 
 # Query findings
@@ -290,6 +362,10 @@ ka = Template.create("general/biography_graph", "fr")  # May fail
 
 ## See Also
 
+**Next Steps:**
+- [Working with Auto-Types](working-with-autotypes.md) — Level 2: Custom schemas
+- [Creating Custom Templates](custom-templates.md) — Level 2+: Write your own templates
+
+**Reference:**
 - [Template Library](../../templates/index.md) — Browse all templates
-- [Creating Custom Templates](custom-templates.md) — Write your own
-- [Choosing Methods](choosing-methods.md) — When to use methods instead
+- [Using Methods](using-methods.md) — When to use methods instead

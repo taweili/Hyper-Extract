@@ -1,12 +1,12 @@
 # Step 3: Query
 
-Search, update, and maintain your knowledge base.
+Search, update, and maintain your knowledge abstract.
 
 ---
 
 ## Goal
 
-Query the knowledge base and implement maintenance workflows.
+Query the knowledge abstract and implement maintenance workflows.
 
 ---
 
@@ -16,13 +16,13 @@ Query the knowledge base and implement maintenance workflows.
 
 ```python
 def search(self, query: str, top_k: int = 5):
-    """Search the knowledge base."""
+    """Search the knowledge abstract."""
     current_path = Path(self.config.kb_dir) / "current"
     
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
-    results = kb.search(query, top_k=top_k)
+    results = ka.search(query, top_k=top_k)
     return results
 ```
 
@@ -30,13 +30,13 @@ def search(self, query: str, top_k: int = 5):
 
 ```python
 def ask(self, question: str, top_k: int = 5):
-    """Ask a question about the knowledge base."""
+    """Ask a question about the knowledge abstract."""
     current_path = Path(self.config.kb_dir) / "current"
     
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
-    response = kb.chat(question, top_k=top_k)
+    response = ka.chat(question, top_k=top_k)
     return response.content
 ```
 
@@ -52,49 +52,49 @@ from kb_manager import KnowledgeBaseManager
 
 class KBQueryShell(cmd.Cmd):
     intro = """
-Knowledge Base Query Shell
+Knowledge Abstract Query Shell
 ==========================
 Type 'help' for commands, 'quit' to exit
 
 Commands:
   search <query>     - Semantic search
   ask <question>     - Ask a question
-  stats              - Show KB statistics
+  stats              - Show KA statistics
   versions           - List versions
   backup             - Create backup
 """
-    prompt = "kb> "
+    prompt = "ka> "
     
     def __init__(self):
         super().__init__()
         self.manager = KnowledgeBaseManager()
-        self.kb = None
+        self.ka = None
         self._load_kb()
     
     def _load_kb(self):
-        """Load current knowledge base."""
+        """Load current knowledge abstract."""
         current_path = Path(self.manager.config.kb_dir) / "current"
         if current_path.exists():
-            self.kb = Template.create(
+            self.ka = Template.create(
                 self.manager.config.template,
                 self.manager.config.language
             )
-            self.kb.load(current_path)
+            self.ka.load(current_path)
             print(f"Loaded: {self.manager.config.name}")
         else:
-            print("Warning: No knowledge base found")
+            print("Warning: No knowledge abstract found")
     
     def do_search(self, arg):
-        """Search the knowledge base: search <query>"""
+        """Search the knowledge abstract: search <query>"""
         if not arg:
             print("Usage: search <query>")
             return
         
-        if not self.kb:
-            print("No knowledge base loaded")
+        if not self.ka:
+            print("No knowledge abstract loaded")
             return
         
-        nodes, edges = self.kb.search(arg, top_k=5)
+        nodes, edges = self.ka.search(arg, top_k=5)
 
         print(f"\nFound {len(nodes)} nodes and {len(edges)} edges:\n")
         for i, node in enumerate(nodes, 1):
@@ -109,28 +109,28 @@ Commands:
             print("Usage: ask <question>")
             return
         
-        if not self.kb:
-            print("No knowledge base loaded")
+        if not self.ka:
+            print("No knowledge abstract loaded")
             return
         
         print("\nThinking...")
-        answer = self.kb.chat(arg).content
+        answer = self.ka.chat(arg).content
         print(f"\n{answer}\n")
     
     def do_stats(self, arg):
-        """Show knowledge base statistics."""
-        if not self.kb:
-            print("No knowledge base loaded")
+        """Show knowledge abstract statistics."""
+        if not self.ka:
+            print("No knowledge abstract loaded")
             return
         
-        print("\nKnowledge Base Statistics:")
-        print(f"  Nodes: {len(self.kb.nodes)}")
-        print(f"  Edges: {len(self.kb.edges)}")
+        print("\nKnowledge Abstract Statistics:")
+        print(f"  Nodes: {len(self.ka.nodes)}")
+        print(f"  Edges: {len(self.ka.edges)}")
         print(f"  Template: {self.manager.config.template}")
 
         # Node types
         from collections import Counter
-        types = Counter(n.type for n in self.kb.nodes)
+        types = Counter(n.type for n in self.ka.nodes)
         print("\nNode Types:")
         for t, count in types.most_common():
             print(f"  {t}: {count}")
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
 ```python
 def create_backup(self, name: Optional[str] = None):
-    """Create a backup of current knowledge base."""
+    """Create a backup of current knowledge abstract."""
     import shutil
     
     current = Path(self.config.kb_dir) / "current"
@@ -285,15 +285,15 @@ def cleanup_old_versions(self, keep: int = 10):
 
 ```python
 def export_to_json(self, output_file: str = "kb_export.json"):
-    """Export knowledge base to JSON."""
+    """Export knowledge abstract to JSON."""
     data = {
         "config": {
             "name": self.config.name,
             "template": self.config.template,
             "language": self.config.language
         },
-        "data": self.kb.data.model_dump(),
-        "metadata": self.kb.metadata
+        "data": self.ka.data.model_dump(),
+        "metadata": self.ka.metadata
     }
     
     with open(output_file, "w") as f:
@@ -306,19 +306,19 @@ def export_to_json(self, output_file: str = "kb_export.json"):
 
 ```python
 def generate_report(self):
-    """Generate knowledge base report."""
+    """Generate knowledge abstract report."""
     from collections import Counter
     
     report = []
-    report.append("# Knowledge Base Report")
+    report.append("# Knowledge Abstract Report")
     report.append(f"\nName: {self.config.name}")
     report.append(f"Template: {self.config.template}")
     report.append(f"\nStatistics:")
-    report.append(f"- Entities: {len(self.kb.data.entities)}")
-    report.append(f"- Relations: {len(self.kb.data.relations)}")
+    report.append(f"- Entities: {len(self.ka.data.entities)}")
+    report.append(f"- Relations: {len(self.ka.data.relations)}")
     
     # Entity types
-    types = Counter(e.type for e in self.kb.data.entities)
+    types = Counter(e.type for e in self.ka.data.entities)
     report.append("\n## Entity Types")
     for t, count in types.most_common():
         report.append(f"- {t}: {count}")
@@ -330,7 +330,7 @@ def generate_report(self):
 
 ## Summary
 
-You now have a complete knowledge base system with:
+You now have a complete knowledge abstract system with:
 
 ✓ Document ingestion with versioning  
 ✓ Search and Q&A capabilities  
@@ -341,7 +341,7 @@ You now have a complete knowledge base system with:
 ### Next Steps
 
 - Schedule regular backups
-- Monitor knowledge base growth
+- Monitor knowledge abstract growth
 - Set up automated ingestion pipelines
 - Integrate with your applications
 

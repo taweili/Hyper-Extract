@@ -15,6 +15,18 @@
 
 ## 方法类别
 
+### 典型方法
+
+**直接提取**，无需检索。
+
+**最适合**：较小的文档、直接提取
+
+```mermaid
+graph LR
+    A[Document] --> B[LLM Processing]
+    B --> C[Extract Structure]
+```
+
 ### 基于 RAG 的方法
 
 **检索增强生成** 将信息检索与文本生成相结合。
@@ -29,16 +41,90 @@ graph LR
     D --> E[Extract Structure]
 ```
 
-### 典型方法
+---
 
-**直接提取**，无需检索。
+## 典型方法
 
-**最适合**：较小的文档、直接提取
+### itext2kg
 
-```mermaid
-graph LR
-    A[Document] --> B[LLM Processing]
-    B --> C[Extract Structure]
+**描述**：高质量基于三元组的提取
+
+**特点**：
+- 针对三元组质量优化
+- 迭代精炼
+- 适合知识库构建
+
+**最适合**：
+- 知识图谱构建
+- 高质量要求
+- 三元组提取
+
+**用法**：
+```python
+ka = Template.create("method/itext2kg")
+```
+
+---
+
+### itext2kg_star
+
+**描述**：增强版 iText2KG
+
+**特点**：
+- 提高提取质量
+- 更好地处理复杂情况
+- 增强的实体链接
+
+**最适合**：
+- 质量至关重要时
+- 复杂提取场景
+- 生产系统
+
+**用法**：
+```python
+ka = Template.create("method/itext2kg_star")
+```
+
+---
+
+### kg_gen
+
+**描述**：知识图谱生成器
+
+**特点**：
+- 可配置的生成
+- 灵活的 schema
+- 快速处理
+
+**最适合**：
+- 自定义 schema
+- 快速原型
+- 灵活需求
+
+**用法**：
+```python
+ka = Template.create("method/kg_gen")
+```
+
+---
+
+### atom
+
+**描述**：带证据的时序知识图谱
+
+**特点**：
+- 时序事实提取
+- 证据归属
+- 置信度评分
+
+**最适合**：
+- 时序分析
+- 事实验证
+- 时间线提取
+
+**用法**：
+```python
+ka = Template.create("method/atom")
 ```
 
 ---
@@ -148,92 +234,6 @@ ka = Template.create("method/cog_rag")
 
 ---
 
-## 典型方法
-
-### itext2kg
-
-**描述**：高质量基于三元组的提取
-
-**特点**：
-- 针对三元组质量优化
-- 迭代精炼
-- 适合知识库构建
-
-**最适合**：
-- 知识图谱构建
-- 高质量要求
-- 三元组提取
-
-**用法**：
-```python
-ka = Template.create("method/itext2kg")
-```
-
----
-
-### itext2kg_star
-
-**描述**：增强版 iText2KG
-
-**特点**：
-- 提高提取质量
-- 更好地处理复杂情况
-- 增强的实体链接
-
-**最适合**：
-- 质量至关重要时
-- 复杂提取场景
-- 生产系统
-
-**用法**：
-```python
-ka = Template.create("method/itext2kg_star")
-```
-
----
-
-### kg_gen
-
-**描述**：知识图谱生成器
-
-**特点**：
-- 可配置的生成
-- 灵活的 schema
-- 快速处理
-
-**最适合**：
-- 自定义 schema
-- 快速原型
-- 灵活需求
-
-**用法**：
-```python
-ka = Template.create("method/kg_gen")
-```
-
----
-
-### atom
-
-**描述**：带证据的时序知识图谱
-
-**特点**：
-- 时序事实提取
-- 证据归属
-- 置信度评分
-
-**最适合**：
-- 时序分析
-- 事实验证
-- 时间线提取
-
-**用法**：
-```python
-ka = Template.create("method/atom")
-```
-
----
-
 ## 选择指南
 
 ### 按文档大小
@@ -271,12 +271,13 @@ ka = Template.create("method/atom")
 
 | 方法 | 速度 | 质量 | 内存 | 最佳用途 |
 |--------|-------|---------|--------|----------|
+| itext2kg | ⭐⭐⭐ | ⭐⭐⭐ | ⭐ | 质量优先 |
+| itext2kg_star | ⭐⭐⭐ | ⭐⭐⭐ | ⭐ | 生产质量 |
+| kg_gen | ⭐⭐⭐ | ⭐⭐ | ⭐ | 灵活性 |
+| atom | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | 时序数据 |
 | light_rag | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | 通用 |
 | graph_rag | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | 大型文档 |
 | hyper_rag | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | 复杂关系 |
-| itext2kg | ⭐⭐⭐ | ⭐⭐⭐ | ⭐ | 质量优先 |
-| atom | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | 时序数据 |
-| kg_gen | ⭐⭐⭐ | ⭐⭐ | ⭐ | 灵活性 |
 
 ---
 
@@ -295,6 +296,6 @@ for name, info in methods.items():
 
 ## 另请参见
 
-- [选择方法指南](../python/guides/choosing-methods.md)
+- [使用方法指南](../python/guides/using-methods.md)
 - [模板](../templates/index.md)
 - [自动类型](autotypes.md)

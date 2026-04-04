@@ -1,6 +1,6 @@
 # he search
 
-Perform semantic search over a knowledge base.
+Perform semantic search over a knowledge abstract.
 
 ---
 
@@ -14,7 +14,7 @@ he search KA_PATH QUERY [OPTIONS]
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to knowledge base directory |
+| `KA_PATH` | Path to knowledge abstract directory |
 | `QUERY` | Search query string |
 
 ## Options
@@ -54,9 +54,9 @@ he search ./output/ "electrical engineering" -n 10
 ### Natural Language Queries
 
 ```bash
-he search ./kb/ "What were the major achievements?"
-he search ./kb/ "People who worked with Edison"
-he search ./kb/ "Important dates in the timeline"
+he search ./ka/ "What were the major achievements?"
+he search ./ka/ "People who worked with Edison"
+he search ./ka/ "Important dates in the timeline"
 ```
 
 ### After Building Index
@@ -100,7 +100,7 @@ Result 3:
 ## How It Works
 
 1. **Query Embedding** — Converts your query to a vector
-2. **Index Search** — Finds nearest vectors in the knowledge base
+2. **Index Search** — Finds nearest vectors in the knowledge abstract
 3. **Result Ranking** — Returns top-k most similar items
 
 ---
@@ -147,6 +147,6 @@ Try:
 
 ## See Also
 
-- [`he talk`](talk.md) — Chat with knowledge base
+- [`he talk`](talk.md) — Chat with knowledge abstract
 - [`he build-index`](build-index.md) — Build search index
 - [`he parse`](parse.md) — Extract with index building

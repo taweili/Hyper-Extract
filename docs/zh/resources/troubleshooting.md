@@ -102,7 +102,7 @@
 **解决方案**：
 ```bash
 # 添加语言参数
-he parse doc.md -t general/biography_graph -o ./out/ -l en
+he parse doc.md -t general/biography_graph -o ./out/ -l zh
 ```
 
 注意：方法模板不需要语言参数。
@@ -115,18 +115,18 @@ he parse doc.md -t general/biography_graph -o ./out/ -l en
 
 1. **强制覆盖**：
    ```bash
-   he parse doc.md -t general/graph -o ./out/ -l en -f
+   he parse doc.md -t general/graph -o ./out/ -l zh -f
    ```
 
 2. **使用不同目录**：
    ```bash
-   he parse doc.md -t general/graph -o ./out2/ -l en
+   he parse doc.md -t general/graph -o ./out2/ -l zh
    ```
 
 3. **删除现有目录**：
    ```bash
    rm -rf ./out/
-   he parse doc.md -t general/graph -o ./out/ -l en
+   he parse doc.md -t general/graph -o ./out/ -l zh
    ```
 
 ---
@@ -161,7 +161,7 @@ he build-index ./output/
 
 3. **增加 top_k**：
    ```bash
-   he search ./output/ "query" -n 10
+   he search ./output/ "查询" -n 10
    ```
 
 4. **检查数据是否存在**：
@@ -177,7 +177,7 @@ he build-index ./output/
 **解决方案**：
 ```bash
 he build-index ./output/
-he talk ./output/ -q "your question"
+he talk ./output/ -q "你的问题"
 ```
 
 ---
@@ -192,18 +192,18 @@ he talk ./output/ -q "your question"
 
 1. **批量处理时跳过索引**：
    ```bash
-   he parse doc.md -t general/graph -o ./out/ -l en --no-index
+   he parse doc.md -t general/graph -o ./out/ -l zh --no-index
    ```
 
 2. **减少分块大小**（Python）：
    ```python
-   ka = Template.create("general/graph", "en")
+   ka = Template.create("general/graph", "zh")
    ka.chunk_size = 1024  # 默认：2048
    ```
 
 3. **减少工作线程**（如果达到速率限制）：
    ```python
-   ka = Template.create("general/graph", "en")
+   ka = Template.create("general/graph", "zh")
    ka.max_workers = 5  # 默认：10
    ```
 
@@ -250,7 +250,7 @@ he talk ./output/ -q "your question"
 
 2. **尝试不同的模板**：
    ```bash
-   he parse doc.md -t general/base_model -l en
+   he parse doc.md -t general/model -l zh
    ```
 
 3. **检查语言**：
@@ -270,19 +270,19 @@ he talk ./output/ -q "your question"
 
 1. **检查文件结构**：
    ```bash
-   ls ./kb/
+   ls ./ka/
    # 应该有：data.json, metadata.json
    ```
 
 2. **验证 JSON**：
    ```bash
-   python -c "import json; json.load(open('./kb/data.json'))"
+   python -c "import json; json.load(open('./ka/data.json'))"
    ```
 
 3. **重新提取**：
    ```bash
-   rm -rf ./kb/
-   he parse doc.md -t general/graph -o ./kb/ -l en
+   rm -rf ./ka/
+   he parse doc.md -t general/graph -o ./ka/ -l zh
    ```
 
 ---
@@ -305,7 +305,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 from hyperextract import Template
-ka = Template.create("general/graph", "en")
+ka = Template.create("general/graph", "zh")
 ```
 
 或在 CLI 配置中：

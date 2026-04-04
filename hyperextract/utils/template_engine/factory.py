@@ -388,12 +388,12 @@ class TemplateFactory:
         """Create template instance based on configuration.
 
         Supports both knowledge templates and method templates:
-        - Knowledge templates: "general/knowledge_graph", "/path/to/template.yaml"
+        - Knowledge templates: "general/graph", "/path/to/template.yaml"
         - Method templates: "method/light_rag", "method/hyper_rag"
 
         Args:
             source: Template source - can be:
-                - str: Template name (e.g., "knowledge_graph", "method/light_rag") or file path
+                - str: Template name (e.g., "graph", "method/light_rag") or file path
                 - TemplateCfg: Template configuration instance
             language: Language code for localization (e.g., 'zh', 'en')
                 - Required for knowledge templates
@@ -408,7 +408,7 @@ class TemplateFactory:
 
         Examples:
             # Knowledge template by name (language required)
-            template = TemplateFactory.create("knowledge_graph", "zh", llm, embedder)
+            template = TemplateFactory.create("general/graph", "zh", llm, embedder)
 
             # Method template (language ignored, always "en")
             template = TemplateFactory.create("method/light_rag", llm=llm, embedder=embedder)

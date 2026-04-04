@@ -20,7 +20,7 @@ dotenv.load_dotenv()
 
 # // test for Base Knowledge Graph
 test_data_file = "arbitrary_tech_news.md"
-template_name = "general/base_graph"
+template_name = "general/graph"
 
 # // test for Base Hypergraph
 # test_data_file = "encyclopedia_machine_learning.md"
@@ -28,7 +28,7 @@ template_name = "general/base_graph"
 
 # // test for Base List
 # test_data_file = "regulation_company_policy.md"
-# template_name = "general/base_list"
+# template_name = "general/list"
 
 # // test for Biography Graph
 # test_data_file = "biography_scientist.md"

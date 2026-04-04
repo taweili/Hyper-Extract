@@ -16,7 +16,7 @@ class Gallery:
         from hyperextract.utils.template_engine import Gallery
 
         # Get template by path
-        config = Gallery.get("general/knowledge_graph")
+        config = Gallery.get("general/graph")
 
         # List all templates (returns Dict[str, TemplateCfg])
         all_templates = Gallery.list()
@@ -37,10 +37,10 @@ class Gallery:
 
         Args:
             path: Template path
-                If no domain is specified, "general/" is assumed. 
+                If no domain is specified, "general/" is assumed.
                 Only templates in the "general/" domain are supported.
                 Other domains are not supported.
-                (e.g., "general/knowledge_graph" or "knowledge_graph") 
+                (e.g., "general/graph" or "graph")
 
         Returns:
             TemplateCfg or None if not found

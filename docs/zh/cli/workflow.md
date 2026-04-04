@@ -12,45 +12,11 @@
 
 ## 步骤 1：准备文档
 
-首先，确保您的文档是支持的格式（`.md`、`.txt`）：
+Hyper-Extract 支持 `.md` 和 `.txt` 文件。下载下面的示例研究论文以跟随本指南：
 
-```bash
-# 示例：将 PDF 转换为文本（使用外部工具）
-pdftotext paper.pdf paper.md
-```
+<a href="/assets/examples/zh/transformer_paper.txt" download class="md-button">📥 下载示例文档</a>
 
-或创建一个示例文档：
-
-```bash
-cat > transformer_paper.md << 'EOF'
-# Attention Is All You Need
-
-## Abstract
-The dominant sequence transduction models are based on complex recurrent or 
-convolutional neural networks that include an encoder and a decoder. The best 
-performing models also connect the encoder and decoder through an attention 
-mechanism. We propose a new simple network architecture, the Transformer, 
-based solely on attention mechanisms.
-
-## Authors
-- Ashish Vaswani
-- Noam Shazeer
-- Niki Parmar
-- Jakob Uszkoreit
-- Llion Jones
-- Aidan N. Gomez
-- Lukasz Kaiser
-- Illia Polosukhin
-
-## Key Innovation
-The Transformer eschews recurrence and instead relies entirely on an attention 
-mechanism to draw global dependencies between input and output sequences.
-
-## Performance
-On the WMT 2014 English-to-German translation task, our model achieves a 
-BLEU score of 28.4, outperforming all existing models.
-EOF
-```
+将文件保存为 `transformer_paper.md` 在你的工作目录中。
 
 ---
 
@@ -59,7 +25,7 @@ EOF
 使用 `parse` 命令提取知识：
 
 ```bash
-he parse transformer_paper.md -t general/concept_graph -o ./transformer_kb/ -l en
+he parse transformer_paper.md -t general/concept_graph -o ./transformer_kb/ -l zh
 ```
 
 **发生了什么：**
@@ -105,7 +71,10 @@ Index         Built
 he show ./transformer_kb/
 ```
 
+![知识图谱可视化](../../assets/zh_show.png)
+
 这将在浏览器中打开交互式图谱，显示：
+
 - **节点**：作者、概念、模型、指标
 - **边**：它们之间的关系
 
@@ -118,7 +87,7 @@ he show ./transformer_kb/
 即使关键词不完全匹配也能查找信息：
 
 ```bash
-he search ./transformer_kb/ "neural network architecture"
+he search ./transformer_kb/ "神经网络架构"
 ```
 
 **结果：**
@@ -144,7 +113,7 @@ Result 2:
 ### 特定查询
 
 ```bash
-he search ./transformer_kb/ "performance metrics" -n 5
+he search ./transformer_kb/ "性能指标" -n 5
 ```
 
 ---
@@ -252,7 +221,7 @@ echo
 
 # 步骤 3: 搜索示例
 echo "Step 3: Sample search:"
-he search "$OUTPUT_DIR" "main contributions" -n 2
+he search "$OUTPUT_DIR" "主要贡献" -n 2
 echo
 
 # 步骤 4: 打开可视化
@@ -270,17 +239,17 @@ echo "=== Workflow Complete ==="
 
 ```bash
 # 创建输出目录
-mkdir -p ./kb/paper1 ./kb/paper2 ./kb/paper3
+mkdir -p ./ka/paper1 ./ka/paper2 ./ka/paper3
 
 # 处理每个
-he parse papers/paper1.md -t general/concept_graph -o ./kb/paper1/ -l en
-he parse papers/paper2.md -t general/concept_graph -o ./kb/paper2/ -l en
-he parse papers/paper3.md -t general/concept_graph -o ./kb/paper3/ -l en
+he parse papers/paper1.md -t general/concept_graph -o ./ka/paper1/ -l zh
+he parse papers/paper2.md -t general/concept_graph -o ./ka/paper2/ -l zh
+he parse papers/paper3.md -t general/concept_graph -o ./ka/paper3/ -l zh
 
 # 或使用循环
 for file in papers/*.md; do
     name=$(basename "$file" .md)
-    he parse "$file" -t general/concept_graph -o "./kb/$name/" -l en
+    he parse "$file" -t general/concept_graph -o "./ka/$name/" -l zh
 done
 ```
 
@@ -292,40 +261,40 @@ done
 
 ```bash
 # 初始提取
-he parse initial_doc.md -t general/biography_graph -o ./kb/ -l en
+he parse initial_doc.md -t general/biography_graph -o ./ka/ -l zh
 
 # 每周更新
-he feed ./kb/ week1_update.md
-he feed ./kb/ week2_update.md
-he feed ./kb/ week3_update.md
+he feed ./ka/ week1_update.md
+he feed ./ka/ week2_update.md
+he feed ./ka/ week3_update.md
 
 # 每月重建
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ### 模式 2：多领域项目
 
 ```bash
 # 技术文档
-he parse api_docs.md -t general/concept_graph -o ./project_kb/tech/ -l en
+he parse api_docs.md -t general/concept_graph -o ./project_kb/tech/ -l zh
 
 # 法律合同
-he parse contract.pdf -t legal/contract_obligation -o ./project_kb/legal/ -l en
+he parse contract.md -t legal/contract_obligation -o ./project_kb/legal/ -l zh
 
 # 财务报告
-he parse q4_report.md -t finance/earnings_summary -o ./project_kb/finance/ -l en
+he parse q4_report.md -t finance/earnings_summary -o ./project_kb/finance/ -l zh
 ```
 
 ### 模式 3：比较文档
 
 ```bash
 # 提取两个版本
-he parse draft_v1.md -t general/concept_graph -o ./kb/v1/ -l en
-he parse draft_v2.md -t general/concept_graph -o ./kb/v2/ -l en
+he parse draft_v1.md -t general/concept_graph -o ./ka/v1/ -l zh
+he parse draft_v2.md -t general/concept_graph -o ./ka/v2/ -l zh
 
 # 通过聊天比较
-he talk ./kb/v1/ -q "主要主题是什么？"
-he talk ./kb/v2/ -q "主要主题是什么？"
+he talk ./ka/v1/ -q "主要主题是什么？"
+he talk ./ka/v2/ -q "主要主题是什么？"
 ```
 
 ---
@@ -335,7 +304,7 @@ he talk ./kb/v2/ -q "主要主题是什么？"
 | 问题 | 解决方案 |
 |-------|----------|
 | 提取速度慢 | 长文档会被分块；使用 `--no-index` 在解析时跳过索引 |
-| 搜索无结果 | 确保索引已构建：`he build-index ./kb/` |
+| 搜索无结果 | 确保索引已构建：`he build-index ./ka/` |
 | 模板未找到 | 列出可用模板：`he list template` |
 | 内存不足 | 减少配置中的块大小或处理较小的文档 |
 

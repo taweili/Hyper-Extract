@@ -1,6 +1,6 @@
 # he talk
 
-Chat with your knowledge base using natural language.
+Chat with your knowledge abstract using natural language.
 
 ---
 
@@ -14,7 +14,7 @@ he talk KA_PATH [OPTIONS]
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to knowledge base directory |
+| `KA_PATH` | Path to knowledge abstract directory |
 
 ## Options
 
@@ -28,7 +28,7 @@ he talk KA_PATH [OPTIONS]
 
 ## Description
 
-The `talk` command lets you have a conversation with your knowledge base:
+The `talk` command lets you have a conversation with your knowledge abstract:
 
 1. **Retrieves relevant context** — Searches for information related to your question
 2. **Generates answer** — Uses LLM to synthesize a natural language response
@@ -152,7 +152,7 @@ he talk ./bio_kb/ -q "What events led to Tesla's financial difficulties?"
 
 ## How It Works
 
-1. **Semantic Search** — Finds relevant items in the knowledge base
+1. **Semantic Search** — Finds relevant items in the knowledge abstract
 2. **Context Assembly** — Combines retrieved items into context
 3. **LLM Generation** — Generates answer using the context
 4. **Source Attribution** — Shows which items informed the answer
@@ -191,7 +191,7 @@ he build-index ./output/
 
 - Try rephrasing your question
 - Increase context with `-n 10`
-- Verify knowledge base has relevant data: `he info ./output/`
+- Verify knowledge abstract has relevant data: `he info ./output/`
 
 ---
 

@@ -143,11 +143,11 @@ for edge in edges:
 
 ```python
 # 保存到磁盘
-result.dump("./my_knowledge_base/")
+result.dump("./my_ka/")
 
 # 稍后加载回来
-new_ka = Template.create("general/biography_graph", language="en")
-new_ka.load("./my_knowledge_base/")
+new_ka = Template.create("general/biography_graph", language="zh")
+new_ka.load("./my_ka/")
 ```
 
 ---
@@ -171,6 +171,8 @@ result.build_index()
 # 可视化更新后的图谱
 result.show()
 ```
+
+![更新后的知识图谱可视化](../../assets/zh_show.png)
 
 ---
 
@@ -230,6 +232,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+![交互式知识图谱可视化](../../assets/zh_show.png)
 ```
 
 ---

@@ -42,9 +42,8 @@ graph TD
 
 8 种定义提取输出的数据结构类型：
 
-- **标量类型**：AutoModel、AutoList、AutoSet
-- **图谱类型**：AutoGraph、AutoHypergraph
-- **时序类型**：AutoTemporalGraph、AutoSpatialGraph、AutoSpatioTemporalGraph
+- **记录类型**：AutoModel、AutoList、AutoSet（存储数据，无实体关系）
+- **图谱类型**：AutoGraph、AutoHypergraph、AutoTemporalGraph、AutoSpatialGraph、AutoSpatioTemporalGraph（表示实体间关系）
 
 → [了解自动类型](autotypes.md)
 

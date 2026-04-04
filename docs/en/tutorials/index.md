@@ -20,11 +20,11 @@ Hands-on tutorials for real-world use cases.
     
     [:octicons-arrow-right-24: Start Tutorial](research-assistant/index.md)
 
--   :material-database:{ .lg .middle } __Knowledge Base__
+-   :material-database:{ .lg .middle } __Knowledge Abstract__
 
     ---
 
-    Build and maintain a domain-specific knowledge base.
+    Build and maintain a domain-specific knowledge abstract.
     
     - Incremental document ingestion
     - Version management

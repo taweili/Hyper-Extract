@@ -48,7 +48,7 @@ document-analysis/
 │   ├── pending/       # Documents to process
 │   ├── processing/    # Currently processing
 │   └── completed/     # Successfully processed
-├── output/            # Extracted knowledge bases
+├── output/            # Extracted knowledge abstracts
 │   ├── batch_001/
 │   ├── batch_002/
 │   └── combined/
@@ -117,7 +117,7 @@ class BatchDocumentProcessor:
     
     def __init__(
         self,
-        template: str = "general/knowledge_graph",
+        template: str = "general/graph",
         language: str = "en",
         batch_size: int = 10,
         max_workers: int = 4
@@ -285,7 +285,7 @@ class BatchDocumentProcessor:
         logger.info(f"Results log saved: {log_file}")
     
     def combine_results(self, output_name: str = "combined"):
-        """Combine all individual results into one knowledge base."""
+        """Combine all individual results into one knowledge abstract."""
         logger.info("Combining results...")
         
         output_dirs = [d for d in Path("output").iterdir() if d.is_dir()]
@@ -300,15 +300,15 @@ class BatchDocumentProcessor:
         
         # Merge remaining
         for output_dir in output_dirs[1:]:
-            kb = Template.create(self.template, self.language)
-            kb.load(str(output_dir))
+            ka = Template.create(self.template, self.language)
+            ka.load(str(output_dir))
             
             # Merge entities and relations
-            for entity in kb.data.entities:
+            for entity in ka.data.entities:
                 if entity not in combined.data.entities:
                     combined.data.entities.append(entity)
             
-            for relation in kb.data.relations:
+            for relation in ka.data.relations:
                 if relation not in combined.data.relations:
                     combined.data.relations.append(relation)
         
@@ -317,7 +317,7 @@ class BatchDocumentProcessor:
         combined_path = Path("output") / output_name
         combined.dump(str(combined_path))
         
-        logger.info(f"Combined knowledge base saved: {combined_path}")
+        logger.info(f"Combined knowledge abstract saved: {combined_path}")
         return combined
 
 
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Batch Document Processor")
-    parser.add_argument("--template", default="general/knowledge_graph", help="Template to use")
+    parser.add_argument("--template", default="general/graph", help="Template to use")
     parser.add_argument("--language", default="en", help="Document language")
     parser.add_argument("--batch-size", type=int, default=10, help="Batch size")
     parser.add_argument("--parallel", action="store_true", help="Enable parallel processing")
@@ -556,7 +556,7 @@ You now have a complete batch processing system that can:
 ✓ Handle errors and retries  
 ✓ Run in parallel for speed  
 ✓ Monitor progress and collect metrics  
-✓ Combine results into unified knowledge bases  
+✓ Combine results into unified knowledge abstracts  
 
 ### Next Steps
 
@@ -570,4 +570,4 @@ You now have a complete batch processing system that can:
 ## See Also
 
 - [Research Assistant Tutorial](../research-assistant/index.md)
-- [Knowledge Base Tutorial](../knowledge-base/index.md)
+- [Knowledge Abstract Tutorial](../knowledge-base/index.md)

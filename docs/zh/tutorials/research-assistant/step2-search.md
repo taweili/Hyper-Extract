@@ -24,19 +24,19 @@
 ### 基本搜索
 
 ```bash
-he search ./paper_kb/ "attention mechanism"
+he search ./paper_kb/ "注意力机制"
 ```
 
 ### 自然语言查询
 
 ```bash
-he search ./paper_kb/ "What are the main contributions?"
+he search ./paper_kb/ "主要贡献是什么？"
 ```
 
 ### 获取更多结果
 
 ```bash
-he search ./paper_kb/ "transformer architecture" -n 10
+he search ./paper_kb/ "Transformer 架构" -n 10
 ```
 
 ---
@@ -58,7 +58,7 @@ KB_DIR = "./paper_kb/"
 def main():
     # 加载知识库
     print("加载知识库...")
-    ka = Template.create("general/concept_graph", language="en")
+    ka = Template.create("general/concept_graph", language="zh")
     ka.load(KB_DIR)
     
     # 确保索引已构建
@@ -137,16 +137,16 @@ python step2_search.py
 
 | 查询类型 | 示例 | 使用时机 |
 |----------|------|---------|
-| 概念 | "attention mechanism" | 查找特定概念 |
-| 问题 | "What are the main contributions?" | 广泛探索 |
-| 比较 | "transformer vs rnn" | 查找比较 |
-| 结果 | "bleu score results" | 查找特定数据 |
+| 概念 | "注意力机制" | 查找特定概念 |
+| 问题 | "主要贡献是什么？" | 广泛探索 |
+| 比较 | "Transformer 与 RNN 的比较" | 查找比较 |
+| 结果 | "BLEU 分数结果" | 查找特定数据 |
 
 ### 改进结果
 
-1. **具体化**: "transformer encoder" vs "transformer"
-2. **使用自然语言**: "How does attention work?"
-3. **尝试同义词**: "attention" → "self-attention" → "query-key-value"
+1. **具体化**: "Transformer 编码器" vs "Transformer"
+2. **使用自然语言**: "注意力机制如何工作？"
+3. **尝试同义词**: "注意力" → "自注意力" → "查询-键-值"
 4. **增加 top_k**: `top_k=10` 以获得更广泛的结果
 
 ---
@@ -155,9 +155,9 @@ python step2_search.py
 
 ```python
 class ResearchSearch:
-    def __init__(self, kb_path):
-        self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(kb_path)
+    def __init__(self, ka_path):
+        self.ka = Template.create("general/concept_graph", "zh")
+        self.ka.load(ka_path)
         self.ka.build_index()
     
     def find_concepts(self, query, n=5):
@@ -174,7 +174,7 @@ class ResearchSearch:
 
 # 使用
 search = ResearchSearch("./paper_kb/")
-concepts = search.find_concepts("attention", n=10)
+concepts = search.find_concepts("注意力", n=10)
 ```
 
 ---

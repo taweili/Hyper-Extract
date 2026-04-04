@@ -177,7 +177,7 @@ The concept graph template extracts:
 ### "No entities extracted"
 
 - Check paper is not empty: `wc -l paper.md`
-- Try different template: `general/knowledge_graph`
+- Try different template: `general/graph`
 - Check language setting matches document
 
 ### "Extraction is slow"

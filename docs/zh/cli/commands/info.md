@@ -56,15 +56,15 @@ Index         Built
 ### 提取后
 
 ```bash
-he parse sushi.md -t general/biography_graph -o ./kb/ -l zh
-he info ./kb/
+he parse sushi.md -t general/biography_graph -o ./ka/ -l zh
+he info ./ka/
 ```
 
 ### Feed 后
 
 ```bash
-he feed ./kb/ more_content.md
-he info ./kb/
+he feed ./ka/ more_content.md
+he info ./ka/
 # 注意更新的节点/边数和时间戳
 ```
 
@@ -92,7 +92,7 @@ he info ./kb/
 检查提取是否成功：
 
 ```bash
-he info ./kb/
+he info ./ka/
 # 应该显示 Nodes > 0, Edges > 0
 ```
 
@@ -101,9 +101,9 @@ he info ./kb/
 在使用搜索或聊天之前：
 
 ```bash
-he info ./kb/
+he info ./ka/
 # 如果索引显示 "Not Built"，运行：
-he build-index ./kb/
+he build-index ./ka/
 ```
 
 ### 监控增长
@@ -111,10 +111,10 @@ he build-index ./kb/
 跟踪知识库随时间的增长：
 
 ```bash
-he info ./kb/
+he info ./ka/
 # 喂养更多文档
-he feed ./kb/ update.md
-he info ./kb/
+he feed ./ka/ update.md
+he info ./ka/
 # 比较节点/边数
 ```
 
@@ -125,12 +125,12 @@ he info ./kb/
 ```bash
 #!/bin/bash
 
-if he info ./kb/ 2>/dev/null; then
+if he info ./ka/ 2>/dev/null; then
     echo "Knowledge base exists"
-    he feed ./kb/ new_doc.md
+    he feed ./ka/ new_doc.md
 else
-    echo "Creating new knowledge base"
-    he parse new_doc.md -t general/biography_graph -o ./kb/ -l en
+    echo "Creating new knowledge abstract"
+    he parse new_doc.md -t general/biography_graph -o ./ka/ -l zh
 fi
 ```
 
@@ -144,7 +144,7 @@ fi
 
 ```bash
 # 检查目录存在
-ls ./kb/
+ls ./ka/
 
 # 应该包含：
 # - data.json
@@ -156,7 +156,7 @@ ls ./kb/
 如果元数据损坏，模板/语言显示为 "unknown"：
 
 ```bash
-he info ./kb/
+he info ./ka/
 # Template: [yellow]unknown[/yellow]
 # Language: [yellow]unknown[/yellow]
 ```

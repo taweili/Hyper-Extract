@@ -55,20 +55,20 @@ def initial_ingest(self, documents_dir: str):
     # 解析第一个文档
     print(f"处理: {docs[0].name}")
     text = docs[0].read_text(encoding="utf-8")
-    kb = self.ka.parse(text)
+    ka = self.ka.parse(text)
     
     # 添加剩余文档
     for doc in docs[1:]:
         print(f"添加: {doc.name}")
         text = doc.read_text(encoding="utf-8")
-        kb.feed_text(text)
+        ka.feed_text(text)
     
     # 构建索引
     print("构建搜索索引...")
-    kb.build_index()
+    ka.build_index()
     
     # 保存版本
-    version_path = self.save_version(kb, "v1.0")
+    version_path = self.save_version(ka, "v1.0")
     
     # 记录处理
     self._log_processing(docs, version_path)
@@ -76,7 +76,7 @@ def initial_ingest(self, documents_dir: str):
     print(f"✓ 已导入 {len(docs)} 个文档")
     print(f"✓ 知识库: {version_path}")
     
-    return kb
+    return ka
 ```
 
 ### 方法 2：增量更新
@@ -90,8 +90,8 @@ def add_documents(self, document_paths: list[str]):
     
     # 加载当前版本
     current_path = Path(self.config.kb_dir) / "current"
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
     # 添加新文档
     for path in document_paths:
@@ -99,20 +99,20 @@ def add_documents(self, document_paths: list[str]):
         print(f"添加: {doc_path.name}")
         
         text = doc_path.read_text(encoding="utf-8")
-        kb.feed_text(text)
+        ka.feed_text(text)
     
     # 重建索引
     print("重建搜索索引...")
-    kb.build_index()
+    ka.build_index()
     
     # 保存新版本
     version = self._get_next_version()
-    version_path = self.save_version(kb, version)
+    version_path = self.save_version(ka, version)
     
     print(f"✓ 已添加 {len(document_paths)} 个文档")
     print(f"✓ 新版本: {version}")
     
-    return kb
+    return ka
 
 def _get_next_version(self) -> str:
     """生成下一个版本号。"""
@@ -158,20 +158,20 @@ def main():
     
     if args.initial:
         # 初始导入
-        kb = manager.initial_ingest(args.dir)
+        ka = manager.initial_ingest(args.dir)
         
         # 打印统计
         print("\n知识库统计:")
-        print(f"  实体: {len(kb.data.entities)}")
-        print(f"  关系: {len(kb.data.relations)}")
+        print(f"  实体: {len(ka.data.entities)}")
+        print(f"  关系: {len(ka.data.relations)}")
         
     elif args.add:
         # 添加特定文档
-        kb = manager.add_documents(args.add)
+        ka = manager.add_documents(args.add)
         
         print("\n知识库统计:")
-        print(f"  实体: {len(kb.data.entities)}")
-        print(f"  关系: {len(kb.data.relations)}")
+        print(f"  实体: {len(ka.data.entities)}")
+        print(f"  关系: {len(ka.data.relations)}")
 
 if __name__ == "__main__":
     main()
@@ -227,11 +227,11 @@ BATCH_SIZE = 10
 for i in range(0, len(docs), BATCH_SIZE):
     batch = docs[i:i + BATCH_SIZE]
     for doc in batch:
-        kb.feed_text(doc.read_text())
+        ka.feed_text(doc.read_text())
     
     # 保存检查点
     if i % (BATCH_SIZE * 5) == 0:
-        kb.dump(f"./kb/checkpoint_{i}/")
+        ka.dump(f"./ka/checkpoint_{i}/")
 ```
 
 ### 2. 错误处理
@@ -239,7 +239,7 @@ for i in range(0, len(docs), BATCH_SIZE):
 ```python
 try:
     text = doc.read_text(encoding="utf-8")
-    kb.feed_text(text)
+    ka.feed_text(text)
 except Exception as e:
     print(f"处理 {doc} 时出错: {e}")
     # 记录错误，继续下一个
@@ -249,14 +249,14 @@ except Exception as e:
 ### 3. 验证
 
 ```python
-def validate_ingestion(self, kb):
+def validate_ingestion(self, ka):
     """导入后验证知识库。"""
-    assert not kb.empty(), "知识库为空"
-    assert len(kb.data.entities) > 0, "未提取到实体"
+    assert not ka.empty(), "知识库为空"
+    assert len(ka.data.entities) > 0, "未提取到实体"
     
     # 尝试构建索引
     try:
-        kb.build_index()
+        ka.build_index()
     except Exception as e:
         raise ValueError(f"构建索引失败: {e}")
 ```

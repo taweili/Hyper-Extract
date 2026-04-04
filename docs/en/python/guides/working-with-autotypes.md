@@ -1,161 +1,171 @@
 # Working with Auto-Types
 
-Extract, manipulate, and utilize structured knowledge data.
+!!! tip "Level 2 - Intermediate"
+    This guide covers configured Auto-Type usage. Before reading, please complete [Level 1: Using Templates](using-templates.md) and [Level 1: Using Methods](using-methods.md).
+
+Learn how to configure Auto-Types directly to customize schemas, deduplication logic, and extraction behavior.
 
 ---
 
 ## What Are Auto-Types?
 
-Auto-Types are intelligent data structures that automatically extract and organize knowledge from text. They provide:
+Auto-Types are the core data structures in Hyper-Extract that extract, organize, and store structured knowledge from text. They provide:
 
 - **Type-safe schemas** — Pydantic-based validation
 - **LLM-powered extraction** — Automatic content processing
 - **Built-in operations** — Search, merge, visualize
 - **Serialization** — Save/load to disk
 
+All Auto-Types inherit from `BaseAutoType`, so they share a common set of capabilities (e.g., `parse`, `feed_text`, `build_index`, `search`, `chat`, `dump`, `load`).
+
 ---
 
-## The 8 Auto-Types
+## Three-Level Usage Architecture
 
-### Scalar Types
+Hyper-Extract provides three levels of control. This guide focuses on **Level 2**.
 
-#### AutoModel
+| Level | Approach | When to Use | Reference |
+|-------|----------|-------------|-----------|
+| **Level 1** | Templates / Methods | Quick start, standard use cases | [Using Templates](using-templates.md), [Using Methods](using-methods.md) |
+| **Level 2** | Configured Auto-Type | Custom schemas, same extraction logic | **This guide** |
+| **Level 3** | Fully custom methods | Complete control over extraction | [Methods Concepts](../../concepts/methods.md) |
 
-Single structured object extraction.
+---
+
+## Level 2: Configured Auto-Type Usage
+
+When you need custom schemas but don't want to implement full extraction logic from scratch, instantiate an Auto-Type directly and pass configuration parameters.
+
+### When to Use Level 2
+
+- You need custom node/edge schemas
+- You want to control deduplication logic
+- Template output doesn't match your exact needs
+- You're building reusable Python components
+
+### Complete Example: Custom Graph
 
 ```python
-from hyperextract import Template
+from hyperextract import AutoGraph
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pydantic import BaseModel, Field
 
-ka = Template.create("finance/earnings_summary", "en")
-result = ka.parse(report_text)
+# Step 1: Define custom schemas
+class Person(BaseModel):
+    """Custom node schema"""
+    name: str = Field(description="Person's full name")
+    role: str = Field(description="Job title or role")
+    expertise: list[str] = Field(default=[], description="Areas of expertise")
 
-# Access fields directly
-print(result.data.company_name)
-print(result.data.revenue)
-print(result.data.eps)
+class Collaboration(BaseModel):
+    """Custom edge schema"""
+    source: str = Field(description="First person's name")
+    target: str = Field(description="Second person's name")
+    project: str = Field(description="Project they worked on together")
+    year: int = Field(description="Year of collaboration")
+
+# Step 2: Configure LLM clients
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+embedder = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Step 3: Create configured AutoGraph
+graph = AutoGraph[Person, Collaboration](
+    node_schema=Person,
+    edge_schema=Collaboration,
+    # Define how to extract unique keys for deduplication
+    node_key_extractor=lambda p: p.name,
+    edge_key_extractor=lambda c: f"{c.source}-{c.target}-{c.project}",
+    # Define how to extract node references from edges
+    nodes_in_edge_extractor=lambda c: (c.source, c.target),
+    # LLM clients
+    llm_client=llm,
+    embedder=embedder,
+)
+
+# Step 4: Extract
+text = """
+Dr. Sarah Chen and Dr. Michael Wang collaborated on the Climate AI project in 2023.
+Sarah is a machine learning researcher with expertise in neural networks and climate modeling.
+Michael specializes in data engineering and distributed systems.
+"""
+
+graph.feed_text(text)
+
+# Step 5: Access results
+print(f"Extracted {len(graph.nodes)} people")
+for person in graph.nodes:
+    print(f"- {person.name}: {person.role}")
+    print(f"  Expertise: {', '.join(person.expertise)}")
+
+print(f"\nExtracted {len(graph.edges)} collaborations")
+for collab in graph.edges:
+    print(f"- {collab.source} & {collab.target}: {collab.project} ({collab.year})")
+
+# Step 6: Use built-in features
+graph.build_index()
+
+# Search
+nodes, edges = graph.search("machine learning", top_k=2)
+print(f"\nSearch found: {len(nodes)} people")
+
+# Visualize
+graph.show()
 ```
 
-#### AutoList
+### Key Configuration Parameters
 
-Ordered collection extraction.
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `node_schema` / `edge_schema` | Yes | Pydantic model defining the structure |
+| `node_key_extractor` | Yes | Function to extract unique key from node |
+| `edge_key_extractor` | Yes | Function to extract unique key from edge |
+| `nodes_in_edge_extractor` | Yes | Function to get (source, target) from edge |
+| `llm_client` | Yes | LangChain-compatible LLM client |
+| `embedder` | Yes | LangChain-compatible embeddings client |
 
-```python
-from hyperextract import Template
+### Comparison: Template vs Configured Auto-Type
 
-ka = Template.create("general/base_list", "en")
-result = ka.parse(text)
+| Aspect | Template | Configured Auto-Type |
+|--------|----------|---------------------|
+| Schema definition | YAML file | Python Pydantic classes |
+| Extraction logic | Pre-built | Same pre-built logic |
+| Deduplication | Pre-configured | You define key extractors |
+| Language support | Built-in | You provide prompts |
+| Reusability | Share YAML files | Package as Python module |
 
-# Iterate over items
-for item in result.data.items:
-    print(item)
+### More Configuration Examples
 
-# Access by index
-first = result.data.items[0]
-```
-
-#### AutoSet
-
-Deduplicated collection extraction.
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_set", "en")
-result = ka.parse(text)
-
-# Items are unique
-for item in result.data.items:
-    print(item)
-```
-
-### Graph Types
-
-#### AutoGraph
-
-Entity-relationship graph extraction.
+#### Temporal Graph
 
 ```python
-from hyperextract import Template
+from hyperextract import AutoTemporalGraph
+from pydantic import BaseModel, Field
 
-ka = Template.create("general/knowledge_graph", "en")
-result = ka.parse(text)
+class Event(BaseModel):
+    """Node: A historical event"""
+    name: str = Field(description="Event name")
+    category: str = Field(description="Type of event")
 
-# Access nodes
-for node in result.nodes:
-    print(f"{node.name} ({node.type})")
-    print(f"  Description: {node.description}")
+class CausalLink(BaseModel):
+    """Edge: Time-aware causal relationship"""
+    source: str = Field(description="Earlier event")
+    target: str = Field(description="Later event")
+    relationship: str = Field(description="How they connect")
+    time: str = Field(description="When the link occurred")
 
-# Access edges
-for edge in result.edges:
-    print(f"{edge.source} --{edge.type}--> {edge.target}")
-```
+timeline = AutoTemporalGraph[Event, CausalLink](
+    node_schema=Event,
+    edge_schema=CausalLink,
+    node_key_extractor=lambda e: e.name,
+    edge_key_extractor=lambda l: f"{l.source}-{l.target}-{l.time}",
+    nodes_in_edge_extractor=lambda l: (l.source, l.target),
+    llm_client=llm,
+    embedder=embedder,
+    # Temporal-specific: extract time from edge
+    time_extractor=lambda l: l.time,
+)
 
-#### AutoHypergraph
-
-Multi-entity relationship extraction.
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_hypergraph", "en")
-result = ka.parse(text)
-
-# Hyperedges connect multiple entities
-for edge in result.edges:
-    print(f"Type: {edge.type}")
-    print(f"Entities: {edge.entities}")
-```
-
-#### AutoTemporalGraph
-
-Time-based graph extraction.
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_temporal_graph", "en")
-result = ka.parse(text)
-
-# Relations include time information
-for edge in result.edges:
-    print(f"{edge.source} --{edge.type}--> {edge.target}")
-    if hasattr(edge, 'time'):
-        print(f"  Time: {edge.time}")
-```
-
-#### AutoSpatialGraph
-
-Location-based graph extraction.
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_spatial_graph", "en")
-result = ka.parse(text)
-
-# Nodes/edges include location
-for node in result.nodes:
-    if hasattr(node, 'location'):
-        print(f"{node.name} at {node.location}")
-```
-
-#### AutoSpatioTemporalGraph
-
-Combined time and space extraction.
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_spatio_temporal_graph", "en")
-result = ka.parse(text)
-
-# Full context: who, what, when, where
-for edge in result.edges:
-    print(f"Event: {edge.type}")
-    if hasattr(edge, 'time'):
-        print(f"  When: {edge.time}")
-    if hasattr(edge, 'location'):
-        print(f"  Where: {edge.location}")
+timeline.feed_text(historical_text)
 ```
 
 ---
@@ -273,7 +283,7 @@ print(f"Edges: {edge_types}")
 
 ## Advanced Usage
 
-### Custom Schema Access
+### Accessing the Schema
 
 ```python
 # Access the schema
@@ -305,15 +315,31 @@ elif isinstance(result, AutoList):
 
 ## Best Practices
 
-1. **Check hasattr before optional fields** — Schema fields may vary
+### Level 2 (Configured Auto-Types)
+
+1. **Design schemas carefully** — Fields become LLM extraction targets
+2. **Use clear Field descriptions** — Help LLM understand expectations
+3. **Choose good key extractors** — Critical for deduplication
+4. **Test with small samples** — Iterate on schema design
+
+### General
+
+1. **Check `hasattr` before optional fields** — Schema fields may vary
 2. **Handle empty results** — Always check `empty()`
-3. **Use model_dump for serialization** — Proper JSON conversion
+3. **Use `model_dump` for serialization** — Proper JSON conversion
 4. **Leverage type hints** — IDE support for autocomplete
 
 ---
 
 ## See Also
 
-- [Search and Chat](search-and-chat.md)
-- [Saving and Loading](saving-loading.md)
-- [Auto-Types Reference](../../concepts/autotypes.md)
+**Prerequisites:**
+- [Using Templates](using-templates.md) — Level 1 basics
+- [Using Methods](using-methods.md) — Level 1 basics
+- [Auto-Types Concepts](../../concepts/autotypes.md) — What each type does
+
+**Next Steps:**
+- [Creating Custom Templates](custom-templates.md) — Package your configurations
+- [Incremental Updates](incremental-updates.md) — Add more documents
+- [Search and Chat](search-and-chat.md) — Use extracted knowledge
+- [Saving and Loading](saving-loading.md) — Persist your results

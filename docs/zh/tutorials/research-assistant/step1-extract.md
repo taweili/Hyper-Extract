@@ -36,7 +36,7 @@ pdftotext paper.pdf paper.md
 ### 基本提取
 
 ```bash
-he parse paper.md -t general/concept_graph -o ./paper_kb/ -l en
+he parse paper.md -t general/concept_graph -o ./paper_kb/ -l zh
 ```
 
 **功能说明：**
@@ -90,7 +90,7 @@ OUTPUT_DIR = "./paper_kb/"
 def main():
     # 创建模板
     print("创建概念提取模板...")
-    ka = Template.create("general/concept_graph", language="en")
+    ka = Template.create("general/concept_graph", language="zh")
     
     # 读取论文
     print(f"读取: {PAPER_FILE}")
@@ -177,7 +177,7 @@ python step1_extract.py
 ### "未提取到实体"
 
 - 检查论文不为空：`wc -l paper.md`
-- 尝试不同模板：`general/knowledge_graph`
+- 尝试不同模板：`general/graph`
 - 检查语言设置与文档匹配
 
 ### "提取速度慢"

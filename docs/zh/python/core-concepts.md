@@ -36,10 +36,10 @@ graph TD
 from hyperextract import Template
 
 # 从预设创建
-ka = Template.create("general/biography_graph", language="en")
+ka = Template.create("general/biography_graph", language="zh")
 
 # 从文件创建
-ka = Template.create("/path/to/custom.yaml", language="en")
+ka = Template.create("/path/to/custom.yaml", language="zh")
 
 # 列出可用的
 templates = Template.list()
@@ -85,7 +85,7 @@ for path, cfg in templates.items():
 from hyperextract import Template
 
 # 图谱提取
-ka = Template.create("general/knowledge_graph", "en")
+ka = Template.create("general/graph", "zh")
 result = ka.parse(text)
 
 # 访问图谱数据
@@ -215,7 +215,7 @@ result = ka.parse(text)
 from hyperextract import Template
 
 # 1. 选择模板
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 # 2. 提取
 result = ka.parse(text)
@@ -226,6 +226,8 @@ result.build_index()
 # 4. 使用
 result.show()
 ```
+
+![交互式可视化](../../assets/zh_show.png)
 
 ### 方法方法（高级）
 
@@ -240,18 +242,19 @@ result = ka.parse(text)
 
 # 3. 使用
 result.build_index()
-results = result.search("query")
+results = result.search("查询")
 ```
 
-### 直接使用自动类型（完全控制）
+### 直接使用自动类型（高级）
+
+如需完全控制提取过程，可以直接实例化自动类型。这需要定义自己的 schema 和提取逻辑。
 
 ```python
 from hyperextract import AutoGraph
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-# 1. 定义 schema
 from pydantic import BaseModel
 
+# 定义 schema
 class Entity(BaseModel):
     name: str
     type: str
@@ -261,29 +264,34 @@ class Relation(BaseModel):
     target: str
     type: str
 
-class MyGraph(BaseModel):
-    entities: list[Entity]
-    relations: list[Relation]
-
-# 2. 创建自动类型
+# 使用完整控制创建
 llm = ChatOpenAI()
 emb = OpenAIEmbeddings()
 
-ka = AutoGraph(
-    data_schema=MyGraph,
+ka = AutoGraph[Entity, Relation](
+    node_schema=Entity,
+    edge_schema=Relation,
     llm_client=llm,
-    embedder=emb
+    embedder=emb,
+    # 还有更多配置...
 )
 
-# 3. 提取
 result = ka.parse(text)
 ```
+
+!!! note "高级主题"
+    直接使用自动类型需要理解：
+    - Pydantic schema 定义
+    - LLM 客户端配置
+    - 用于去重的键提取器
+
+    参见[使用自动类型](guides/working-with-autotypes.md#advanced-usage)获取完整示例。
 
 ---
 
 ## 下一步
 
 - [使用模板](guides/using-templates.md)
-- [选择方法](guides/choosing-methods.md)
+- [使用方法](guides/using-methods.md)
 - [使用自动类型](guides/working-with-autotypes.md)
 - [自动类型参考](../concepts/autotypes.md)

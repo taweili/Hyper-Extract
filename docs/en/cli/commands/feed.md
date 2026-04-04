@@ -1,6 +1,6 @@
 # he feed
 
-Add documents to an existing knowledge base incrementally.
+Add documents to an existing knowledge abstract incrementally.
 
 ---
 
@@ -14,7 +14,7 @@ he feed KA_PATH INPUT [OPTIONS]
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to existing knowledge base directory |
+| `KA_PATH` | Path to existing knowledge abstract directory |
 | `INPUT` | Input file path or `-` for stdin |
 
 ## Options
@@ -28,15 +28,15 @@ he feed KA_PATH INPUT [OPTIONS]
 
 ## Description
 
-The `feed` command adds new documents to an existing knowledge base without losing existing data:
+The `feed` command adds new documents to an existing knowledge abstract without losing existing data:
 
-1. **Loads existing knowledge** — Reads current knowledge base state
+1. **Loads existing knowledge** — Reads current knowledge abstract state
 2. **Extracts from new document** — Processes the new content
 3. **Merges intelligently** — Combines new and existing data, handling duplicates
 4. **Updates metadata** — Records the update timestamp
 
 This is ideal for:
-- Building knowledge bases over time
+- Building knowledge abstracts over time
 - Adding updates to existing documents
 - Combining information from multiple sources
 
@@ -57,23 +57,23 @@ he feed ./tesla_kb/ tesla_inventions.md
 ### Feed Multiple Documents
 
 ```bash
-he feed ./kb/ doc1.md
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he feed ./ka/ doc1.md
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 ```
 
 Or use a loop:
 
 ```bash
 for file in updates/*.md; do
-    he feed ./kb/ "$file"
+    he feed ./ka/ "$file"
 done
 ```
 
 ### From Stdin
 
 ```bash
-cat new_content.md | he feed ./kb/ -
+cat new_content.md | he feed ./ka/ -
 ```
 
 ---
@@ -86,14 +86,14 @@ The merge process handles:
 |----------|----------|
 | Same entity | Merged, descriptions combined |
 | Same relation | Updated with latest information |
-| New entities | Added to knowledge base |
+| New entities | Added to knowledge abstract |
 | New relations | Added connecting existing/new entities |
 
 ---
 
 ## Workflow Example
 
-### Building a Research Knowledge Base
+### Building a Research Knowledge Abstract
 
 ```bash
 # Day 1: Initial paper
@@ -133,7 +133,7 @@ he show ./bio_kb/
 Check that the feed worked:
 
 ```bash
-he info ./kb/
+he info ./ka/
 ```
 
 Look for:
@@ -147,8 +147,8 @@ Look for:
 
 1. **Use same template** — Feeding should use compatible templates
 2. **Match language** — Use consistent language for best results
-3. **Rebuild index after** — `he build-index ./kb/` for search/chat
-4. **Visualize changes** — `he show ./kb/` to see updates
+3. **Rebuild index after** — `he build-index ./ka/` for search/chat
+4. **Visualize changes** — `he show ./ka/` to see updates
 
 ---
 
@@ -156,10 +156,10 @@ Look for:
 
 ### "Not a valid Knowledge Abstract directory"
 
-The directory doesn't contain a valid knowledge base. Check:
+The directory doesn't contain a valid knowledge abstract. Check:
 
 ```bash
-ls ./kb/
+ls ./ka/
 # Should contain: data.json, metadata.json
 ```
 
@@ -168,13 +168,13 @@ ls ./kb/
 Feeding works best with the same template type. Override if needed:
 
 ```bash
-he feed ./kb/ doc.md -t general/biography_graph
+he feed ./ka/ doc.md -t general/biography_graph
 ```
 
 ---
 
 ## See Also
 
-- [`he parse`](parse.md) — Create new knowledge base
-- [`he info`](info.md) — View knowledge base statistics
+- [`he parse`](parse.md) — Create new knowledge abstract
+- [`he info`](info.md) — View knowledge abstract statistics
 - [`he build-index`](build-index.md) — Rebuild search index after feeding

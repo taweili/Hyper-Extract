@@ -12,45 +12,11 @@ Imagine you're a researcher who wants to extract and interact with knowledge fro
 
 ## Step 1: Prepare Your Document
 
-First, ensure your document is in a supported format (`.md`, `.txt`):
+Hyper-Extract supports `.md` and `.txt` files. Download the sample research paper below to follow this guide:
 
-```bash
-# Example: Convert PDF to text (using external tools)
-pdftotext paper.pdf paper.md
-```
+<a href="/assets/examples/en/transformer_paper.txt" download class="md-button">📥 Download Sample Document</a>
 
-Or create a sample document:
-
-```bash
-cat > transformer_paper.md << 'EOF'
-# Attention Is All You Need
-
-## Abstract
-The dominant sequence transduction models are based on complex recurrent or 
-convolutional neural networks that include an encoder and a decoder. The best 
-performing models also connect the encoder and decoder through an attention 
-mechanism. We propose a new simple network architecture, the Transformer, 
-based solely on attention mechanisms.
-
-## Authors
-- Ashish Vaswani
-- Noam Shazeer
-- Niki Parmar
-- Jakob Uszkoreit
-- Llion Jones
-- Aidan N. Gomez
-- Lukasz Kaiser
-- Illia Polosukhin
-
-## Key Innovation
-The Transformer eschews recurrence and instead relies entirely on an attention 
-mechanism to draw global dependencies between input and output sequences.
-
-## Performance
-On the WMT 2014 English-to-German translation task, our model achieves a 
-BLEU score of 28.4, outperforming all existing models.
-EOF
-```
+Save the file as `transformer_paper.md` in your working directory.
 
 ---
 
@@ -105,7 +71,10 @@ Index         Built
 he show ./transformer_kb/
 ```
 
+![Knowledge Graph Visualization](../../assets/en_show.png)
+
 This opens an interactive graph in your browser showing:
+
 - **Nodes**: Authors, concepts, models, metrics
 - **Edges**: Relationships between them
 
@@ -190,7 +159,7 @@ Goodbye!
 
 ---
 
-## Step 6: Expand Your Knowledge Base
+## Step 6: Expand Your Knowledge Abstract
 
 ### Add Another Document
 
@@ -198,7 +167,7 @@ Goodbye!
 # Download another paper
 curl -o bert_paper.md https://example.com/bert.md
 
-# Add to existing knowledge base
+# Add to existing knowledge abstract
 he feed ./transformer_kb/ bert_paper.md
 ```
 
@@ -274,17 +243,17 @@ Process multiple documents at once:
 
 ```bash
 # Create output directories
-mkdir -p ./kb/paper1 ./kb/paper2 ./kb/paper3
+mkdir -p ./ka/paper1 ./ka/paper2 ./ka/paper3
 
 # Process each
-he parse papers/paper1.md -t general/concept_graph -o ./kb/paper1/ -l en
-he parse papers/paper2.md -t general/concept_graph -o ./kb/paper2/ -l en
-he parse papers/paper3.md -t general/concept_graph -o ./kb/paper3/ -l en
+he parse papers/paper1.md -t general/concept_graph -o ./ka/paper1/ -l en
+he parse papers/paper2.md -t general/concept_graph -o ./ka/paper2/ -l en
+he parse papers/paper3.md -t general/concept_graph -o ./ka/paper3/ -l en
 
 # Or use a loop
 for file in papers/*.md; do
     name=$(basename "$file" .md)
-    he parse "$file" -t general/concept_graph -o "./kb/$name/" -l en
+    he parse "$file" -t general/concept_graph -o "./ka/$name/" -l en
 done
 ```
 
@@ -296,15 +265,15 @@ done
 
 ```bash
 # Initial extraction
-he parse initial_doc.md -t general/biography_graph -o ./kb/ -l en
+he parse initial_doc.md -t general/biography_graph -o ./ka/ -l en
 
 # Weekly updates
-he feed ./kb/ week1_update.md
-he feed ./kb/ week2_update.md
-he feed ./kb/ week3_update.md
+he feed ./ka/ week1_update.md
+he feed ./ka/ week2_update.md
+he feed ./ka/ week3_update.md
 
 # Monthly rebuild
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ### Pattern 2: Multi-Domain Project
@@ -314,7 +283,7 @@ he build-index ./kb/ -f
 he parse api_docs.md -t general/concept_graph -o ./project_kb/tech/ -l en
 
 # Legal contracts
-he parse contract.pdf -t legal/contract_obligation -o ./project_kb/legal/ -l en
+he parse contract.md -t legal/contract_obligation -o ./project_kb/legal/ -l en
 
 # Financial reports
 he parse q4_report.md -t finance/earnings_summary -o ./project_kb/finance/ -l en
@@ -324,12 +293,12 @@ he parse q4_report.md -t finance/earnings_summary -o ./project_kb/finance/ -l en
 
 ```bash
 # Extract two versions
-he parse draft_v1.md -t general/concept_graph -o ./kb/v1/ -l en
-he parse draft_v2.md -t general/concept_graph -o ./kb/v2/ -l en
+he parse draft_v1.md -t general/concept_graph -o ./ka/v1/ -l en
+he parse draft_v2.md -t general/concept_graph -o ./ka/v2/ -l en
 
 # Compare via chat
-he talk ./kb/v1/ -q "What are the main topics?"
-he talk ./kb/v2/ -q "What are the main topics?"
+he talk ./ka/v1/ -q "What are the main topics?"
+he talk ./ka/v2/ -q "What are the main topics?"
 ```
 
 ---
@@ -339,7 +308,7 @@ he talk ./kb/v2/ -q "What are the main topics?"
 | Issue | Solution |
 |-------|----------|
 | Extraction is slow | Long documents are chunked; use `--no-index` to skip indexing during parse |
-| Search returns nothing | Ensure index is built: `he build-index ./kb/` |
+| Search returns nothing | Ensure index is built: `he build-index ./ka/` |
 | Template not found | List available: `he list template` |
 | Out of memory | Reduce chunk size in config or process smaller documents |
 

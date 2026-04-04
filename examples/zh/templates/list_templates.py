@@ -45,7 +45,7 @@ def list_templates():
     print("  python examples/templates/run_template.py -d <domain> -t <template_name>")
     print("\n示例:")
     print("  python examples/templates/run_template.py -d finance -t earnings_summary")
-    print("  python examples/templates/run_template.py -d general -t base_graph")
+    print("  python examples/templates/run_template.py -d general -t graph")
     print("\n" + "=" * 80 + "\n")
 
 

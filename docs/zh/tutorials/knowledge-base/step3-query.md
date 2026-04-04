@@ -19,10 +19,10 @@ def search(self, query: str, top_k: int = 5):
     """搜索知识库。"""
     current_path = Path(self.config.kb_dir) / "current"
     
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
-    results = kb.search(query, top_k=top_k)
+    results = ka.search(query, top_k=top_k)
     return results
 ```
 
@@ -33,10 +33,10 @@ def ask(self, question: str, top_k: int = 5):
     """向知识库提问。"""
     current_path = Path(self.config.kb_dir) / "current"
     
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
-    response = kb.chat(question, top_k=top_k)
+    response = ka.chat(question, top_k=top_k)
     return response.content
 ```
 
@@ -63,23 +63,23 @@ class KBQueryShell(cmd.Cmd):
   versions           - 列出版本
   backup             - 创建备份
 """
-    prompt = "kb> "
+    prompt = "ka> "
     
     def __init__(self):
         super().__init__()
         self.manager = KnowledgeBaseManager()
-        self.kb = None
+        self.ka = None
         self._load_kb()
     
     def _load_kb(self):
         """加载当前知识库。"""
         current_path = Path(self.manager.config.kb_dir) / "current"
         if current_path.exists():
-            self.kb = Template.create(
+            self.ka = Template.create(
                 self.manager.config.template,
                 self.manager.config.language
             )
-            self.kb.load(current_path)
+            self.ka.load(current_path)
             print(f"已加载: {self.manager.config.name}")
         else:
             print("警告: 未找到知识库")
@@ -90,11 +90,11 @@ class KBQueryShell(cmd.Cmd):
             print("用法: search <query>")
             return
         
-        if not self.kb:
+        if not self.ka:
             print("未加载知识库")
             return
         
-        results = self.kb.search(arg, top_k=5)
+        results = self.ka.search(arg, top_k=5)
         
         print(f"\n找到 {len(results)} 个结果:\n")
         for i, item in enumerate(results, 1):
@@ -110,28 +110,28 @@ class KBQueryShell(cmd.Cmd):
             print("用法: ask <question>")
             return
         
-        if not self.kb:
+        if not self.ka:
             print("未加载知识库")
             return
         
         print("\n思考中...")
-        answer = self.kb.chat(arg).content
+        answer = self.ka.chat(arg).content
         print(f"\n{answer}\n")
     
     def do_stats(self, arg):
         """显示知识库统计。"""
-        if not self.kb:
+        if not self.ka:
             print("未加载知识库")
             return
         
         print("\n知识库统计:")
-        print(f"  实体: {len(self.kb.data.entities)}")
-        print(f"  关系: {len(self.kb.data.relations)}")
+        print(f"  实体: {len(self.ka.data.entities)}")
+        print(f"  关系: {len(self.ka.data.relations)}")
         print(f"  模板: {self.manager.config.template}")
         
         # 实体类型
         from collections import Counter
-        types = Counter(e.type for e in self.kb.data.entities)
+        types = Counter(e.type for e in self.ka.data.entities)
         print("\n实体类型:")
         for t, count in types.most_common():
             print(f"  {t}: {count}")
@@ -293,8 +293,8 @@ def export_to_json(self, output_file: str = "kb_export.json"):
             "template": self.config.template,
             "language": self.config.language
         },
-        "data": self.kb.data.model_dump(),
-        "metadata": self.kb.metadata
+        "data": self.ka.data.model_dump(),
+        "metadata": self.ka.metadata
     }
     
     with open(output_file, "w") as f:
@@ -315,11 +315,11 @@ def generate_report(self):
     report.append(f"\n名称: {self.config.name}")
     report.append(f"模板: {self.config.template}")
     report.append(f"\n统计:")
-    report.append(f"- 实体: {len(self.kb.data.entities)}")
-    report.append(f"- 关系: {len(self.kb.data.relations)}")
+    report.append(f"- 实体: {len(self.ka.data.entities)}")
+    report.append(f"- 关系: {len(self.ka.data.relations)}")
     
     # 实体类型
-    types = Counter(e.type for e in self.kb.data.entities)
+    types = Counter(e.type for e in self.ka.data.entities)
     report.append("\n## 实体类型")
     for t, count in types.most_common():
         report.append(f"- {t}: {count}")

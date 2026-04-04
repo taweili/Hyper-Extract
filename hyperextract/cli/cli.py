@@ -22,7 +22,7 @@ from .utils import (
     get_template_from_ka,
 )
 from .config import (
-    load_kb_metadata,
+    load_ka_metadata,
 )
 
 from .commands import list_app, config_app
@@ -246,7 +246,7 @@ def parse(
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Creating template instance...", total=None)
 
-        kb = Template.create(template, lang)
+        ka = Template.create(template, lang)
 
         if input_path.is_dir():
             progress.update(task, description="Processing directory...")
@@ -265,14 +265,14 @@ def parse(
             console.print(f"[dim]Total input: {len(combined_text)} characters[/dim]")
 
             progress.update(task, description="Extracting knowledge...")
-            kb.feed_text(combined_text)
+            ka.feed_text(combined_text)
         else:
             progress.update(task, description="Reading input...")
             text = read_input(input)
             console.print(f"[dim]Input text: {len(text)} characters[/dim]")
 
             progress.update(task, description="Extracting knowledge...")
-            kb.feed_text(text)
+            ka.feed_text(text)
 
         progress.update(task, description="Saving data...")
 
@@ -282,26 +282,28 @@ def parse(
                 import shutil
                 filename = Path(template).name
                 shutil.copy(template, output_path / filename)
-                console.print(f"[dim]Custom template '{filename}' saved to KB directory[/dim]")
+                console.print(f"[dim]Custom template '{filename}' saved to KA directory[/dim]")
 
-        kb.dump(output_path)
+        ka.dump(output_path)
 
         if not no_index:
             progress.update(task, description="Building search index...")
-            kb.build_index()
+            ka.build_index()
             console.print("[dim]Index built successfully[/dim]")
             progress.update(task, description="Saving index...")
-            kb.dump(output_path)
+            ka.dump(output_path)
 
     console.print()
     console.print(f"[bold green]Success![/bold green] Knowledge extracted to {output_path}")
     console.print()
     if no_index:
         console.print("[dim]Note: Index was not built.[/dim]")
-        console.print(f"[dim]  he build-index {output}  # Build index to enable search/talk[/dim]")
+        console.print(f"[dim]  he build-index {output}       # Build index to enable search/talk[/dim]")
+        console.print(f"[dim]  he feed {output} <new_document>  # Append more documents[/dim]")
     else:
         console.print("[dim]What's next?[/dim]")
         console.print(f"[dim]  he show {output}                    # Visualize knowledge graph[/dim]")
+        console.print(f"[dim]  he feed {output} <new_document>     # Append more documents[/dim]")
         console.print(f"[dim]  he search {output} \"keyword\"        # Semantic search[/dim]")
         console.print(f"[dim]  he talk {output} -i                 # Interactive chat[/dim]")
         console.print(f"[dim]  he talk {output} -q \"your question\" # Single query[/dim]")
@@ -322,8 +324,8 @@ def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
 
     with console.status("[bold blue]Loading Knowledge Abstract..."):
         try:
-            kb = Template.create(template, lang)
-            kb.load(path)
+            ka = Template.create(template, lang)
+            ka.load(path)
 
         except Exception as e:
             console.print(f"[red]Error loading Knowledge Abstract:[/red] {e}")
@@ -332,7 +334,7 @@ def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
     console.print("[bold blue]Visualizing with OntoSight...[/bold blue]")
 
     try:
-        kb.show()
+        ka.show()
     except Exception as e:
         console.print(f"[red]Error during visualization:[/red] {e}")
         raise typer.Exit(1)
@@ -350,7 +352,7 @@ def info(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
 
     path = validate_ka_with_data(ka_path)
 
-    metadata = load_kb_metadata(path)
+    metadata = load_ka_metadata(path)
 
     data_file = path / "data.json"
     with open(data_file, "r", encoding="utf-8") as f:
@@ -413,13 +415,13 @@ def search(
         task = progress.add_task("Searching...", total=None)
 
         try:
-            kb = Template.create(template, lang)
+            ka = Template.create(template, lang)
 
             progress.update(task, description="Loading Knowledge Abstract...")
-            kb.load(path)
+            ka.load(path)
 
             progress.update(task, description="Searching...")
-            results = kb.search(query, top_k=top_k)
+            results = ka.search(query, top_k=top_k)
 
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
@@ -448,7 +450,7 @@ def search(
     console.print(f"[dim]  he show {ka_path}                              # Visualize[/dim]")
 
 
-def chat_loop(kb, ka_path: str):
+def chat_loop(ka, ka_path: str):
     """Interactive chat loop."""
     console.print("\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n")
     while True:
@@ -464,7 +466,7 @@ def chat_loop(kb, ka_path: str):
                 break
             if not query.strip():
                 continue
-            response = kb.chat(query)
+            response = ka.chat(query)
             console.print()
             console.print(response.content)
             console.print()
@@ -511,21 +513,21 @@ def talk(
         task = progress.add_task("Loading...", total=None)
 
         try:
-            kb = Template.create(template, lang)
+            ka = Template.create(template, lang)
 
             progress.update(task, description="Loading Knowledge Abstract...")
-            kb.load(path)
+            ka.load(path)
 
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
     if interactive:
-        chat_loop(kb, ka_path)
+        chat_loop(ka, ka_path)
     else:
         with console.status("[bold blue]Thinking..."):
             try:
-                response = kb.chat(query, top_k=top_k)
+                response = ka.chat(query, top_k=top_k)
                 console.print(response.content)
 
                 if response.additional_kwargs.get("retrieved_items"):
@@ -557,13 +559,13 @@ def feed(
 
     output_path = validate_ka_path(ka_path)
 
-    metadata = load_kb_metadata(output_path)
+    metadata = load_ka_metadata(output_path)
     if not metadata:
         console.print(f"[red]Error:[/red] Not a valid Knowledge Abstract directory: {ka_path}")
         raise typer.Exit(1)
 
     if template is None:
-        template = metadata.get("template", "knowledge_graph")
+        template = metadata.get("template", "general/graph")
     if lang is None:
         lang = metadata.get("lang", "zh")
 
@@ -574,7 +576,7 @@ def feed(
     console.print()
 
     try:
-        kb = Template.create(template, lang)
+        ka = Template.create(template, lang)
         console.print(f"[green]Template loaded:[/green] {template}")
     except ValueError as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -583,17 +585,17 @@ def feed(
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Loading existing knowledge...", total=None)
 
-        kb.load(output_path)
+        ka.load(output_path)
 
         progress.update(task, description="Reading input...")
         text = read_input(input)
         console.print(f"[dim]Input text: {len(text)} characters[/dim]")
 
         progress.update(task, description="Appending knowledge...")
-        kb.feed_text(text)
+        ka.feed_text(text)
 
         progress.update(task, description="Saving data...")
-        kb.dump(output_path)
+        ka.dump(output_path)
 
     console.print()
     console.print(f"[bold green]Success![/bold green] Knowledge appended to {output_path}")
@@ -629,20 +631,20 @@ def build_index(
         task = progress.add_task("Initializing...", total=None)
 
         try:
-            kb = Template.create(template, lang)
+            ka = Template.create(template, lang)
 
             progress.update(task, description="Loading Knowledge Abstract...")
-            kb.load(path)
+            ka.load(path)
 
             if force:
                 console.print("[dim]Force rebuild: clearing existing index...[/dim]")
-                kb.clear_index()
+                ka.clear_index()
 
             progress.update(task, description="Building index...")
-            kb.build_index()
+            ka.build_index()
 
             progress.update(task, description="Saving index...")
-            kb.dump(path)
+            ka.dump(path)
 
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")

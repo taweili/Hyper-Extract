@@ -1,6 +1,6 @@
 # Step 2: Semantic Search
 
-Build a searchable knowledge base.
+Build a searchable knowledge abstract.
 
 ---
 
@@ -46,7 +46,7 @@ he search ./paper_kb/ "transformer architecture" -n 10
 ### Script
 
 ```python
-"""Step 2: Semantic search over knowledge base."""
+"""Step 2: Semantic search over knowledge abstract."""
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -56,8 +56,8 @@ from hyperextract import Template
 KB_DIR = "./paper_kb/"
 
 def main():
-    # Load knowledge base
-    print("Loading knowledge base...")
+    # Load knowledge abstract
+    print("Loading knowledge abstract...")
     ka = Template.create("general/concept_graph", language="en")
     ka.load(KB_DIR)
     
@@ -155,9 +155,9 @@ Search: quit
 
 ```python
 class ResearchSearch:
-    def __init__(self, kb_path):
+    def __init__(self, ka_path):
         self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(kb_path)
+        self.ka.load(ka_path)
         self.ka.build_index()
     
     def find_concepts(self, query, n=5):

@@ -1,282 +1,308 @@
 # Auto-Types
 
-Complete guide to the 8 knowledge structure types.
+Understanding the 8 knowledge structure types: what they are and when to use them.
 
 ---
 
-## Overview
+## What Are Auto-Types?
 
-Auto-Types are intelligent data structures that:
-- Define extraction output format
-- Provide type-safe schemas
-- Include built-in operations (search, visualize, etc.)
-- Support serialization
+Auto-Types are intelligent data structures that define how extracted knowledge is organized. Think of them as "containers" that shape what comes out of your documents.
+
+Key characteristics:
+
+| Characteristic | Description |
+|----------------|-------------|
+| **Type-Safe** | Pydantic-based validation ensures consistent data |
+| **Self-Contained** | Built-in operations (search, visualize, save) |
+| **Serializable** | Save to disk, load later |
+| **Composable** | Merge, update, extend incrementally |
 
 ---
 
 ## The 8 Auto-Types
 
+Organized into two categories:
+
 ```mermaid
 graph TD
-    A[Auto-Types] --> B[Scalar Types]
-    A --> C[Graph Types]
-    A --> D[Temporal Types]
-    
-    B --> B1[AutoModel]
-    B --> B2[AutoList]
-    B --> B3[AutoSet]
-    
-    C --> C1[AutoGraph]
-    C --> C2[AutoHypergraph]
-    
-    D --> D1[AutoTemporalGraph]
-    D --> D2[AutoSpatialGraph]
-    D --> D3[AutoSpatioTemporalGraph]
+    A[Auto-Types] --> B[Record Types<br/>Store data, no entity relations]
+    A --> C[Graph Types<br/>Entity relationships]
+
+    B --> B1[AutoModel<br/>One structured object]
+    B --> B2[AutoList<br/>Ordered items]
+    B --> B3[AutoSet<br/>Unique items]
+
+    C --> C1[AutoGraph<br/>Binary relationships]
+    C --> C2[AutoHypergraph<br/>Multi-entity relationships]
+    C --> C3[AutoTemporalGraph<br/>+ Time]
+    C --> C4[AutoSpatialGraph<br/>+ Location]
+    C --> C5[AutoSpatioTemporalGraph<br/>+ Time + Location]
 ```
 
 ---
 
-## Scalar Types
+## Record Types
+
+For **recording and storing data** without relationships between entities.
+
+Record types extract **independent data items**, where each item does not contain information about its relationship to other items.
 
 ### AutoModel
 
-**Purpose**: Single structured object
+**Purpose**: Extract a single structured object
 
-**Use When**:
-- Extracting a summary/report
-- Structured data with known fields
-- Single entity with many attributes
+**Think of it as**: A form with fields you want to fill in
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Company earnings report (revenue, profit, growth)
+- Product specification (name, price, features)
+- Person profile (name, birth date, occupation)
+
+**Example output structure**:
+
+```json
 {
     "company_name": "Tesla Inc",
     "revenue": 81.46,
-    "eps": 4.07,
     "employees": 127855
 }
 ```
 
-**Common Templates**:
-- `finance/earnings_summary`
-- `general/base_model`
+**Common templates**: `finance/earnings_summary`, `general/model`
 
 ---
 
 ### AutoList
 
-**Purpose**: Ordered collection
+**Purpose**: Extract an ordered collection
 
-**Use When**:
-- Sequence matters
-- Ranked items
-- Timeline events (simple)
+**Think of it as**: A ranked list or sequence
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Top 10 movies of all time
+- Step-by-step procedures
+- Timeline events (simple chronological list)
+
+**Example output structure**:
+
+```json
 {
     "items": [
-        {"name": "AC Motor", "year": 1888},
         {"name": "Tesla Coil", "year": 1891},
         {"name": "Radio", "year": 1898}
     ]
 }
 ```
 
-**Common Templates**:
-- `general/base_list`
-- `legal/compliance_list`
+**Key property**: Order matters - items are in sequence
+
+**Common templates**: `general/list`, `legal/compliance_list`
 
 ---
 
 ### AutoSet
 
-**Purpose**: Deduplicated collection
+**Purpose**: Extract unique items (no duplicates)
 
-**Use When**:
-- Unique items only
-- Tags/categories
-- Membership testing
+**Think of it as**: A bag of unique tags
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Keywords from a document
+- Categories or tags
+- Skill sets
+
+**Example output structure**:
+
+```json
 {
-    "items": [
-        "Electrical Engineering",
-        "Physics",
-        "Invention",
-        "Renewable Energy"
-    ]
+    "items": ["Electrical Engineering", "Physics", "Invention"]
 }
 ```
 
-**Common Templates**:
-- `general/base_set`
-- `finance/risk_factor_set`
+**Key property**: Duplicates are automatically removed
+
+**Common templates**: `general/set`, `finance/risk_factor_set`
 
 ---
 
 ## Graph Types
 
-### AutoGraph
+For representing **relationships between entities**. Graph types include both the entities themselves (nodes) and the connections between them (edges).
 
-**Purpose**: Entity-relationship network
+Graph types are divided into subtypes based on relationship complexity and additional dimensional information:
 
-**Use When**:
-- People, organizations, concepts
-- Binary relationships
-- Knowledge graphs
+### Basic Graphs
 
-**Example Output**:
-```python
+#### AutoGraph
+
+**Purpose**: Extract binary relationships (two entities at a time)
+
+**Think of it as**: A social network diagram
+
+**Example use cases**:
+
+- People and their connections (worked with, married to)
+- Concepts and their relationships (is-a, part-of)
+- Organizations and interactions
+
+**Example output structure**:
+
+```json
 {
     "nodes": [
         {"name": "Tesla", "type": "person"},
-        {"name": "Edison", "type": "person"},
         {"name": "AC Motor", "type": "invention"}
     ],
     "edges": [
-        {"source": "Tesla", "target": "AC Motor", "type": "invented"},
-        {"source": "Tesla", "target": "Edison", "type": "rivals"}
+        {"source": "Tesla", "target": "AC Motor", "type": "invented"}
     ]
 }
 ```
 
-**Common Templates**:
-- `general/knowledge_graph`
-- `general/biography_graph`
+**Key property**: Every relationship connects exactly two entities
+
+**Common templates**: `general/graph`, `general/biography_graph`
 
 ---
 
-### AutoHypergraph
+#### AutoHypergraph
 
-**Purpose**: Multi-entity relationships
+**Purpose**: Extract relationships involving 3+ entities
 
-**Use When**:
-- Relationships involve 3+ entities
-- Complex interactions
-- N-ary associations
+**Think of it as**: A project team where multiple people collaborate
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Multi-party collaborations
+- Complex interactions (buyer, seller, broker)
+- Group memberships
+
+**Example output structure**:
+
+```json
 {
     "nodes": [...],
     "edges": [
         {
             "entities": ["Tesla", "Westinghouse", "Niagara"],
-            "type": "collaboration",
-            "description": "Power plant project"
+            "type": "collaboration"
         }
     ]
 }
 ```
 
-**Common Templates**:
-- `general/base_hypergraph`
+**Key property**: One "edge" can connect multiple entities
+
+**Common template**: `general/base_hypergraph`
 
 ---
 
-## Temporal Types
+### Enhanced Graphs (with dimensional information)
 
-### AutoTemporalGraph
+Built on basic graphs with added **time** or **space** dimensions for richer relationship descriptions.
 
-**Purpose**: Graph + time information
+#### AutoTemporalGraph (Temporal Graph)
 
-**Use When**:
-- Timeline is important
-- Event sequences
+**Purpose**: Extract relationships with time information
+
+**Think of it as**: A timeline with connections
+
+**Example use cases**:
+
+- Biographies (life events with dates)
+- Project histories
 - Historical analysis
 
-**Example Output**:
-```python
+**Example output structure**:
+
+```json
 {
-    "nodes": [...],
     "edges": [
         {
             "source": "Tesla",
             "target": "AC Motor",
             "type": "invented",
             "time": "1888"
-        },
-        {
-            "source": "Tesla",
-            "target": "Wardenclyffe Tower",
-            "type": "built",
-            "time": "1901-1902"
         }
     ]
 }
 ```
 
-**Common Templates**:
-- `general/base_temporal_graph`
-- `finance/event_timeline`
+**Key property**: Every relationship has a time component
+
+**Common templates**: `general/base_temporal_graph`, `finance/event_timeline`
 
 ---
 
-### AutoSpatialGraph
+#### AutoSpatialGraph (Spatial Graph)
 
-**Purpose**: Graph + location information
+**Purpose**: Extract relationships with location information
 
-**Use When**:
-- Geographic data
-- Location-based analysis
-- Mapping
+**Think of it as**: A map with connections
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Travel logs
+- Geographic networks
+- Location-based asset tracking
+
+**Example output structure**:
+
+```json
 {
     "entities": [
-        {
-            "name": "Colorado Springs",
-            "type": "location",
-            "coordinates": "38.8339,-104.8214"
-        }
+        {"name": "Colorado Springs", "location": "38.83,-104.82"}
     ],
     "relations": [
         {
             "source": "Tesla",
             "target": "Colorado Springs",
-            "type": "conducted_experiments",
-            "location": "Colorado Springs"
+            "type": "conducted_experiments"
         }
     ]
 }
 ```
 
-**Common Templates**:
-- `general/base_spatial_graph`
+**Key property**: Entities or relationships have geographic coordinates
+
+**Common template**: `general/base_spatial_graph`
 
 ---
 
-### AutoSpatioTemporalGraph
+#### AutoSpatioTemporalGraph (Spatio-Temporal Graph)
 
-**Purpose**: Graph + time + space
+**Purpose**: Extract relationships with both time and location
 
-**Use When**:
-- Full context needed
-- Historical geography
-- Event analysis with when and where
+**Think of it as**: A historical map with dated events
 
-**Example Output**:
-```python
+**Example use cases**:
+
+- Military history (battles with when and where)
+- Epidemic tracking
+- Historical migrations
+
+**Example output structure**:
+
+```json
 {
-    "entities": [...],
     "relations": [
         {
             "source": "Tesla",
             "target": "AC Motor",
             "type": "demonstrated",
             "time": "1888",
-            "location": "Pittsburgh",
-            "description": "Demonstration at Westinghouse"
+            "location": "Pittsburgh"
         }
     ]
 }
 ```
 
-**Common Templates**:
-- `general/base_spatio_temporal_graph`
+**Key property**: Complete context - who, what, when, and where
+
+**Common template**: `general/base_spatio_temporal_graph`
 
 ---
 
@@ -287,78 +313,69 @@ graph TD
 ```
 What do you need to extract?
 │
-├─ Single structured object → AutoModel
+├─ Single structured object (like a form)
+│  └─ AutoModel
 │
 ├─ Collection of items
-│   ├─ Ordered/Ranked → AutoList
-│   └─ Unique/Tags → AutoSet
+│  ├─ Order matters? → AutoList
+│  └─ Just unique items? → AutoSet
 │
-└─ Relationships
-    ├─ Simple (binary)
-    │   ├─ With time → AutoTemporalGraph
-    │   ├─ With space → AutoSpatialGraph
-    │   ├─ With both → AutoSpatioTemporalGraph
-    │   └─ Neither → AutoGraph
-    │
-    └─ Complex (multi-entity)
-        └─ AutoHypergraph
+└─ Relationships between entities → Graph Types
+   ├─ Relationship arity
+   │  ├─ Binary (2 entities) → Basic Graphs
+   │  │  ├─ Need time info? → AutoTemporalGraph
+   │  │  ├─ Need location info? → AutoSpatialGraph
+   │  │  ├─ Need both? → AutoSpatioTemporalGraph
+   │  │  └─ Neither? → AutoGraph
+   │  │
+   │  └─ Multi-entity (3+ entities) → AutoHypergraph
 ```
 
 ### By Use Case
 
-| Use Case | Recommended Type |
-|----------|------------------|
-| Company report | AutoModel |
-| Top 10 list | AutoList |
-| Tags/keywords | AutoSet |
-| People network | AutoGraph |
-| Project teams | AutoHypergraph |
-| Biography timeline | AutoTemporalGraph |
-| Travel log | AutoSpatialGraph |
-| Historical events | AutoSpatioTemporalGraph |
+| Use Case | Auto-Type | Why |
+|----------|-----------|-----|
+| Company financial report | AutoModel | Single structured summary |
+| Top 10 list | AutoList | Ordered/ranked items |
+| Keywords/tags | AutoSet | Unique collection |
+| People network | AutoGraph | Binary relationships |
+| Project teams | AutoHypergraph | Multi-person collaborations |
+| Biography timeline | AutoTemporalGraph | Events with dates |
+| Travel itinerary | AutoSpatialGraph | Places with connections |
+| Historical events | AutoSpatioTemporalGraph | Full context needed |
+
+### Quick Reference
+
+#### Record Types
+
+| Auto-Type | Output Shape | Key Feature |
+|-----------|--------------|-------------|
+| AutoModel | Single object | Fixed schema fields |
+| AutoList | Array | Maintains order |
+| AutoSet | Array | Deduplicates |
+
+#### Graph Types
+
+| Auto-Type | Output Shape | Key Feature |
+|-----------|--------------|-------------|
+| AutoGraph | Nodes + Edges | Binary relations (2 entities) |
+| AutoHypergraph | Nodes + Hyperedges | Multi-entity relations (3+ entities) |
+| AutoTemporalGraph | Nodes + Time-Edges | Binary relations + time dimension |
+| AutoSpatialGraph | Nodes + Geo-Edges | Binary relations + geographic dimension |
+| AutoSpatioTemporalGraph | Nodes + Spatio-Temporal-Edges | Binary relations + time + space |
 
 ---
 
-## Common Operations
+## Next Steps
 
-All Auto-Types support:
+Ready to use Auto-Types? Choose your path:
 
-```python
-# Extraction
-result = ka.parse(text)
+**Quick Start**: Use built-in [Templates](../templates/index.md) — no Auto-Type knowledge needed
 
-# Incremental update
-result.feed_text(more_text)
+**More Control**: Learn how to work with Auto-Types in Python:
+- [Working with Auto-Types](../python/guides/working-with-autotypes.md) — practical examples
+- [Python SDK Quickstart](../python/quickstart.md) — get started in 5 minutes
 
-# Build index (required for search, chat, and interactive visualization)
-result.build_index()
-
-# Search
-results = result.search("query")
-
-# Chat
-response = result.chat("question")
-
-# Visualization (interactive with search/chat capabilities)
-result.show()
-
-# Persistence
-result.dump("./path/")
-result.load("./path/")
-
-# Check empty
-if result.empty():
-    print("No data")
-
-# Clear
-result.clear()
-result.clear_index()
-```
-
----
-
-## See Also
-
-- [Working with Auto-Types](../python/guides/working-with-autotypes.md)
-- [Template Library](../templates/index.md)
-- [Methods](methods.md)
+**Advanced**: Create custom Auto-Type configurations
+- [Creating Custom Templates](../python/guides/custom-templates.md)
+- [API Reference](../python/api-reference/autotypes/base.md)

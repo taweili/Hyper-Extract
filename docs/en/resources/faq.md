@@ -100,21 +100,21 @@ he list template
 Convert to text first:
 ```bash
 pdftotext document.pdf document.txt
-he parse document.txt -t general/knowledge_graph -l en
+he parse document.txt -t general/graph -l en
 ```
 
 ### Can I process multiple documents?
 
 **Option 1**: Feed incrementally
 ```bash
-he parse doc1.md -t general/graph -o ./kb/ -l en
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he parse doc1.md -t general/graph -o ./ka/ -l en
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 ```
 
 **Option 2**: Process directory
 ```bash
-he parse ./docs/ -t general/graph -o ./kb/ -l en
+he parse ./docs/ -t general/graph -o ./ka/ -l en
 ```
 
 ### How do I extract in Chinese?
@@ -145,8 +145,8 @@ Process in smaller batches:
 ```python
 for batch in chunks(documents, 5):
     for doc in batch:
-        kb.feed_text(doc)
-    kb.dump("./checkpoint/")
+        ka.feed_text(doc)
+    ka.dump("./checkpoint/")
 ```
 
 ---
@@ -175,6 +175,8 @@ result.build_index()
 
 result.show()
 ```
+
+![Interactive Visualization](../../assets/en_show.png)
 
 ### Can I export to other formats?
 
@@ -217,8 +219,8 @@ he build-index ./output/
 
 Try:
 - Different search terms
-- Increase `top_k`: `he search ./kb/ "query" -n 10`
-- Check if index is built: `he info ./kb/`
+- Increase `top_k`: `he search ./ka/ "query" -n 10`
+- Check if index is built: `he info ./ka/`
 
 ---
 

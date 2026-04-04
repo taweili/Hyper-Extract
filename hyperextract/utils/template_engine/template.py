@@ -21,11 +21,11 @@ class Template:
         from hyperextract.utils.template_engine import Template
 
         # Create template instance (2 ways)
-        template = Template.create("general/knowledge_graph", llm, emb)
+        template = Template.create("general/graph", llm, emb)
         template = Template.create("/path/to/template.yaml", llm, emb)
 
         # Get template config by path
-        config = Template.get("general/knowledge_graph")
+        config = Template.get("general/graph")
 
         # List all templates (returns Dict[str, TemplateCfg])
         all_templates = Template.list()
@@ -46,7 +46,7 @@ class Template:
         """Create template instance.
 
         Args:
-            source: Template path (e.g., "general/knowledge_graph", "method/light_rag") or file path
+            source: Template path (e.g., "general/graph", "method/light_rag") or file path
             language: Language code (e.g., "zh", "en")
                 - Required for knowledge templates
                 - Ignored for method templates (always uses "en")
@@ -59,7 +59,7 @@ class Template:
 
         Examples:
             # Knowledge template (language required)
-            template = Template.create("general/knowledge_graph", "zh", llm, emb)
+            template = Template.create("general/graph", "zh", llm, emb)
 
             # Method template (language ignored, always "en")
             template = Template.create("method/light_rag", llm_client=llm, embedder=embedder)
@@ -69,7 +69,7 @@ class Template:
 
             # For temporal/spatial templates
             template = Template.create(
-                "finance/financial_data_temporal_graph",
+                "finance/event_timeline",
                 "zh",
                 llm,
                 emb,
@@ -92,7 +92,7 @@ class Template:
         """Get template configuration by path.
 
         Args:
-            path: Template path (e.g., "general/knowledge_graph" or "method/light_rag")
+            path: Template path (e.g., "general/graph" or "method/light_rag")
 
         Returns:
             TemplateCfg or None if not found

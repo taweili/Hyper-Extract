@@ -19,7 +19,7 @@ By the end of this tutorial, you'll have a research assistant that can:
 | Step | Topic | What You'll Learn |
 |------|-------|-------------------|
 | 1 | [Extract Knowledge](step1-extract.md) | Parse a research paper and extract concepts |
-| 2 | [Semantic Search](step2-search.md) | Build a searchable knowledge base |
+| 2 | [Semantic Search](step2-search.md) | Build a searchable knowledge abstract |
 | 3 | [Q&A System](step3-chat.md) | Create an interactive Q&A interface |
 
 ---
@@ -43,7 +43,7 @@ Quickly understand a new paper by asking questions:
 
 ### Use Case 2: Literature Review
 
-Build a knowledge base from multiple papers:
+Build a knowledge abstract from multiple papers:
 - Extract concepts from 10+ papers
 - Search across all papers
 - Find connections between works

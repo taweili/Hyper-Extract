@@ -24,7 +24,7 @@
 ### 单问题
 
 ```bash
-he talk ./paper_kb/ -q "What are the main contributions of this paper?"
+he talk ./paper_kb/ -q "这篇论文的主要贡献是什么？"
 ```
 
 ### 交互模式
@@ -37,17 +37,15 @@ he talk ./paper_kb/ -i
 ```
 进入交互模式。输入 'exit' 或 'quit' 停止。
 
-> What is the Transformer architecture?
+> Transformer 架构是什么？
 
-The Transformer is a novel neural network architecture introduced in 
-this paper that relies entirely on attention mechanisms, dispensing 
-with recurrence and convolutions entirely...
+Transformer 是这篇论文提出的一种全新的神经网络架构，
+完全依赖注意力机制，彻底摒弃了循环和卷积结构...
 
-> How does it compare to RNNs?
+> 它与 RNN 相比有何优势？
 
-Unlike RNNs, which process sequences sequentially, the Transformer 
-processes all positions in parallel, making it more efficient for 
-training on large datasets...
+与按顺序处理序列的 RNN 不同，Transformer 可以并行处理所有位置，
+这使得它在大型数据集上的训练更加高效...
 
 > exit
 ```
@@ -69,10 +67,10 @@ from hyperextract import Template
 KB_DIR = "./paper_kb/"
 
 class ResearchAssistant:
-    def __init__(self, kb_path):
+    def __init__(self, ka_path):
         print("加载研究助手...")
-        self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(kb_path)
+        self.ka = Template.create("general/concept_graph", "zh")
+        self.ka.load(ka_path)
         self.ka.build_index()
         print("✓ 准备就绪!\n")
     
@@ -175,10 +173,10 @@ def ask_with_citations(assistant, question):
 def suggest_questions(assistant):
     """基于论文内容建议问题。"""
     suggestions = [
-        "What are the main contributions?",
-        "What problem does this solve?",
-        "What are the key results?",
-        "How does this compare to prior work?",
+        "这篇论文的主要贡献是什么？",
+        "它解决了什么问题？",
+        "关键结果有哪些？",
+        "与之前的工作相比有何不同？",
     ]
     return suggestions
 ```
@@ -208,7 +206,7 @@ from pathlib import Path
 class ResearchAssistantApp:
     def __init__(self, paper_path, kb_dir="./paper_kb/"):
         self.paper_path = paper_path
-        self.kb_dir = kb_dir
+        self.ka_dir = kb_dir
         self.ka = None
         
         # 加载或创建知识库
@@ -220,18 +218,18 @@ class ResearchAssistantApp:
     def _create_kb(self):
         """从论文创建知识库。"""
         print("创建知识库...")
-        ka = Template.create("general/concept_graph", "en")
+        ka = Template.create("general/concept_graph", "zh")
         text = Path(self.paper_path).read_text()
         self.ka = ka.parse(text)
         self.ka.build_index()
-        self.ka.dump(self.kb_dir)
+        self.ka.dump(self.ka_dir)
         print("✓ 知识库已创建\n")
     
     def _load_kb(self):
         """加载现有知识库。"""
         print("加载知识库...")
-        self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(self.kb_dir)
+        self.ka = Template.create("general/concept_graph", "zh")
+        self.ka.load(self.ka_dir)
         print("✓ 知识库已加载\n")
     
     def search(self, query):
@@ -245,7 +243,9 @@ class ResearchAssistantApp:
     def visualize(self):
         """打开可视化。"""
         self.ka.show()
-    
+
+![交互式可视化](../../../../assets/zh_show.png)
+
     def run(self):
         """运行交互式会话。"""
         print("="*60)

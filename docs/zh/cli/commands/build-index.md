@@ -53,7 +53,7 @@ Language: en
 Success! Index built for ./output/
 
 Now you can:
-  he search ./output/ "keyword"  # Semantic search
+  he search ./output/ "关键词"  # Semantic search
   he talk ./output/ -i           # Interactive chat
 ```
 
@@ -74,14 +74,14 @@ he build-index ./output/ -f
 默认情况下，`he parse` 会自动构建索引：
 
 ```bash
-he parse doc.md -t general/biography_graph -o ./kb/ -l en
+he parse doc.md -t general/biography_graph -o ./ka/ -l zh
 # 索引自动构建
 ```
 
 如果不需要搜索/聊天，使用 `--no-index` 跳过：
 
 ```bash
-he parse doc.md -t general/biography_graph -o ./kb/ -l en --no-index
+he parse doc.md -t general/biography_graph -o ./ka/ -l zh --no-index
 ```
 
 ### Feed 后
@@ -89,8 +89,8 @@ he parse doc.md -t general/biography_graph -o ./kb/ -l en --no-index
 喂养新文档后始终重建：
 
 ```bash
-he feed ./kb/ new_doc.md
-he build-index ./kb/
+he feed ./ka/ new_doc.md
+he build-index ./ka/
 ```
 
 ### 手动更改后
@@ -98,7 +98,7 @@ he build-index ./kb/
 如果您手动修改了 `data.json`：
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ---
@@ -108,7 +108,7 @@ he build-index ./kb/ -f
 索引存储在知识库目录中：
 
 ```
-./kb/
+./ka/
 ├── data.json
 ├── metadata.json
 └── index/              # 索引目录
@@ -133,7 +133,7 @@ he build-index ./kb/ -f
 一旦构建完成，搜索非常快：
 
 ```bash
-he search ./kb/ "query"  # 通常 < 1 秒
+he search ./ka/ "查询"  # 通常 < 1 秒
 ```
 
 ---
@@ -153,16 +153,16 @@ he search ./kb/ "query"  # 通常 < 1 秒
 
 ```bash
 # 解析所有文件，不构建索引
-he parse doc1.md -t general/biography_graph -o ./kb/ -l en --no-index
-he feed ./kb/ doc2.md
-he feed ./kb/ doc3.md
+he parse doc1.md -t general/biography_graph -o ./ka/ -l zh --no-index
+he feed ./ka/ doc2.md
+he feed ./ka/ doc3.md
 
 # 最后统一构建索引
-he build-index ./kb/
+he build-index ./ka/
 
 # 现在可以进行搜索/聊天
-he search ./kb/ "query"
-he talk ./kb/ -q "question"
+he search ./ka/ "查询"
+he talk ./ka/ -q "问题"
 ```
 
 ---
@@ -174,13 +174,13 @@ he talk ./kb/ -q "question"
 使用 `-f` 强制重建：
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ### "索引构建失败"
 
 检查：
-1. 知识库有数据：`he info ./kb/`
+1. 知识库有数据：`he info ./ka/`
 2. API 密钥已配置：`he config show`
 3. 有足够的磁盘空间存储索引
 
@@ -189,7 +189,7 @@ he build-index ./kb/ -f
 尝试强制重建：
 
 ```bash
-he build-index ./kb/ -f
+he build-index ./ka/ -f
 ```
 
 ---

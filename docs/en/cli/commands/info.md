@@ -1,6 +1,6 @@
 # he info
 
-Display information and statistics about a knowledge base.
+Display information and statistics about a knowledge abstract.
 
 ---
 
@@ -14,15 +14,15 @@ he info KA_PATH
 
 | Argument | Description |
 |----------|-------------|
-| `KA_PATH` | Path to knowledge base directory |
+| `KA_PATH` | Path to knowledge abstract directory |
 
 ---
 
 ## Description
 
-Shows metadata and statistics for a knowledge base:
+Shows metadata and statistics for a knowledge abstract:
 
-- **Path** — Location of the knowledge base
+- **Path** — Location of the knowledge abstract
 - **Template** — Template used for extraction
 - **Language** — Language code (en/zh)
 - **Timestamps** — Creation and last update times
@@ -56,15 +56,15 @@ Index         Built
 ### After Extraction
 
 ```bash
-he parse tesla.md -t general/biography_graph -o ./kb/ -l en
-he info ./kb/
+he parse tesla.md -t general/biography_graph -o ./ka/ -l en
+he info ./ka/
 ```
 
 ### After Feed
 
 ```bash
-he feed ./kb/ more_content.md
-he info ./kb/
+he feed ./ka/ more_content.md
+he info ./ka/
 # Note the updated node/edge counts and timestamp
 ```
 
@@ -74,7 +74,7 @@ he info ./kb/
 
 | Field | Description |
 |-------|-------------|
-| `Path` | Absolute path to knowledge base |
+| `Path` | Absolute path to knowledge abstract |
 | `Template` | Template identifier (e.g., `general/biography_graph`) |
 | `Language` | Processing language (`en` or `zh`) |
 | `Created` | Initial extraction timestamp |
@@ -92,7 +92,7 @@ he info ./kb/
 Check that extraction worked:
 
 ```bash
-he info ./kb/
+he info ./ka/
 # Should show Nodes > 0, Edges > 0
 ```
 
@@ -101,20 +101,20 @@ he info ./kb/
 Before using search or chat:
 
 ```bash
-he info ./kb/
+he info ./ka/
 # If Index shows "Not Built", run:
-he build-index ./kb/
+he build-index ./ka/
 ```
 
 ### Monitor Growth
 
-Track knowledge base growth over time:
+Track knowledge abstract growth over time:
 
 ```bash
-he info ./kb/
+he info ./ka/
 # Feed more documents
-he feed ./kb/ update.md
-he info ./kb/
+he feed ./ka/ update.md
+he info ./ka/
 # Compare node/edge counts
 ```
 
@@ -125,12 +125,12 @@ Use in automation scripts:
 ```bash
 #!/bin/bash
 
-if he info ./kb/ 2>/dev/null; then
+if he info ./ka/ 2>/dev/null; then
     echo "Knowledge base exists"
-    he feed ./kb/ new_doc.md
+    he feed ./ka/ new_doc.md
 else
-    echo "Creating new knowledge base"
-    he parse new_doc.md -t general/biography_graph -o ./kb/ -l en
+    echo "Creating new knowledge abstract"
+    he parse new_doc.md -t general/biography_graph -o ./ka/ -l en
 fi
 ```
 
@@ -140,11 +140,11 @@ fi
 
 ### "Knowledge base directory not found"
 
-The directory doesn't exist or doesn't contain a knowledge base:
+The directory doesn't exist or doesn't contain a knowledge abstract:
 
 ```bash
 # Check directory exists
-ls ./kb/
+ls ./ka/
 
 # Should contain:
 # - data.json
@@ -156,17 +156,17 @@ ls ./kb/
 If metadata is corrupted, template/language show as "unknown":
 
 ```bash
-he info ./kb/
+he info ./ka/
 # Template: [yellow]unknown[/yellow]
 # Language: [yellow]unknown[/yellow]
 ```
 
-The knowledge base is still usable but some features may be limited.
+The knowledge abstract is still usable but some features may be limited.
 
 ---
 
 ## See Also
 
-- [`he parse`](parse.md) — Create knowledge base
-- [`he feed`](feed.md) — Add to knowledge base
+- [`he parse`](parse.md) — Create knowledge abstract
+- [`he feed`](feed.md) — Add to knowledge abstract
 - [`he build-index`](build-index.md) — Build search index

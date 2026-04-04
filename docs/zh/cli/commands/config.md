@@ -1,6 +1,6 @@
 # he config
 
-管理 Hyper-Extract 配置。
+管理 Hyper-Extract 的 LLM 和嵌入模型配置。
 
 ---
 
@@ -14,16 +14,19 @@ he config [COMMAND] [OPTIONS]
 
 | 命令 | 描述 |
 |---------|-------------|
-| `init` | 初始化配置 |
+| `init` | 初始化配置（懒人模式默认使用 `gpt-4o-mini` + `text-embedding-3-small`） |
 | `show` | 显示当前配置 |
-| `set` | 设置配置值 |
-| `get` | 获取配置值 |
+| `llm` | 配置 LLM 设置 |
+| `embedder` | 配置嵌入模型设置 |
 
 ---
 
 ## he config init
 
-使用 API 凭证初始化配置。
+初始化配置。这是**懒人一键配置** —— 只要传入 `-k`，就会自动使用内置默认值，无需任何交互：
+
+- **LLM**: `gpt-4o-mini`
+- **嵌入模型**: `text-embedding-3-small`
 
 ```bash
 he config init [OPTIONS]
@@ -33,18 +36,18 @@ he config init [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--key` | `-k` | OpenAI API 密钥 |
-| `--base-url` | `-u` | API 基础 URL（可选） |
-| `--model` | `-m` | 默认模型（默认：gpt-4o-mini） |
-| `--embedder` | `-e` | 嵌入模型（默认：text-embedding-3-small） |
+| `--api-key` | `-k` | LLM 和嵌入模型的 API 密钥 |
+| `--base-url` | `-u` | 自定义 API 基础 URL（可选） |
 
 ### 示例
 
-#### 基本设置
+#### 懒人一键配置（推荐）
 
 ```bash
 he config init -k sk-your-api-key-here
 ```
+
+执行后会自动保存默认模型 `gpt-4o-mini` 和 `text-embedding-3-small`。
 
 #### 使用自定义基础 URL
 
@@ -52,17 +55,11 @@ he config init -k sk-your-api-key-here
 he config init -k sk-your-key -u https://api.openai.com/v1
 ```
 
-#### 使用自定义模型
-
-```bash
-he config init -k sk-your-key -m gpt-4o -e text-embedding-3-large
-```
-
-#### 交互模式
+#### 交互式初始化
 
 ```bash
 he config init
-# 交互式提示输入 API 密钥
+# 按步骤交互式输入模型名称和 API 密钥
 ```
 
 ---
@@ -75,66 +72,86 @@ he config init
 he config show
 ```
 
-**输出：**
+**输出示例：**
+
 ```
-Configuration (from ~/.he/config.toml):
-
-[llm]
-model = "gpt-4o-mini"
-api_key = "sk-...***"
-base_url = "https://api.openai.com/v1"
-
-[embedder]
-model = "text-embedding-3-small"
-api_key = "sk-...***"
-
-[defaults]
-language = "en"
-chunk_size = 2048
-max_workers = 10
+┌─────────────────────────────────────────────────────────┐
+│         Hyper-Extract Configuration                     │
+├──────────┬─────────────────────┬─────────────┬──────────┤
+│ Service  │ Model               │ API Key     │ Base URL │
+├──────────┼─────────────────────┼─────────────┼──────────┤
+│ LLM      │ gpt-4o-mini         │ sk-xxxxx... │ (default)│
+│ Embedder │ text-embedding-3... │ sk-xxxxx... │ (default)│
+└──────────┴─────────────────────┴─────────────┴──────────┘
 ```
 
 ---
 
-## he config set
+## he config llm
 
-设置配置值。
+单独配置 LLM 设置。
 
 ```bash
-he config set <KEY> <VALUE>
+he config llm [OPTIONS]
 ```
+
+### 选项
+
+| 选项 | 简写 | 描述 |
+|--------|-------|-------------|
+| `--api-key` | `-k` | LLM API 密钥 |
+| `--model` | `-m` | LLM 模型名称 |
+| `--base-url` | `-u` | 自定义 API 基础 URL |
+| `--show` | — | 查看当前 LLM 配置 |
+| `--unset` | — | 清除 LLM 配置 |
 
 ### 示例
 
 ```bash
-# 更改默认模型
-he config set llm.model gpt-4o
+# 查看 LLM 配置
+he config llm --show
 
-# 更改嵌入模型
-he config set embedder.model text-embedding-3-large
+# 修改 LLM 模型
+he config llm --model gpt-4o
 
-# 设置默认语言
-he config set defaults.language zh
+# 修改 LLM API 密钥和接口地址
+he config llm --api-key sk-your-key --base-url https://api.openai.com/v1
+
+# 重置 LLM 配置
+he config llm --unset
 ```
 
 ---
 
-## he config get
+## he config embedder
 
-获取配置值。
+单独配置嵌入模型设置。
 
 ```bash
-he config get <KEY>
+he config embedder [OPTIONS]
 ```
+
+### 选项
+
+| 选项 | 简写 | 描述 |
+|--------|-------|-------------|
+| `--api-key` | `-k` | 嵌入模型 API 密钥 |
+| `--model` | `-m` | 嵌入模型名称 |
+| `--base-url` | `-u` | 自定义 API 基础 URL |
+| `--show` | — | 查看当前嵌入模型配置 |
+| `--unset` | — | 清除嵌入模型配置 |
 
 ### 示例
 
 ```bash
-he config get llm.model
-# Output: gpt-4o-mini
+# 查看嵌入模型配置
+he config embedder --show
 
-he config get defaults.language
-# Output: en
+# 使用更大的嵌入模型
+he config embedder --model text-embedding-3-large
+
+# 重置嵌入模型配置
+he config embedder --unset
 ```
 
 ---
@@ -156,39 +173,18 @@ base_url = "https://api.openai.com/v1"
 
 [embedder]
 model = "text-embedding-3-small"
-api_key = "sk-your-api-key"
-
-[defaults]
-language = "en"
-chunk_size = 2048
-chunk_overlap = 256
-max_workers = 10
-verbose = false
+api_key = ""  # 空字符串表示继承 llm.api_key
+base_url = ""  # 空字符串表示继承 llm.base_url
 ```
-
----
 
 ## 环境变量
 
-也可以通过环境变量设置配置（更高优先级）：
-
 | 变量 | 描述 |
 |----------|-------------|
-| `OPENAI_API_KEY` | LLM 和嵌入器的 API 密钥 |
-| `OPENAI_BASE_URL` | 自定义 API 基础 URL |
-| `HE_LLM_MODEL` | 默认 LLM 模型 |
-| `HE_EMBEDDER_MODEL` | 默认嵌入模型 |
+| `OPENAI_API_KEY` | LLM 和嵌入模型的 API 密钥备用方案 |
+| `OPENAI_BASE_URL` | 自定义 API 基础 URL 备用方案 |
 
----
-
-## 优先级顺序
-
-配置按以下顺序解析（最高优先）：
-
-1. 命令行参数
-2. 环境变量
-3. 配置文件
-4. 内置默认值
+**优先级（从高到低）：** 命令行参数 → 环境变量 → 配置文件 → 默认值。
 
 ---
 
@@ -196,30 +192,17 @@ verbose = false
 
 ### "未找到 API 密钥"
 
-初始化配置：
-
 ```bash
 he config init -k your-api-key
 ```
 
-或设置环境变量：
+或：
 
 ```bash
 export OPENAI_API_KEY=your-api-key
 ```
 
-### "API 密钥无效"
-
-检查您的 API 密钥：
-
-```bash
-he config show
-# 验证密钥是否正确
-```
-
 ### "未找到配置文件"
-
-运行 init 创建：
 
 ```bash
 he config init -k your-api-key
@@ -229,5 +212,5 @@ he config init -k your-api-key
 
 ## 另请参见
 
-- [配置参考](../configuration.md) — 详细配置选项
-- [安装指南](../../getting-started/installation.md) — 初始设置
+- [配置参考](../configuration.md) — 详细配置选项说明
+- [安装指南](../../getting-started/installation.md) — 初始安装步骤

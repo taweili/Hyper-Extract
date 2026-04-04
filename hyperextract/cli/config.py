@@ -170,9 +170,9 @@ class ConfigManager:
         return True, "Configuration is valid"
 
 
-def load_kb_metadata(kb_path: Path) -> Optional[Dict[str, Any]]:
-    """Load knowledge base metadata from directory."""
-    metadata_path = kb_path / "metadata.json"
+def load_ka_metadata(ka_path: Path) -> Optional[Dict[str, Any]]:
+    """Load knowledge abstract metadata from directory."""
+    metadata_path = ka_path / "metadata.json"
     if not metadata_path.exists():
         return None
 

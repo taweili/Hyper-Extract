@@ -1,12 +1,12 @@
-# Knowledge Base Tutorial
+# Knowledge Abstract Tutorial
 
-Build and maintain a domain-specific knowledge base.
+Build and maintain a domain-specific knowledge abstract.
 
 ---
 
 ## What You'll Build
 
-A production-ready knowledge base that:
+A production-ready knowledge abstract that:
 - Ingests documents incrementally
 - Supports versioning and backups
 - Provides query and search capabilities
@@ -19,21 +19,21 @@ A production-ready knowledge base that:
 | Step | Topic | What You'll Learn |
 |------|-------|-------------------|
 | 1 | [Setup](step1-setup.md) | Project structure and template selection |
-| 2 | [Ingest](step2-ingest.md) | Add documents to your knowledge base |
+| 2 | [Ingest](step2-ingest.md) | Add documents to your knowledge abstract |
 | 3 | [Query](step3-query.md) | Search, update, and maintain |
 
 ---
 
 ## Use Cases
 
-### Use Case 1: Company Knowledge Base
+### Use Case 1: Company Knowledge Abstract
 
 Centralize company documentation:
 - Policies and procedures
 - Technical documentation
 - Meeting notes and decisions
 
-### Use Case 2: Research Knowledge Base
+### Use Case 2: Research Knowledge Abstract
 
 Build a personal research database:
 - Academic papers
@@ -55,7 +55,7 @@ Manage legal documents:
 knowledge-base/
 ├── config.yaml          # Configuration
 ├── documents/           # Source documents
-├── kb/                  # Knowledge base storage
+├── ka/                  # Knowledge base storage
 │   ├── v1/             # Version 1
 │   ├── v2/             # Version 2
 │   └── current/        # Current version

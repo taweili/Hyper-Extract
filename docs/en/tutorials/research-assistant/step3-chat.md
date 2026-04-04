@@ -13,7 +13,7 @@ Build a conversational interface that answers questions about the research paper
 ## How It Works
 
 1. User asks a question
-2. System retrieves relevant context from knowledge base
+2. System retrieves relevant context from knowledge abstract
 3. LLM generates answer based on retrieved context
 4. Response includes citations from the paper
 
@@ -69,10 +69,10 @@ from hyperextract import Template
 KB_DIR = "./paper_kb/"
 
 class ResearchAssistant:
-    def __init__(self, kb_path):
+    def __init__(self, ka_path):
         print("Loading research assistant...")
         self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(kb_path)
+        self.ka.load(ka_path)
         self.ka.build_index()
         print("✓ Ready!\n")
     
@@ -208,30 +208,30 @@ from pathlib import Path
 class ResearchAssistantApp:
     def __init__(self, paper_path, kb_dir="./paper_kb/"):
         self.paper_path = paper_path
-        self.kb_dir = kb_dir
+        self.ka_dir = kb_dir
         self.ka = None
         
-        # Load or create knowledge base
+        # Load or create knowledge abstract
         if Path(kb_dir).exists():
             self._load_kb()
         else:
             self._create_kb()
     
     def _create_kb(self):
-        """Create knowledge base from paper."""
-        print("Creating knowledge base...")
+        """Create knowledge abstract from paper."""
+        print("Creating knowledge abstract...")
         ka = Template.create("general/concept_graph", "en")
         text = Path(self.paper_path).read_text()
         self.ka = ka.parse(text)
         self.ka.build_index()
-        self.ka.dump(self.kb_dir)
+        self.ka.dump(self.ka_dir)
         print("✓ Knowledge base created\n")
     
     def _load_kb(self):
-        """Load existing knowledge base."""
-        print("Loading knowledge base...")
+        """Load existing knowledge abstract."""
+        print("Loading knowledge abstract...")
         self.ka = Template.create("general/concept_graph", "en")
-        self.ka.load(self.kb_dir)
+        self.ka.load(self.ka_dir)
         print("✓ Knowledge base loaded\n")
     
     def search(self, query):
@@ -245,7 +245,9 @@ class ResearchAssistantApp:
     def visualize(self):
         """Open visualization."""
         self.ka.show()
-    
+
+![Interactive Visualization](../../../../assets/en_show.png)
+
     def run(self):
         """Run interactive session."""
         print("="*60)
@@ -299,5 +301,5 @@ Congratulations! You've built a complete research assistant that can:
 
 ## See Also
 
-- [Knowledge Base Tutorial](../knowledge-base/index.md)
+- [Knowledge Abstract Tutorial](../knowledge-base/index.md)
 - [Document Analysis Tutorial](../document-analysis/index.md)

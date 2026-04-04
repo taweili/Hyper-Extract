@@ -99,7 +99,7 @@ Goodbye!
 
 Other useful commands:
   he show ./output/              # 可视化
-  he search ./output/ "keyword"  # 搜索
+  he search ./output/ "关键词"  # 搜索
   he info ./output/              # 查看信息
 ```
 

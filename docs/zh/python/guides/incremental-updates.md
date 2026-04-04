@@ -1,5 +1,8 @@
 # 增量更新
 
+!!! tip "进阶 - 提取后操作"
+    本指南涵盖初始提取后添加更多文档。您应该先熟悉 [Level 1: 使用模板](using-templates.md)。
+
 在不重新处理的情况下向现有知识库添加新信息。
 
 ---
@@ -38,43 +41,45 @@ print(f"Feed 后: {len(result.nodes)} 个节点")
 
 ```python
 ka = Template.create("general/biography_graph", "zh")
-kb = ka.parse(early_life_text)
+ka = ka.parse(early_life_text)
 
 # 添加职业信息
-kb.feed_text(career_text)
+ka.feed_text(career_text)
 
 # 添加晚年
-kb.feed_text(later_years_text)
+ka.feed_text(later_years_text)
 
 # 在 feed 新数据后重建索引
-kb.build_index()
+ka.build_index()
 
 # 最终结果组合所有时期（支持交互式搜索/对话）
-kb.show()
+ka.show()
 ```
+
+![交互式可视化](../../../assets/zh_show.png)
 
 ### 处理多个文档
 
 ```python
-ka = Template.create("general/concept_graph", "en")
-kb = ka.parse(documents[0])
+ka = Template.create("general/concept_graph", "zh")
+ka = ka.parse(documents[0])
 
 for doc in documents[1:]:
-    kb.feed_text(doc)
-    print(f"已添加文档，现在有 {len(kb.nodes)} 个节点")
+    ka.feed_text(doc)
+    print(f"已添加文档，现在有 {len(ka.nodes)} 个节点")
 ```
 
 ### 使用新信息更新
 
 ```python
 # 原始提取
-kb = ka.parse(original_paper)
+ka = ka.parse(original_paper)
 
 # 添加更正/更新
-kb.feed_text(corrections)
+ka.feed_text(corrections)
 
 # 保存更新版本
-kb.dump("./updated_kb/")
+ka.dump("./updated_ka/")
 ```
 
 ---
@@ -112,8 +117,8 @@ kb.dump("./updated_kb/")
 
 ```python
 # 好：相同模板类型
-kb = ka.parse(text1)  # biography_graph
-kb.feed_text(text2)   # 相同类型
+ka = ka.parse(text1)  # biography_graph
+ka.feed_text(text2)   # 相同类型
 
 # 注意：混合类型可能导致问题
 ```
@@ -121,27 +126,27 @@ kb.feed_text(text2)   # 相同类型
 ### 2. Feed 后重建索引
 
 ```python
-kb.feed_text(new_text)
-kb.build_index()  # 搜索/聊天需要
+ka.feed_text(new_text)
+ka.build_index()  # 搜索/聊天需要
 ```
 
 ### 3. 保存中间状态
 
 ```python
 # 重大更新后保存
-kb.feed_text(chapter1)
-kb.dump("./kb_v1/")
+ka.feed_text(chapter1)
+ka.dump("./kb_v1/")
 
-kb.feed_text(chapter2)
-kb.dump("./kb_v2/")
+ka.feed_text(chapter2)
+ka.dump("./kb_v2/")
 ```
 
 ### 4. 监控增长
 
 ```python
-initial_count = len(kb.nodes)
-kb.feed_text(new_text)
-new_count = len(kb.nodes)
+initial_count = len(ka.nodes)
+ka.feed_text(new_text)
+new_count = len(ka.nodes)
 
 print(f"添加了 {new_count - initial_count} 个新节点")
 ```
@@ -156,7 +161,7 @@ print(f"添加了 {new_count - initial_count} 个新节点")
 from hyperextract import Template
 from pathlib import Path
 
-def build_knowledge_base(source_dir, output_dir):
+def build_ka(source_dir, output_dir):
     ka = Template.create("general/biography_graph", "zh")
     
     # 获取所有文本文件
@@ -168,27 +173,27 @@ def build_knowledge_base(source_dir, output_dir):
     
     # 从第一个文件初始提取
     print(f"处理 {files[0].name}...")
-    kb = ka.parse(files[0].read_text())
+    ka = ka.parse(files[0].read_text())
     
     # Feed 剩余文件
     for file in files[1:]:
         print(f"添加 {file.name}...")
-        kb.feed_text(file.read_text())
-        print(f"  现在有 {len(kb.nodes)} 个节点")
+        ka.feed_text(file.read_text())
+        print(f"  现在有 {len(ka.nodes)} 个节点")
     
     # 为搜索/聊天构建索引
     print("构建搜索索引...")
-    kb.build_index()
+    ka.build_index()
     
     # 保存
     print(f"保存到 {output_dir}...")
-    kb.dump(output_dir)
+    ka.dump(output_dir)
     
     print("完成！")
-    return kb
+    return ka
 
 # 用法
-kb = build_knowledge_base("./sources/", "./combined_kb/")
+ka = build_ka("./sources/", "./combined_ka/")
 ```
 
 ---
@@ -222,7 +227,7 @@ result1.feed_text(text2)   # result1 被更新
 ```python
 # 监控大小
 import sys
-size = sys.getsizeof(kb.data)
+size = sys.getsizeof(ka.data)
 print(f"知识库大小: {size} 字节")
 ```
 
@@ -237,8 +242,8 @@ print(f"知识库大小: {size} 字节")
 Feed 后始终重建：
 
 ```python
-kb.feed_text(text)
-kb.build_index()  # 不要忘记！
+ka.feed_text(text)
+ka.build_index()  # 不要忘记！
 ```
 
 ---
@@ -252,8 +257,8 @@ kb.build_index()  # 不要忘记！
 ```python
 for batch in chunks(documents, batch_size=5):
     for doc in batch:
-        kb.feed_text(doc)
-    kb.dump(f"./kb_checkpoint/")  # 定期保存
+        ka.feed_text(doc)
+    ka.dump(f"./kb_checkpoint/")  # 定期保存
 ```
 
 ### "重复实体"
@@ -269,13 +274,17 @@ for batch in chunks(documents, batch_size=5):
 
 ```python
 # 忘记重建了？
-kb.build_index()
+ka.build_index()
 ```
 
 ---
 
 ## 另请参见
 
-- [保存和加载](saving-loading.md)
-- [搜索和聊天](search-and-chat.md)
-- [使用自动类型](working-with-autotypes.md)
+**相关工作流：**
+- [搜索和聊天](search-and-chat.md) — 查询更新后的知识
+- [保存和加载](saving-loading.md) — 持久化合并结果
+
+**基础知识：**
+- [使用模板](using-templates.md) — Level 1 基础
+- [使用自动类型](working-with-autotypes.md) — Level 2 自定义

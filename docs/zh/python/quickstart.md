@@ -37,14 +37,24 @@ load_dotenv()
 from hyperextract import Template
 
 # 创建模板
-ka = Template.create("general/biography_graph", language="en")
+ka = Template.create("general/biography_graph", language="zh")
 
 # 您的文本
 text = """
-Marie Curie was a Polish-French physicist and chemist who conducted 
-pioneering research on radioactivity. She was the first woman to win 
-a Nobel Prize and the only person to win Nobel Prizes in two different 
-scientific fields.
+苏轼，字子瞻，号东坡居士，是北宋时期最杰出的文学家、书画家、政治家。
+他与父亲苏洵、弟弟苏辙并称"三苏"，同列唐宋八大家。
+
+苏轼于1037年出生于眉州眉山。1057年科举中举，受欧阳修赏识。
+后因乌台诗案被贬黄州，创作了大量千古传诵的名篇。
+
+代表作：《念奴娇·赤壁怀古》《水调歌头·明月几时有》《赤壁赋》
+
+苏轼一生宦海浮沉，历任杭州、密州、徐州、湖州等地知州。
+在杭州任上，他疏浚西湖，修筑苏堤，留下"欲把西湖比西子"的千古名句。
+晚年因新党执政被贬至惠州、儋州，仍心系百姓，兴办学堂，传播中原文化。
+
+其文学成就横跨诗、词、文、赋，书法位列"宋四家"之首，
+绘画开文人画先河，是中国历史上罕见的全才式人物。
 """
 
 # 提取
@@ -63,11 +73,11 @@ if result.nodes:
 
 **输出：**
 ```
-Entities: 5
-Relations: 4
+节点数: 5
+边数: 4
 
-First: Marie Curie (person)
-Description: Polish-French physicist and chemist
+第一个: 苏轼 (人物)
+描述: 北宋文学家、书画家、政治家
 ```
 
 ### 3. 可视化
@@ -80,6 +90,8 @@ result.build_index()
 result.show()
 ```
 
+![交互式可视化](../../assets/zh_show.png)
+
 ### 4. 搜索
 
 ```python
@@ -87,7 +99,7 @@ result.show()
 result.build_index()
 
 # 搜索
-nodes, edges = result.search("Nobel Prize", top_k=3)
+nodes, edges = result.search("代表作", top_k=3)
 for node in nodes:
     print(f"节点: {node.name}")
 for edge in edges:
@@ -98,7 +110,7 @@ for edge in edges:
 
 ```python
 # 提问
-response = result.chat("Marie Curie 发现了什么？")
+response = result.chat("苏轼写过哪些著名的诗词？")
 print(response.content)
 ```
 
@@ -106,11 +118,11 @@ print(response.content)
 
 ```python
 # 保存到磁盘
-result.dump("./curie_kb/")
+result.dump("./sushi_kb/")
 
 # 之后加载
-new_ka = Template.create("general/biography_graph", language="en")
-new_ka.load("./curie_kb/")
+new_ka = Template.create("general/biography_graph", language="zh")
+new_ka.load("./sushi_kb/")
 ```
 
 ---
@@ -128,14 +140,21 @@ from hyperextract import Template
 def main():
     # 创建模板
     print("Creating template...")
-    ka = Template.create("general/biography_graph", language="en")
+    ka = Template.create("general/biography_graph", language="zh")
     
     # 示例文本
     text = """
-    Ada Lovelace was an English mathematician and writer, chiefly known 
-    for her work on Charles Babbage's early mechanical general-purpose 
-    computer, the Analytical Engine. She is often regarded as the first 
-    computer programmer.
+    苏轼，字子瞻，号东坡居士，是北宋时期最杰出的文学家、书画家、政治家。
+    他与父亲苏洵、弟弟苏辙并称"三苏"，同列唐宋八大家。
+    
+    苏轼于1037年出生于眉州眉山。1057年科举中举，受欧阳修赏识。
+    后因乌台诗案被贬黄州，创作了大量千古传诵的名篇。
+    
+    代表作：《念奴娇·赤壁怀古》《水调歌头·明月几时有》《赤壁赋》
+    
+    苏轼一生宦海浮沉，历任杭州、密州、徐州、湖州等地知州。
+    在杭州任上，他疏浚西湖，修筑苏堤。
+    晚年因新党执政被贬至惠州、儋州，仍心系百姓，兴办学堂，传播中原文化。
     """
     
     # 提取知识
@@ -156,14 +175,14 @@ def main():
     print("\nBuilding search index...")
     result.build_index()
     
-    search_nodes, search_edges = result.search("computer programming", top_k=2)
+    search_nodes, search_edges = result.search("西湖", top_k=2)
     print(f"\n搜索结果: {len(search_nodes)} 个节点, {len(search_edges)} 条边")
     
     # 保存
-    print("\nSaving knowledge base...")
-    result.dump("./ada_kb/")
+    print("\nSaving knowledge abstract...")
+    result.dump("./sushi_kb/")
     
-    print("\nDone! Try: he show ./ada_kb/")
+    print("\nDone! Try: he show ./sushi_kb/")
 
 if __name__ == "__main__":
     main()

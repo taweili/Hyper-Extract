@@ -10,13 +10,15 @@ Architecture:
 
 Usage:
     from hyperextract import Template
-    
-    # Search templates
+
+    # List available templates
     Template.list()
-    Template.search("知识图谱")
-    
-    # Create template (auto reads config from ~/.he/config.toml)
-    template = Template.create("knowledge_graph")
+
+    # 1. Create knowledge template (auto reads config from ~/.he/config.toml)
+    template = Template.create("general/graph", language="zh")
+
+    # 2. Create method template (language always "en")
+    template = Template.create("method/light_rag")
 """
 
 # Core AutoType primitives

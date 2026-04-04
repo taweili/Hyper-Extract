@@ -1,173 +1,171 @@
 # CLI Configuration Reference
 
-Complete reference for Hyper-Extract CLI configuration.
+Configuration guide for Hyper-Extract CLI, from quick start to advanced settings.
 
 ---
 
-## Configuration File Location
+## Quick Start
 
-- **Linux/macOS**: `~/.he/config.toml`
-- **Windows**: `%USERPROFILE%\.he\config.toml`
+Complete configuration in 3 steps.
 
----
-
-## Configuration Sections
-
-### [llm] — Language Model Settings
-
-| Key | Description | Default |
-|-----|-------------|---------|
-| `model` | LLM model name | `gpt-4o-mini` |
-| `api_key` | OpenAI API key | *required* |
-| `base_url` | API base URL | `https://api.openai.com/v1` |
-
-**Example:**
-```toml
-[llm]
-model = "gpt-4o"
-api_key = "sk-your-api-key"
-base_url = "https://api.openai.com/v1"
-```
-
-**Supported Models:**
-- `gpt-4o-mini` — Fast, cost-effective
-- `gpt-4o` — High quality
-- `gpt-4-turbo` — Best quality
-- Other OpenAI-compatible models
-
----
-
-### [embedder] — Embedding Model Settings
-
-| Key | Description | Default |
-|-----|-------------|---------|
-| `model` | Embedding model name | `text-embedding-3-small` |
-| `api_key` | API key (defaults to llm.api_key) | — |
-
-**Example:**
-```toml
-[embedder]
-model = "text-embedding-3-large"
-```
-
-**Supported Models:**
-- `text-embedding-3-small` — Fast, cost-effective
-- `text-embedding-3-large` — Better quality
-- `text-embedding-ada-002` — Legacy
-
----
-
-### [defaults] — Default Behavior Settings
-
-| Key | Description | Default |
-|-----|-------------|---------|
-| `language` | Default language (`en` or `zh`) | `en` |
-| `chunk_size` | Text chunk size for processing | `2048` |
-| `chunk_overlap` | Overlap between chunks | `256` |
-| `max_workers` | Parallel processing workers | `10` |
-| `verbose` | Enable verbose output | `false` |
-
-**Example:**
-```toml
-[defaults]
-language = "en"
-chunk_size = 4096
-chunk_overlap = 512
-max_workers = 5
-verbose = true
-```
-
----
-
-## Environment Variables
-
-All configuration options can be set via environment variables:
-
-| Variable | Maps To | Example |
-|----------|---------|---------|
-| `OPENAI_API_KEY` | `llm.api_key`, `embedder.api_key` | `sk-...` |
-| `OPENAI_BASE_URL` | `llm.base_url` | `https://api.openai.com/v1` |
-| `HE_LLM_MODEL` | `llm.model` | `gpt-4o` |
-| `HE_EMBEDDER_MODEL` | `embedder.model` | `text-embedding-3-large` |
-| `HE_DEFAULT_LANGUAGE` | `defaults.language` | `zh` |
-| `HE_CHUNK_SIZE` | `defaults.chunk_size` | `4096` |
-| `HE_VERBOSE` | `defaults.verbose` | `true` |
-
----
-
-## Complete Example
-
-```toml
-# ~/.he/config.toml
-
-[llm]
-model = "gpt-4o-mini"
-api_key = "sk-your-api-key-here"
-base_url = "https://api.openai.com/v1"
-
-[embedder]
-model = "text-embedding-3-small"
-# api_key defaults to llm.api_key
-
-[defaults]
-language = "en"
-chunk_size = 2048
-chunk_overlap = 256
-max_workers = 10
-verbose = false
-```
-
----
-
-## Configuration Priority
-
-Settings are resolved in this order (highest priority first):
-
-1. **Command-line flags** (e.g., `-l zh`)
-2. **Environment variables** (e.g., `OPENAI_API_KEY`)
-3. **Configuration file** (`~/.he/config.toml`)
-4. **Built-in defaults**
-
----
-
-## Managing Configuration
-
-### Initialize
+### 1. Initialize Configuration
 
 ```bash
-he config init -k your-api-key
+he config init -k YOUR_API_KEY
 ```
 
-### View Current Settings
+This creates `~/.he/config.toml` with the following defaults:
+- **LLM**: `gpt-4o-mini`
+- **Embedder**: `text-embedding-3-small`
+
+### 2. Verify Configuration
 
 ```bash
 he config show
 ```
 
-### Update Settings
+You should see output like this:
 
-```bash
-# Update single value
-he config set llm.model gpt-4o
-
-# Or edit file directly
-nano ~/.he/config.toml
+```
+┌─────────────────────────────────────────────────────────┐
+│         Hyper-Extract Configuration                     │
+├──────────┬─────────────────────┬─────────────┬──────────┤
+│ Service  │ Model               │ API Key     │ Base URL │
+├──────────┼─────────────────────┼─────────────┼──────────┤
+│ LLM      │ gpt-4o-mini         │ sk-xxxxx... │ (default)│
+│ Embedder │ text-embedding-3... │ sk-xxxxx... │ (default)│
+└──────────┴─────────────────────┴─────────────┴──────────┘
 ```
 
-### Reset to Defaults
+### 3. Modify Configuration (Optional)
 
 ```bash
-rm ~/.he/config.toml
-he config init -k your-api-key
+# Change LLM model
+he config llm --model gpt-4o
+
+# Use different embedder model
+he config embedder --model text-embedding-3-large
+
+# Configure custom API endpoint
+he config llm --base-url https://your-api-endpoint.com/v1
 ```
+
+---
+
+## CLI Command Reference
+
+### Command Overview
+
+| Command | Common Flags | Description |
+|---------|-------------|-------------|
+| `he config init` | `-k, --api-key` — API key<br>`-u, --base-url` — Custom API base URL | Initialize configuration (first time) |
+| `he config llm` | `-m, --model` — Model name<br>`-k, --api-key` — API key<br>`-u, --base-url` — Custom API base URL<br>`--show` — Show current config<br>`--unset` — Clear configuration | Configure LLM |
+| `he config embedder` | `-m, --model` — Model name<br>`-k, --api-key` — API key<br>`-u, --base-url` — Custom API base URL<br>`--show` — Show current config<br>`--unset` — Clear configuration | Configure embedder |
+| `he config show` | — | View complete configuration |
+
+### Common Usage Examples
+
+**Interactive initialization (recommended for first-time users):**
+```bash
+he config init
+# Follow prompts to enter model name, API key, etc.
+```
+
+**Non-interactive initialization (for scripts):**
+```bash
+he config init -k sk-your-api-key
+```
+
+**View LLM configuration:**
+```bash
+he config llm --show
+```
+
+**Configure embedder separately (using different key):**
+```bash
+he config embedder --api-key sk-embedder-key --model text-embedding-3-large
+```
+
+**Clear configuration (reset to defaults):**
+```bash
+he config llm --unset
+he config embedder --unset
+```
+
+---
+
+## Configuration File Details
+
+Running `he config init` automatically creates `~/.he/config.toml`.
+
+### File Location
+
+- **Linux/macOS**: `~/.he/config.toml`
+- **Windows**: `%USERPROFILE%\.he\config.toml`
+
+### Configuration Format
+
+```toml
+[llm]
+model = "gpt-4o-mini"
+api_key = "sk-your-api-key"
+base_url = "https://api.openai.com/v1"
+
+[embedder]
+model = "text-embedding-3-small"
+api_key = ""  # Empty means inherit from llm.api_key
+base_url = ""  # Empty means inherit from llm.base_url
+```
+
+### Configuration Options
+
+| Section | Key | Description | Default |
+|---------|-----|-------------|---------|
+| `[llm]` | `model` | LLM model name | `gpt-4o-mini` |
+| `[llm]` | `api_key` | OpenAI API key | Required |
+| `[llm]` | `base_url` | API base URL | `https://api.openai.com/v1` |
+| `[embedder]` | `model` | Embedding model name | `text-embedding-3-small` |
+| `[embedder]` | `api_key` | API key (empty inherits from llm) | — |
+| `[embedder]` | `base_url` | API base URL (empty inherits from llm) | — |
+
+### Supported Models
+
+**LLM Models:**
+- `gpt-4o-mini` — Fast, cost-effective (default)
+- `gpt-4o` — High quality
+- `gpt-4-turbo` — Best quality
+- Other OpenAI-compatible models
+
+**Embedding Models:**
+- `text-embedding-3-small` — Fast, cost-effective (default)
+- `text-embedding-3-large` — Better quality
+- `text-embedding-ada-002` — Legacy model
+
+---
+
+## Environment Variables
+
+The following environment variables can be used as configuration fallback:
+
+| Variable | Maps To | Example |
+|----------|---------|---------|
+| `OPENAI_API_KEY` | `llm.api_key`, `embedder.api_key` | `sk-...` |
+| `OPENAI_BASE_URL` | `llm.base_url` | `https://api.openai.com/v1` |
+
+**Priority Note:** Environment variables take precedence over config file, but are overridden by command-line flags.
+
+**Use Cases:**
+- Temporarily switch API keys
+- Inject secrets in CI/CD environments
+- Avoid hardcoding keys in config files
 
 ---
 
 ## Advanced Configuration
 
-### Custom API Endpoint
+### Using OpenAI-Compatible APIs
 
-For OpenAI-compatible APIs (Azure, local models, etc.):
+For Azure, local models, and other OpenAI-compatible APIs:
 
 ```toml
 [llm]
@@ -179,39 +177,66 @@ base_url = "https://your-api-endpoint.com/v1"
 model = "your-embedding-model"
 ```
 
-### Different Keys for LLM and Embedder
+### Different Keys and Base URLs for LLM and Embedder
 
 ```toml
 [llm]
 model = "gpt-4o-mini"
 api_key = "sk-llm-key"
+base_url = "https://api.openai.com/v1"
 
 [embedder]
-model = "text-embedding-3-small"
+model = "text-embedding-3-large"
 api_key = "sk-embedder-key"
+base_url = "https://your-embedder-provider.com/v1"
 ```
 
 ---
 
 ## Troubleshooting
 
-### Permission Denied
+### "API key not found"
+
+**Cause**: API key not configured
+
+**Solution**:
 
 ```bash
-# Fix permissions
+he config init -k YOUR_API_KEY
+```
+
+### "Failed to connect to API"
+
+**Cause**: Network issues or incorrect base_url
+
+**Solution**:
+
+```bash
+# Check configuration
+he config llm --show
+
+# Reset base_url
+he config llm --base-url https://api.openai.com/v1
+```
+
+### Permission Denied
+
+**Solution**:
+
+```bash
 chmod 600 ~/.he/config.toml
 ```
 
 ### Invalid TOML Format
 
-Validate your configuration:
+**Validate configuration**:
 
 ```bash
-# Using Python
-python -c "import tomllib; tomllib.load(open('~/.he/config.toml', 'rb'))"
+python3 -c "import tomllib; tomllib.load(open('$HOME/.he/config.toml', 'rb'))"
 ```
 
-Common issues:
+**Common issues**:
+
 - Missing quotes around strings
 - Trailing commas
 - Incorrect section headers
@@ -220,5 +245,5 @@ Common issues:
 
 ## See Also
 
-- [`he config`](commands/config.md) — Configuration commands
-- [Installation Guide](../getting-started/installation.md) — Initial setup
+- [`he config`](commands/config.md) — Detailed configuration command reference
+- [Installation Guide](../getting-started/installation.md) — Initial setup steps

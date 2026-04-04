@@ -41,6 +41,8 @@ result.build_index()
 result.show()
 ```
 
+![Interactive Visualization](../../assets/en_show.png)
+
 ---
 
 ## Core Classes
@@ -104,6 +106,8 @@ result.load("./output/")          # Load from disk
 result.show()                     # Interactive visualization
 ```
 
+![Interactive Visualization](../../assets/en_show.png)
+
 ---
 
 ## Documentation Structure
@@ -112,15 +116,15 @@ result.show()                     # Interactive visualization
 - **[Core Concepts](core-concepts.md)** — Template, AutoType, Method explained
 - **Guides:**
   - [Using Templates](guides/using-templates.md)
-  - [Choosing Methods](guides/choosing-methods.md)
+  - [Using Methods](guides/using-methods.md)
   - [Working with Auto-Types](guides/working-with-autotypes.md)
   - [Search and Chat](guides/search-and-chat.md)
   - [Incremental Updates](guides/incremental-updates.md)
   - [Saving and Loading](guides/saving-loading.md)
 - **API Reference:**
   - [Template](api-reference/template.md)
-  - [Auto-Types](api-reference/autotypes.md)
-  - [Methods](api-reference/methods.md)
+  - [Auto-Types](api-reference/autotypes/base.md)
+  - [Methods](api-reference/methods/registry.md)
 
 ---
 
@@ -136,7 +140,7 @@ ka = Template.create("general/concept_graph", language="en")
 with open("paper.md") as f:
     paper = ka.parse(f.read())
 
-# Build searchable knowledge base
+# Build searchable knowledge abstract
 paper.build_index()
 
 # Ask questions
@@ -156,22 +160,22 @@ print(report.data.revenue)
 print(report.data.eps)
 ```
 
-### Building a Knowledge Base
+### Building a Knowledge Abstract
 
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/knowledge_graph", language="en")
+ka = Template.create("general/graph", language="en")
 
 # Initial extraction
-kb = ka.parse(doc1_text)
+ka = ka.parse(doc1_text)
 
 # Add more documents
-kb.feed_text(doc2_text)
-kb.feed_text(doc3_text)
+ka.feed_text(doc2_text)
+ka.feed_text(doc3_text)
 
 # Save for later
-kb.dump("./my_kb/")
+ka.dump("./my_ka/")
 ```
 
 ---
@@ -220,7 +224,7 @@ Hyper-Extract is fully typed for IDE support:
 ```python
 from hyperextract import Template, AutoGraph
 
-ka: AutoGraph = Template.create("general/knowledge_graph", "en")
+ka: AutoGraph = Template.create("general/graph", "en")
 result = ka.parse(text)
 
 # IDE autocomplete works

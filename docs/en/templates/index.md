@@ -1,211 +1,141 @@
 # Template Library
 
-Browse and choose from 80+ domain-specific extraction templates.
+Choose a template based on what you want to extract.
 
 ---
 
-## What Are Templates?
-
-Templates are pre-configured extraction setups that combine:
-- **Auto-Type** — Output data structure
-- **Prompts** — Optimized for specific domains
-- **Schema** — Field definitions for your use case
-- **Guidelines** — Extraction rules
-
----
-
-## Template Categories
+## I want to analyze...
 
 <div class="grid cards" markdown>
 
--   :material-folder:{ .lg .middle } __General__
+-   :material-file-document:{ .lg .middle } **Research Papers**
 
     ---
 
-    Base types and common extraction tasks
-    
-    - Biography graphs
-    - Knowledge graphs
-    - Concept extraction
-    
-    [:octicons-arrow-right-24: Browse](general/index.md)
+    Extract concepts, methods, results, and relationships
 
--   :material-chart-line:{ .lg .middle } __Finance__
+    - [Concept Graph](examples/research-paper.md) — *Recommended*
+    - [Knowledge Graph](examples/research-paper.md#knowledge-graph)
+    - [Document Structure](examples/research-paper.md#document-structure)
+
+-   :material-account:{ .lg .middle } **Biographies & Profiles**
 
     ---
 
-    Financial document analysis
-    
-    - Earnings summaries
-    - Risk factors
-    - Ownership structures
-    
-    [:octicons-arrow-right-24: Browse](finance.md)
+    Extract life events, relationships, and timeline
 
--   :material-scale-balance:{ .lg .middle } __Legal__
+    - [Biography Graph](reference/general.md) — *Recommended*
+    - [Person Summary](reference/general.md)
+
+-   :material-chart-line:{ .lg .middle } **Financial Reports**
 
     ---
 
-    Legal document processing
-    
-    - Contract obligations
-    - Case citations
-    - Compliance lists
-    
-    [:octicons-arrow-right-24: Browse](legal.md)
+    Extract earnings, risks, and ownership structures
 
--   :material-hospital:{ .lg .middle } __Medical__
+    - [Earnings Summary](examples/financial-report.md) — *Recommended*
+    - [Risk Factors](examples/financial-report.md#risk-factors)
+    - [Ownership Graph](examples/financial-report.md#ownership-structure)
+
+-   :material-scale-balance:{ .lg .middle } **Legal Documents**
 
     ---
 
-    Medical text analysis
-    
-    - Anatomy graphs
-    - Drug interactions
-    - Treatment plans
-    
-    [:octicons-arrow-right-24: Browse](medicine.md)
+    Extract obligations, cases, and compliance items
 
--   :material-leaf:{ .lg .middle } __TCM__
+    - [Contract Obligations](examples/legal-contract.md) — *Recommended*
+    - [Case Timeline](examples/legal-contract.md#case-timeline)
+    - [Defined Terms](examples/legal-contract.md#defined-terms)
+
+-   :material-hospital:{ .lg .middle } **Medical Records**
 
     ---
 
-    Traditional Chinese Medicine
-    
-    - Herb properties
-    - Formula composition
-    - Meridian graphs
-    
-    [:octicons-arrow-right-24: Browse](tcm.md)
+    Extract symptoms, treatments, and timelines
 
--   :material-factory:{ .lg .middle } __Industry__
+    - [Hospital Timeline](reference/medicine.md) — *Recommended*
+    - [Drug Interactions](reference/medicine.md)
+    - [Discharge Summary](reference/medicine.md)
+
+-   :material-leaf:{ .lg .middle } **TCM Texts**
 
     ---
 
-    Industrial documentation
-    
-    - Equipment topology
-    - Safety controls
-    - Operation flows
-    
-    [:octicons-arrow-right-24: Browse](industry.md)
+    Extract herb properties and formula compositions
+
+    - [Herb Properties](reference/tcm.md) — *Recommended*
+    - [Formula Composition](reference/tcm.md)
+    - [Meridian Graph](reference/tcm.md)
+
+-   :material-factory:{ .lg .middle } **Industrial Documents**
+
+    ---
+
+    Extract equipment, safety, and operation flows
+
+    - [Equipment Topology](reference/industry.md) — *Recommended*
+    - [Safety Controls](reference/industry.md)
+    - [Operation Flow](reference/industry.md)
 
 </div>
 
 ---
 
-## Quick Selection Guide
+## Not sure what to choose?
 
-| I want to extract... | Use Template |
-|---------------------|--------------|
-| Person's life story | `general/biography_graph` |
-| Research paper concepts | `general/concept_graph` |
-| Company earnings | `finance/earnings_summary` |
-| Contract terms | `legal/contract_obligation` |
-| Medical symptoms | `medicine/symptom_list` |
-| Chinese herbs | `tcm/herb_property` |
-| Equipment specs | `industry/equipment_topology` |
+**By task type:**
 
----
+| Task | Recommended Template |
+|------|---------------------|
+| Summarize a document | `general/model` |
+| Extract a list of items | `general/list` |
+| Build a knowledge network | `general/graph` |
+| Create a timeline | `general/base_temporal_graph` |
 
-## How to Choose
+→ [More task-based guidance](choosing/by-task.md)
 
-### By Document Type
+**By output type:**
 
-| Document | Template Category |
-|----------|-------------------|
-| Biographies, profiles | General |
-| Financial reports, 10-K | Finance |
-| Contracts, legal briefs | Legal |
-| Medical records, papers | Medical |
-| TCM texts, prescriptions | TCM |
-| Manuals, procedures | Industry |
+| Output | Auto-Type | Use When... |
+|--------|-----------|-------------|
+| Structured summary | AutoModel | Need a report |
+| Network/Graph | AutoGraph | Need relationships |
+| Timeline | AutoTemporalGraph | Need time sequence |
 
-### By Output Type
-
-| Need | Auto-Type | Example Templates |
-|------|-----------|-------------------|
-| Summary report | AutoModel | `earnings_summary`, `discharge_instruction` |
-| List of items | AutoList | `compliance_list`, `symptom_list` |
-| Unique items | AutoSet | `risk_factor_set`, `defined_term_set` |
-| Network/Graph | AutoGraph | `knowledge_graph`, `ownership_graph` |
-| Timeline | AutoTemporalGraph | `event_timeline`, `biography_graph` |
-
-→ [Complete Selection Guide](how-to-choose.md)
+→ [More output type guidance](choosing/by-output.md)
 
 ---
 
-## Using Templates
-
-### CLI
+## Quick Start
 
 ```bash
-# List available
+# List all templates
 he list template
 
 # Use a template
-he parse doc.md -t general/biography_graph -o ./out/ -l en
+he parse document.md -t general/biography_graph -l en -o ./output/
 ```
-
-### Python
 
 ```python
 from hyperextract import Template
 
-# Create from preset
+# Create template
 ka = Template.create("general/biography_graph", "en")
 
-# List all
-all_templates = Template.list()
-
-# Filter by domain
-finance = Template.list(filter_by_tag="finance")
-```
-
----
-
-## Template Properties
-
-Each template has:
-
-- **Name** — Unique identifier
-- **Type** — Auto-Type (graph, list, model, etc.)
-- **Tags** — Domain categorization
-- **Languages** — Supported languages (zh, en)
-- **Description** — What it extracts
-
-### Viewing Template Details
-
-```python
-from hyperextract import Template
-
-# Get template info
-cfg = Template.get("general/biography_graph")
-
-print(cfg.name)           # biography_graph
-print(cfg.type)           # temporal_graph
-print(cfg.tags)           # ['general', 'biography']
-print(cfg.description)    # Description text
+# Extract
+result = ka.parse(text)
 ```
 
 ---
 
 ## Browse All Templates
 
-→ [Complete Template Browser](browse.md)
+→ [Complete Template Reference](reference/overview.md)
 
 ---
 
-## Creating Custom Templates
+## Create Custom Templates
 
-Need something specific? Create your own template:
+Need something specific? Learn to create your own:
 
 → [Custom Templates Guide](../python/guides/custom-templates.md)
-
----
-
-## Template Format Reference
-
-Learn about the YAML structure:
-
-→ [Template Format](../concepts/templates-format.md)

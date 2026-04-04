@@ -80,6 +80,8 @@ result.build_index()
 result.show()
 ```
 
+![Interactive Visualization](../../assets/en_show.png)
+
 ### 4. Search
 
 ```python
@@ -158,7 +160,7 @@ def main():
     print(f"\nSearch results: {len(search_nodes)} nodes, {len(search_edges)} edges")
     
     # Save
-    print("\nSaving knowledge base...")
+    print("\nSaving knowledge abstract...")
     result.dump("./ada_kb/")
     
     print("\nDone! Try: he show ./ada_kb/")

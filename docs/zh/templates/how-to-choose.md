@@ -33,12 +33,12 @@ graph TD
 
 | 模板 | 输出 | 最适合 |
 |------|------|--------|
-| `general/biography_graph` | 时序图谱 | 生平故事、个人简介 |
-| `general/base_model` | 模型 | 人物摘要 |
+| `general/biography_graph` | 图谱（时序） | 生平故事、个人简介 |
+| `general/model` | 模型 | 人物摘要 |
 
 **示例：**
 ```bash
-he parse bio.md -t general/biography_graph -l en -o ./out/
+he parse bio.md -t general/biography_graph -l zh -o ./out/
 ```
 
 ### 研究与文档
@@ -46,7 +46,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 | 模板 | 输出 | 最适合 |
 |------|------|--------|
 | `general/concept_graph` | 图谱 | 研究论文 |
-| `general/knowledge_graph` | 图谱 | 技术文档 |
+| `general/graph` | 图谱 | 技术文档 |
 | `general/doc_structure` | 模型 | 文档大纲 |
 
 ### 金融
@@ -55,7 +55,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 |------|------|--------|
 | `finance/earnings_summary` | 模型 | 财报 |
 | `finance/ownership_graph` | 图谱 | 公司结构 |
-| `finance/event_timeline` | 时序 | 金融事件 |
+| `finance/event_timeline` | 图谱（时序） | 金融事件 |
 | `finance/risk_factor_set` | 集合 | 风险评估 |
 
 ### 法律
@@ -64,7 +64,7 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 |------|------|--------|
 | `legal/contract_obligation` | 列表 | 合同条款 |
 | `legal/case_citation` | 图谱 | 法律先例 |
-| `legal/case_fact_timeline` | 时序 | 案件时间线 |
+| `legal/case_fact_timeline` | 图谱（时序） | 案件时间线 |
 
 ### 医疗
 
@@ -82,50 +82,50 @@ he parse bio.md -t general/biography_graph -l en -o ./out/
 
 ```python
 # 财务摘要
-ka = Template.create("finance/earnings_summary", "en")
+ka = Template.create("finance/earnings_summary", "zh")
 
 # 患者出院
-ka = Template.create("medicine/discharge_instruction", "en")
+ka = Template.create("medicine/discharge_instruction", "zh")
 ```
 
 ### 我需要列表 → AutoList
 
 ```python
 # 合规清单
-ka = Template.create("legal/compliance_list", "en")
+ka = Template.create("legal/compliance_list", "zh")
 
 # 症状
-ka = Template.create("medicine/symptom_list", "en")
+ka = Template.create("medicine/symptom_list", "zh")
 ```
 
 ### 我需要唯一项目 → AutoSet
 
 ```python
 # 风险因素
-ka = Template.create("finance/risk_factor_set", "en")
+ka = Template.create("finance/risk_factor_set", "zh")
 
 # 关键术语
-ka = Template.create("legal/defined_term_set", "en")
+ka = Template.create("legal/defined_term_set", "zh")
 ```
 
 ### 我需要网络 → AutoGraph
 
 ```python
 # 通用知识
-ka = Template.create("general/knowledge_graph", "en")
+ka = Template.create("general/graph", "zh")
 
 # 公司所有权
-ka = Template.create("finance/ownership_graph", "en")
+ka = Template.create("finance/ownership_graph", "zh")
 ```
 
 ### 我需要时间线 → AutoTemporalGraph
 
 ```python
 # 传记
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 # 事件序列
-ka = Template.create("finance/event_timeline", "en")
+ka = Template.create("finance/event_timeline", "zh")
 ```
 
 ---
@@ -137,7 +137,7 @@ ka = Template.create("finance/event_timeline", "en")
 所有模板都支持英文：
 
 ```bash
-he parse doc.md -t general/biography_graph -l en
+he parse doc.md -t general/biography_graph -l zh
 ```
 
 ### 中文文档
@@ -183,7 +183,7 @@ he parse doc.md -t general/biography_graph -l zh
 
 **解决方案：**
 ```bash
-he parse paper.md -t general/concept_graph -l en -o ./paper_kb/
+he parse paper.md -t general/concept_graph -l zh -o ./paper_kb/
 ```
 
 ### 场景 2：财务报告
@@ -192,7 +192,7 @@ he parse paper.md -t general/concept_graph -l en -o ./paper_kb/
 
 **解决方案：**
 ```bash
-he parse 10k.md -t finance/earnings_summary -l en -o ./earnings/
+he parse 10k.md -t finance/earnings_summary -l zh -o ./earnings/
 ```
 
 ### 场景 3：法律合同
@@ -201,7 +201,7 @@ he parse 10k.md -t finance/earnings_summary -l en -o ./earnings/
 
 **解决方案：**
 ```bash
-he parse contract.md -t legal/contract_obligation -l en -o ./contract/
+he parse contract.md -t legal/contract_obligation -l zh -o ./contract/
 ```
 
 ### 场景 4：医疗案例
@@ -210,7 +210,7 @@ he parse contract.md -t legal/contract_obligation -l en -o ./contract/
 
 **解决方案：**
 ```bash
-he parse case.md -t medicine/hospital_timeline -l en -o ./case/
+he parse case.md -t medicine/hospital_timeline -l zh -o ./case/
 ```
 
 ---
@@ -227,7 +227,7 @@ ka = Template.create("method/graph_rag")
 ka = Template.create("method/itext2kg")
 ```
 
-→ [选择方法](../python/guides/choosing-methods.md)
+→ [使用方法](../python/guides/using-methods.md)
 
 ---
 
@@ -259,6 +259,6 @@ print(cfg.description)
 
 ## 参见
 
-- [浏览所有模板](browse.md)
+- [模板概览](reference/overview.md)
 - [模板库](index.md)
 - [自定义模板](../python/guides/custom-templates.md)

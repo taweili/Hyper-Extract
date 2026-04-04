@@ -24,7 +24,7 @@ pip install hyper-extract[dev]
 from hyperextract import Template
 
 # 创建模板
-ka = Template.create("general/biography_graph", language="en")
+ka = Template.create("general/biography_graph", language="zh")
 
 # 提取知识
 with open("document.md") as f:
@@ -41,6 +41,8 @@ result.build_index()
 result.show()
 ```
 
+![交互式可视化](../../assets/zh_show.png)
+
 ---
 
 ## 核心类
@@ -53,10 +55,10 @@ result.show()
 from hyperextract import Template
 
 # 从预设创建
-ka = Template.create("general/biography_graph", language="en")
+ka = Template.create("general/biography_graph", language="zh")
 
 # 从自定义 YAML 创建
-ka = Template.create("/path/to/custom_template.yaml", language="en")
+ka = Template.create("/path/to/custom_template.yaml", language="zh")
 
 # 从方法创建
 ka = Template.create("method/light_rag")
@@ -85,7 +87,7 @@ ka = Template.create("method/light_rag")
 
 ```python
 # 创建
-ka = Template.create(template_path, language="en")
+ka = Template.create(template_path, language="zh")
 
 # 提取
 result = ka.parse(text)           # 新提取
@@ -104,6 +106,8 @@ result.load("./output/")          # 从磁盘加载
 result.show()                     # 交互式可视化
 ```
 
+![交互式可视化](../../assets/zh_show.png)
+
 ---
 
 ## 文档结构
@@ -112,15 +116,15 @@ result.show()                     # 交互式可视化
 - **[核心概念](core-concepts.md)** — 模板、自动类型、方法详解
 - **指南：**
   - [使用模板](guides/using-templates.md)
-  - [选择方法](guides/choosing-methods.md)
+  - [使用方法](guides/using-methods.md)
   - [使用自动类型](guides/working-with-autotypes.md)
   - [搜索和聊天](guides/search-and-chat.md)
   - [增量更新](guides/incremental-updates.md)
   - [保存和加载](guides/saving-loading.md)
 - **API 参考：**
   - [模板](api-reference/template.md)
-  - [自动类型](api-reference/autotypes.md)
-  - [方法](api-reference/methods.md)
+  - [自动类型](api-reference/autotypes/base.md)
+  - [方法](api-reference/methods/registry.md)
 
 ---
 
@@ -131,7 +135,7 @@ result.show()                     # 交互式可视化
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/concept_graph", language="en")
+ka = Template.create("general/concept_graph", language="zh")
 
 with open("paper.md") as f:
     paper = ka.parse(f.read())
@@ -149,7 +153,7 @@ print(response.content)
 ```python
 from hyperextract import Template
 
-ka = Template.create("finance/earnings_summary", language="en")
+ka = Template.create("finance/earnings_summary", language="zh")
 
 report = ka.parse(earnings_text)
 print(report.data.revenue)
@@ -161,17 +165,17 @@ print(report.data.eps)
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/knowledge_graph", language="en")
+ka = Template.create("general/graph", language="zh")
 
 # 初始提取
-kb = ka.parse(doc1_text)
+ka = ka.parse(doc1_text)
 
 # 添加更多文档
-kb.feed_text(doc2_text)
-kb.feed_text(doc3_text)
+ka.feed_text(doc2_text)
+ka.feed_text(doc3_text)
 
 # 保存供以后使用
-kb.dump("./my_kb/")
+ka.dump("./my_ka/")
 ```
 
 ---
@@ -205,7 +209,7 @@ embedder = OpenAIEmbeddings(model="text-embedding-3-large")
 
 ka = Template.create(
     "general/biography_graph",
-    language="en",
+    language="zh",
     llm_client=llm,
     embedder=embedder
 )
@@ -220,7 +224,7 @@ Hyper-Extract 完全类型化，支持 IDE 自动完成：
 ```python
 from hyperextract import Template, AutoGraph
 
-ka: AutoGraph = Template.create("general/knowledge_graph", "en")
+ka: AutoGraph = Template.create("general/graph", "zh")
 result = ka.parse(text)
 
 # IDE 自动完成有效

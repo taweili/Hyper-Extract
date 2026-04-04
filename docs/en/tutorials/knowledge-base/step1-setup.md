@@ -6,7 +6,7 @@ Project structure and template selection.
 
 ## Goal
 
-Set up a robust project structure for maintaining a domain-specific knowledge base.
+Set up a robust project structure for maintaining a domain-specific knowledge abstract.
 
 ---
 
@@ -15,18 +15,18 @@ Set up a robust project structure for maintaining a domain-specific knowledge ba
 Create the following directory structure:
 
 ```bash
-mkdir -p my_knowledge_base/{documents,kb,backups,logs}
-cd my_knowledge_base
+mkdir -p my_ka/{documents,ka,backups,logs}
+cd my_ka
 ```
 
 Structure:
 ```
-my_knowledge_base/
+my_ka/
 ├── config.yaml         # Project configuration
 ├── documents/          # Source documents
 │   ├── raw/           # Original files
 │   └── processed/     # Processing log
-├── kb/                # Knowledge base versions
+├── ka/                # Knowledge base versions
 │   └── current/       # Current version (symlink)
 ├── backups/           # Version backups
 ├── logs/              # Operation logs
@@ -40,8 +40,8 @@ my_knowledge_base/
 ### config.yaml
 
 ```yaml
-# Knowledge Base Configuration
-name: "Company Knowledge Base"
+# Knowledge Abstract Configuration
+name: "Company Knowledge Abstract"
 domain: "legal"  # or finance, medical, etc.
 
 # Template settings
@@ -58,7 +58,7 @@ auto_backup: true
 
 # Paths
 documents_dir: "./documents/raw"
-kb_dir: "./kb"
+ka_dir: "./ka"
 backup_dir: "./backups"
 ```
 
@@ -69,7 +69,7 @@ backup_dir: "./backups"
 | Legal | `legal/contract_obligation` | list |
 | Finance | `finance/earnings_summary` | model |
 | Medical | `medicine/anatomy_graph` | graph |
-| General | `general/knowledge_graph` | graph |
+| General | `general/graph` | graph |
 | Research | `general/concept_graph` | graph |
 
 ---
@@ -79,7 +79,7 @@ backup_dir: "./backups"
 ### kb_manager.py (Starter)
 
 ```python
-"""Knowledge Base Manager."""
+"""Knowledge Abstract Manager."""
 
 import yaml
 import json
@@ -97,7 +97,7 @@ class KBConfig:
     template: str
     language: str
     documents_dir: str
-    kb_dir: str
+    ka_dir: str
     backup_dir: str
 
 class KnowledgeBaseManager:
@@ -113,7 +113,7 @@ class KnowledgeBaseManager:
         return KBConfig(**data)
     
     def initialize(self):
-        """Initialize knowledge base."""
+        """Initialize knowledge abstract."""
         print(f"Initializing: {self.config.name}")
         
         # Create directories
@@ -136,7 +136,7 @@ class KnowledgeBaseManager:
         return Path(self.config.kb_dir) / version
     
     def save_version(self, kb_instance, version: Optional[str] = None):
-        """Save knowledge base version."""
+        """Save knowledge abstract version."""
         path = self.get_version_path(version)
         kb_instance.dump(str(path))
         
@@ -163,12 +163,12 @@ if __name__ == "__main__":
 
 ```bash
 cat > config.yaml << 'EOF'
-name: "My Knowledge Base"
+name: "My Knowledge Abstract"
 domain: "general"
-template: "general/knowledge_graph"
+template: "general/graph"
 language: "en"
 documents_dir: "./documents/raw"
-kb_dir: "./kb"
+ka_dir: "./ka"
 backup_dir: "./backups"
 EOF
 ```
@@ -181,14 +181,14 @@ python kb_manager.py
 
 Expected output:
 ```
-Initializing: My Knowledge Base
+Initializing: My Knowledge Abstract
 ✓ Initialization complete
 ```
 
 ### 3. Verify Structure
 
 ```bash
-tree my_knowledge_base/
+tree my_ka/
 ```
 
 ---

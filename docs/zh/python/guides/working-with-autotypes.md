@@ -1,161 +1,171 @@
 # 使用自动类型
 
-提取、操作和利用结构化知识数据。
+!!! tip "Level 2 - 进阶"
+    本指南涵盖配置化 Auto-Type 用法。在阅读前，请先完成 [Level 1: 使用模板](using-templates.md) 和 [Level 1: 使用方法](using-methods.md)。
+
+学习如何直接配置自动类型，以自定义 schema、去重逻辑和提取行为。
 
 ---
 
 ## 什么是自动类型？
 
-自动类型是智能数据结构，自动从文本中提取和组织知识。它们提供：
+自动类型是 Hyper-Extract 的核心数据结构，负责从文本中提取、组织和存储结构化知识。它们提供：
 
 - **类型安全的 schema** — 基于 Pydantic 的验证
 - **LLM 驱动的提取** — 自动内容处理
 - **内置操作** — 搜索、合并、可视化
 - **序列化** — 保存/加载到磁盘
 
+所有自动类型都继承自 `BaseAutoType`，因此共享一组通用能力（如 `parse`、`feed_text`、`build_index`、`search`、`chat`、`dump`、`load` 等）。
+
 ---
 
-## 8 种自动类型
+## 三层使用架构
 
-### 标量类型
+Hyper-Extract 提供三个控制层级。本文档聚焦 **层级 2**。
 
-#### AutoModel
+| 层级 | 方式 | 何时使用 | 参考文档 |
+|-------|----------|-------------|----------|
+| **层级 1** | 模板 / 方法 | 快速开始、标准用例 | [使用模板](using-templates.md)、[使用方法](using-methods.md) |
+| **层级 2** | 配置化自动类型 | 自定义 schema、保留预置提取逻辑 | **本文档** |
+| **层级 3** | 完全自定义方法 | 完全控制提取过程 | [方法概念](../../concepts/methods.md) |
 
-单个结构化对象提取。
+---
+
+## 层级 2：配置化自动类型用法
+
+当你需要自定义 schema，但不想从零实现提取逻辑时，可以直接实例化自动类型并传入配置参数。
+
+### 何时使用层级 2
+
+- 你需要自定义节点/边 schema
+- 你想控制去重逻辑
+- 模板输出不完全匹配你的需求
+- 你在构建可复用的 Python 组件
+
+### 完整示例：自定义图谱
 
 ```python
-from hyperextract import Template
+from hyperextract import AutoGraph
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pydantic import BaseModel, Field
 
-ka = Template.create("finance/earnings_summary", "en")
-result = ka.parse(report_text)
+# 步骤 1：定义自定义 schema
+class Person(BaseModel):
+    """自定义节点 schema"""
+    name: str = Field(description="人员全名")
+    role: str = Field(description="职位或角色")
+    expertise: list[str] = Field(default=[], description="专业领域")
 
-# 直接访问字段
-print(result.data.company_name)
-print(result.data.revenue)
-print(result.data.eps)
+class Collaboration(BaseModel):
+    """自定义边 schema"""
+    source: str = Field(description="第一人姓名")
+    target: str = Field(description="第二人姓名")
+    project: str = Field(description="共同项目")
+    year: int = Field(description="协作年份")
+
+# 步骤 2：配置 LLM 客户端
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+embedder = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# 步骤 3：创建配置化的 AutoGraph
+graph = AutoGraph[Person, Collaboration](
+    node_schema=Person,
+    edge_schema=Collaboration,
+    # 定义如何提取唯一键用于去重
+    node_key_extractor=lambda p: p.name,
+    edge_key_extractor=lambda c: f"{c.source}-{c.target}-{c.project}",
+    # 定义如何从边提取节点引用
+    nodes_in_edge_extractor=lambda c: (c.source, c.target),
+    # LLM 客户端
+    llm_client=llm,
+    embedder=embedder,
+)
+
+# 步骤 4：提取
+text = """
+陈博士和王博士在2023年合作了气候 AI 项目。
+陈博士是机器学习研究员，专长于神经网络和气候建模。
+王博士专攻数据工程和分布式系统。
+"""
+
+graph.feed_text(text)
+
+# 步骤 5：访问结果
+print(f"提取了 {len(graph.nodes)} 个人员")
+for person in graph.nodes:
+    print(f"- {person.name}: {person.role}")
+    print(f"  专业: {', '.join(person.expertise)}")
+
+print(f"\n提取了 {len(graph.edges)} 个协作关系")
+for collab in graph.edges:
+    print(f"- {collab.source} 和 {collab.target}: {collab.project} ({collab.year})")
+
+# 步骤 6：使用内置功能
+graph.build_index()
+
+# 搜索
+nodes, edges = graph.search("机器学习", top_k=2)
+print(f"\n搜索找到: {len(nodes)} 个人员")
+
+# 可视化
+graph.show()
 ```
 
-#### AutoList
+### 关键配置参数
 
-有序集合提取。
+| 参数 | 必需 | 描述 |
+|-----------|----------|-------------|
+| `node_schema` / `edge_schema` | 是 | 定义结构的 Pydantic 模型 |
+| `node_key_extractor` | 是 | 从节点提取唯一键的函数 |
+| `edge_key_extractor` | 是 | 从边提取唯一键的函数 |
+| `nodes_in_edge_extractor` | 是 | 从边获取 (source, target) 的函数 |
+| `llm_client` | 是 | LangChain 兼容的 LLM 客户端 |
+| `embedder` | 是 | LangChain 兼容的嵌入客户端 |
 
-```python
-from hyperextract import Template
+### 对比：模板 vs 配置化自动类型
 
-ka = Template.create("general/base_list", "en")
-result = ka.parse(text)
+| 方面 | 模板 | 配置化自动类型 |
+|--------|----------|---------------------|
+| Schema 定义 | YAML 文件 | Python Pydantic 类 |
+| 提取逻辑 | 预构建 | 相同预构建逻辑 |
+| 去重 | 预配置 | 你定义键提取器 |
+| 语言支持 | 内置 | 你提供提示 |
+| 可复用性 | 分享 YAML 文件 | 打包为 Python 模块 |
 
-# 遍历项目
-for item in result.data.items:
-    print(item)
+### 更多配置示例
 
-# 按索引访问
-first = result.data.items[0]
-```
-
-#### AutoSet
-
-去重集合提取。
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_set", "en")
-result = ka.parse(text)
-
-# 项目是唯一的
-for item in result.data.items:
-    print(item)
-```
-
-### 图谱类型
-
-#### AutoGraph
-
-实体关系图谱提取。
+#### 时序图谱
 
 ```python
-from hyperextract import Template
+from hyperextract import AutoTemporalGraph
+from pydantic import BaseModel, Field
 
-ka = Template.create("general/knowledge_graph", "en")
-result = ka.parse(text)
+class Event(BaseModel):
+    """节点：历史事件"""
+    name: str = Field(description="事件名称")
+    category: str = Field(description="事件类型")
 
-# 访问节点
-for node in result.nodes:
-    print(f"{node.name} ({node.type})")
-    print(f"  描述: {node.description}")
+class CausalLink(BaseModel):
+    """边：带时间的因果关系"""
+    source: str = Field(description="早期事件")
+    target: str = Field(description="后期事件")
+    relationship: str = Field(description="连接方式")
+    time: str = Field(description="连接发生时间")
 
-# 访问边
-for edge in result.edges:
-    print(f"{edge.source} --{edge.type}--> {edge.target}")
-```
+timeline = AutoTemporalGraph[Event, CausalLink](
+    node_schema=Event,
+    edge_schema=CausalLink,
+    node_key_extractor=lambda e: e.name,
+    edge_key_extractor=lambda l: f"{l.source}-{l.target}-{l.time}",
+    nodes_in_edge_extractor=lambda l: (l.source, l.target),
+    llm_client=llm,
+    embedder=embedder,
+    # 时序特有：从边提取时间
+    time_extractor=lambda l: l.time,
+)
 
-#### AutoHypergraph
-
-多实体关系提取。
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_hypergraph", "en")
-result = ka.parse(text)
-
-# 超边连接多个实体
-for edge in result.edges:
-    print(f"类型: {edge.type}")
-    print(f"实体: {edge.entities}")
-```
-
-#### AutoTemporalGraph
-
-基于时间的图谱提取。
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_temporal_graph", "en")
-result = ka.parse(text)
-
-# 边包含时间信息
-for edge in result.edges:
-    print(f"{edge.source} --{edge.type}--> {edge.target}")
-    if hasattr(edge, 'time'):
-        print(f"  时间: {edge.time}")
-```
-
-#### AutoSpatialGraph
-
-基于位置的图谱提取。
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_spatial_graph", "en")
-result = ka.parse(text)
-
-# 节点/边包含位置
-for node in result.nodes:
-    if hasattr(node, 'location'):
-        print(f"{node.name} at {node.location}")
-```
-
-#### AutoSpatioTemporalGraph
-
-时间和空间组合提取。
-
-```python
-from hyperextract import Template
-
-ka = Template.create("general/base_spatio_temporal_graph", "en")
-result = ka.parse(text)
-
-# 完整上下文：谁、什么、何时、何地
-for edge in result.edges:
-    print(f"事件: {edge.type}")
-    if hasattr(edge, 'time'):
-        print(f"  何时: {edge.time}")
-    if hasattr(edge, 'location'):
-        print(f"  何地: {edge.location}")
+timeline.feed_text(historical_text)
 ```
 
 ---
@@ -271,9 +281,9 @@ print(f"边: {edge_types}")
 
 ---
 
-## 高级用法
+## 高级用法 {#advanced-usage}
 
-### 自定义 Schema 访问
+### 访问 Schema
 
 ```python
 # 访问 schema
@@ -305,15 +315,31 @@ elif isinstance(result, AutoList):
 
 ## 最佳实践
 
-1. **访问可选字段前检查 hasattr** — Schema 字段可能不同
+### 层级 2（配置化自动类型）
+
+1. **仔细设计 schema** — 字段成为 LLM 提取目标
+2. **使用清晰的 Field 描述** — 帮助 LLM 理解期望
+3. **选择好的键提取器** — 对去重至关重要
+4. **用小样本测试** — 迭代 schema 设计
+
+### 通用
+
+1. **访问可选字段前检查 `hasattr`** — Schema 字段可能不同
 2. **处理空结果** — 始终检查 `empty()`
-3. **使用 model_dump 进行序列化** — 正确的 JSON 转换
+3. **使用 `model_dump` 进行序列化** — 正确的 JSON 转换
 4. **利用类型提示** — IDE 自动完成支持
 
 ---
 
 ## 另请参见
 
-- [搜索和聊天](search-and-chat.md)
-- [保存和加载](saving-loading.md)
-- [自动类型参考](../../concepts/autotypes.md)
+**前置知识：**
+- [使用模板](using-templates.md) — Level 1 基础
+- [使用方法](using-methods.md) — Level 1 基础
+- [自动类型概念](../../concepts/autotypes.md) — 每种类型的作用
+
+**下一步：**
+- [创建自定义模板](custom-templates.md) — 打包你的配置
+- [增量更新](incremental-updates.md) — 添加更多文档
+- [搜索和聊天](search-and-chat.md) — 使用提取的知识
+- [保存和加载](saving-loading.md) — 持久化结果

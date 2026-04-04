@@ -1,6 +1,6 @@
 # Template API
 
-::: hyperextract.utils.template_engine.Template
+::: hyperextract.Template
     options:
       members:
         - create

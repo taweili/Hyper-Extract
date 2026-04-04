@@ -1,5 +1,8 @@
 # Creating Custom Templates
 
+!!! tip "Level 2+ - Intermediate Extension"
+    This guide shows how to create reusable templates. Before reading, complete [Level 1: Using Templates](using-templates.md) or [Level 2: Working with Auto-Types](working-with-autotypes.md).
+
 Learn how to create your own templates for specialized extraction tasks.
 
 ---
@@ -289,6 +292,65 @@ display:
 
 ---
 
+## Using Method Classes Directly
+
+If you need full control over the extraction process, you can instantiate method classes directly instead of going through `Template.create`:
+
+```python
+from hyperextract.methods import Light_RAG
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+# Create method instance directly
+llm = ChatOpenAI()
+emb = OpenAIEmbeddings()
+
+method = Light_RAG(
+    llm_client=llm,
+    embedder=emb,
+    # Method-specific parameters
+    chunk_size=1024,
+    max_workers=5
+)
+
+# Extract knowledge
+result = method.parse(text)
+```
+
+This approach is useful for advanced scenarios where you want to bypass the Template layer and tune algorithm parameters directly.
+
+---
+
+## Registering Custom Methods
+
+You can also register custom extraction methods and use them through the Template API:
+
+```python
+from hyperextract.methods import register_method
+
+class MyCustomMethod:
+    def __init__(self, llm_client, embedder, **kwargs):
+        self.llm_client = llm_client
+        self.embedder = embedder
+    
+    def parse(self, text):
+        # Your extraction logic
+        pass
+
+# Register the method
+register_method(
+    name="my_method",
+    method_class=MyCustomMethod,
+    autotype="graph",
+    description="My custom extraction method"
+)
+
+# Use via Template API
+from hyperextract import Template
+ka = Template.create("method/my_method")
+```
+
+---
+
 ## Sharing Templates
 
 ### Register Globally
@@ -344,6 +406,11 @@ python -c "import yaml; yaml.safe_load(open('template.yaml'))"
 
 ## See Also
 
+**Prerequisites:**
 - [Template Format Reference](../../concepts/templates-format.md) — Complete YAML specification
-- [Using Templates](using-templates.md) — How to use templates in code
+- [Using Templates](using-templates.md) — Level 1: Basic template usage
+
+**Advanced Usage:**
+- [Incremental Updates](incremental-updates.md) — Add more documents
+- [Search and Chat](search-and-chat.md) — Use extracted knowledge
 - [Template Library](../../templates/index.md) — Browse existing templates

@@ -1,7 +1,7 @@
 temp/
 logs/
 .trae/
-.github/
+.github/agents/
 .claude/
 
 # Byte-compiled / optimized / DLL files

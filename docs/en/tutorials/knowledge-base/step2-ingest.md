@@ -1,12 +1,12 @@
 # Step 2: Ingest
 
-Add documents to your knowledge base.
+Add documents to your knowledge abstract.
 
 ---
 
 ## Goal
 
-Ingest documents into the knowledge base with proper version control.
+Ingest documents into the knowledge abstract with proper version control.
 
 ---
 
@@ -55,20 +55,20 @@ def initial_ingest(self, documents_dir: str):
     # Parse first document
     print(f"Processing: {docs[0].name}")
     text = docs[0].read_text(encoding="utf-8")
-    kb = self.ka.parse(text)
+    ka = self.ka.parse(text)
     
     # Feed remaining documents
     for doc in docs[1:]:
         print(f"Adding: {doc.name}")
         text = doc.read_text(encoding="utf-8")
-        kb.feed_text(text)
+        ka.feed_text(text)
     
     # Build index
     print("Building search index...")
-    kb.build_index()
+    ka.build_index()
     
     # Save version
-    version_path = self.save_version(kb, "v1.0")
+    version_path = self.save_version(ka, "v1.0")
     
     # Log processing
     self._log_processing(docs, version_path)
@@ -76,22 +76,22 @@ def initial_ingest(self, documents_dir: str):
     print(f"✓ Ingested {len(docs)} documents")
     print(f"✓ Knowledge base: {version_path}")
     
-    return kb
+    return ka
 ```
 
 ### Method 2: Incremental Updates
 
-Add new documents to existing KB:
+Add new documents to existing KA:
 
 ```python
 def add_documents(self, document_paths: list[str]):
-    """Add new documents to existing knowledge base."""
-    print("Loading current knowledge base...")
+    """Add new documents to existing knowledge abstract."""
+    print("Loading current knowledge abstract...")
     
     # Load current version
     current_path = Path(self.config.kb_dir) / "current"
-    kb = Template.create(self.config.template, self.config.language)
-    kb.load(current_path)
+    ka = Template.create(self.config.template, self.config.language)
+    ka.load(current_path)
     
     # Add new documents
     for path in document_paths:
@@ -99,20 +99,20 @@ def add_documents(self, document_paths: list[str]):
         print(f"Adding: {doc_path.name}")
         
         text = doc_path.read_text(encoding="utf-8")
-        kb.feed_text(text)
+        ka.feed_text(text)
     
     # Rebuild index
     print("Rebuilding search index...")
-    kb.build_index()
+    ka.build_index()
     
     # Save new version
     version = self._get_next_version()
-    version_path = self.save_version(kb, version)
+    version_path = self.save_version(ka, version)
     
     print(f"✓ Added {len(document_paths)} documents")
     print(f"✓ New version: {version}")
     
-    return kb
+    return ka
 
 def _get_next_version(self) -> str:
     """Generate next version number."""
@@ -146,7 +146,7 @@ from pathlib import Path
 from kb_manager import KnowledgeBaseManager
 
 def main():
-    parser = argparse.ArgumentParser(description="Ingest documents into KB")
+    parser = argparse.ArgumentParser(description="Ingest documents into KA")
     parser.add_argument("--initial", action="store_true", help="Initial ingestion")
     parser.add_argument("--add", nargs="+", help="Add specific documents")
     parser.add_argument("--dir", default="./documents/raw", help="Documents directory")
@@ -158,20 +158,20 @@ def main():
     
     if args.initial:
         # Initial ingestion
-        kb = manager.initial_ingest(args.dir)
+        ka = manager.initial_ingest(args.dir)
         
         # Print stats
-        print("\nKnowledge Base Stats:")
-        print(f"  Nodes: {len(kb.nodes)}")
-        print(f"  Edges: {len(kb.edges)}")
+        print("\nKnowledge Abstract Stats:")
+        print(f"  Nodes: {len(ka.nodes)}")
+        print(f"  Edges: {len(ka.edges)}")
         
     elif args.add:
         # Add specific documents
-        kb = manager.add_documents(args.add)
+        ka = manager.add_documents(args.add)
         
-        print("\nKnowledge Base Stats:")
-        print(f"  Nodes: {len(kb.nodes)}")
-        print(f"  Edges: {len(kb.edges)}")
+        print("\nKnowledge Abstract Stats:")
+        print(f"  Nodes: {len(ka.nodes)}")
+        print(f"  Edges: {len(ka.edges)}")
 
 if __name__ == "__main__":
     main()
@@ -227,11 +227,11 @@ BATCH_SIZE = 10
 for i in range(0, len(docs), BATCH_SIZE):
     batch = docs[i:i + BATCH_SIZE]
     for doc in batch:
-        kb.feed_text(doc.read_text())
+        ka.feed_text(doc.read_text())
     
     # Save checkpoint
     if i % (BATCH_SIZE * 5) == 0:
-        kb.dump(f"./kb/checkpoint_{i}/")
+        ka.dump(f"./ka/checkpoint_{i}/")
 ```
 
 ### 2. Error Handling
@@ -239,7 +239,7 @@ for i in range(0, len(docs), BATCH_SIZE):
 ```python
 try:
     text = doc.read_text(encoding="utf-8")
-    kb.feed_text(text)
+    ka.feed_text(text)
 except Exception as e:
     print(f"Error processing {doc}: {e}")
     # Log error, continue with next
@@ -249,14 +249,14 @@ except Exception as e:
 ### 3. Validation
 
 ```python
-def validate_ingestion(self, kb):
-    """Validate knowledge base after ingestion."""
-    assert not kb.empty(), "Knowledge base is empty"
-    assert len(kb.data.entities) > 0, "No entities extracted"
+def validate_ingestion(self, ka):
+    """Validate knowledge abstract after ingestion."""
+    assert not ka.empty(), "Knowledge base is empty"
+    assert len(ka.data.entities) > 0, "No entities extracted"
     
     # Try to build index
     try:
-        kb.build_index()
+        ka.build_index()
     except Exception as e:
         raise ValueError(f"Failed to build index: {e}")
 ```

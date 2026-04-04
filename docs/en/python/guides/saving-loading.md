@@ -1,6 +1,7 @@
 # Saving and Loading
 
-Persist knowledge bases to disk and restore them later.
+!!! tip "Advanced - Post-Extraction"
+    This guide covers persisting extracted knowledge. You should be comfortable with [Level 1: Using Templates](using-templates.md) first.
 
 ---
 
@@ -13,7 +14,7 @@ Hyper-Extract provides serialization for:
 
 ---
 
-## Saving Knowledge Bases
+## Saving Knowledge Abstracts
 
 ### Basic Save
 
@@ -24,13 +25,13 @@ ka = Template.create("general/biography_graph", "en")
 result = ka.parse(text)
 
 # Save to directory
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ### Save Structure
 
 ```
-./my_kb/
+./my_ka/
 ├── data.json          # Extracted knowledge
 ├── metadata.json      # Extraction info
 └── index/             # Search index (if built)
@@ -45,12 +46,12 @@ result.dump("./my_kb/")
 result.build_index()
 
 # Then save
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ---
 
-## Loading Knowledge Bases
+## Loading Knowledge Abstracts
 
 ### Basic Load
 
@@ -61,7 +62,7 @@ from hyperextract import Template
 ka = Template.create("general/biography_graph", "en")
 
 # Load saved data
-ka.load("./my_kb/")
+ka.load("./my_ka/")
 
 # Use
 print(f"Loaded {len(ka.nodes)} nodes")
@@ -70,7 +71,7 @@ print(f"Loaded {len(ka.nodes)} nodes")
 ### Verify Loaded Data
 
 ```python
-ka.load("./my_kb/")
+ka.load("./my_ka/")
 
 # Check it's not empty
 if ka.empty():
@@ -99,14 +100,14 @@ ka2.load("./research_paper_kb/")
 response = ka2.chat("What are the main findings?")
 ```
 
-### Sharing Knowledge Bases
+### Sharing Knowledge Abstracts
 
 ```python
 # Save to shared location
-result.dump("/shared/kb/project_x/")
+result.dump("/shared/ka/project_x/")
 
 # Others can load
-ka.load("/shared/kb/project_x/")
+ka.load("/shared/ka/project_x/")
 ```
 
 ### Backup and Versioning
@@ -128,20 +129,20 @@ result.dump("./kb_v2/")
 
 ## Working with the Filesystem
 
-### Checking for Existing KB
+### Checking for Existing KA
 
 ```python
 from pathlib import Path
 
-kb_path = Path("./my_kb/")
+ka_path = Path("./my_ka/")
 
-if kb_path.exists() and (kb_path / "data.json").exists():
+if ka_path.exists() and (ka_path / "data.json").exists():
     print("Knowledge base exists, loading...")
-    ka.load(kb_path)
+    ka.load(ka_path)
 else:
-    print("Creating new knowledge base...")
+    print("Creating new knowledge abstract...")
     result = ka.parse(text)
-    result.dump(kb_path)
+    result.dump(ka_path)
 ```
 
 ### Listing Saved KBs
@@ -150,7 +151,7 @@ else:
 import os
 
 kb_dirs = [d for d in os.listdir("./") if os.path.isdir(d) and "_kb" in d]
-print("Available knowledge bases:", kb_dirs)
+print("Available knowledge abstracts:", kb_dirs)
 ```
 
 ### Moving/Copying
@@ -158,10 +159,10 @@ print("Available knowledge bases:", kb_dirs)
 ```python
 import shutil
 
-# Copy knowledge base
+# Copy knowledge abstract
 shutil.copytree("./kb_v1/", "./kb_backup/")
 
-# Move knowledge base
+# Move knowledge abstract
 shutil.move("./old_location/", "./new_location/")
 ```
 
@@ -172,7 +173,7 @@ shutil.move("./old_location/", "./new_location/")
 ### Accessing Metadata
 
 ```python
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 
 # Metadata is saved automatically
 # Contents:
@@ -189,7 +190,7 @@ result.dump("./my_kb/")
 result.metadata["project"] = "Research Project X"
 result.metadata["version"] = "1.0"
 
-result.dump("./my_kb/")
+result.dump("./my_ka/")
 ```
 
 ---
@@ -197,7 +198,7 @@ result.dump("./my_kb/")
 ## Complete Example
 
 ```python
-"""Manage knowledge bases with save/load."""
+"""Manage knowledge abstracts with save/load."""
 
 from hyperextract import Template
 from pathlib import Path
@@ -208,32 +209,32 @@ class KnowledgeBaseManager:
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
     
-    def save(self, kb, name):
-        """Save knowledge base."""
-        kb_path = self.storage_dir / name
-        kb.dump(kb_path)
-        print(f"Saved to {kb_path}")
-        return kb_path
+    def save(self, ka, name):
+        """Save knowledge abstract."""
+        ka_path = self.storage_dir / name
+        ka.dump(ka_path)
+        print(f"Saved to {ka_path}")
+        return ka_path
     
     def load(self, name, template="general/biography_graph", lang="en"):
-        """Load knowledge base."""
-        kb_path = self.storage_dir / name
+        """Load knowledge abstract."""
+        ka_path = self.storage_dir / name
         
-        if not kb_path.exists():
+        if not ka_path.exists():
             raise FileNotFoundError(f"Knowledge base not found: {name}")
         
         ka = Template.create(template, lang)
-        ka.load(kb_path)
+        ka.load(ka_path)
         return ka
     
     def list(self):
-        """List available knowledge bases."""
+        """List available knowledge abstracts."""
         return [d.name for d in self.storage_dir.iterdir() if d.is_dir()]
     
     def info(self, name):
-        """Get knowledge base info."""
-        kb_path = self.storage_dir / name
-        meta_path = kb_path / "metadata.json"
+        """Get knowledge abstract info."""
+        ka_path = self.storage_dir / name
+        meta_path = ka_path / "metadata.json"
         
         if meta_path.exists():
             return json.loads(meta_path.read_text())
@@ -251,8 +252,8 @@ manager.save(result, "tesla_biography")
 print(manager.list())  # ['tesla_biography']
 
 # Load
-kb = manager.load("tesla_biography")
-print(kb.chat("What did Tesla invent?"))
+ka = manager.load("tesla_biography")
+print(ka.chat("What did Tesla invent?"))
 ```
 
 ---
@@ -267,16 +268,16 @@ ka = Template.create("general/biography_graph", "en")
 
 # Load with same template
 ka2 = Template.create("general/biography_graph", "en")
-ka2.load("./kb/")
+ka2.load("./ka/")
 ```
 
 ### 2. Build Index After Loading
 
 ```python
-ka.load("./kb/")
+ka.load("./ka/")
 
 # Check if index exists, otherwise rebuild
-index_path = Path("./kb/") / "index"
+index_path = Path("./ka/") / "index"
 if not index_path.exists():
     ka.build_index()
 ```
@@ -285,9 +286,9 @@ if not index_path.exists():
 
 ```python
 try:
-    ka.load("./kb/")
+    ka.load("./ka/")
     if ka.empty():
-        print("Warning: Empty knowledge base")
+        print("Warning: Empty knowledge abstract")
 except FileNotFoundError:
     print("Knowledge base not found")
 ```
@@ -296,10 +297,10 @@ except FileNotFoundError:
 
 ```python
 # Good
-result.dump("./kb/tesla_2024_01_15/")
+result.dump("./ka/tesla_2024_01_15/")
 
 # Avoid
-result.dump("./kb/temp/")
+result.dump("./ka/temp/")
 ```
 
 ---
@@ -311,9 +312,9 @@ result.dump("./kb/temp/")
 ```python
 from pathlib import Path
 
-kb_path = Path("./my_kb/")
-if not kb_path.exists():
-    print(f"Directory not found: {kb_path}")
+ka_path = Path("./my_ka/")
+if not ka_path.exists():
+    print(f"Directory not found: {ka_path}")
     print(f"Available: {list(Path('.').glob('*/'))}")
 ```
 
@@ -322,17 +323,17 @@ if not kb_path.exists():
 ```python
 # Check data file
 import json
-data = json.load(open("./my_kb/data.json"))
+data = json.load(open("./my_ka/data.json"))
 print(f"Keys: {data.keys()}")
 ```
 
 ### "Index not loaded"
 
 ```python
-ka.load("./kb/")
+ka.load("./ka/")
 
 # Check if index exists
-if (Path("./kb/") / "index").exists():
+if (Path("./ka/") / "index").exists():
     print("Index directory exists")
 else:
     print("No index, building...")
@@ -343,6 +344,10 @@ else:
 
 ## See Also
 
-- [Incremental Updates](incremental-updates.md)
-- [Search and Chat](search-and-chat.md)
-- [CLI `he parse` command](../../cli/commands/parse.md)
+**Related Workflows:**
+- [Incremental Updates](incremental-updates.md) — Add more content
+- [Search and Chat](search-and-chat.md) — Use loaded knowledge
+
+**Basics:**
+- [Using Templates](using-templates.md) — Level 1 fundamentals
+- [CLI `he parse` command](../../cli/commands/parse.md) — Command-line extraction

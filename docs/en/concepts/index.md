@@ -42,9 +42,8 @@ graph TD
 
 The 8 data structure types that define extraction output:
 
-- **Scalar Types**: AutoModel, AutoList, AutoSet
-- **Graph Types**: AutoGraph, AutoHypergraph
-- **Temporal Types**: AutoTemporalGraph, AutoSpatialGraph, AutoSpatioTemporalGraph
+- **Record Types**: AutoModel, AutoList, AutoSet (store data, no entity relations)
+- **Graph Types**: AutoGraph, AutoHypergraph, AutoTemporalGraph, AutoSpatialGraph, AutoSpatioTemporalGraph (represent entity relationships)
 
 → [Learn about Auto-Types](autotypes.md)
 

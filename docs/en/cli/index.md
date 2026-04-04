@@ -32,10 +32,10 @@ he --version
 |---------|---------|--------------|
 | `he parse` | Extract knowledge from documents | `-t` template, `-o` output, `-l` language |
 | `he show` | Visualize knowledge graph | — |
-| `he search` | Semantic search in knowledge base | `-n` top-k results |
-| `he talk` | Chat with knowledge base | `-i` interactive, `-q` query |
+| `he search` | Semantic search in knowledge abstract | `-n` top-k results |
+| `he talk` | Chat with knowledge abstract | `-i` interactive, `-q` query |
 | `he feed` | Add documents incrementally | — |
-| `he info` | Show knowledge base statistics | — |
+| `he info` | Show knowledge abstract statistics | — |
 | `he build-index` | Build/rebuild search index | `-f` force rebuild |
 | `he list` | List templates and methods | `template` or `method` |
 | `he config` | Manage configuration | `init`, `show`, `set` |
@@ -49,22 +49,22 @@ The typical workflow for extracting and interacting with knowledge:
 ```mermaid
 flowchart TB
     subgraph Create ["🚀 Create"]
-        D[📄 Document] -->|he parse| KB[(💡 Knowledge Base)]
+        D[📄 Document] -->|he parse| KA[(💡 Knowledge Abstract)]
     end
 
     subgraph Enhance ["✨ Enhance (Optional)"]
-        KB -->|he feed| KB
-        KB -->|he build-index| IDX[(🔍 Index)]
+        KA -->|he feed| KA
+        KA -->|he build-index| IDX[(🔍 Index)]
     end
 
     subgraph Explore ["🔍 Explore"]
-        KB -->|he show| VIS[👁️ Visualize]
+        KA -->|he show| VIS[👁️ Visualize]
         IDX -->|he search| SRCH[🔎 Search]
         IDX -->|he talk| CHAT[💬 Chat]
     end
 
     subgraph Save ["💾 Save"]
-        KB -->|he dump| DISK[💾 Disk]
+        KA -->|he dump| DISK[💾 Disk]
     end
 ```
 
@@ -104,14 +104,14 @@ he show ./output/
 ### Knowledge Extraction
 
 - **[`he parse`](commands/parse.md)** — Extract knowledge from documents
-- **[`he feed`](commands/feed.md)** — Add documents to existing knowledge base
+- **[`he feed`](commands/feed.md)** — Add documents to existing knowledge abstract
 
 ### Exploration
 
 - **[`he show`](commands/show.md)** — Visualize knowledge graph
 - **[`he search`](commands/search.md)** — Semantic search
-- **[`he talk`](commands/talk.md)** — Chat with knowledge base
-- **[`he info`](commands/info.md)** — View knowledge base statistics
+- **[`he talk`](commands/talk.md)** — Chat with knowledge abstract
+- **[`he info`](commands/info.md)** — View knowledge abstract statistics
 
 ### Management
 

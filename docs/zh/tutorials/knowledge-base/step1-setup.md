@@ -15,18 +15,18 @@
 创建以下目录结构：
 
 ```bash
-mkdir -p my_knowledge_base/{documents,kb,backups,logs}
-cd my_knowledge_base
+mkdir -p my_ka/{documents,ka,backups,logs}
+cd my_ka
 ```
 
 结构：
 ```
-my_knowledge_base/
+my_ka/
 ├── config.yaml         # 项目配置
 ├── documents/          # 源文档
 │   ├── raw/           # 原始文件
 │   └── processed/     # 处理日志
-├── kb/                # 知识库版本
+├── ka/                # 知识库版本
 │   └── current/       # 当前版本（符号链接）
 ├── backups/           # 版本备份
 ├── logs/              # 操作日志
@@ -41,7 +41,7 @@ my_knowledge_base/
 
 ```yaml
 # 知识库配置
-name: "Company Knowledge Base"
+name: "Company Knowledge Abstract"
 domain: "legal"  # 或 finance、medical 等
 
 # 模板设置
@@ -58,7 +58,7 @@ auto_backup: true
 
 # 路径
 documents_dir: "./documents/raw"
-kb_dir: "./kb"
+ka_dir: "./ka"
 backup_dir: "./backups"
 ```
 
@@ -69,7 +69,7 @@ backup_dir: "./backups"
 | 法律 | `legal/contract_obligation` | list |
 | 金融 | `finance/earnings_summary` | model |
 | 医疗 | `medicine/anatomy_graph` | graph |
-| 通用 | `general/knowledge_graph` | graph |
+| 通用 | `general/graph` | graph |
 | 研究 | `general/concept_graph` | graph |
 
 ---
@@ -97,7 +97,7 @@ class KBConfig:
     template: str
     language: str
     documents_dir: str
-    kb_dir: str
+    ka_dir: str
     backup_dir: str
 
 class KnowledgeBaseManager:
@@ -163,12 +163,12 @@ if __name__ == "__main__":
 
 ```bash
 cat > config.yaml << 'EOF'
-name: "My Knowledge Base"
+name: "My Knowledge Abstract"
 domain: "general"
-template: "general/knowledge_graph"
+template: "general/graph"
 language: "en"
 documents_dir: "./documents/raw"
-kb_dir: "./kb"
+ka_dir: "./ka"
 backup_dir: "./backups"
 EOF
 ```
@@ -181,14 +181,14 @@ python kb_manager.py
 
 预期输出：
 ```
-初始化: My Knowledge Base
+初始化: My Knowledge Abstract
 ✓ 初始化完成
 ```
 
 ### 3. 验证结构
 
 ```bash
-tree my_knowledge_base/
+tree my_ka/
 ```
 
 ---

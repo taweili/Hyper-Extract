@@ -437,7 +437,7 @@ class Cog_RAG:
             context = "\n".join(context_parts)
 
         prompt = ChatPromptTemplate.from_template(
-            "You are an intelligent assistant using a Dual-Layer Hypergraph Knowledge Base.\n"
+            "You are an intelligent assistant using a Dual-Layer Hypergraph Knowledge Abstract.\n"
             "Use the provided Themes (Macro) and Key Entities (Micro) to answer the user's question comprehensively.\n\n"
             "{context}\n\n"
             "Question: {question}\n\n"

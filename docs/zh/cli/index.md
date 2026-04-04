@@ -49,22 +49,22 @@ he --version
 ```mermaid
 flowchart TB
     subgraph Create ["🚀 创建"]
-        D[📄 Document] -->|he parse| KB[(💡 Knowledge Base)]
+        D[📄 Document] -->|he parse| KA[(💡 Knowledge Abstract)]
     end
 
     subgraph Enhance ["✨ 增强（可选）"]
-        KB -->|he feed| KB
-        KB -->|he build-index| IDX[(🔍 Index)]
+        KA -->|he feed| KA
+        KA -->|he build-index| IDX[(🔍 Index)]
     end
 
     subgraph Explore ["🔍 探索"]
-        KB -->|he show| VIS[👁️ Visualize]
+        KA -->|he show| VIS[👁️ Visualize]
         IDX -->|he search| SRCH[🔎 Search]
         IDX -->|he talk| CHAT[💬 Chat]
     end
 
     subgraph Save ["💾 保存"]
-        KB -->|he dump| DISK[💾 Disk]
+        KA -->|he dump| DISK[💾 Disk]
     end
 ```
 
@@ -88,7 +88,7 @@ he config init -k YOUR_OPENAI_API_KEY
 ### 2. 提取知识
 
 ```bash
-he parse document.md -t general/biography_graph -o ./output/ -l en
+he parse document.md -t general/biography_graph -o ./output/ -l zh
 ```
 
 ### 3. 可视化
@@ -138,7 +138,7 @@ Hyper-Extract 提供两种提取知识的方式：
 特定领域的开箱即用配置：
 
 ```bash
-he parse doc.md -t general/biography_graph -l en
+he parse doc.md -t general/biography_graph -l zh
 ```
 
 ### 方法（高级）
@@ -159,7 +159,7 @@ he parse doc.md -m light_rag
 
 ```bash
 # 英文
-he parse doc.md -t general/biography_graph -l en
+he parse doc.md -t general/biography_graph -l zh
 
 # 中文
 he parse doc.md -t general/biography_graph -l zh
@@ -175,7 +175,7 @@ he parse doc.md -t general/biography_graph -l zh
 
 ```bash
 # 从研究论文提取
-he parse paper.md -t general/concept_graph -o ./paper_kb/ -l en
+he parse paper.md -t general/concept_graph -o ./paper_kb/ -l zh
 
 # 提问
 he talk ./paper_kb/ -q "主要贡献是什么？"
@@ -185,7 +185,7 @@ he talk ./paper_kb/ -q "主要贡献是什么？"
 
 ```bash
 # 从传记提取
-he parse biography.md -t general/biography_graph -o ./bio_kb/ -l en
+he parse biography.md -t general/biography_graph -o ./bio_kb/ -l zh
 
 # 可视化生平事件
 he show ./bio_kb/
@@ -195,10 +195,10 @@ he show ./bio_kb/
 
 ```bash
 # 提取合同义务
-he parse contract.md -t legal/contract_obligation -o ./contract_kb/ -l en
+he parse contract.md -t legal/contract_obligation -o ./contract_kb/ -l zh
 
 # 搜索特定条款
-he search ./contract_kb/ "termination conditions"
+he search ./contract_kb/ "终止条件"
 ```
 
 ---

@@ -20,7 +20,7 @@ dotenv.load_dotenv()
 
 # // test for 基础知识图谱
 test_data_file = "arbitrary_tech_news.md"
-template_name = "general/base_graph"
+template_name = "general/graph"
 
 # // test for 基础超图
 # test_data_file = "encyclopedia_machine_learning.md"
@@ -28,7 +28,7 @@ template_name = "general/base_graph"
 
 # // test for 基础列表
 # test_data_file = "regulation_company_policy.md"
-# template_name = "general/base_list"
+# template_name = "general/list"
 
 # // test for 传记图谱
 # test_data_file = "biography_scientist.md"

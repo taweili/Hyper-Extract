@@ -76,7 +76,7 @@
 
     ---
 
-    Feed new documents to continuously expand your knowledge base. No need to reprocess everything.
+    Feed new documents to continuously expand your knowledge abstract. No need to reprocess everything.
 
 </div>
 
@@ -94,7 +94,7 @@
     
     - Quick knowledge extraction
     - Batch document processing
-    - Building knowledge bases without coding
+    - Building knowledge abstracts without coding
     
     [:octicons-arrow-right-24: CLI Guide](cli/index.md)
 

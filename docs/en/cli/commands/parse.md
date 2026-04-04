@@ -1,6 +1,6 @@
 # he parse
 
-Extract knowledge from documents and save to a knowledge base.
+Extract knowledge from documents and save to a knowledge abstract.
 
 ---
 
@@ -49,7 +49,7 @@ he parse document.md -o ./output/ -l en
 # You'll see:
 # Select a template:
 #   [1] general/biography_graph
-#   [2] general/knowledge_graph
+#   [2] general/graph
 #   [3] finance/earnings_summary
 #   ...
 # Enter number or search keyword: 

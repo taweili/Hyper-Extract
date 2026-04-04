@@ -1,5 +1,8 @@
 # 搜索和聊天
 
+!!! tip "进阶 - 提取后操作"
+    本指南涵盖使用提取后的知识。您应该先熟悉 [Level 1: 使用模板](using-templates.md)。
+
 使用语义搜索和对话 AI 查询您的知识库。
 
 ---
@@ -57,7 +60,7 @@ nodes, edges = result.search(
 ### 处理结果
 
 ```python
-nodes, edges = result.search("Nobel Prize")
+nodes, edges = result.search("代表作")
 
 # 处理节点
 for node in nodes:
@@ -195,9 +198,9 @@ print(response.content)
 
 ```python
 class ResearchAssistant:
-    def __init__(self, kb_path):
+    def __init__(self, ka_path):
         self.ka = Template.create("general/concept_graph", "zh")
-        self.ka.load(kb_path)
+        self.ka.load(ka_path)
         self.ka.build_index()
     
     def ask(self, question):
@@ -249,9 +252,9 @@ result.build_index()
 
 ```python
 # 尝试不同的措辞
-results = result.search("inventions")  # 尝试同义词
-results = result.search("discoveries")
-results = result.search("contributions")
+results = result.search("发明")  # 尝试同义词
+results = result.search("发现")
+results = result.search("贡献")
 
 # 增加 top_k
 results = result.search("苏轼", top_k=20)
@@ -271,6 +274,10 @@ response = result.chat("请更具体地说明：...")
 
 ## 另请参见
 
-- [使用自动类型](working-with-autotypes.md)
-- [增量更新](incremental-updates.md)
-- [保存和加载](saving-loading.md)
+**相关工作流：**
+- [增量更新](incremental-updates.md) — 添加更多内容
+- [保存和加载](saving-loading.md) — 持久化以供后续使用
+
+**基础知识：**
+- [使用模板](using-templates.md) — Level 1 基础
+- [使用自动类型](working-with-autotypes.md) — Level 2 自定义

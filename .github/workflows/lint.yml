@@ -1,0 +1,67 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "hyperextract/**/*.py"
+      - "pyproject.toml"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "hyperextract/**/*.py"
+      - "pyproject.toml"
+      - ".github/workflows/lint.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    name: Ruff
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install ruff
+        run: uv pip install --system ruff
+
+      - name: Run ruff linter
+        run: ruff check hyperextract
+
+      - name: Run ruff formatter check
+        run: ruff format --check hyperextract
+
+  mypy:
+    name: Type Check (mypy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system -e ".[all]"
+          uv pip install --system mypy
+
+      - name: Run mypy
+        run: mypy hyperextract --ignore-missing-imports

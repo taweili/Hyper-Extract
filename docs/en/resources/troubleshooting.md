@@ -11,6 +11,7 @@ Solutions to common issues.
 **Problem**: Installation fails with errors
 
 **Solutions**:
+
 1. Upgrade pip: `pip install --upgrade pip`
 2. Use Python 3.11+: `python --version`
 3. Install in virtual environment:
@@ -25,6 +26,7 @@ Solutions to common issues.
 **Problem**: Can't import after installation
 
 **Solutions**:
+
 1. Check Python version: `python --version` (need 3.11+)
 2. Verify installation: `pip list | grep hyper`
 3. Check virtual environment is activated
@@ -60,6 +62,7 @@ Solutions to common issues.
 **Error**: `Authentication failed`
 
 **Solutions**:
+
 1. Verify key is correct
 2. Check for extra spaces
 3. Try regenerating key in OpenAI dashboard
@@ -100,6 +103,7 @@ Solutions to common issues.
 **Error**: `--lang is required`
 
 **Solution**:
+
 ```bash
 # Add language flag
 he parse doc.md -t general/biography_graph -o ./out/ -l en
@@ -138,6 +142,7 @@ Note: Method templates don't require language.
 **Error**: `Search index not built`
 
 **Solution**:
+
 ```bash
 he build-index ./output/
 ```
@@ -175,6 +180,7 @@ he build-index ./output/
 **Error**: `Chat failed: index not found`
 
 **Solution**:
+
 ```bash
 he build-index ./output/
 he talk ./output/ -q "your question"
@@ -250,7 +256,7 @@ he talk ./output/ -q "your question"
 
 2. **Try different template**:
    ```bash
-   he parse doc.md -t general/base_model -l en
+   he parse doc.md -t general/model -l en
    ```
 
 3. **Check language**:
@@ -262,7 +268,7 @@ he talk ./output/ -q "your question"
    he parse chinese_doc.md -t general/graph -l zh
    ```
 
-### Corrupted Knowledge Base
+### Corrupted Knowledge Abstract
 
 **Problem**: Can't load or errors reading
 
@@ -270,19 +276,19 @@ he talk ./output/ -q "your question"
 
 1. **Check file structure**:
    ```bash
-   ls ./kb/
+   ls ./ka/
    # Should have: data.json, metadata.json
    ```
 
 2. **Validate JSON**:
    ```bash
-   python -c "import json; json.load(open('./kb/data.json'))"
+   python -c "import json; json.load(open('./ka/data.json'))"
    ```
 
 3. **Re-extract**:
    ```bash
-   rm -rf ./kb/
-   he parse doc.md -t general/graph -o ./kb/ -l en
+   rm -rf ./ka/
+   he parse doc.md -t general/graph -o ./ka/ -l en
    ```
 
 ---

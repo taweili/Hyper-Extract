@@ -31,7 +31,7 @@
 <br/>
 </div>
 
-Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed knowledge summaries. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
+Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed **Knowledge Abstracts**. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
 
 ## ✨ Core Features
 
@@ -63,7 +63,7 @@ he config init -k YOUR_OPENAI_API_KEY
 # Extract knowledge
 he parse examples/en/tesla.md -t general/biography_graph -o ./output/ -l en
 
-# Query the knowledge base
+# Query the knowledge abstract
 he search ./output/ "What are Tesla's major achievements?"
 
 # Visualize the knowledge graph

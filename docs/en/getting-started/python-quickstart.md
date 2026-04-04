@@ -95,6 +95,8 @@ result.build_index()
 result.show()
 ```
 
+![Knowledge Graph Visualization](../../assets/en_show.png)
+
 ---
 
 ## Step 4: Run the Script
@@ -131,7 +133,7 @@ for node in result.nodes:
 for edge in result.edges:
     print(f"- {edge.source} --{edge.type}--> {edge.target}")
 
-# Search within the knowledge base
+# Search within the knowledge abstract
 result.build_index()
 nodes, edges = result.search("inventions", top_k=3)
 for node in nodes:
@@ -144,15 +146,15 @@ for edge in edges:
 
 ## Step 6: Save and Load
 
-Save your knowledge base for later use:
+Save your knowledge abstract for later use:
 
 ```python
 # Save to disk
-result.dump("./my_knowledge_base/")
+result.dump("./my_ka/")
 
 # Load it back later
 new_ka = Template.create("general/biography_graph", language="en")
-new_ka.load("./my_knowledge_base/")
+new_ka.load("./my_ka/")
 ```
 
 ---
@@ -176,6 +178,8 @@ result.build_index()
 # Visualize the updated graph
 result.show()
 ```
+
+![Updated Knowledge Graph Visualization](../../assets/en_show.png)
 
 ---
 
@@ -231,6 +235,9 @@ def main():
     result.show()
     
     print("\nDone!")
+```
+
+![Interactive Knowledge Graph Visualization](../../assets/en_show.png)
 
 
 if __name__ == "__main__":
