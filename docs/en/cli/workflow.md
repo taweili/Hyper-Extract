@@ -14,7 +14,7 @@ Imagine you're a researcher who wants to extract and interact with knowledge fro
 
 Hyper-Extract supports `.md` and `.txt` files. Download the sample research paper below to follow this guide:
 
-<a href="/assets/examples/en/transformer_paper.txt" download class="md-button">📥 Download Sample Document</a>
+<a href="../../assets/examples/en/transformer_paper.txt" download class="md-button">📥 Download Sample Document</a>
 
 Save the file as `transformer_paper.md` in your working directory.
 

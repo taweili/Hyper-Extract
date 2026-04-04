@@ -1,8 +1,4 @@
-<div align="center">
-  <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
-</div>
-
-<br/>
+![Hyper-Extract Logo](../assets/logo/logo-horizontal.svg){ width="500" }
 
 > **Transform documents into structured knowledge with one command.**
 > 

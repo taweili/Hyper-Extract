@@ -14,7 +14,7 @@
 
 Hyper-Extract 支持 `.md` 和 `.txt` 文件。下载下面的示例研究论文以跟随本指南：
 
-<a href="/assets/examples/zh/transformer_paper.txt" download class="md-button">📥 下载示例文档</a>
+<a href="../../assets/examples/zh/transformer_paper.txt" download class="md-button">📥 下载示例文档</a>
 
 将文件保存为 `transformer_paper.md` 在你的工作目录中。
 

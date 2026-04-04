@@ -34,17 +34,6 @@
 
 Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed **Knowledge Abstracts**. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
 
-## 📑 Table of Contents
-
-- [Core Features](#-core-features)
-- [Quick Start](#-quick-start)
-  - [CLI](#2-the-command-line-way)
-  - [Python API](#-the-python-api-way)
-- [The 8 Auto-Types](#-deep-dive-the-8-auto-types)
-- [Architecture](#-architecture-overview)
-- [Comparison](#-comparison-with-other-libraries)
-- [Documentation](#-related-documentation)
-
 ## ✨ Core Features
 
 - 🔷 **8 Auto-Types:** From basic `AutoModel`/`AutoList` to advanced `AutoGraph`, `AutoHypergraph`, and `AutoSpatioTemporalGraph`.

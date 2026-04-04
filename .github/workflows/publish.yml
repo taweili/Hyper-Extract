@@ -36,14 +36,14 @@ jobs:
           enable-cache: true
 
       - name: Install build dependencies
-        run: uv pip install --system build hatchling
+        run: uv tool install build hatchling
 
       - name: Build package
         run: python -m build
 
       - name: Check distribution
         run: |
-          uv pip install --system twine
+          uv tool install twine
           twine check dist/*
 
       - name: Upload distribution packages

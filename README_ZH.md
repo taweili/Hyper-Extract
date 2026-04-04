@@ -34,17 +34,6 @@
 
 Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的**知识摘要（Knowledge Abstracts）**的过程。无论从基础的**集合（Collection/List）和**结构化模型（Model），还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
 
-## 📑 目录
-
-- [核心亮点](#-核心亮点)
-- [快速上手](#-快速上手)
-  - [CLI命令行](#2-cli-命令行玩法)
-  - [Python API](#-python-api-深度集成)
-- [8大知识结构](#-8种核心知识结构)
-- [系统架构](#-系统架构)
-- [对比其他库](#-与其他相关库的对比)
-- [文档](#-相关文档)
-
 ## ✨ 核心亮点
 
 - 🔷 **8大基础知识结构数据结构（Auto-Types）：** 从基础的 `AutoModel`/`AutoList` 到高阶的 `AutoGraph`, `AutoHypergraph`, 以及 `AutoSpatioTemporalGraph`（时空图）。
