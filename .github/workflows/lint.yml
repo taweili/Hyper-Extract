@@ -32,7 +32,7 @@ jobs:
           enable-cache: true
 
       - name: Install ruff
-        run: uv pip install --system ruff
+        run: uv tool install ruff
 
       - name: Run ruff linter
         run: ruff check hyperextract
@@ -60,8 +60,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install --system -e ".[all]"
-          uv pip install --system mypy
+          uv venv
+          uv pip install -e ".[all]"
+          uv pip install mypy
 
       - name: Run mypy
-        run: mypy hyperextract --ignore-missing-imports
+        run: uv run mypy hyperextract --ignore-missing-imports

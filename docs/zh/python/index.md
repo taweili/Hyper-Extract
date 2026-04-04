@@ -41,7 +41,7 @@ result.build_index()
 result.show()
 ```
 
-![交互式可视化](../../assets/zh_show.png)
+![交互式可视化](../../assets/zh_show.jpg)
 
 ---
 
@@ -106,7 +106,7 @@ result.load("./output/")          # 从磁盘加载
 result.show()                     # 交互式可视化
 ```
 
-![交互式可视化](../../assets/zh_show.png)
+![交互式可视化](../../assets/zh_show.jpg)
 
 ---
 

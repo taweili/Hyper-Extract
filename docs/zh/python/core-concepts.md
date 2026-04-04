@@ -227,7 +227,7 @@ result.build_index()
 result.show()
 ```
 
-![交互式可视化](../../assets/zh_show.png)
+![交互式可视化](../../assets/zh_show.jpg)
 
 ### 方法方法（高级）
 

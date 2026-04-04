@@ -90,7 +90,7 @@ result.build_index()
 result.show()
 ```
 
-![交互式可视化](../../assets/zh_show.png)
+![交互式可视化](../../assets/zh_show.jpg)
 
 ### 4. 搜索
 

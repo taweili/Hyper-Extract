@@ -95,7 +95,7 @@ result.build_index()
 result.show()
 ```
 
-![Knowledge Graph Visualization](../../assets/en_show.png)
+![Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 ---
 
@@ -116,7 +116,7 @@ First entity: Nikola Tesla (person)
 
 And a browser window will open showing the interactive knowledge graph.
 
-![Knowledge Graph Visualization](../../assets/en_show.png)
+![Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 ---
 
@@ -179,7 +179,7 @@ result.build_index()
 result.show()
 ```
 
-![Updated Knowledge Graph Visualization](../../assets/en_show.png)
+![Updated Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 ---
 
@@ -237,7 +237,7 @@ def main():
     print("\nDone!")
 ```
 
-![Interactive Knowledge Graph Visualization](../../assets/en_show.png)
+![Interactive Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 
 if __name__ == "__main__":

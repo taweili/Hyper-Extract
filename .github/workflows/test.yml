@@ -57,6 +57,7 @@ jobs:
           pytest --cov=hyperextract --cov-report=xml --cov-report=term -v
         env:
           PYTHONPATH: ${{ github.workspace }}
+          OPENAI_API_KEY: ""  # Force using mock for deterministic tests
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'

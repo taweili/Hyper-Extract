@@ -56,7 +56,7 @@ ka.build_index()
 ka.show()
 ```
 
-![交互式可视化](../../../assets/zh_show.png)
+![交互式可视化](../../../assets/zh_show.jpg)
 
 ### 处理多个文档
 

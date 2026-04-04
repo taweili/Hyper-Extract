@@ -246,7 +246,7 @@ class ResearchAssistantApp:
         """Open visualization."""
         self.ka.show()
 
-![Interactive Visualization](../../../../assets/en_show.png)
+![Interactive Visualization](../../../../assets/en_show.jpg)
 
     def run(self):
         """Run interactive session."""

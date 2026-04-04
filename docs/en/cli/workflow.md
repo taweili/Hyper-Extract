@@ -71,7 +71,7 @@ Index         Built
 he show ./transformer_kb/
 ```
 
-![Knowledge Graph Visualization](../../assets/en_show.png)
+![Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 This opens an interactive graph in your browser showing:
 

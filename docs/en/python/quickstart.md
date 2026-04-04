@@ -80,7 +80,7 @@ result.build_index()
 result.show()
 ```
 
-![Interactive Visualization](../../assets/en_show.png)
+![Interactive Visualization](../../assets/en_show.jpg)
 
 ### 4. Search
 

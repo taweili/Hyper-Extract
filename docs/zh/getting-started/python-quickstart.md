@@ -109,7 +109,7 @@ python extract.py
 
 同时会打开浏览器窗口显示交互式知识图谱。
 
-![知识图谱可视化](../../assets/zh_show.png)
+![知识图谱可视化](../../assets/zh_show.jpg)
 
 ---
 
@@ -172,7 +172,7 @@ result.build_index()
 result.show()
 ```
 
-![更新后的知识图谱可视化](../../assets/zh_show.png)
+![更新后的知识图谱可视化](../../assets/zh_show.jpg)
 
 ---
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     main()
 ```
 
-![交互式知识图谱可视化](../../assets/zh_show.png)
+![交互式知识图谱可视化](../../assets/zh_show.jpg)
 ```
 
 ---

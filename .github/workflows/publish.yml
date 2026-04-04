@@ -57,11 +57,11 @@ jobs:
     name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && !inputs.test_pypi
+    if: '!inputs.test_pypi'
 
     environment:
       name: pypi
-      url: https://pypi.org/p/hyperextract
+      url: https://pypi.org/project/hyperextract
 
     permissions:
       id-token: write
@@ -82,11 +82,11 @@ jobs:
     name: Publish to Test PyPI
     needs: build
     runs-on: ubuntu-latest
-    if: inputs.test_pypi
+    if: 'inputs.test_pypi'
 
     environment:
       name: test-pypi
-      url: https://test.pypi.org/p/hyperextract
+      url: https://test.pypi.org/project/hyperextract
 
     permissions:
       id-token: write

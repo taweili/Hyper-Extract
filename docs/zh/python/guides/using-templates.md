@@ -236,7 +236,7 @@ result.build_index()
 result.show()  # 可视化生平时间线（支持搜索/对话功能）
 ```
 
-![交互式可视化](../../../assets/zh_show.png)
+![交互式可视化](../../../assets/zh_show.jpg)
 
 ### 模式 2：财务报告
 

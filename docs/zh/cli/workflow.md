@@ -71,7 +71,7 @@ Index         Built
 he show ./transformer_kb/
 ```
 
-![知识图谱可视化](../../assets/zh_show.png)
+![知识图谱可视化](../../assets/zh_show.jpg)
 
 这将在浏览器中打开交互式图谱，显示：
 

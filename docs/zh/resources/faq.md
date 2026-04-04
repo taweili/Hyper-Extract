@@ -176,7 +176,7 @@ result.build_index()
 result.show()
 ```
 
-![交互式可视化](../../assets/zh_show.png)
+![交互式可视化](../../assets/zh_show.jpg)
 
 ### 可以导出为其他格式吗？
 

@@ -244,7 +244,7 @@ class ResearchAssistantApp:
         """打开可视化。"""
         self.ka.show()
 
-![交互式可视化](../../../../assets/zh_show.png)
+![交互式可视化](../../../../assets/zh_show.jpg)
 
     def run(self):
         """运行交互式会话。"""

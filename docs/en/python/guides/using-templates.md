@@ -236,7 +236,7 @@ result.build_index()
 result.show()  # Visualize life timeline with search/chat
 ```
 
-![Interactive Visualization](../../../assets/en_show.png)
+![Interactive Visualization](../../../assets/en_show.jpg)
 
 ### Pattern 2: Financial Report
 

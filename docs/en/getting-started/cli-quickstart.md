@@ -101,7 +101,7 @@ This opens an interactive visualization in your browser, showing:
 - **Entities** (people, places, events) as nodes
 - **Relationships** as edges connecting the nodes
 
-![Knowledge Graph Visualization](../../assets/en_show.png)
+![Knowledge Graph Visualization](../../assets/en_show.jpg)
 
 ---
 
