@@ -4,39 +4,62 @@ Hyper-Extract 需要 **Python 3.11+**。
 
 ---
 
-## 从 PyPI 安装
+## 安装为 CLI 工具
+
+如果您想在任何地方使用 `he` 命令：
 
 === "uv (推荐)"
 
     ```bash
-    uv pip install hyper-extract
+    uv tool install hyperextract
+    ```
+
+=== "pipx"
+
+    ```bash
+    pipx install hyperextract
+    ```
+
+---
+
+## 安装为 Python 库
+
+如果您想在 Python 代码中使用 Hyper-Extract：
+
+=== "uv (推荐)"
+
+    ```bash
+    uv pip install hyperextract
     ```
 
 === "pip"
 
     ```bash
-    pip install hyper-extract
-    ```
-
-=== "conda"
-
-    ```bash
-    pip install hyper-extract
+    pip install hyperextract
     ```
 
 ---
 
 ## 验证安装
 
-```bash
-he --version
-```
+=== "CLI"
 
-您应该看到类似输出：
+    ```bash
+    he --version
+    ```
 
-```
-Hyper-Extract CLI version 0.1.0
-```
+    您应该看到类似输出：
+
+    ```
+    Hyper-Extract CLI version 0.1.0
+    ```
+
+=== "Python"
+
+    ```python
+    import hyperextract
+    print(hyperextract.__version__)
+    ```
 
 ---
 

@@ -15,6 +15,7 @@
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
+[![PyPI版本](https://img.shields.io/pypi/v/hyperextract)](https://pypi.org/project/hyperextract/)
 [![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![开源协议](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![状态](https://img.shields.io/badge/status-active-success)]()
@@ -26,12 +27,23 @@
 
 <br/>
 
-<img src="docs/assets/hero.png" alt="Hero & Workflow" width="100%">
+<img src="docs/assets/hero.png" alt="Hero & Workflow" width="800" style="max-width: 100%;">
 
 <br/>
 </div>
 
 Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提取与演进框架。它极大地简化了将杂乱不堪的文本转化为持久化、强类型的**知识摘要（Knowledge Abstracts）**的过程。无论从基础的**集合（Collection/List）和**结构化模型（Model），还是到高阶复杂的**知识图谱（Knowledge Graph）**、**超图（Hypergraph）**，甚至是**时空图谱（Spatio-Temporal Graph）**，它都能轻松拿捏。
+
+## 📑 目录
+
+- [核心亮点](#-核心亮点)
+- [快速上手](#-快速上手)
+  - [CLI命令行](#2-cli-命令行玩法)
+  - [Python API](#-python-api-深度集成)
+- [8大知识结构](#-8种核心知识结构)
+- [系统架构](#-系统架构)
+- [对比其他库](#-与其他相关库的对比)
+- [文档](#-相关文档)
 
 ## ✨ 核心亮点
 
@@ -44,10 +56,18 @@ Hyper-Extract 是一个智能的、由大语言模型（LLM）驱动的知识提
 
 ## ⚡ 快速上手
 
-### 1. 极速安装
+### 1. 安装
+
+**CLI 用户**（全局安装 `he` 命令）：
 
 ```bash
-uv pip install hyper-extract
+uv tool install hyperextract
+```
+
+**Python 开发者**（作为库使用）：
+
+```bash
+uv pip install hyperextract
 ```
 
 ### 2. CLI 命令行玩法
@@ -77,7 +97,7 @@ he show ./output/
 ```
 
 <details>
-<summary><b>🐍 Python API 深度集成</b></summary>
+<summary><b>🐍 Python API 深度集成</b>（点击展开）</summary>
 <br>
 
 ### 安装
@@ -137,17 +157,26 @@ ka.show(result)
 
 </details>
 
+<br>
+
+**安装方式对比：**
+
+| 使用场景 | 命令 | 说明 |
+|----------|------|------|
+| CLI 工具 | `uv tool install hyperextract` | 全局安装 `he` 命令 |
+| Python 库 | `uv pip install hyperextract` | 在 Python 代码中使用 |
+
 ## 🧩 8 种核心知识结构
 
 拒绝样板代码，纯干货聚焦数据本身。
 
-![Knowledge Structures Matrix](docs/assets/autotypes.png)
+<img src="docs/assets/autotypes.png" alt="知识结构矩阵" width="700" style="max-width: 100%;">
 
 ### 示例：AutoGraph 知识图谱可视化
 
 以下是 `AutoGraph` 类型提取后的知识图谱可视化效果：
 
-![AutoGraph 可视化](docs/assets/zh_show.png)
+<img src="docs/assets/zh_show.png" alt="AutoGraph 可视化" width="600" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
 
 ## 🛠️ 系统架构
 
@@ -161,7 +190,7 @@ Hyper-Extract 采用**三层架构**：
 
 可通过 **CLI**（`he parse`、`he search`、`he show`...）或 **Python API**（`Template.create()`）使用。
 
-![Architecture](docs/assets/arch.png)
+<img src="docs/assets/arch.png" alt="系统架构" width="750" style="max-width: 100%;">
 
 ### 📝 相关文档
 
@@ -244,12 +273,13 @@ display:
 | 多语言支持   |     ✅    |     ❌    |    ❌   |   ❌  |         ✅         |
 
 
-## 📚 项目参考文档
+## 📚 相关文档
 
-- [CLI 命令行指南](./hyperextract/cli/README.md)
-- [模板画廊](./hyperextract/templates/)
-- [示例代码示例](./examples/)
-- [完整架构文档](./docs/)
+- [完整文档](https://hyper-extract.github.io/zh/) - 完整文档站点
+- [English Documentation](https://hyper-extract.github.io/en/) - English Documentation
+- [CLI 指南](https://hyper-extract.github.io/zh/cli/) - 命令行界面
+- [模板画廊](https://hyper-extract.github.io/zh/templates/) - 可用模板
+- [示例代码](./examples/) - 可运行示例
 
 ## 🤝 参与贡献与协议
 

@@ -34,21 +34,21 @@ The software is open-source (Apache-2.0). You need to provide your own OpenAI AP
 ### How do I install it?
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ### Installation fails with "No module named 'hyperextract'"
 
 Try:
 ```bash
-pip install --upgrade hyper-extract
+pip install --upgrade hyperextract
 ```
 
 Or use a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ---

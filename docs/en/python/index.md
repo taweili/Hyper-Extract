@@ -7,13 +7,13 @@ Build knowledge extraction pipelines with the Hyper-Extract Python API.
 ## Installation
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 For development:
 
 ```bash
-pip install hyper-extract[dev]
+pip install hyperextract[dev]
 ```
 
 ---

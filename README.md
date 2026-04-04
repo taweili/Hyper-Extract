@@ -15,6 +15,7 @@
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
 
+[![PyPI Version](https://img.shields.io/pypi/v/hyperextract)](https://pypi.org/project/hyperextract/)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
@@ -26,12 +27,23 @@
 
 <br/>
 
-<img src="docs/assets/hero.png" alt="Hero & Workflow" width="100%">
+<img src="docs/assets/hero.png" alt="Hero & Workflow" width="800" style="max-width: 100%;">
 
 <br/>
 </div>
 
 Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution framework. It radically simplifies transforming highly unstructured texts into persistent, predictable, and strongly-typed **Knowledge Abstracts**. It effortlessly extracts information into a wide spectrum of formats—ranging from simple **Collections** (Lists/Sets) and **Pydantic Models**, to complex **Knowledge Graphs**, **Hypergraphs**, and even **Spatio-Temporal Graphs**.
+
+## 📑 Table of Contents
+
+- [Core Features](#-core-features)
+- [Quick Start](#-quick-start)
+  - [CLI](#2-the-command-line-way)
+  - [Python API](#-the-python-api-way)
+- [The 8 Auto-Types](#-deep-dive-the-8-auto-types)
+- [Architecture](#-architecture-overview)
+- [Comparison](#-comparison-with-other-libraries)
+- [Documentation](#-related-documentation)
 
 ## ✨ Core Features
 
@@ -46,8 +58,16 @@ Hyper-Extract is an intelligent, LLM-powered knowledge extraction and evolution 
 
 ### 1. Installation
 
+**For CLI Users** (install `he` command globally):
+
 ```bash
-uv pip install hyper-extract
+uv tool install hyperextract
+```
+
+**For Python Developers** (use as library):
+
+```bash
+uv pip install hyperextract
 ```
 
 ### 2. The Command Line Way
@@ -77,7 +97,7 @@ he show ./output/
 ```
 
 <details>
-<summary><b>🐍 The Python API Way</b></summary>
+<summary><b>🐍 The Python API Way</b> (click to expand)</summary>
 <br>
 
 ### Installation
@@ -117,7 +137,7 @@ from hyperextract import Template
 ka = Template.create("general/biography_graph")
 
 # Parse a document
-with open("examples/en/tesla.md", "r") as f:
+with open("examples/en/tesla.md", "r", encoding="utf-8") as f:
     text = f.read()
 result = ka.parse(text)
 
@@ -125,7 +145,7 @@ result = ka.parse(text)
 ka.show(result)
 
 # Incrementally supplement knowledge
-with open("examples/en/tesla_question.md", "r") as f:
+with open("examples/en/tesla_question.md", "r", encoding="utf-8") as f:
     new_text = f.read()
 ka.feed(result, new_text)
 
@@ -137,17 +157,26 @@ ka.show(result)
 
 </details>
 
+<br>
+
+**Installation Comparison:**
+
+| Use Case | Command | Purpose |
+|----------|---------|---------|
+| CLI Tool | `uv tool install hyperextract` | Install `he` command globally |
+| Python Library | `uv pip install hyperextract` | Use in Python code |
+
 ## 🧩 Deep Dive: The 8 Auto-Types
 
 Our framework embraces complexity without making you write boilerplate code.
 
-![Knowledge Structures Matrix](docs/assets/autotypes.png)
+<img src="docs/assets/autotypes.png" alt="Knowledge Structures Matrix" width="700" style="max-width: 100%;">
 
 ### Example: AutoGraph Visualization
 
 Here is the knowledge graph visualization after `AutoGraph` extraction:
 
-![AutoGraph Visualization](docs/assets/en_show.png)
+<img src="docs/assets/en_show.png" alt="AutoGraph Visualization" width="600" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
 
 ## 🛠️ Architecture Overview
 
@@ -161,7 +190,7 @@ Hyper-Extract follows a **three-layer architecture**:
 
 Use via **CLI** (`he parse`, `he search`, `he show`...) or **Python API** (`Template.create()`).
 
-![Architecture](docs/assets/arch.png)
+<img src="docs/assets/arch.png" alt="Architecture" width="750" style="max-width: 100%;">
 
 ### 📚 Related Documentation
 

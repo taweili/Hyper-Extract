@@ -9,13 +9,13 @@ The Hyper-Extract CLI (`he`) provides a powerful, easy-to-use interface for know
 === "uv (recommended)"
 
     ```bash
-    uv pip install hyper-extract
+    uv tool install hyperextract
     ```
 
-=== "pip"
+=== "pipx"
 
     ```bash
-    pip install hyper-extract
+    pipx install hyperextract
     ```
 
 Verify installation:

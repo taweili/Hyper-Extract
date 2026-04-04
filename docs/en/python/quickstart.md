@@ -12,7 +12,7 @@ Get started with the Hyper-Extract Python SDK in 5 minutes.
 ## Installation
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ## Basic Usage

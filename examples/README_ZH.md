@@ -124,8 +124,8 @@ examples/
 ## 环境要求
 
 ```bash
-# 安装 hyper-extract（依赖项会自动安装）
-uv pip install hyper-extract
+# 安装 hyperextract（依赖项会自动安装）
+uv pip install hyperextract
 
 # 配置 API 密钥
 # 选项 1：使用 .env 文件（推荐）

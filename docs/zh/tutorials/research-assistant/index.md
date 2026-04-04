@@ -26,7 +26,7 @@
 
 ## 前提条件
 
-- Hyper-Extract 已安装：`pip install hyper-extract`
+- Hyper-Extract 已安装：`pip install hyperextract`
 - OpenAI API 密钥已配置
 - 一篇研究论文（PDF 或文本格式）
 

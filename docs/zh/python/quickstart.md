@@ -12,7 +12,7 @@
 ## 安装
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ## 基本用法

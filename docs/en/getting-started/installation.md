@@ -4,39 +4,62 @@ Hyper-Extract requires **Python 3.11+**.
 
 ---
 
-## Install from PyPI
+## Install as CLI Tool
+
+If you want to use the `he` command from anywhere:
 
 === "uv (recommended)"
 
     ```bash
-    uv pip install hyper-extract
+    uv tool install hyperextract
+    ```
+
+=== "pipx"
+
+    ```bash
+    pipx install hyperextract
+    ```
+
+---
+
+## Install as Python Library
+
+If you want to use Hyper-Extract in your Python code:
+
+=== "uv (recommended)"
+
+    ```bash
+    uv pip install hyperextract
     ```
 
 === "pip"
 
     ```bash
-    pip install hyper-extract
-    ```
-
-=== "conda"
-
-    ```bash
-    pip install hyper-extract
+    pip install hyperextract
     ```
 
 ---
 
 ## Verify Installation
 
-```bash
-he --version
-```
+=== "CLI"
 
-You should see something like:
+    ```bash
+    he --version
+    ```
 
-```
-Hyper-Extract CLI version 0.1.0
-```
+    You should see something like:
+
+    ```
+    Hyper-Extract CLI version 0.1.0
+    ```
+
+=== "Python"
+
+    ```python
+    import hyperextract
+    print(hyperextract.__version__)
+    ```
 
 ---
 

@@ -17,8 +17,8 @@
 === "CLI (Terminal)"
 
     ```bash
-    # 1. Install
-    pip install hyper-extract
+    # 1. Install CLI tool
+    uv tool install hyperextract
 
     # 2. Configure API Key
     he config init -k YOUR_OPENAI_API_KEY

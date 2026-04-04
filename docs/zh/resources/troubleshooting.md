@@ -17,7 +17,7 @@
    ```bash
    python -m venv venv
    source venv/bin/activate
-   pip install hyper-extract
+   pip install hyperextract
    ```
 
 ### ImportError: No module named 'hyperextract'
@@ -28,7 +28,7 @@
 1. 检查 Python 版本：`python --version`（需要 3.11+）
 2. 验证安装：`pip list | grep hyper`
 3. 检查虚拟环境是否已激活
-4. 重新安装：`pip install --force-reinstall hyper-extract`
+4. 重新安装：`pip install --force-reinstall hyperextract`
 
 ---
 
@@ -290,7 +290,7 @@ he talk ./output/ -q "你的问题"
 ## 仍有问题？
 
 1. **检查日志** — 查看详细的错误信息
-2. **更新到最新版本** — `pip install --upgrade hyper-extract`
+2. **更新到最新版本** — `pip install --upgrade hyperextract`
 3. **查看 GitHub Issues** — [github.com/yifanfeng97/hyper-extract/issues](https://github.com/yifanfeng97/hyper-extract/issues)
 4. **创建新 issue** — 包含错误消息和复现步骤
 

@@ -26,7 +26,7 @@ By the end of this tutorial, you'll have a research assistant that can:
 
 ## Prerequisites
 
-- Hyper-Extract installed: `pip install hyper-extract`
+- Hyper-Extract installed: `pip install hyperextract`
 - OpenAI API key configured
 - A research paper (PDF or text format)
 

@@ -10,7 +10,7 @@
 
 ```bash
 # 安装
-pip install hyper-extract
+uv tool install hyperextract
 
 # 首次设置
 he config init

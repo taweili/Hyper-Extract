@@ -17,8 +17,8 @@
 === "CLI (终端)"
 
     ```bash
-    # 1. 安装
-    pip install hyper-extract
+    # 1. 安装 CLI 工具
+    uv tool install hyperextract
 
     # 2. 配置 API 密钥
     he config init -k YOUR_OPENAI_API_KEY

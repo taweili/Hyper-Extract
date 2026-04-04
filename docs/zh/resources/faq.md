@@ -34,21 +34,21 @@ Hyper-Extract 是一个基于大语言模型的知识提取框架，可以将非
 ### 如何安装？
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ### 安装失败，提示 "No module named 'hyperextract'"
 
 尝试：
 ```bash
-pip install --upgrade hyper-extract
+pip install --upgrade hyperextract
 ```
 
 或使用虚拟环境：
 ```bash
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install hyper-extract
+pip install hyperextract
 ```
 
 ---

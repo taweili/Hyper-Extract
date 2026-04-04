@@ -7,13 +7,13 @@
 ## 安装
 
 ```bash
-pip install hyper-extract
+pip install hyperextract
 ```
 
 开发安装：
 
 ```bash
-pip install hyper-extract[dev]
+pip install hyperextract[dev]
 ```
 
 ---

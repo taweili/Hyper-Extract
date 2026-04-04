@@ -123,8 +123,8 @@ Nikola Tesla biography (1856-1943):
 ## Requirements
 
 ```bash
-# Install hyper-extract (dependencies are automatically installed)
-uv pip install hyper-extract
+# Install hyperextract (dependencies are automatically installed)
+uv pip install hyperextract
 
 # Configure API key
 # Option 1: Use .env file (recommended)

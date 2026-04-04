@@ -22,8 +22,8 @@ cd my_extraction_project
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 安装 hyper-extract
-pip install hyper-extract
+# 安装 hyperextract
+pip install hyperextract
 ```
 
 ---
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 ## 故障排除
 
 **"No module named 'hyperextract'"**
-→ 运行 `pip install hyper-extract`
+→ 运行 `pip install hyperextract`
 
 **"API key not found"**
 → 检查 `.env` 文件或设置 `OPENAI_API_KEY` 环境变量

@@ -9,13 +9,13 @@ Hyper-Extract CLI (`he`) 提供了强大、易用的界面，可直接从终端�
 === "uv (推荐)"
 
     ```bash
-    uv pip install hyper-extract
+    uv tool install hyperextract
     ```
 
-=== "pip"
+=== "pipx"
 
     ```bash
-    pip install hyper-extract
+    pipx install hyperextract
     ```
 
 验证安装：

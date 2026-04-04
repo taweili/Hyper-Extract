@@ -10,7 +10,7 @@ A powerful command-line tool for extracting structured knowledge from unstructur
 
 ```bash
 # Install
-pip install hyper-extract
+uv tool install hyperextract
 
 # First-time setup
 he config init
