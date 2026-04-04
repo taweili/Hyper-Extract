@@ -11,7 +11,7 @@ DEFAULT_CONFIG_DIR = Path.home() / ".he"
 DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR / "config.toml"
 
 
-def get_client(config_path: str|Path = None) -> Tuple[BaseChatModel, Embeddings]:
+def get_client(config_path: str | Path = None) -> Tuple[BaseChatModel, Embeddings]:
     """Get OpenAI LLM client and Embedder from config.
 
     Args:

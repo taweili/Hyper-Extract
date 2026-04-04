@@ -132,9 +132,8 @@ class Template:
 
         if include_methods:
             from hyperextract.methods import list_method_cfgs
+
             method_templates = list_method_cfgs()
             templates.update(method_templates)
 
         return templates
-
-

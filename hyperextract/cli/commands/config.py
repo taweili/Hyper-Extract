@@ -24,70 +24,77 @@ def config_callback(
     """Show configuration help when running 'he config' without subcommand."""
     if ctx.invoked_subcommand is not None:
         return
-    
+
     from ..utils import LOGO
-    
+
     console.print()
     console.print(Text(LOGO, style="bold cyan"))
-    
+
     from rich.rule import Rule
-    
+
     console.print(Rule(style="cyan dim"))
     console.print()
-    
+
     title_text = Text("CONFIGURATION", style="bold cyan")
     desc_text = Text("Manage LLM and Embedder settings", style="dim")
-    
+
     header = Table(box=None, show_header=False, pad_edge=False)
     header.add_column(no_wrap=True)
     header.add_column(style="dim white", no_wrap=True)
     header.add_row(title_text, desc_text)
-    
+
     console.print(header)
     console.print()
     console.print(Rule(style="cyan dim"))
     console.print()
-    
+
     console.print("[bold cyan]Available Commands:[/bold cyan]")
     console.print()
-    
+
     commands_info = [
-        ("he config init", "Interactive configuration setup (recommended for first-time users)"),
+        (
+            "he config init",
+            "Interactive configuration setup (recommended for first-time users)",
+        ),
         ("he config show", "Display current configuration"),
         ("he config llm", "Configure LLM settings"),
         ("he config embedder", "Configure Embedder settings"),
     ]
-    
+
     for cmd, desc in commands_info:
         console.print(f"  [green]{cmd:<30}[/green] {desc}")
-    
+
     console.print()
     console.print(Rule(style="cyan dim"))
     console.print()
-    
+
     console.print("[bold cyan]Quick Start:[/bold cyan]")
     console.print()
-    console.print("  [yellow]1.[/yellow] Run [green]he config init[/green] for interactive setup")
+    console.print(
+        "  [yellow]1.[/yellow] Run [green]he config init[/green] for interactive setup"
+    )
     console.print("  [yellow]2.[/yellow] Or configure individually:")
     console.print("     [green]he config llm --api-key YOUR_KEY[/green]")
     console.print("     [green]he config embedder --api-key YOUR_KEY[/green]")
     console.print()
-    
+
     console.print("[bold cyan]Environment Variables (alternative):[/bold cyan]")
     console.print()
-    console.print("  [green]OPENAI_API_KEY[/green] - OpenAI API key (used if not set in config)")
+    console.print(
+        "  [green]OPENAI_API_KEY[/green] - OpenAI API key (used if not set in config)"
+    )
     console.print("  [green]OPENAI_BASE_URL[/green] - Custom API base URL (optional)")
     console.print()
-    
+
     console.print(Rule(style="cyan dim"))
     console.print()
-    
+
     hint_text = Text("💡 Tip: Run ", style="dim")
     hint_text.append("he config <command> --help", style="bold cyan")
     hint_text.append(" for detailed command usage", style="dim")
     console.print(hint_text)
     console.print()
-    
+
     raise typer.Exit()
 
 
@@ -95,7 +102,7 @@ def _show_config():
     """Show current configuration."""
     config = ConfigManager()
     cfg = config.show()
-    
+
     table = Table(title="Hyper-Extract Configuration")
     table.add_column("Service", style="cyan", width=15)
     table.add_column("Model", style="yellow", width=30)
@@ -161,7 +168,9 @@ def llm(
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="green")
         table.add_row("Model", cfg.model)
-        table.add_row("API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)")
+        table.add_row(
+            "API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)"
+        )
         table.add_row("Base URL", cfg.base_url or "(default)")
         console.print(table)
         return
@@ -199,7 +208,9 @@ def embedder(
         "-u",
         help="Custom API base URL",
     ),
-    show: bool = typer.Option(False, "--show", help="Show current Embedder configuration"),
+    show: bool = typer.Option(
+        False, "--show", help="Show current Embedder configuration"
+    ),
     unset: bool = typer.Option(False, "--unset", help="Unset Embedder configuration"),
 ):
     """Configure Embedder settings."""
@@ -211,7 +222,9 @@ def embedder(
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="green")
         table.add_row("Model", cfg.model)
-        table.add_row("API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)")
+        table.add_row(
+            "API Key", cfg.api_key[:10] + "..." if cfg.api_key else "(not set)"
+        )
         table.add_row("Base URL", cfg.base_url or "(default)")
         console.print(table)
         return
@@ -273,13 +286,15 @@ def init(
 
     console.print("[bold]Step 1: LLM Configuration[/bold]")
     model = console.input("  Model (default: gpt-4o-mini): ") or "gpt-4o-mini"
-    
+
     llm_api_key = None
     while not llm_api_key:
         llm_api_key = console.input("  API Key: ")
         if not llm_api_key:
-            console.print("  [red]API Key is required. Please enter your API key.[/red]")
-    
+            console.print(
+                "  [red]API Key is required. Please enter your API key.[/red]"
+            )
+
     llm_base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
 
     config.set_llm(
@@ -291,14 +306,19 @@ def init(
     console.print()
 
     console.print("[bold]Step 2: Embedder Configuration[/bold]")
-    emb_model = console.input("  Model (default: text-embedding-3-small): ") or "text-embedding-3-small"
-    
+    emb_model = (
+        console.input("  Model (default: text-embedding-3-small): ")
+        or "text-embedding-3-small"
+    )
+
     emb_api_key = None
     while not emb_api_key:
         emb_api_key = console.input("  API Key: ")
         if not emb_api_key:
-            console.print("  [red]API Key is required. Please enter your API key.[/red]")
-    
+            console.print(
+                "  [red]API Key is required. Please enter your API key.[/red]"
+            )
+
     emb_base_url = console.input("  Base URL (optional, press Enter to skip): ") or None
 
     config.set_embedder(

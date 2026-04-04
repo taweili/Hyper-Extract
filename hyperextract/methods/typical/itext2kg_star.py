@@ -337,4 +337,3 @@ class iText2KG_Star(AutoGraph[NodeSchema, EdgeSchema]):
             f"✅ Node matching complete: Nodes {len(nodes)} -> {len(self.nodes)}, Edges: {len(edges)}"
         )
         return self
-

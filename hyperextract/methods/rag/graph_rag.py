@@ -15,6 +15,7 @@ from ontomem.merger import CustomRuleMerger
 
 try:
     from graspologic.partition import hierarchical_leiden
+
     HAS_GRASPOLOGIC = True
 except ImportError:
     HAS_GRASPOLOGIC = False
@@ -24,12 +25,14 @@ def _ensure_networkx():
     """Lazy import networkx, raise helpful error if not installed."""
     try:
         import networkx as nx
+
         return nx
     except ImportError:
         raise ImportError(
             "networkx is required for community detection. "
             "Install with: pip install networkx"
         )
+
 
 # ============================================================================
 # Node Schema
@@ -72,20 +75,26 @@ class EdgeSchema(BaseModel):
 # Community Report Schema
 # ============================================================================
 
+
 class CommunityFinding(BaseModel):
     summary: str = Field(description="Summary of the insight")
     explanation: str = Field(description="Detailed explanation of the insight")
 
+
 class CommunityReport(BaseModel):
     """Represents a summary of a graph community."""
-    
+
     title: str = Field(description="Short title for the community")
-    summary: str = Field(description="Detailed executive summary of the community's structure and key entities")
+    summary: str = Field(
+        description="Detailed executive summary of the community's structure and key entities"
+    )
     rating: float = Field(description="Impact severity rating (0-10)")
     findings: List[CommunityFinding] = Field(description="List of key findings")
     # Optional fields (filled programmatically)
     id: Optional[str] = Field(default=None, description="Community ID")
-    key_entities: Optional[List[str]] = Field(default_factory=list, description="List of key entities in this community")
+    key_entities: Optional[List[str]] = Field(
+        default_factory=list, description="List of key entities in this community"
+    )
 
 
 # ============================================================================
@@ -278,26 +287,32 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
         # Community Management
         self.community_reports: Dict[str, CommunityReport] = {}
         self._community_graph: Optional[Any] = None
-        self._community_hierarchy: Dict[int, Dict[str, List[str]]] = {}  # level -> {community_id: [node_names]}
-        self._node_to_community: Dict[str, Dict[str, Any]] = {}  # node_name -> {level: community_id}
+        self._community_hierarchy: Dict[
+            int, Dict[str, List[str]]
+        ] = {}  # level -> {community_id: [node_names]}
+        self._node_to_community: Dict[
+            str, Dict[str, Any]
+        ] = {}  # node_name -> {level: community_id}
 
     def dump(self, folder_path: str | Path) -> None:
         """Saves graph state: internal data, community reports, and GraphML for visualization."""
         root = Path(folder_path)
-        
+
         if self.verbose:
             print("Saving Results...")
             print("=" * 80)
-        
+
         # 1. Save standard graph data (nodes, edges, index)
         super().dump(folder_path)
 
         # 2. Save Community Data (only if exists)
         if self.community_reports:
             community_data = {
-                "reports": {k: v.model_dump() for k, v in self.community_reports.items()},
+                "reports": {
+                    k: v.model_dump() for k, v in self.community_reports.items()
+                },
                 "hierarchy": {str(k): v for k, v in self._community_hierarchy.items()},
-                "node_map": self._node_to_community
+                "node_map": self._node_to_community,
             }
 
             comm_path = root / "community_data.json"
@@ -321,10 +336,12 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
                 data = json.load(f)
 
             self.community_reports = {
-                k: CommunityReport.model_validate(v) for k, v in data.get("reports", {}).items()
+                k: CommunityReport.model_validate(v)
+                for k, v in data.get("reports", {}).items()
             }
             self._community_hierarchy = {
-                int(k) if k.isdigit() else k: v for k, v in data.get("hierarchy", {}).items()
+                int(k) if k.isdigit() else k: v
+                for k, v in data.get("hierarchy", {}).items()
             }
             self._node_to_community = data.get("node_map", {})
 
@@ -343,14 +360,16 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             for n in self.nodes:
                 self._community_graph.add_node(n.name, **n.model_dump())
             for e in self.edges:
-                self._community_graph.add_edge(e.source, e.target, weight=float(e.strength), **e.model_dump())
+                self._community_graph.add_edge(
+                    e.source, e.target, weight=float(e.strength), **e.model_dump()
+                )
         return self._community_graph
 
     def build_communities(self, level: int = 0):
         """
         Detects communities in the graph and generates reports for them.
         Uses Leiden algorithm (via graspologic).
-        
+
         Args:
             level: The hierarchical level for Leiden algorithm (default 0).
         """
@@ -363,21 +382,28 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
 
         if self.verbose:
             print("Building graph topology...")
-        
+
         # Construct NetworkX graph
         G = nx.Graph()
         for node in self.nodes:
             G.add_node(node.name, **node.model_dump())
-        
+
         for edge in self.edges:
             # Use 'weight' if available, mapped from 'strength'
-            G.add_edge(edge.source, edge.target, weight=float(edge.strength), **edge.model_dump())
-        
+            G.add_edge(
+                edge.source,
+                edge.target,
+                weight=float(edge.strength),
+                **edge.model_dump(),
+            )
+
         self._community_graph = G
 
         if not HAS_GRASPOLOGIC:
             if self.verbose:
-                print("Error: `graspologic` is not installed. Please install it to use Leiden community detection.")
+                print(
+                    "Error: `graspologic` is not installed. Please install it to use Leiden community detection."
+                )
             return
 
         # Community Detection Strategy
@@ -386,13 +412,13 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
 
         if self.verbose:
             print("Using Hierarchical Leiden algorithm (graspologic)...")
-            
+
         try:
             # Create a subgraph without isolated nodes for Leiden to avoid warnings
             G_leiden = G.copy()
             isolates = list(nx.isolates(G_leiden))
             G_leiden.remove_nodes_from(isolates)
-            
+
             if G_leiden.number_of_nodes() == 0:
                 if self.verbose:
                     print("No connected nodes found. Skipping community detection.")
@@ -401,32 +427,32 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             # Hierarchical Leiden returns a list of CommunityAssignment objects
             # Each assignment has (node, cluster, level)
             hierarchical_clusters = hierarchical_leiden(G_leiden, max_cluster_size=100)
-            
+
             # Transform to our internal structure: level -> community_id -> [nodes]
             self._community_hierarchy = {}
             self._node_to_community = {}
-            
+
             # Group by level first
             clusters_by_level = {}
             for assignment in hierarchical_clusters:
                 lvl = assignment.level
                 cluster_id = f"LEVEL_{lvl}_CID_{assignment.cluster}"
                 node = assignment.node
-                
+
                 if lvl not in clusters_by_level:
                     clusters_by_level[lvl] = {}
                 if cluster_id not in clusters_by_level[lvl]:
                     clusters_by_level[lvl][cluster_id] = []
-                
+
                 clusters_by_level[lvl][cluster_id].append(node)
-                
+
                 # Track node mapping
                 if node not in self._node_to_community:
                     self._node_to_community[node] = {}
                 self._node_to_community[node][f"level_{lvl}"] = cluster_id
 
             self._community_hierarchy = clusters_by_level
-            
+
             # Select the requested level for reports
             # In graspologic, level 0 is usually the top-most (coarsest)
             if level in self._community_hierarchy:
@@ -442,7 +468,7 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             if self.verbose:
                 print(f"Leiden algorithm failed: {e}.")
             return
-        
+
         if self.verbose:
             print(f"Detected {len(communities)} communities using {community_algo}.")
 
@@ -450,10 +476,11 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
         if self.verbose:
             print("Generating community reports...")
         self.community_reports = {}
-        
-        chain = (
-            ChatPromptTemplate.from_template(COMMUNITY_REPORT_PROMPT) 
-            | self.llm_client.with_structured_output(CommunityReport, method="function_calling")
+
+        chain = ChatPromptTemplate.from_template(
+            COMMUNITY_REPORT_PROMPT
+        ) | self.llm_client.with_structured_output(
+            CommunityReport, method="function_calling"
         )
 
         for i, community_nodes in enumerate(communities):
@@ -462,25 +489,32 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             subgraph_nodes = [n for n in self.nodes if n.name in community_nodes]
             # Edges where *both* source and target are in the community (strict)
             # Or edges where *at least one* is in the community (relaxed) -> tailored for coverage
-            subgraph_edges = [e for e in self.edges if e.source in community_nodes and e.target in community_nodes]
-            
+            subgraph_edges = [
+                e
+                for e in self.edges
+                if e.source in community_nodes and e.target in community_nodes
+            ]
+
             if not subgraph_nodes:
                 continue
 
             # Format minimal context for LLM to save tokens
-            entities_txt = "\\n".join([f"- {n.name} ({n.type}): {n.description}" for n in subgraph_nodes])
-            relationships_txt = "\\n".join([f"- {e.source}->{e.target}: {e.description}" for e in subgraph_edges])
-            
+            entities_txt = "\\n".join(
+                [f"- {n.name} ({n.type}): {n.description}" for n in subgraph_nodes]
+            )
+            relationships_txt = "\\n".join(
+                [f"- {e.source}->{e.target}: {e.description}" for e in subgraph_edges]
+            )
+
             try:
-                report = chain.invoke({
-                    "entities": entities_txt, 
-                    "relationships": relationships_txt
-                })
+                report = chain.invoke(
+                    {"entities": entities_txt, "relationships": relationships_txt}
+                )
                 # Post-processing
                 report.id = cid
-                report.key_entities = list(community_nodes)[:10] # Track top entities
+                report.key_entities = list(community_nodes)[:10]  # Track top entities
                 self.community_reports[cid] = report
-                
+
                 # Check mapping for manual fallback methods
                 for node_name in community_nodes:
                     if node_name not in self._node_to_community:
@@ -492,7 +526,9 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
                     print(f"Failed to generate report for community {cid}: {e}")
 
         if self.verbose:
-            print(f"Successfully generated {len(self.community_reports)} community reports.")
+            print(
+                f"Successfully generated {len(self.community_reports)} community reports."
+            )
 
     # ============================================================================
     # Search Override with Community Support
@@ -547,9 +583,7 @@ class Graph_RAG(AutoGraph[NodeSchema, EdgeSchema]):
             return {}
 
         sorted_reports = sorted(
-            self.community_reports.values(),
-            key=lambda r: r.rating,
-            reverse=True
+            self.community_reports.values(), key=lambda r: r.rating, reverse=True
         )[:3]
 
         return {

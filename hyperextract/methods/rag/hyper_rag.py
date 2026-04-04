@@ -206,4 +206,3 @@ class Hyper_RAG(AutoHypergraph[NodeSchema, EdgeSchema]):
             max_workers=max_workers,
             verbose=verbose,
         )
-

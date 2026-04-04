@@ -54,35 +54,38 @@ def main(
     """Hyper-Extract CLI - Transform document into knowledge-abstract."""
     if version:
         from . import __version__
+
         console.print(f"[bold]Hyper-Extract CLI[/bold] version {__version__}")
         raise typer.Exit()
 
     if ctx.invoked_subcommand is None:
         from . import __version__
-        
+
         console.print()
         console.print(Text(LOGO, style="bold cyan"))
-        
+
         title_text = Text("HYPER-EXTRACT", style="bold cyan")
         version_text = Text(f"v{__version__}", style="dim white")
-        desc_text = Text("Transform document into knowledge-abstract", style="dim", no_wrap=True)
-        
+        desc_text = Text(
+            "Transform document into knowledge-abstract", style="dim", no_wrap=True
+        )
+
         header = Table(box=None, show_header=False, pad_edge=False)
         header.add_column(no_wrap=True)
         header.add_column(style="dim white", no_wrap=True)
         header.add_row(title_text, version_text)
-        
+
         console.print(header)
         console.print(desc_text)
         console.print()
-        
+
         from rich.rule import Rule
-        
+
         console.print(Rule(style="cyan dim"))
         console.print()
-        
+
         from rich.panel import Panel
-        
+
         def make_section(title: str, commands: list[tuple[str, str]]) -> Panel:
             table = Table(box=None, show_header=False, pad_edge=False)
             table.add_column(style="green bold", no_wrap=True)
@@ -97,32 +100,47 @@ def main(
                 title_align="center",
                 width=80,
             )
-        
+
         sections = [
-            make_section("🚀 Getting Started", [
-                ("he list template", "List available templates"),
-                ("he list method", "List extraction methods"),
-                ("he config --help", "Manage LLM/Embedder config"),
-            ]),
-            make_section("✨ Create Knowledge Abstract (KA)", [
-                ("he parse <input_document> -o <ka_path>", "Extract KA from document"),
-                ("he feed <ka_path> <input_document>", "Add document to existing KA"),
-                ("he build-index <ka_path>", "Build semantic search index"),
-            ]),
-            make_section("🔍 Explore Knowledge Abstract (KA)", [
-                ("he info <ka_path>", "View KA info & stats"),
-                ("he talk <ka_path> [-i]", "Chat with KA"),
-                ("he search <ka_path> <query>", "Semantic search"),
-                ("he show <ka_path>", "Visualize KA"),
-            ]),
+            make_section(
+                "🚀 Getting Started",
+                [
+                    ("he list template", "List available templates"),
+                    ("he list method", "List extraction methods"),
+                    ("he config --help", "Manage LLM/Embedder config"),
+                ],
+            ),
+            make_section(
+                "✨ Create Knowledge Abstract (KA)",
+                [
+                    (
+                        "he parse <input_document> -o <ka_path>",
+                        "Extract KA from document",
+                    ),
+                    (
+                        "he feed <ka_path> <input_document>",
+                        "Add document to existing KA",
+                    ),
+                    ("he build-index <ka_path>", "Build semantic search index"),
+                ],
+            ),
+            make_section(
+                "🔍 Explore Knowledge Abstract (KA)",
+                [
+                    ("he info <ka_path>", "View KA info & stats"),
+                    ("he talk <ka_path> [-i]", "Chat with KA"),
+                    ("he search <ka_path> <query>", "Semantic search"),
+                    ("he show <ka_path>", "Visualize KA"),
+                ],
+            ),
         ]
-        
+
         for section in sections:
             console.print(section)
         console.print()
         console.print(Rule(style="cyan dim"))
         console.print()
-        
+
         hint_text = Text("💡 Tip: Run ", style="dim")
         hint_text.append("he --help", style="bold cyan")
         hint_text.append(" for detailed documentation", style="dim")
@@ -167,19 +185,24 @@ def select_template_interactive() -> Optional[str]:
             if 0 <= idx < len(template_list):
                 return template_list[idx][0]
             else:
-                console.print(f"[red]Invalid number. Please choose 1-{len(template_list)}[/red]")
+                console.print(
+                    f"[red]Invalid number. Please choose 1-{len(template_list)}[/red]"
+                )
         else:
             query_lower = choice.lower()
-            matches = [(i, p, c) for i, (p, c) in enumerate(template_list)
-                      if query_lower in p.lower() or
-                      (c.description and query_lower in str(c.description).lower())]
+            matches = [
+                (i, p, c)
+                for i, (p, c) in enumerate(template_list)
+                if query_lower in p.lower()
+                or (c.description and query_lower in str(c.description).lower())
+            ]
 
             if len(matches) == 1:
                 return matches[0][1]
             elif len(matches) > 1:
                 console.print(f"[yellow]Found {len(matches)} matches:[/yellow]")
                 for i, path, cfg in matches:
-                    console.print(f"  [{i+1}] {path}")
+                    console.print(f"  [{i + 1}] {path}")
                 continue
             else:
                 console.print("[yellow]No matches found. Try another keyword.[/yellow]")
@@ -187,13 +210,26 @@ def select_template_interactive() -> Optional[str]:
 
 @app.command(name="parse")
 def parse(
-    input: str = typer.Argument(..., help="Input file path, directory, or '-' for stdin"),
+    input: str = typer.Argument(
+        ..., help="Input file path, directory, or '-' for stdin"
+    ),
     output: str = typer.Option(..., "--output", "-o", help="Output directory"),
-    template: Optional[str] = typer.Option(None, "--template", "-t", help="Template (omit for interactive selection)"),
-    method: Optional[str] = typer.Option(None, "--method", "-m", help="Method template (e.g., light_rag, hyper_rag)"),
-    lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language (zh/en). Required for knowledge templates, optional for methods (default: en)"),
+    template: Optional[str] = typer.Option(
+        None, "--template", "-t", help="Template (omit for interactive selection)"
+    ),
+    method: Optional[str] = typer.Option(
+        None, "--method", "-m", help="Method template (e.g., light_rag, hyper_rag)"
+    ),
+    lang: Optional[str] = typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help="Language (zh/en). Required for knowledge templates, optional for methods (default: en)",
+    ),
     force: bool = typer.Option(False, "--force", "-f", help="Force overwrite"),
-    no_index: bool = typer.Option(False, "--no-index", help="Skip building search index"),
+    no_index: bool = typer.Option(
+        False, "--no-index", help="Skip building search index"
+    ),
 ):
     """Extract knowledge from text to a new directory."""
     validate_config()
@@ -210,17 +246,23 @@ def parse(
 
     if is_method_template:
         if lang is not None:
-            console.print("[dim]Note: Method templates use English prompts. --lang parameter is ignored.[/dim]")
+            console.print(
+                "[dim]Note: Method templates use English prompts. --lang parameter is ignored.[/dim]"
+            )
         lang = "en"
     elif lang is None:
-        console.print("[red]Error:[/red] --lang is required for knowledge templates. Use --lang en or --lang zh.")
+        console.print(
+            "[red]Error:[/red] --lang is required for knowledge templates. Use --lang en or --lang zh."
+        )
         raise typer.Exit(1)
 
     output_path = Path(output)
 
     if output_path.exists() and not force:
         if any(output_path.iterdir()):
-            console.print("[red]Error:[/red] Output directory already exists and is not empty. Use --force to overwrite.")
+            console.print(
+                "[red]Error:[/red] Output directory already exists and is not empty. Use --force to overwrite."
+            )
             raise typer.Exit(1)
 
     output_path.mkdir(parents=True, exist_ok=True)
@@ -243,7 +285,11 @@ def parse(
 
     input_path = Path(input)
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
         task = progress.add_task("Creating template instance...", total=None)
 
         ka = Template.create(template, lang)
@@ -252,7 +298,9 @@ def parse(
             progress.update(task, description="Processing directory...")
             text_files = list(input_path.glob("*.txt")) + list(input_path.glob("*.md"))
             if not text_files:
-                console.print(f"[red]Error:[/red] No .txt or .md files found in {input}")
+                console.print(
+                    f"[red]Error:[/red] No .txt or .md files found in {input}"
+                )
                 raise typer.Exit(1)
 
             all_text = []
@@ -280,9 +328,12 @@ def parse(
         if template_config is None:
             if template.endswith(".yaml"):
                 import shutil
+
                 filename = Path(template).name
                 shutil.copy(template, output_path / filename)
-                console.print(f"[dim]Custom template '{filename}' saved to KA directory[/dim]")
+                console.print(
+                    f"[dim]Custom template '{filename}' saved to KA directory[/dim]"
+                )
 
         ka.dump(output_path)
 
@@ -294,19 +345,35 @@ def parse(
             ka.dump(output_path)
 
     console.print()
-    console.print(f"[bold green]Success![/bold green] Knowledge extracted to {output_path}")
+    console.print(
+        f"[bold green]Success![/bold green] Knowledge extracted to {output_path}"
+    )
     console.print()
     if no_index:
         console.print("[dim]Note: Index was not built.[/dim]")
-        console.print(f"[dim]  he build-index {output}       # Build index to enable search/talk[/dim]")
-        console.print(f"[dim]  he feed {output} <new_document>  # Append more documents[/dim]")
+        console.print(
+            f"[dim]  he build-index {output}       # Build index to enable search/talk[/dim]"
+        )
+        console.print(
+            f"[dim]  he feed {output} <new_document>  # Append more documents[/dim]"
+        )
     else:
         console.print("[dim]What's next?[/dim]")
-        console.print(f"[dim]  he show {output}                    # Visualize knowledge graph[/dim]")
-        console.print(f"[dim]  he feed {output} <new_document>     # Append more documents[/dim]")
-        console.print(f"[dim]  he search {output} \"keyword\"        # Semantic search[/dim]")
-        console.print(f"[dim]  he talk {output} -i                 # Interactive chat[/dim]")
-        console.print(f"[dim]  he talk {output} -q \"your question\" # Single query[/dim]")
+        console.print(
+            f"[dim]  he show {output}                    # Visualize knowledge graph[/dim]"
+        )
+        console.print(
+            f"[dim]  he feed {output} <new_document>     # Append more documents[/dim]"
+        )
+        console.print(
+            f'[dim]  he search {output} "keyword"        # Semantic search[/dim]'
+        )
+        console.print(
+            f"[dim]  he talk {output} -i                 # Interactive chat[/dim]"
+        )
+        console.print(
+            f'[dim]  he talk {output} -q "your question" # Single query[/dim]'
+        )
 
 
 @app.command(name="show")
@@ -341,7 +408,9 @@ def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
 
     console.print()
     console.print("[dim]Continue exploring:[/dim]")
-    console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search specific content[/dim]")
+    console.print(
+        f'[dim]  he search {ka_path} "keyword"  # Search specific content[/dim]'
+    )
     console.print(f"[dim]  he talk {ka_path} -i           # Interactive chat[/dim]")
 
 
@@ -387,7 +456,9 @@ def info(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
 
     table.add_row("Nodes", str(node_count))
     table.add_row("Edges", str(edge_count))
-    table.add_row("Index", "[green]Built[/green]" if index_exists else "[red]Not Built[/red]")
+    table.add_row(
+        "Index", "[green]Built[/green]" if index_exists else "[red]Not Built[/red]"
+    )
 
     console.print(table)
 
@@ -411,7 +482,11 @@ def search(
     console.print(f"[blue]Top K:[/blue] {top_k}")
     console.print()
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
         task = progress.add_task("Searching...", total=None)
 
         try:
@@ -437,22 +512,34 @@ def search(
         for i, result in enumerate(results, 1):
             console.print(f"[bold cyan]Result {i}:[/bold cyan]")
             if hasattr(result, "model_dump"):
-                console.print_json(json.dumps(result.model_dump(), indent=2, ensure_ascii=False))
+                console.print_json(
+                    json.dumps(result.model_dump(), indent=2, ensure_ascii=False)
+                )
             elif hasattr(result, "dict"):
-                console.print_json(json.dumps(result.dict(), indent=2, ensure_ascii=False))
+                console.print_json(
+                    json.dumps(result.dict(), indent=2, ensure_ascii=False)
+                )
             else:
                 console.print(str(result))
             console.print()
 
     console.print("[dim]Continue:[/dim]")
-    console.print(f"[dim]  he talk {ka_path} -q \"question about results\"  # Deep dive[/dim]")
-    console.print(f"[dim]  he talk {ka_path} -i                           # Interactive mode[/dim]")
-    console.print(f"[dim]  he show {ka_path}                              # Visualize[/dim]")
+    console.print(
+        f'[dim]  he talk {ka_path} -q "question about results"  # Deep dive[/dim]'
+    )
+    console.print(
+        f"[dim]  he talk {ka_path} -i                           # Interactive mode[/dim]"
+    )
+    console.print(
+        f"[dim]  he show {ka_path}                              # Visualize[/dim]"
+    )
 
 
 def chat_loop(ka, ka_path: str):
     """Interactive chat loop."""
-    console.print("\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n")
+    console.print(
+        "\n[bold green]Entering interactive mode. Type 'exit' or 'quit' to stop.[/bold green]\n"
+    )
     while True:
         try:
             query = console.input("[bold cyan]>[/bold cyan] ")
@@ -460,9 +547,13 @@ def chat_loop(ka, ka_path: str):
                 console.print("\n[dim]Goodbye![/dim]")
                 console.print()
                 console.print("[dim]Other useful commands:[/dim]")
-                console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
-                console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search[/dim]")
-                console.print(f"[dim]  he info {ka_path}              # View info[/dim]")
+                console.print(
+                    f"[dim]  he show {ka_path}              # Visualize[/dim]"
+                )
+                console.print(f'[dim]  he search {ka_path} "keyword"  # Search[/dim]')
+                console.print(
+                    f"[dim]  he info {ka_path}              # View info[/dim]"
+                )
                 break
             if not query.strip():
                 continue
@@ -475,7 +566,7 @@ def chat_loop(ka, ka_path: str):
             console.print()
             console.print("[dim]Other useful commands:[/dim]")
             console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
-            console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search[/dim]")
+            console.print(f'[dim]  he search {ka_path} "keyword"  # Search[/dim]')
             console.print(f"[dim]  he info {ka_path}              # View info[/dim]")
             break
         except Exception as e:
@@ -487,7 +578,9 @@ def talk(
     ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     query: Optional[str] = typer.Option(None, "--query", "-q", help="Question to ask"),
     top_k: int = typer.Option(3, "--top-k", "-n", help="Number of context items"),
-    interactive: bool = typer.Option(False, "--interactive", "-i", help="Interactive mode"),
+    interactive: bool = typer.Option(
+        False, "--interactive", "-i", help="Interactive mode"
+    ),
 ):
     """Chat with Knowledge Abstract."""
     validate_config()
@@ -501,7 +594,9 @@ def talk(
         console.print(f"[blue]Top K:[/blue] {top_k}")
         console.print()
     elif query is None:
-        console.print("[red]Error:[/red] Please provide a query or use --interactive mode")
+        console.print(
+            "[red]Error:[/red] Please provide a query or use --interactive mode"
+        )
         raise typer.Exit(1)
     else:
         console.print(f"[blue]Query:[/blue] {query}")
@@ -509,7 +604,11 @@ def talk(
         console.print(f"[blue]Top K:[/blue] {top_k}")
         console.print()
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
         task = progress.add_task("Loading...", total=None)
 
         try:
@@ -542,8 +641,10 @@ def talk(
 
         console.print()
         console.print("[dim]Continue:[/dim]")
-        console.print(f"[dim]  he talk {ka_path} -i           # Enter interactive mode[/dim]")
-        console.print(f"[dim]  he search {ka_path} \"keyword\"  # Search more[/dim]")
+        console.print(
+            f"[dim]  he talk {ka_path} -i           # Enter interactive mode[/dim]"
+        )
+        console.print(f'[dim]  he search {ka_path} "keyword"  # Search more[/dim]')
         console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
 
 
@@ -561,7 +662,9 @@ def feed(
 
     metadata = load_ka_metadata(output_path)
     if not metadata:
-        console.print(f"[red]Error:[/red] Not a valid Knowledge Abstract directory: {ka_path}")
+        console.print(
+            f"[red]Error:[/red] Not a valid Knowledge Abstract directory: {ka_path}"
+        )
         raise typer.Exit(1)
 
     if template is None:
@@ -582,7 +685,11 @@ def feed(
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
         task = progress.add_task("Loading existing knowledge...", total=None)
 
         ka.load(output_path)
@@ -598,11 +705,15 @@ def feed(
         ka.dump(output_path)
 
     console.print()
-    console.print(f"[bold green]Success![/bold green] Knowledge appended to {output_path}")
+    console.print(
+        f"[bold green]Success![/bold green] Knowledge appended to {output_path}"
+    )
     console.print()
     console.print("[dim]Next steps:[/dim]")
     console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
-    console.print(f"[dim]  he build-index {ka_path}       # Rebuild index (if needed)[/dim]")
+    console.print(
+        f"[dim]  he build-index {ka_path}       # Rebuild index (if needed)[/dim]"
+    )
 
 
 @app.command(name="build-index")
@@ -617,7 +728,9 @@ def build_index(
 
     index_dir = path / "index"
     if index_dir.exists() and any(index_dir.iterdir()) and not force:
-        console.print("[yellow]Warning:[/yellow] Index already exists. Use --force to rebuild.")
+        console.print(
+            "[yellow]Warning:[/yellow] Index already exists. Use --force to rebuild."
+        )
         console.print(f"[dim]Index location: {index_dir}[/dim]")
         raise typer.Exit(0)
 
@@ -627,7 +740,11 @@ def build_index(
     console.print(f"[blue]Language:[/blue] {lang}")
     console.print()
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
         task = progress.add_task("Initializing...", total=None)
 
         try:
@@ -654,5 +771,5 @@ def build_index(
     console.print(f"[bold green]Success![/bold green] Index built for {ka_path}")
     console.print()
     console.print("[dim]Now you can:[/dim]")
-    console.print(f"[dim]  he search {ka_path} \"keyword\"  # Semantic search[/dim]")
+    console.print(f'[dim]  he search {ka_path} "keyword"  # Semantic search[/dim]')
     console.print(f"[dim]  he talk {ka_path} -i           # Interactive chat[/dim]")

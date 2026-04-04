@@ -99,8 +99,6 @@ def parse_guideline(guideline, autotype: str) -> str | Tuple[str, str, str]:
         return "\n\n".join(main_parts), "\n\n".join(node_parts), "\n\n".join(edge_parts)
 
 
-
-
 __all__ = [
     "parse_guideline",
 ]

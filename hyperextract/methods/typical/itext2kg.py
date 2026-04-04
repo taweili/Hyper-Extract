@@ -1,7 +1,7 @@
 """iText2KG implementation using AutoGraph as the core engine.
 
-This module provides a specialized implementation of the iText2KG algorithm 
-using the AutoGraph framework, designed for extracting high-quality, 
+This module provides a specialized implementation of the iText2KG algorithm
+using the AutoGraph framework, designed for extracting high-quality,
 standardized triple-based knowledge graphs.
 
 Prompts and schemas are adapted from the original iText2KG* implementation.
@@ -184,4 +184,3 @@ class iText2KG(AutoGraph[NodeSchema, EdgeSchema]):
             max_workers=max_workers,
             verbose=verbose,
         )
-

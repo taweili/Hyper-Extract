@@ -500,7 +500,10 @@ class Atom(AutoGraph[NodeSchema, EdgeSchema]):
             fact_chunks.append(formatted_chunk)
 
         # 6. Batch Extract Edges directly from Fact Chunks
-        edge_inputs = [{"source_text": chunk, "observation_time": obs_date_str} for chunk in fact_chunks]
+        edge_inputs = [
+            {"source_text": chunk, "observation_time": obs_date_str}
+            for chunk in fact_chunks
+        ]
         chunk_edge_lists = self.edge_extractor.batch(
             edge_inputs, config={"max_concurrency": self.max_workers}
         )

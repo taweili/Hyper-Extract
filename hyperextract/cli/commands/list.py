@@ -26,10 +26,18 @@ def _get_description(cfg, lang: str = "en") -> str:
 
 @app.command(name="template")
 def template(
-    query: Optional[str] = typer.Option(None, "--query", "-q", help="Query to search templates"),
-    autotype: Optional[str] = typer.Option(None, "--autotype", "-a", help="Filter by autotype"),
-    language: Optional[str] = typer.Option(None, "--lang", "-l", help="Language filter (en/zh/all, default: en)"),
-    include_methods: bool = typer.Option(True, "--include-methods/--no-methods", help="Include method templates"),
+    query: Optional[str] = typer.Option(
+        None, "--query", "-q", help="Query to search templates"
+    ),
+    autotype: Optional[str] = typer.Option(
+        None, "--autotype", "-a", help="Filter by autotype"
+    ),
+    language: Optional[str] = typer.Option(
+        None, "--lang", "-l", help="Language filter (en/zh/all, default: en)"
+    ),
+    include_methods: bool = typer.Option(
+        True, "--include-methods/--no-methods", help="Include method templates"
+    ),
 ):
     """List all available templates with detailed information."""
     target_lang = language if language else "en"
@@ -50,11 +58,16 @@ def template(
             for lang in languages:
                 templates.append((path, cfg.type, _get_description(cfg, lang)))
         else:
-            lang = target_lang if target_lang in languages else (languages[0] if languages else "en")
+            lang = (
+                target_lang
+                if target_lang in languages
+                else (languages[0] if languages else "en")
+            )
             templates.append((path, cfg.type, _get_description(cfg, lang)))
 
     if include_methods and target_lang != "zh":
         from hyperextract.methods import list_method_cfgs
+
         method_templates = list_method_cfgs()
         for name, cfg in method_templates.items():
             templates.append((name, cfg.type, cfg.description))
@@ -88,12 +101,16 @@ def template(
     console.print("  [cyan]model[/cyan] - Structured data model")
     console.print("  [cyan]set[/cyan] - Entity collection")
     console.print()
-    console.print("[dim]Tip: Use [bold]he parse <input> -t <template_id> -l <lang>[/bold] to extract with a template[/dim]")
+    console.print(
+        "[dim]Tip: Use [bold]he parse <input> -t <template_id> -l <lang>[/bold] to extract with a template[/dim]"
+    )
 
 
 @app.command(name="method")
 def method(
-    query: Optional[str] = typer.Option(None, "--query", "-q", help="Query to search methods"),
+    query: Optional[str] = typer.Option(
+        None, "--query", "-q", help="Query to search methods"
+    ),
 ):
     """List all available extraction methods with detailed information."""
     from hyperextract.methods import list_methods
@@ -103,8 +120,10 @@ def method(
     if query:
         query_lower = query.lower()
         items = {
-            k: v for k, v in items.items()
-            if query_lower in k.lower() or query_lower in v.get("description", "").lower()
+            k: v
+            for k, v in items.items()
+            if query_lower in k.lower()
+            or query_lower in v.get("description", "").lower()
         }
 
     if not items:
@@ -125,17 +144,17 @@ def method(
     for name, info in items.items():
         method_type = info["type"]
         description = info["description"]
-        table.add_row(
-            Text(f"method/\n{name}", style="cyan"),
-            method_type,
-            description
-        )
+        table.add_row(Text(f"method/\n{name}", style="cyan"), method_type, description)
 
     console.print(table)
     console.print(f"\n[dim]Total: {len(items)} methods[/dim]")
     console.print()
     console.print("[dim]Method explanations:[/dim]")
     console.print("  [cyan]graph[/cyan] - Binary relation graph (entity-relationship)")
-    console.print("  [cyan]hypergraph[/cyan] - N-ary hypergraph (multi-entity relations)")
+    console.print(
+        "  [cyan]hypergraph[/cyan] - N-ary hypergraph (multi-entity relations)"
+    )
     console.print()
-    console.print("[dim]Tip: Use [bold]he parse <input> -m <method_name>[/bold] to extract with a method[/dim]")
+    console.print(
+        "[dim]Tip: Use [bold]he parse <input> -m <method_name>[/bold] to extract with a method[/dim]"
+    )

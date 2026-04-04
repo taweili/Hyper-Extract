@@ -459,7 +459,7 @@ class Cog_RAG:
         # 导出根目录 data.json 以供 CLI 合法性校验和 info 命令统计
         root_data = {
             "nodes": [n.model_dump() for n in self.nodes],
-            "edges": [e.model_dump() for e in self.edges]
+            "edges": [e.model_dump() for e in self.edges],
         }
         with open(os.path.join(folder_path, "data.json"), "w", encoding="utf-8") as f:
             json.dump(root_data, f, ensure_ascii=False, indent=2)
@@ -479,11 +479,15 @@ class Cog_RAG:
                     self.metadata = params
 
         theme_path = os.path.join(folder_path, "theme_layer")
-        if os.path.exists(theme_path) and os.path.exists(os.path.join(theme_path, "data.json")):
+        if os.path.exists(theme_path) and os.path.exists(
+            os.path.join(theme_path, "data.json")
+        ):
             self.theme_layer.load(theme_path)
 
         detail_path = os.path.join(folder_path, "detail_layer")
-        if os.path.exists(detail_path) and os.path.exists(os.path.join(detail_path, "data.json")):
+        if os.path.exists(detail_path) and os.path.exists(
+            os.path.join(detail_path, "data.json")
+        ):
             self.detail_layer.load(detail_path)
 
     def show(
@@ -495,17 +499,17 @@ class Cog_RAG:
         print("\n[Cog_RAG] 这是一个双层图谱系统。请选择你想可视化的层级：")
         print("1. Detail Layer (细节层：具体实体及其关系) - [默认]")
         print("2. Theme Layer (主题层：宏观主题及其参与者)")
-        
+
         try:
             choice = input("请输入选项 [1/2]: ").strip()
         except EOFError:
             choice = "1"
-            
+
         layer_map = {
             "2": ("Theme Layer", self.theme_layer),
             "1": ("Detail Layer", self.detail_layer),
         }
-        
+
         layer_name, layer_obj = layer_map.get(choice, layer_map["1"])
 
         print(f"Visualizing Cog_RAG ({layer_name})...")

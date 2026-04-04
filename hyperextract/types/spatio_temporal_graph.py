@@ -286,7 +286,9 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
                 }
             )
 
-        return self.edge_extractor.batch(inputs, config={"max_concurrency": self.max_workers})
+        return self.edge_extractor.batch(
+            inputs, config={"max_concurrency": self.max_workers}
+        )
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
         """Inject observation_time and observation_location into one-stage extraction."""

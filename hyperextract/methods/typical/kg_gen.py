@@ -291,4 +291,3 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
             f"Edges {original_edge_count} -> {len(self.edges)}"
         )
         return self
-

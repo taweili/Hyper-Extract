@@ -296,7 +296,7 @@ class AutoHypergraph(
             verbose=verbose,
             fields_for_index=edge_fields_for_index,  # Pass edge field selection to OMem
         )
-        
+
         # Store label extractors for visualization
         self._node_label_extractor = node_label_extractor
         self._edge_label_extractor = edge_label_extractor

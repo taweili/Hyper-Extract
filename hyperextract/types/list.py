@@ -377,8 +377,8 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
             on_chat=chat_callback,
             context={
                 "title": f"{self.item_schema.__name__} List",
-                "description": f"Visualizing {len(self.items)} items in AutoList"
-            }
+                "description": f"Visualizing {len(self.items)} items in AutoList",
+            },
         )
 
     # ==================== Pythonic Sequence Operations ====================

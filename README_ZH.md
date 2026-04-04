@@ -170,13 +170,13 @@ ka.show(result)
 
 拒绝样板代码，纯干货聚焦数据本身。
 
-<img src="docs/assets/autotypes.jpg" alt="知识结构矩阵" width="700" style="max-width: 100%;">
+<img src="docs/assets/autotypes.jpg" alt="知识结构矩阵" width="750" style="max-width: 100%;">
 
 ### 示例：AutoGraph 知识图谱可视化
 
 以下是 `AutoGraph` 类型提取后的知识图谱可视化效果：
 
-<img src="docs/assets/zh_show.jpg" alt="AutoGraph 可视化" width="600" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+<img src="docs/assets/zh_show.jpg" alt="AutoGraph 可视化" width="750" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
 
 ## 🛠️ 系统架构
 

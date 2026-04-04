@@ -23,6 +23,7 @@ def configure_logging(
         output_file: Optional file path to write logs.
     """
     import os
+
     level = os.getenv(ENV_LOG_LEVEL, level).upper()
     level_value = getattr(logging, level, logging.WARNING)
 
@@ -34,7 +35,8 @@ def configure_logging(
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.dev.ConsoleRenderer(colors=True) if not json_output
+            structlog.dev.ConsoleRenderer(colors=True)
+            if not json_output
             else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.stdlib.BoundLogger,
@@ -54,6 +56,7 @@ def configure_logging(
 
     if final_output_file:
         from pathlib import Path
+
         log_path = Path(final_output_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(str(log_path), encoding="utf-8")

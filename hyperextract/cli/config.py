@@ -162,10 +162,16 @@ class ConfigManager:
         embedder_config = self.get_embedder_config()
 
         if not llm_config.api_key:
-            return False, "LLM API key is not configured. Run 'he config llm --api-key YOUR_KEY'"
+            return (
+                False,
+                "LLM API key is not configured. Run 'he config llm --api-key YOUR_KEY'",
+            )
 
         if not embedder_config.api_key:
-            return False, "Embedder API key is not configured. Run 'he config embedder --api-key YOUR_KEY'"
+            return (
+                False,
+                "Embedder API key is not configured. Run 'he config embedder --api-key YOUR_KEY'",
+            )
 
         return True, "Configuration is valid"
 

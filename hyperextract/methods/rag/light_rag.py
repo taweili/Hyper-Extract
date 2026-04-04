@@ -152,7 +152,7 @@ class Light_RAG(AutoGraph[NodeSchema, EdgeSchema]):
         node_key_fn = lambda x: x.name
 
         # Edge key: (source, target) tuple
-        # Note: LightRAG typically treats relations as directed. 
+        # Note: LightRAG typically treats relations as directed.
         # For undirected behavior, one might sort specific relation types, but here we enforce Source->Target directionality uniqueness.
         edge_key_fn = lambda x: f"{x.source}->{x.target}"
 

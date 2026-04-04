@@ -465,13 +465,17 @@ class TemplateFactory:
 
         match template_cfg.type:
             case "model":
-                template = cls.create_model(template_cfg, llm_client, embedder, **kwargs)
+                template = cls.create_model(
+                    template_cfg, llm_client, embedder, **kwargs
+                )
             case "list":
                 template = cls.create_list(template_cfg, llm_client, embedder, **kwargs)
             case "set":
                 template = cls.create_set(template_cfg, llm_client, embedder, **kwargs)
             case "graph":
-                template = cls.create_graph(template_cfg, llm_client, embedder, **kwargs)
+                template = cls.create_graph(
+                    template_cfg, llm_client, embedder, **kwargs
+                )
             case "hypergraph":
                 template = cls.create_hypergraph(
                     template_cfg, llm_client, embedder, **kwargs

@@ -421,8 +421,8 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
             on_chat=chat_callback,
             context={
                 "title": f"{self.item_schema.__name__} Set",
-                "description": f"Visualizing {len(self.items)} unique items in AutoSet"
-            }
+                "description": f"Visualizing {len(self.items)} unique items in AutoSet",
+            },
         )
 
     # ==================== Set Interface Methods ====================

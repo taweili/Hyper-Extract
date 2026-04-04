@@ -268,8 +268,7 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
     def _extract_edges_batch(
         self, chunks: List[str], node_lists: List[NodeListSchema[NodeSchema]]
     ) -> List[EdgeListSchema[EdgeSchema]]:
-        """Override: Inject observation_time into edge extraction during two-stage extraction.
-        """
+        """Override: Inject observation_time into edge extraction during two-stage extraction."""
         inputs = []
         for chunk, node_list in zip(chunks, node_lists):
             nodes = node_list.items if node_list else []
@@ -287,7 +286,9 @@ class AutoTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
                 }
             )
 
-        return self.edge_extractor.batch(inputs, config={"max_concurrency": self.max_workers})
+        return self.edge_extractor.batch(
+            inputs, config={"max_concurrency": self.max_workers}
+        )
 
     def _extract_data_by_one_stage(self, text: str) -> Any:
         """Override: Inject observation_time into one-stage extraction."""

@@ -47,8 +47,9 @@ These types inject "Observation Context" (Current Time/Location) into the LLM pr
 """
 
 import os
+
 # Suppress Transformers warnings
-os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 
 from .base import BaseAutoType
 from .model import AutoModel

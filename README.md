@@ -170,13 +170,13 @@ ka.show(result)
 
 Our framework embraces complexity without making you write boilerplate code.
 
-<img src="docs/assets/autotypes.jpg" alt="Knowledge Structures Matrix" width="700" style="max-width: 100%;">
+<img src="docs/assets/autotypes.jpg" alt="Knowledge Structures Matrix" width="750" style="max-width: 100%;">
 
 ### Example: AutoGraph Visualization
 
 Here is the knowledge graph visualization after `AutoGraph` extraction:
 
-<img src="docs/assets/en_show.jpg" alt="AutoGraph Visualization" width="600" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+<img src="docs/assets/en_show.jpg" alt="AutoGraph Visualization" width="750" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
 
 ## 🛠️ Architecture Overview
 
