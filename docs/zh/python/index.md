@@ -31,8 +31,11 @@ with open("document.md") as f:
     result = ka.parse(f.read())
 
 # 访问数据
-print(f"节点数: {len(result.data.nodes)}")
-print(f"边数: {len(result.data.edges)}")
+print(f"节点数: {len(result.nodes)}")
+print(f"边数: {len(result.edges)}")
+
+# 构建索引以支持搜索/对话功能
+result.build_index()
 
 # 可视化
 result.show()
@@ -221,8 +224,8 @@ ka: AutoGraph = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # IDE 自动完成有效
-nodes = result.data.nodes
-edges = result.data.edges
+nodes = result.nodes
+edges = result.edges
 ```
 
 ---

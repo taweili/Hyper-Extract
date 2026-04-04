@@ -25,8 +25,8 @@ output:
     - name: type
       type: str
       description:
-        zh: '节点类型，如实体、概念、地点、组织、物品等。'
-        en: 'Node type, such as entity, concept, location, organization, object, etc.'
+        zh: '节点类型。例如：实体/概念/地点/组织/物品/人物/事件等'
+        en: 'Node type. Examples: entity/concept/location/organization/object/person/event, etc.'
     - name: description
       type: str
       description:
@@ -46,8 +46,8 @@ output:
     - name: type
       type: str
       description:
-        zh: '超边的类型，如事件、会议、合作、冲突、交易、协议等。'
-        en: 'Type of the hyperedge, such as event, meeting, cooperation, conflict, transaction, agreement, etc.'
+        zh: '超边的类型。例如：会议/合作/冲突/交易/协议/比赛/选举/诉讼/并购/发布会等'
+        en: 'Type of the hyperedge. Examples: meeting/collaboration/conflict/transaction/agreement/competition/election/lawsuit/acquisition/launch_event, etc.'
     - name: participants
       type: list
       description:

@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '步骤类型：调用技能/普通步骤/条件判断/分支节点'
-          en: 'Step type: skill/step/condition/branch'
+          zh: '步骤类型：调用技能/普通步骤/条件判断/分支节点/输入节点/输出节点/循环节点等'
+          en: 'Step type: skill_call/process_step/condition/branch_node/input_node/output_node/loop_node, etc.'
         required: true
       - name: description
         type: str
@@ -67,8 +67,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型，用简洁词语概括两个步骤之间的连接方式'
-          en: 'Relation type, concisely describing the connection between two steps'
+          zh: '关系类型，用简洁词语概括两个步骤之间的连接方式。例如：下一步/条件为真/条件为假/输入/输出/依赖/触发等'
+          en: 'Relation type, concisely describing the connection between two steps. Examples: next/if_true/if_false/input_to/output_from/depends_on/triggers, etc.'
         required: true
       - name: condition
         type: str

@@ -31,8 +31,11 @@ with open("document.md") as f:
     result = ka.parse(f.read())
 
 # Access data
-print(f"Nodes: {len(result.data.nodes)}")
-print(f"Edges: {len(result.data.edges)}")
+print(f"Nodes: {len(result.nodes)}")
+print(f"Edges: {len(result.edges)}")
+
+# Build index for search/chat capabilities
+result.build_index()
 
 # Visualize
 result.show()
@@ -221,8 +224,8 @@ ka: AutoGraph = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # IDE autocomplete works
-nodes = result.data.nodes
-edges = result.data.edges
+nodes = result.nodes
+edges = result.edges
 ```
 
 ---

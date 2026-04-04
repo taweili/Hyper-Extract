@@ -1,9 +1,5 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../assets/logo/logo-horizontal-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="../assets/logo/logo-horizontal.svg">
-    <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
-  </picture>
+  <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
 </div>
 
 <br/>
@@ -28,7 +24,7 @@
     he config init -k YOUR_OPENAI_API_KEY
 
     # 3. 从文档中提取知识
-    he parse tesla.md -t general/biography_graph -o ./output/ -l en
+    he parse sushi.md -t general/biography_graph -o ./output/ -l zh
 
     # 4. 可视化知识图谱
     he show ./output/
@@ -40,10 +36,10 @@
     from hyperextract import Template
 
     # 1. 创建模板
-    ka = Template.create("general/biography_graph", "en")
+    ka = Template.create("general/biography_graph", "zh")
 
     # 2. 提取知识
-    with open("tesla.md") as f:
+    with open("sushi.md") as f:
         result = ka.parse(f.read())
 
     # 3. 可视化
@@ -153,20 +149,24 @@ Hyper-Extract 采用**三层架构**：
 
 ```mermaid
 graph TD
-    A[Your Document] --> B[Template / Method]
-    B --> C[Auto-Type]
-    C --> D[Structured Knowledge]
-    
-    subgraph "Layer 3: Templates"
-    B
+    A[您的文档] --> B[CLI / Python API]
+    B --> C[模板]
+    B --> D[方法]
+    C --> E[自动类型]
+    D --> E
+    E --> F[结构化知识]
+
+    subgraph "Layer 3: 模板与方法"
+        C
+        D
     end
-    
-    subgraph "Layer 2: Methods"
-    B
+
+    subgraph "Layer 2: 核心引擎"
+        E
     end
-    
-    subgraph "Layer 1: Auto-Types"
-    C
+
+    subgraph "Layer 1: 输出"
+        F
     end
 ```
 

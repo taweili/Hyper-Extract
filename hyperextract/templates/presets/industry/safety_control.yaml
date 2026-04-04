@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '要素类型：危险源/风险点/控制措施'
-          en: 'Element type: hazard/risk point/control measure'
+          zh: '要素类型：危险源/风险点/控制措施/防护设备/应急预案/责任人等'
+          en: 'Element type: hazard/risk_point/control_measure/protective_equipment/emergency_plan/responsible_person, etc.'
         required: true
       - name: description
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：导致/缓解/分配给'
-          en: 'Relation type: causes/mitigates/assigned_to'
+          zh: '关系类型：导致/缓解/分配给/需要/预防/控制等'
+          en: 'Relation type: causes/mitigates/assigned_to/requires/prevents/controls, etc.'
         required: true
       - name: responsible_role
         type: str

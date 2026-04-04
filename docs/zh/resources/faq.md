@@ -170,6 +170,9 @@ he show ./output/
 
 或在 Python 中：
 ```python
+# 构建索引以支持可视化中的交互式搜索/对话
+result.build_index()
+
 result.show()
 ```
 

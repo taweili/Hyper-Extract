@@ -77,7 +77,10 @@ he parse proxy.md -t finance/ownership_graph -l en
 
 **可视化：**
 ```python
-result.show()  # 显示所有权网络
+# 构建索引以支持可视化中的交互式搜索/对话
+result.build_index()
+
+result.show()  # 显示带有交互功能的所有权网络
 ```
 
 ---

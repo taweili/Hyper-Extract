@@ -908,7 +908,8 @@ class AutoList(BaseAutoType[AutoListSchema[ItemSchema]], Generic[ItemSchema]):
         """Check if two items are equal.
 
         Args:
-            item1, item2: Items to compare.
+            item1: First item to compare.
+            item2: Second item to compare.
 
         Returns:
             True if items are equal, False otherwise.

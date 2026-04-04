@@ -23,11 +23,11 @@ ka = Template.create("general/biography_graph", "en")
 
 # Initial extraction
 result = ka.parse(initial_text)
-print(f"Initial: {len(result.data.nodes)} nodes")
+print(f"Initial: {len(result.nodes)} nodes")
 
 # Add more content
 result.feed_text(additional_text)
-print(f"After feed: {len(result.data.nodes)} nodes")
+print(f"After feed: {len(result.nodes)} nodes")
 ```
 
 ---
@@ -46,7 +46,10 @@ kb.feed_text(career_text)
 # Add later years
 kb.feed_text(later_years_text)
 
-# Final result combines all periods
+# Rebuild index after feeding new data
+kb.build_index()
+
+# Final result combines all periods (with interactive search/chat)
 kb.show()
 ```
 
@@ -58,7 +61,7 @@ kb = ka.parse(documents[0])
 
 for doc in documents[1:]:
     kb.feed_text(doc)
-    print(f"Added document, now {len(kb.data.nodes)} nodes")
+    print(f"Added document, now {len(kb.nodes)} nodes")
 ```
 
 ### Updating with New Information
@@ -136,9 +139,9 @@ kb.dump("./kb_v2/")
 ### 4. Monitor Growth
 
 ```python
-initial_count = len(kb.data.nodes)
+initial_count = len(kb.nodes)
 kb.feed_text(new_text)
-new_count = len(kb.data.nodes)
+new_count = len(kb.nodes)
 
 print(f"Added {new_count - initial_count} new nodes")
 ```
@@ -171,7 +174,7 @@ def build_knowledge_base(source_dir, output_dir):
     for file in files[1:]:
         print(f"Adding {file.name}...")
         kb.feed_text(file.read_text())
-        print(f"  Now {len(kb.data.nodes)} nodes")
+        print(f"  Now {len(kb.nodes)} nodes")
     
     # Build index for search/chat
     print("Building search index...")

@@ -26,14 +26,14 @@ output:
       - name: type
         type: str
         description:
-          zh: '设备类型'
-          en: 'Equipment type'
+          zh: '设备类型。例如：主机/从机/传感器/执行器/控制器/网络设备/电源设备等'
+          en: 'Equipment type. Examples: master/slave/sensor/actuator/controller/network_device/power_device, etc.'
         required: true
       - name: location
         type: str
         description:
-          zh: '安装位置'
-          en: 'Installation location'
+          zh: '安装位置。例如：机柜A/控制室/现场/室外/楼顶等'
+          en: 'Installation location. Examples: cabinet_A/control_room/site/outdoor/rooftop, etc.'
         required: false
       - name: specifications
         type: str
@@ -61,8 +61,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：连接/位于/包含'
-          en: 'Relation type: connected_to/located_in/contains'
+          zh: '关系类型：连接/位于/包含/控制/供电/通信等'
+          en: 'Relation type: connected_to/located_in/contains/controls/powers/communicates_with, etc.'
         required: true
 
 guideline:

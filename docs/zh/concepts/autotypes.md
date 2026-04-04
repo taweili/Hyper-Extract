@@ -50,10 +50,12 @@ graph TD
 **示例输出**：
 ```python
 {
-    "company_name": "Tesla Inc",
-    "revenue": 81.46,
-    "eps": 4.07,
-    "employees": 127855
+    "name": "苏轼",
+    "style_name": "子瞻",
+    "art_name": "东坡居士",
+    "dynasty": "北宋",
+    "birth_year": 1037,
+    "masterpiece": "念奴娇·赤壁怀古"
 }
 ```
 
@@ -76,9 +78,9 @@ graph TD
 ```python
 {
     "items": [
-        {"name": "AC Motor", "year": 1888},
-        {"name": "Tesla Coil", "year": 1891},
-        {"name": "Radio", "year": 1898}
+        {"name": "《念奴娇·赤壁怀古》", "year": 1082},
+        {"name": "《水调歌头·明月几时有》", "year": 1076},
+        {"name": "《赤壁赋》", "year": 1082}
     ]
 }
 ```
@@ -102,10 +104,10 @@ graph TD
 ```python
 {
     "items": [
-        "Electrical Engineering",
-        "Physics",
-        "Invention",
-        "Renewable Energy"
+        "豪放词",
+        "行书",
+        "文人画",
+        "宋四家"
     ]
 }
 ```
@@ -131,13 +133,15 @@ graph TD
 ```python
 {
     "nodes": [
-        {"name": "Tesla", "type": "person"},
-        {"name": "Edison", "type": "person"},
-        {"name": "AC Motor", "type": "invention"}
+        {"name": "苏轼", "type": "人物"},
+        {"name": "苏辙", "type": "人物"},
+        {"name": "欧阳修", "type": "人物"},
+        {"name": "《赤壁赋》", "type": "作品"}
     ],
     "edges": [
-        {"source": "Tesla", "target": "AC Motor", "type": "invented"},
-        {"source": "Tesla", "target": "Edison", "type": "rivals"}
+        {"source": "苏轼", "target": "苏辙", "type": "兄弟"},
+        {"source": "苏轼", "target": "欧阳修", "type": "师生"},
+        {"source": "苏轼", "target": "《赤壁赋》", "type": "创作"}
     ]
 }
 ```
@@ -163,9 +167,9 @@ graph TD
     "nodes": [...],
     "edges": [
         {
-            "entities": ["Tesla", "Westinghouse", "Niagara"],
-            "type": "collaboration",
-            "description": "Power plant project"
+            "entities": ["苏轼", "苏辙", "苏洵"],
+            "type": "三苏",
+            "description": "父子三人同列唐宋八大家"
         }
     ]
 }
@@ -193,16 +197,16 @@ graph TD
     "nodes": [...],
     "edges": [
         {
-            "source": "Tesla",
-            "target": "AC Motor",
-            "type": "invented",
-            "time": "1888"
+            "source": "苏轼",
+            "target": "《念奴娇·赤壁怀古》",
+            "type": "创作",
+            "time": "1082"
         },
         {
-            "source": "Tesla",
-            "target": "Wardenclyffe Tower",
-            "type": "built",
-            "time": "1901-1902"
+            "source": "苏轼",
+            "target": "黄州",
+            "type": "贬谪",
+            "time": "1080-1084"
         }
     ]
 }
@@ -228,17 +232,17 @@ graph TD
 {
     "nodes": [
         {
-            "name": "Colorado Springs",
-            "type": "location",
-            "coordinates": "38.8339,-104.8214"
+            "name": "黄州",
+            "type": "地点",
+            "coordinates": "湖北省黄冈市"
         }
     ],
     "edges": [
         {
-            "source": "Tesla",
-            "target": "Colorado Springs",
-            "type": "conducted_experiments",
-            "location": "Colorado Springs"
+            "source": "苏轼",
+            "target": "黄州",
+            "type": "躬耕",
+            "location": "东坡"
         }
     ]
 }
@@ -264,12 +268,12 @@ graph TD
     "nodes": [...],
     "edges": [
         {
-            "source": "Tesla",
-            "target": "AC Motor",
-            "type": "demonstrated",
-            "time": "1888",
-            "location": "Pittsburgh",
-            "description": "Demonstration at Westinghouse"
+            "source": "苏轼",
+            "target": "《赤壁赋》",
+            "type": "创作",
+            "time": "1082",
+            "location": "黄州",
+            "description": "夜游赤壁，饮酒赋诗"
         }
     ]
 }
@@ -330,14 +334,16 @@ result = ka.parse(text)
 # 增量更新
 result.feed_text(more_text)
 
-# 搜索（需要索引）
+# 构建索引（搜索、聊天和交互式可视化都需要）
 result.build_index()
+
+# 搜索
 results = result.search("query")
 
-# 聊天（需要索引）
+# 聊天
 response = result.chat("question")
 
-# 可视化
+# 可视化（支持搜索/对话的交互式可视化）
 result.show()
 
 # 持久化

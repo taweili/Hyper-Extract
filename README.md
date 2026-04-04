@@ -9,7 +9,9 @@
 <br/>
 <br/>
 
-**Smart Knowledge Extraction CLI — Transform documents into structured knowledge with one command.**
+**Smart Knowledge Extraction CLI**
+
+**Transform documents into structured knowledge with one command.**
 
 [📖 English Version](./README.md) · [中文版](./README_ZH.md)
 

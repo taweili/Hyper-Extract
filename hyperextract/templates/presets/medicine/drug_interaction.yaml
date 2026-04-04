@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '相互作用类型：协同/拮抗/禁用'
-          en: 'Interaction type: synergistic/antagonistic/contraindicated'
+          zh: '相互作用类型：协同/拮抗/禁用/增效/减效/毒性增强等'
+          en: 'Interaction type: synergistic/antagonistic/contraindicated/enhances/reduces/toxicity_increased, etc.'
         required: true
       - name: mechanism
         type: str

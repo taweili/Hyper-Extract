@@ -246,11 +246,13 @@ print(result.data)
 ka = Template.create("general/biography_graph", "en")
 result = ka.parse(biography_text)
 
-# Visualize life events
+# Build index for interactive features
+result.build_index()
+
+# Visualize life events (with search/chat capabilities)
 result.show()
 
 # Ask questions
-result.build_index()
 response = result.chat("What were the major achievements?")
 print(response.content)
 ```
@@ -262,10 +264,10 @@ ka = Template.create("general/concept_graph", "en")
 result = ka.parse(paper_text)
 
 # Get concept map
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"Concept: {node.name}")
 
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} → {edge.target}")
 ```
 

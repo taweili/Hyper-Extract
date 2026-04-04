@@ -22,14 +22,14 @@ output:
     - name: category
       type: str
       description:
-        zh: '风险类别：经营风险/财务风险/市场风险/法规风险'
-        en: 'Risk category: operational/financial/market/regulatory'
+        zh: '风险类别：经营风险/财务风险/市场风险/法规风险/信用风险/操作风险/声誉风险等'
+        en: 'Risk category: operational/financial/market/regulatory/credit/operational/reputational, etc.'
       required: true
     - name: severity
       type: str
       description:
-        zh: '严重程度：高/中/低'
-        en: 'Severity: high/medium/low'
+        zh: '严重程度：高/中/低/极高/极低等'
+        en: 'Severity: high/medium/low/critical/minimal, etc.'
       required: true
 
 guideline:

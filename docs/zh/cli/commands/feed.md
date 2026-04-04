@@ -48,10 +48,10 @@ he feed KA_PATH INPUT [OPTIONS]
 
 ```bash
 # 初始提取
-he parse tesla_bio.md -t general/biography_graph -o ./tesla_kb/ -l en
+he parse sushi.md -t general/biography_graph -o ./sushi_kb/ -l zh
 
 # 添加更多内容
-he feed ./tesla_kb/ tesla_inventions.md
+he feed ./sushi_kb/ more_sushi.md
 ```
 
 ### 喂养多个文档

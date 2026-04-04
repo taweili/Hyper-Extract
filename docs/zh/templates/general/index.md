@@ -119,7 +119,7 @@ he parse doc.md -t general/base_graph -l en
 
 **示例使用：**
 ```bash
-he parse tesla_bio.md -t general/biography_graph -l en
+he parse sushi.md -t general/biography_graph -l zh
 ```
 
 **特性**：
@@ -131,15 +131,15 @@ he parse tesla_bio.md -t general/biography_graph -l en
 ```python
 {
     "entities": [
-        {"name": "Nikola Tesla", "type": "person"},
-        {"name": "AC Motor", "type": "invention"}
+        {"name": "苏轼", "type": "人物"},
+        {"name": "《念奴娇·赤壁怀古》", "type": "作品"}
     ],
     "relations": [
         {
-            "source": "Nikola Tesla",
-            "target": "AC Motor",
-            "type": "invented",
-            "time": "1888"
+            "source": "苏轼",
+            "target": "《念奴娇·赤壁怀古》",
+            "type": "创作",
+            "time": "1082"
         }
     ]
 }
@@ -246,11 +246,13 @@ print(result.data)
 ka = Template.create("general/biography_graph", "en")
 result = ka.parse(biography_text)
 
-# 可视化生平事件
+# 构建索引以支持交互功能
+result.build_index()
+
+# 可视化生平事件（支持搜索/对话功能）
 result.show()
 
 # 提问
-result.build_index()
 response = result.chat("主要成就是什么？")
 print(response.content)
 ```
@@ -262,10 +264,10 @@ ka = Template.create("general/concept_graph", "en")
 result = ka.parse(paper_text)
 
 # 获取概念图
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"概念: {node.name}")
 
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} → {edge.target}")
 ```
 

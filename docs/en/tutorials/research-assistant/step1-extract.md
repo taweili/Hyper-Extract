@@ -102,12 +102,12 @@ def main():
     
     # Display results
     print(f"\nExtraction Complete:")
-    print(f"  Nodes: {len(result.data.nodes)}")
-    print(f"  Edges: {len(result.data.edges)}")
+    print(f"  Nodes: {len(result.nodes)}")
+    print(f"  Edges: {len(result.edges)}")
 
     # Show sample nodes
     print("\nSample Concepts:")
-    for node in result.data.nodes[:5]:
+    for node in result.nodes[:5]:
         print(f"  - {node.name} ({node.type})")
     
     # Save

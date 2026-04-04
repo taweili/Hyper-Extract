@@ -49,8 +49,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '配伍类型：相须/相使/相畏/相杀/相恶/相反'
-          en: 'Compatibility type: synergistic/mutual-enhancing/mutual-repressing/toxicity-reducing/antagonistic/incompatible'
+          zh: '配伍类型：相须/相使/相畏/相杀/相恶/相反等'
+          en: 'Compatibility type: synergistic/mutual-enhancing/mutual-repressing/toxicity-reducing/antagonistic/incompatible, etc.'
         required: true
       - name: description
         type: str

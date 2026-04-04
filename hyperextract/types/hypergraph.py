@@ -361,6 +361,8 @@ class AutoHypergraph(
             prompt=self.prompt,
             prompt_for_node_extraction=self.node_prompt,
             prompt_for_edge_extraction=self.edge_prompt,
+            node_label_extractor=self._node_label_extractor,
+            edge_label_extractor=self._edge_label_extractor,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,

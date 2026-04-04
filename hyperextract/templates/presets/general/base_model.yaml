@@ -27,8 +27,8 @@ output:
   - name: type
     type: str
     description:
-      zh: '对象的类型或分类标签。'
-      en: 'Type or category label of the object.'
+      zh: '对象的类型或分类标签。例如：用户信息/产品规格/配置参数/元数据/摘要信息等'
+      en: 'Type or category label of the object. Examples: user_info/product_spec/config_param/metadata/summary, etc.'
     required: false
 
 guideline:

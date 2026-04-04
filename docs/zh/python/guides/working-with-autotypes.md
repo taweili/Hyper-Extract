@@ -81,12 +81,12 @@ ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # 访问节点
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"{node.name} ({node.type})")
     print(f"  描述: {node.description}")
 
 # 访问边
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
@@ -101,7 +101,7 @@ ka = Template.create("general/base_hypergraph", "en")
 result = ka.parse(text)
 
 # 超边连接多个实体
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"类型: {edge.type}")
     print(f"实体: {edge.entities}")
 ```
@@ -117,7 +117,7 @@ ka = Template.create("general/base_temporal_graph", "en")
 result = ka.parse(text)
 
 # 边包含时间信息
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
     if hasattr(edge, 'time'):
         print(f"  时间: {edge.time}")
@@ -134,7 +134,7 @@ ka = Template.create("general/base_spatial_graph", "en")
 result = ka.parse(text)
 
 # 节点/边包含位置
-for node in result.data.nodes:
+for node in result.nodes:
     if hasattr(node, 'location'):
         print(f"{node.name} at {node.location}")
 ```
@@ -150,7 +150,7 @@ ka = Template.create("general/base_spatio_temporal_graph", "en")
 result = ka.parse(text)
 
 # 完整上下文：谁、什么、何时、何地
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"事件: {edge.type}")
     if hasattr(edge, 'time'):
         print(f"  何时: {edge.time}")
@@ -168,7 +168,7 @@ for edge in result.data.edges:
 if result.empty():
     print("未提取到数据")
 else:
-    print(f"提取了 {len(result.data.nodes)} 个节点")
+    print(f"提取了 {len(result.nodes)} 个节点")
 ```
 
 ### 清除数据
@@ -202,8 +202,8 @@ combined = result1 + result2
 result = ka.parse(text)
 
 # 直接属性访问（Pydantic 模型）
-nodes = result.data.nodes
-edges = result.data.edges
+nodes = result.nodes
+edges = result.edges
 
 # 字典转换
 data_dict = result.data.model_dump()
@@ -230,14 +230,14 @@ with open("output.json", "w") as f:
 
 ```python
 # 遍历节点
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"名称: {node.name}")
     print(f"类型: {node.type}")
     if hasattr(node, 'description'):
         print(f"描述: {node.description}")
 
 # 带筛选的边迭代
-for edge in result.data.edges:
+for edge in result.edges:
     if edge.type == "worked_with":
         print(f"{edge.source} 与 {edge.target} 合作")
 ```
@@ -246,24 +246,24 @@ for edge in result.data.edges:
 
 ```python
 # 按类型筛选节点
-people = [n for n in result.data.nodes if n.type == "person"]
-organizations = [n for n in result.data.nodes if n.type == "organization"]
+people = [n for n in result.nodes if n.type == "person"]
+organizations = [n for n in result.nodes if n.type == "organization"]
 
 # 筛选边
-inventions = [e for e in result.data.edges if "invent" in e.type.lower()]
+inventions = [e for e in result.edges if "invent" in e.type.lower()]
 ```
 
 ### 统计
 
 ```python
 # 基本计数
-node_count = len(result.data.nodes)
-edge_count = len(result.data.edges)
+node_count = len(result.nodes)
+edge_count = len(result.edges)
 
 # 类型分布
 from collections import Counter
-node_types = Counter(n.type for n in result.data.nodes)
-edge_types = Counter(e.type for e in result.data.edges)
+node_types = Counter(n.type for n in result.nodes)
+edge_types = Counter(e.type for e in result.edges)
 
 print(f"节点: {node_types}")
 print(f"边: {edge_types}")

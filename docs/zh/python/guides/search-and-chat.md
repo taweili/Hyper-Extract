@@ -20,7 +20,7 @@
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 result = ka.parse(text)
 
 # 构建搜索索引
@@ -37,7 +37,7 @@ result.build_index()
 
 ```python
 # 搜索相关项目（返回节点和边的元组）
-nodes, edges = result.search("inventions", top_k=5)
+nodes, edges = result.search("代表作", top_k=5)
 
 for node in nodes:
     print(f"节点: {node.name}")
@@ -49,7 +49,7 @@ for edge in edges:
 
 ```python
 nodes, edges = result.search(
-    query="electrical engineering achievements",
+    query="苏轼文学成就",
     top_k=10  # 节点和边的结果数量
 )
 ```
@@ -72,13 +72,13 @@ for edge in edges:
 
 ```python
 # 查找特定人物
-people_nodes, people_edges = result.search("scientists who worked with Tesla", top_k=10)
+people_nodes, people_edges = result.search("与苏轼相关的人物", top_k=10)
 
 # 查找概念
-concept_nodes, concept_edges = result.search("alternating current system", top_k=5)
+concept_nodes, concept_edges = result.search("豪放词", top_k=5)
 
 # 查找事件
-event_nodes, event_edges = result.search("important dates in Tesla's life", top_k=10)
+event_nodes, event_edges = result.search("苏轼生平重要年份", top_k=10)
 ```
 
 ---
@@ -89,7 +89,7 @@ event_nodes, event_edges = result.search("important dates in Tesla's life", top_
 
 ```python
 # 提问
-response = result.chat("特斯拉的主要成就是什么？")
+response = result.chat("苏轼的主要成就是什么？")
 
 print(response.content)
 ```
@@ -97,7 +97,7 @@ print(response.content)
 ### 访问检索到的上下文
 
 ```python
-response = result.chat("特斯拉发明了什么？")
+response = result.chat("苏轼创作了哪些作品？")
 
 print(response.content)
 
@@ -111,7 +111,7 @@ print(f"基于 {len(retrieved_nodes)} 个节点和 {len(retrieved_edges)} 条边
 
 ```python
 response = result.chat(
-    query="解释电流战争",
+    query="解释乌台诗案",
     top_k=10  # 复杂问题需要更多上下文
 )
 ```
@@ -120,16 +120,16 @@ response = result.chat(
 
 ```python
 # 摘要
-summary = result.chat("用三句话总结特斯拉的职业生涯")
+summary = result.chat("用三句话总结苏轼的生平")
 
 # 解释
-explanation = result.chat("特斯拉线圈的意义是什么？")
+explanation = result.chat("《赤壁赋》的意义是什么？")
 
 # 比较
-comparison = result.chat("特斯拉的方法与爱迪生有何不同？")
+comparison = result.chat("苏轼与王安石的政见有何不同？")
 
 # 时间线
-timeline = result.chat("特斯拉在 1880-1890 年间发生了什么？")
+timeline = result.chat("苏轼在 1080-1090 年间发生了什么？")
 ```
 
 ---
@@ -166,7 +166,7 @@ timeline = result.chat("特斯拉在 1880-1890 年间发生了什么？")
 
 ```python
 # 首先，搜索特定节点
-nodes, edges = result.search("wireless technology", top_k=5)
+nodes, edges = result.search("东坡赤壁", top_k=5)
 
 # 然后，询问它们
 if nodes:
@@ -183,11 +183,11 @@ response = result.chat("本文档中的主要主题是什么？")
 print(response.content)
 
 # 深入了解
-response = result.chat("更多关于特斯拉线圈的信息")
+response = result.chat("更多关于赤壁赋的信息")
 print(response.content)
 
 # 特定问题
-response = result.chat("特斯拉线圈是如何工作的？")
+response = result.chat("赤壁赋的创作背景是什么？")
 print(response.content)
 ```
 
@@ -196,7 +196,7 @@ print(response.content)
 ```python
 class ResearchAssistant:
     def __init__(self, kb_path):
-        self.ka = Template.create("general/concept_graph", "en")
+        self.ka = Template.create("general/concept_graph", "zh")
         self.ka.load(kb_path)
         self.ka.build_index()
     
@@ -222,8 +222,8 @@ print(assistant.ask("有哪些局限性？"))
 
 ### 搜索技巧
 
-1. **使用自然语言** — "无线传输"而非"无线"
-2. **要具体** — "特斯拉的专利"而非"特斯拉"
+1. **使用自然语言** — "文学成就"而非"文学"
+2. **要具体** — "苏轼的作品"而非"苏轼"
 3. **广泛查询时增加 top_k** — `top_k=10` 或更多
 4. **按类型筛选结果** — 检查 `hasattr(item, 'name')`
 
@@ -254,7 +254,7 @@ results = result.search("discoveries")
 results = result.search("contributions")
 
 # 增加 top_k
-results = result.search("Tesla", top_k=20)
+results = result.search("苏轼", top_k=20)
 ```
 
 ### "无关的聊天响应"

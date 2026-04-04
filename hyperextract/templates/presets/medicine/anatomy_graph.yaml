@@ -26,14 +26,14 @@ output:
       - name: level
         type: str
         description:
-          zh: '结构层级：系统/器官/组织/细胞'
-          en: 'Structure level: system/organ/tissue/cell'
+          zh: '结构层级：系统/器官/组织/细胞/亚细胞结构等'
+          en: 'Structure level: system/organ/tissue/cell/subcellular_structure, etc.'
         required: true
       - name: location
         type: str
         description:
-          zh: '空间位置'
-          en: 'Spatial location'
+          zh: '空间位置。例如：胸腔/腹腔/颅内/四肢/体表等'
+          en: 'Spatial location. Examples: thoracic_cavity/abdominal_cavity/cranial/extremities/body_surface, etc.'
         required: false
   relations:
     description:
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：包含/位于'
-          en: 'Relation type: contains/located_in'
+          zh: '关系类型：包含/位于/连接/供应/支配等'
+          en: 'Relation type: contains/located_in/connects_to/supplies/innervates, etc.'
         required: true
 
 guideline:

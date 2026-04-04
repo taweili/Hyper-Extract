@@ -3,7 +3,7 @@
 Provides a clean API for searching and creating knowledge extraction templates.
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -41,8 +41,8 @@ class Template:
         language: Optional[str] = None,
         llm_client: Optional[BaseChatModel] = None,
         embedder: Optional[Embeddings] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> "BaseAutoType":
         """Create template instance.
 
         Args:

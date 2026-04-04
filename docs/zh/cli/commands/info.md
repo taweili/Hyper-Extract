@@ -56,7 +56,7 @@ Index         Built
 ### 提取后
 
 ```bash
-he parse tesla.md -t general/biography_graph -o ./kb/ -l en
+he parse sushi.md -t general/biography_graph -o ./kb/ -l zh
 he info ./kb/
 ```
 

@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '要素类型：症状/证候/治法/方剂。'
-          en: 'Element type: symptom/syndrome/treatment/formula.'
+          zh: '要素类型：症状/证候/治法/方剂/病因/病位/病性等'
+          en: 'Element type: symptom/syndrome/treatment/formula/etiology/location/nature, etc.'
         required: true
       - name: description
         type: str
@@ -49,8 +49,8 @@ output:
       - name: reasoning_type
         type: str
         description:
-          zh: '推理类型：辨证论治（根据证候确定治法）/ 随证加减（根据症状变化调整处方）。'
-          en: 'Reasoning type: syndrome differentiation (determining treatment based on syndrome) / treatment adjustment (modifying formula based on symptom changes).'
+          zh: '推理类型：辨证论治/随证加减/方证对应/病机分析等'
+          en: 'Reasoning type: syndrome_differentiation/treatment_adjustment/formula_syndrome_correspondence/pathogenesis_analysis, etc.'
         required: true
       - name: symptoms
         type: list

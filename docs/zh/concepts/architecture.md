@@ -39,12 +39,12 @@ graph LR
 
 ```python
 # 输入：原始文本
-text = "Nikola Tesla was an inventor..."
+text = "苏轼是北宋著名文学家..."
 
 # 如果 text > chunk_size，拆分为块
 chunks = [
-    "Nikola Tesla was an inventor...",
-    "He developed the AC system...",
+    "苏轼是北宋著名文学家...",
+    "他创作了《赤壁赋》...",
     # ...
 ]
 ```

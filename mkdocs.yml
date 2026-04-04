@@ -86,6 +86,7 @@ plugins:
                     - python/guides/using-templates.md
                     - python/guides/choosing-methods.md
                     - python/guides/working-with-autotypes.md
+                    - python/guides/custom-templates.md
                     - python/guides/search-and-chat.md
                     - python/guides/incremental-updates.md
                     - python/guides/saving-loading.md
@@ -114,6 +115,19 @@ plugins:
                 - resources/faq.md
                 - resources/troubleshooting.md
                 - resources/contributing.md
+            - Tutorials:
+                - tutorials/index.md
+                - Research Assistant:
+                    - tutorials/research-assistant/index.md
+                    - tutorials/research-assistant/step1-extract.md
+                    - tutorials/research-assistant/step2-search.md
+                    - tutorials/research-assistant/step3-chat.md
+                - Knowledge Base:
+                    - tutorials/knowledge-base/index.md
+                    - tutorials/knowledge-base/step1-setup.md
+                    - tutorials/knowledge-base/step2-ingest.md
+                    - tutorials/knowledge-base/step3-query.md
+                - Document Analysis: tutorials/document-analysis/index.md
         - locale: zh
           name: 中文
           build: true

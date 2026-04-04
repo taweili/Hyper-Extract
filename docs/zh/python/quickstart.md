@@ -51,12 +51,12 @@ scientific fields.
 result = ka.parse(text)
 
 # 访问结果
-print(f"节点数: {len(result.data.nodes)}")
-print(f"边数: {len(result.data.edges)}")
+print(f"节点数: {len(result.nodes)}")
+print(f"边数: {len(result.edges)}")
 
 # 打印第一个节点
-if result.data.nodes:
-    node = result.data.nodes[0]
+if result.nodes:
+    node = result.nodes[0]
     print(f"\n第一个: {node.name} ({node.type})")
     print(f"描述: {node.description}")
 ```
@@ -73,6 +73,9 @@ Description: Polish-French physicist and chemist
 ### 3. 可视化
 
 ```python
+# 构建索引以支持搜索/对话功能
+result.build_index()
+
 # 打开交互式可视化
 result.show()
 ```
@@ -141,12 +144,12 @@ def main():
     
     # 显示结果
     print(f"\n提取结果：")
-    print(f"  节点数: {len(result.data.nodes)}")
-    print(f"  边数: {len(result.data.edges)}")
+    print(f"  节点数: {len(result.nodes)}")
+    print(f"  边数: {len(result.edges)}")
 
     # 列出节点
     print("\n发现的节点：")
-    for node in result.data.nodes:
+    for node in result.nodes:
         print(f"  - {node.name} ({node.type})")
     
     # 构建索引和搜索

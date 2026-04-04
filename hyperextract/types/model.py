@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from datetime import datetime
-from typing import List, Any, Type, Callable
+from typing import List, Any, Type, Callable, Union
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
@@ -361,7 +361,7 @@ class AutoModel(BaseAutoType[T]):
 
     # ==================== Operators ====================
 
-    def __add__(self, other):
+    def __add__(self, other: Union["AutoModel", "AutoList"]) -> "AutoList":
         """Operator overload for '+' to combine AutoModel instances into AutoList.
 
         Supports multiple combination patterns:

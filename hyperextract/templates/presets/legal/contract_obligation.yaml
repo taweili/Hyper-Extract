@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型：当事人/义务/条件/例外'
-          en: 'Entity type: party/obligation/condition/exception'
+          zh: '实体类型：当事人/义务/权利/条件/例外/违约/赔偿等'
+          en: 'Entity type: party/obligation/right/condition/exception/breach/compensation, etc.'
         required: true
   relations:
     description:
@@ -61,8 +61,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：must_perform/triggered_by/exempt_by'
-          en: 'Relation type: must_perform/triggered_by/exempt_by'
+          zh: '关系类型：必须履行/由...触发/由...豁免/享有权利/承担义务等'
+          en: 'Relation type: must_perform/triggered_by/exempt_by/entitled_to/obligated_to, etc.'
         required: true
 
 guideline:

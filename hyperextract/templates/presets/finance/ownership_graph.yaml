@@ -26,8 +26,8 @@ output:
       - name: shareholder_type
         type: str
         description:
-          zh: '股东类型：机构投资者/个人/关联方/上市公司'
-          en: 'Shareholder type: institutional investor/individual/related party/public company'
+          zh: '股东类型：机构投资者/个人/关联方/上市公司等'
+          en: 'Shareholder type: institutional investor/individual/related party/public company, etc.'
         required: true
       - name: description
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：控制/属于/持股'
-          en: 'Relation type: controls/belongs_to/holds_shares'
+          zh: '关系类型：控制/属于/持股/一致行动等'
+          en: 'Relation type: controls/belongs_to/holds_shares/acting_in_concert, etc.'
         required: true
       - name: ownership_percentage
         type: str

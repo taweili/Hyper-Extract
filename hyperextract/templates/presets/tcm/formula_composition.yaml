@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型：方剂/药材'
-          en: 'Entity type: formula/herb'
+          zh: '实体类型：方剂/药材/剂型/功效/主治等'
+          en: 'Entity type: formula/herb/dosage_form/efficacy/indication, etc.'
         required: true
       - name: description
         type: str

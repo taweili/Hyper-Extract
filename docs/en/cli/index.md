@@ -6,9 +6,17 @@ The Hyper-Extract CLI (`he`) provides a powerful, easy-to-use interface for know
 
 ## Installation
 
-```bash
-pip install hyper-extract
-```
+=== "uv (recommended)"
+
+    ```bash
+    uv pip install hyper-extract
+    ```
+
+=== "pip"
+
+    ```bash
+    pip install hyper-extract
+    ```
 
 Verify installation:
 
@@ -39,19 +47,31 @@ he --version
 The typical workflow for extracting and interacting with knowledge:
 
 ```mermaid
-graph LR
-    A[Document] -->|he parse| B[Knowledge Base]
-    B -->|he show| C[Visualize]
-    B -->|he search| D[Search]
-    B -->|he talk| E[Chat]
-    B -->|he feed| B[Update]
+flowchart TB
+    subgraph Create ["🚀 Create"]
+        D[📄 Document] -->|he parse| KB[(💡 Knowledge Base)]
+    end
+
+    subgraph Enhance ["✨ Enhance (Optional)"]
+        KB -->|he feed| KB
+        KB -->|he build-index| IDX[(🔍 Index)]
+    end
+
+    subgraph Explore ["🔍 Explore"]
+        KB -->|he show| VIS[👁️ Visualize]
+        IDX -->|he search| SRCH[🔎 Search]
+        IDX -->|he talk| CHAT[💬 Chat]
+    end
+
+    subgraph Save ["💾 Save"]
+        KB -->|he dump| DISK[💾 Disk]
+    end
 ```
 
-1. **Parse** — Extract knowledge from documents
-2. **Show** — Visualize the knowledge graph
-3. **Search** — Find specific information
-4. **Talk** — Have a conversation about the content
-5. **Feed** — Add more documents incrementally
+1. **Create** — Extract knowledge from documents (`he parse`)
+2. **Enhance** — Add documents incrementally (`he feed`), build index (`he build-index`)
+3. **Explore** — Visualize (`he show`), search (`he search`), chat (`he talk`)
+4. **Save** — Persist to disk (`he dump`)
 
 → [Detailed Workflow Walkthrough](workflow.md)
 

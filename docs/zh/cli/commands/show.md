@@ -40,20 +40,20 @@ he show ./output/
 
 ```bash
 # 先提取
-he parse tesla.md -t general/biography_graph -o ./tesla_kb/ -l en
+he parse sushi.md -t general/biography_graph -o ./sushi_kb/ -l zh
 
 # 然后可视化
-he show ./tesla_kb/
+he show ./sushi_kb/
 ```
 
 ### 增量更新后
 
 ```bash
 # 添加更多内容
-he feed ./tesla_kb/ additional_info.md
+he feed ./sushi_kb/ additional_info.md
 
 # 可视化更新后的图谱
-he show ./tesla_kb/
+he show ./sushi_kb/
 ```
 
 ---

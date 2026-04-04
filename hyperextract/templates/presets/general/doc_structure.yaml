@@ -26,8 +26,8 @@ output:
       - name: node_type
         type: str
         description:
-          zh: '节点类型：章/节/小节/段落/代码/表格/图表'
-          en: 'Node type: chapter/section/subsection/paragraph/code/table/figure'
+          zh: '节点类型：章/节/小节/段落/代码块/表格/图表/附录/参考文献等'
+          en: 'Node type: chapter/section/subsection/paragraph/code_block/table/figure/appendix/reference, etc.'
         required: true
       - name: level
         type: int
@@ -61,8 +61,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型，用简洁词语概括两个节点之间的连接方式'
-          en: 'Relation type, concisely describing the connection between two nodes'
+          zh: '关系类型，用简洁词语概括两个节点之间的连接方式。例如：包含/引用/前置/后续/相关/解释等'
+          en: 'Relation type, concisely describing the connection between two nodes. Examples: contains/references/precedes/follows/relates_to/explains, etc.'
         required: true
       - name: reference_context
         type: str

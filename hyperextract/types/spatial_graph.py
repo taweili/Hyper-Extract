@@ -164,7 +164,7 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
             nodes_in_edge_extractor: Function to extract (source_key, target_key) from edge.
             llm_client: LangChain BaseChatModel for extraction.
             embedder: LangChain Embeddings for semantic operations.
-            observation_time: Date context for relative time resolution (default: today in YYYY-MM-DD format).
+            observation_location: Location context for spatial resolution (default: "Unknown Location").
             extraction_mode: "one_stage" or "two_stage" (default: "two_stage").
             node_strategy_or_merger: Merge strategy for duplicate nodes (default: LLM.BALANCED).
             edge_strategy_or_merger: Merge strategy for duplicate edges (default: LLM.BALANCED).
@@ -313,6 +313,8 @@ class AutoSpatialGraph(AutoGraph[NodeSchema, EdgeSchema]):
             extraction_mode=self.extraction_mode,
             node_strategy_or_merger=self.node_merger,
             edge_strategy_or_merger=self.edge_merger,
+            node_label_extractor=self._node_label_extractor,
+            edge_label_extractor=self._edge_label_extractor,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,

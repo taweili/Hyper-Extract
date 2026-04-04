@@ -81,12 +81,12 @@ ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # Access nodes
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"{node.name} ({node.type})")
     print(f"  Description: {node.description}")
 
 # Access edges
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
@@ -101,7 +101,7 @@ ka = Template.create("general/base_hypergraph", "en")
 result = ka.parse(text)
 
 # Hyperedges connect multiple entities
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"Type: {edge.type}")
     print(f"Entities: {edge.entities}")
 ```
@@ -117,7 +117,7 @@ ka = Template.create("general/base_temporal_graph", "en")
 result = ka.parse(text)
 
 # Relations include time information
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
     if hasattr(edge, 'time'):
         print(f"  Time: {edge.time}")
@@ -134,7 +134,7 @@ ka = Template.create("general/base_spatial_graph", "en")
 result = ka.parse(text)
 
 # Nodes/edges include location
-for node in result.data.nodes:
+for node in result.nodes:
     if hasattr(node, 'location'):
         print(f"{node.name} at {node.location}")
 ```
@@ -150,7 +150,7 @@ ka = Template.create("general/base_spatio_temporal_graph", "en")
 result = ka.parse(text)
 
 # Full context: who, what, when, where
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"Event: {edge.type}")
     if hasattr(edge, 'time'):
         print(f"  When: {edge.time}")
@@ -168,7 +168,7 @@ for edge in result.data.edges:
 if result.empty():
     print("No data extracted")
 else:
-    print(f"Extracted {len(result.data.nodes)} nodes")
+    print(f"Extracted {len(result.nodes)} nodes")
 ```
 
 ### Clearing Data
@@ -202,8 +202,8 @@ combined = result1 + result2
 result = ka.parse(text)
 
 # Direct property access (Pydantic model)
-nodes = result.data.nodes
-edges = result.data.edges
+nodes = result.nodes
+edges = result.edges
 
 # Dictionary conversion
 data_dict = result.data.model_dump()
@@ -230,14 +230,14 @@ with open("output.json", "w") as f:
 
 ```python
 # Iterate nodes
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"Name: {node.name}")
     print(f"Type: {node.type}")
     if hasattr(node, 'description'):
         print(f"Description: {node.description}")
 
 # Iterate edges with filtering
-for edge in result.data.edges:
+for edge in result.edges:
     if edge.type == "worked_with":
         print(f"{edge.source} worked with {edge.target}")
 ```
@@ -246,24 +246,24 @@ for edge in result.data.edges:
 
 ```python
 # Filter nodes by type
-people = [n for n in result.data.nodes if n.type == "person"]
-organizations = [n for n in result.data.nodes if n.type == "organization"]
+people = [n for n in result.nodes if n.type == "person"]
+organizations = [n for n in result.nodes if n.type == "organization"]
 
 # Filter edges
-inventions = [e for e in result.data.edges if "invent" in e.type.lower()]
+inventions = [e for e in result.edges if "invent" in e.type.lower()]
 ```
 
 ### Statistics
 
 ```python
 # Basic counts
-node_count = len(result.data.nodes)
-edge_count = len(result.data.edges)
+node_count = len(result.nodes)
+edge_count = len(result.edges)
 
 # Type distribution
 from collections import Counter
-node_types = Counter(n.type for n in result.data.nodes)
-edge_types = Counter(e.type for e in result.data.edges)
+node_types = Counter(n.type for n in result.nodes)
+edge_types = Counter(e.type for e in result.edges)
 
 print(f"Nodes: {node_types}")
 print(f"Edges: {edge_types}")

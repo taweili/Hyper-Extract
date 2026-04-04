@@ -41,7 +41,10 @@ he parse system_diagram.md -t industry/equipment_topology -l en
 
 **可视化：**
 ```python
-result.show()  # 显示设备网络
+# 构建索引以支持可视化中的交互式搜索/对话
+result.build_index()
+
+result.show()  # 显示带有交互功能的设备网络
 ```
 
 ---
@@ -202,11 +205,13 @@ for hazard in hazards:
 ka = Template.create("industry/operation_flow", "en")
 procedure = ka.parse(sop_document)
 
-# 可视化工作流
+# 构建索引以支持交互式可视化
+procedure.build_index()
+
+# 可视化工作流（支持搜索/对话功能）
 procedure.show()
 
 # 搜索特定步骤
-procedure.build_index()
 results = procedure.search("启动序列")
 ```
 

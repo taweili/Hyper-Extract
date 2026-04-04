@@ -26,14 +26,14 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型：穴位/经脉'
-          en: 'Entity type: acupoint/meridian'
+          zh: '实体类型：穴位/经脉/络脉/特定穴/经筋/皮部等'
+          en: 'Entity type: acupoint/meridian/collateral/specific_point/muscle_region/cutaneous_region, etc.'
         required: true
       - name: location
         type: str
         description:
-          zh: '位置描述'
-          en: 'Location description'
+          zh: '位置描述。例如：前臂桡侧/小腿外侧/足背等'
+          en: 'Location description. Examples: lateral_forearm/lateral_lower_leg/dorsum_of_foot, etc.'
         required: false
   relations:
     description:
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：located_on/flows_to'
-          en: 'Relation type: located_on/flows_to'
+          zh: '关系类型：位于/流注/属络/交会/表里/同名等'
+          en: 'Relation type: located_on/flows_to/connects/intersects/interior_exterior/same_name, etc.'
         required: true
 
 guideline:

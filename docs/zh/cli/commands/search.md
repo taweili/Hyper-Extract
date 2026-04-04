@@ -42,7 +42,7 @@ he search KA_PATH QUERY [OPTIONS]
 ### 基本搜索
 
 ```bash
-he search ./output/ "Tesla's inventions"
+he search ./output/ "苏轼的代表作"
 ```
 
 ### 获取更多结果
@@ -55,8 +55,8 @@ he search ./output/ "electrical engineering" -n 10
 
 ```bash
 he search ./kb/ "主要成就是什么？"
-he search ./kb/ "与爱迪生一起工作的人"
-he search ./kb/ "时间线上的重要日期"
+he search ./kb/ "与欧阳修相关的人"
+he search ./kb/ "苏轼生平重要年份"
 ```
 
 ### 构建索引后
@@ -78,17 +78,17 @@ Found 3 result(s):
 
 Result 1:
 {
-  "name": "Nikola Tesla",
-  "type": "person",
-  "description": "Serbian-American inventor, electrical engineer..."
+  "name": "苏轼",
+  "type": "人物",
+  "description": "北宋文学家、书画家，号东坡居士"
 }
 
 Result 2:
 {
-  "source": "Nikola Tesla",
-  "target": "Thomas Edison",
-  "type": "worked_with",
-  "description": "Tesla worked for Edison in 1884"
+  "source": "苏轼",
+  "target": "欧阳修",
+  "type": "师生",
+  "description": "欧阳修赏识苏轼才华，预言其将超越自己"
 }
 
 Result 3:
@@ -108,7 +108,7 @@ Result 3:
 ## 更好搜索的技巧
 
 1. **使用自然语言** — "电气工程方面的发明" vs "发明 电气"
-2. **要具体** — "特斯拉在交流电方面的工作" vs "特斯拉 工作"
+2. **要具体** — "苏轼在词作方面的成就" vs "苏轼 成就"
 3. **尝试同义词** — 如果 "发明" 不行，尝试 "发现"
 4. **增加 top-k** — 使用 `-n 10` 获取更广泛的结果
 

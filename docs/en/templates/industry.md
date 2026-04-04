@@ -41,7 +41,10 @@ he parse system_diagram.md -t industry/equipment_topology -l en
 
 **Visualization:**
 ```python
-result.show()  # Shows equipment network
+# Build index for interactive search/chat in visualization
+result.build_index()
+
+result.show()  # Shows equipment network with interactive features
 ```
 
 ---
@@ -202,11 +205,13 @@ for hazard in hazards:
 ka = Template.create("industry/operation_flow", "en")
 procedure = ka.parse(sop_document)
 
-# Visualize workflow
+# Build index for interactive visualization
+procedure.build_index()
+
+# Visualize workflow with search/chat capabilities
 procedure.show()
 
 # Search for specific steps
-procedure.build_index()
 results = procedure.search("startup sequence")
 ```
 

@@ -26,8 +26,8 @@ output:
       - name: entity_type
         type: str
         description:
-          zh: '实体类型：公司/事件/公告类型'
-          en: 'Entity type: company/event/announcement type'
+          zh: '实体类型：公司/事件/公告/产品发布/并购重组/融资/诉讼/监管处罚等'
+          en: 'Entity type: company/event/announcement/product_launch/m_a/financing/litigation/regulatory_penalty, etc.'
         required: true
   relations:
     description:
@@ -49,14 +49,14 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：先于/导致/触发'
-          en: 'Relation type: precedes/causes/triggers'
+          zh: '关系类型：先于/导致/触发/回应/依据等'
+          en: 'Relation type: precedes/causes/triggers/responds_to/based_on, etc.'
         required: true
       - name: time
         type: str
         description:
-          zh: '事件日期'
-          en: 'Event date'
+          zh: '事件发生时间。例如：2024-01-15/2024年第一季度/公告发布日等'
+          en: 'Event occurrence time. Examples: 2024-01-15/Q1_2024/announcement_date, etc.'
         required: true
       - name: description
         type: str

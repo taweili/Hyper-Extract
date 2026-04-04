@@ -25,8 +25,8 @@ output:
     - name: type
       type: str
       description:
-        zh: '实体类型，如人物、地点、组织、物品、概念、事件、制度等。'
-        en: 'Entity type, such as person, location, organization, object, concept, event, institution, etc.'
+        zh: '实体类型。例如：人物/地点/组织/物品/概念/事件/制度/技术/产品/服务等'
+        en: 'Entity type. Examples: person/location/organization/object/concept/event/institution/technology/product/service, etc.'
     - name: description
       type: str
       description:
@@ -51,19 +51,19 @@ output:
     - name: type
       type: str
       description:
-        zh: '关系类型，用简洁词语概括两个实体之间的连接方式。'
-        en: 'Relation type, concisely describing the connection between two entities.'
+        zh: '关系类型，用简洁词语概括两个实体之间的连接方式。例如：创建/属于/位于/使用/影响/导致/参与/拥有/相关等'
+        en: 'Relation type, concisely describing the connection between two entities. Examples: created/belongs_to/located_at/uses/affects/causes/participates_in/owns/related_to, etc.'
     - name: time
       type: str
       description:
-        zh: '关系对应的时间；无明确时间时可留空。'
-        en: 'Time associated with the relation; can be left empty if no explicit time is available.'
+        zh: '关系对应的时间；无明确时间时可留空。例如：2024年/20岁时/任职期间/2020年代初等'
+        en: 'Time associated with the relation; can be left empty if no explicit time is available. Examples: 2024/at_age_20/during_tenure/early_2020s, etc.'
       required: false
     - name: location
       type: str
       description:
-        zh: '关系对应的位置信息；无明确位置时可留空。'
-        en: 'Location information associated with the relation; can be left empty if no explicit location is available.'
+        zh: '关系对应的位置信息；无明确位置时可留空。例如：北京市/会议室A/华东地区/现场等'
+        en: 'Location information associated with the relation; can be left empty if no explicit location is available. Examples: Beijing_Meeting_Room_A/East_China_region/on_site, etc.'
       required: false
     - name: description
       type: str

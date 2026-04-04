@@ -51,12 +51,12 @@ scientific fields.
 result = ka.parse(text)
 
 # Access results
-print(f"Nodes: {len(result.data.nodes)}")
-print(f"Edges: {len(result.data.edges)}")
+print(f"Nodes: {len(result.nodes)}")
+print(f"Edges: {len(result.edges)}")
 
 # Print first node
-if result.data.nodes:
-    node = result.data.nodes[0]
+if result.nodes:
+    node = result.nodes[0]
     print(f"\nFirst: {node.name} ({node.type})")
     print(f"Description: {node.description}")
 ```
@@ -73,6 +73,9 @@ Description: Polish-French physicist and chemist
 ### 3. Visualize
 
 ```python
+# Build index for search/chat capabilities
+result.build_index()
+
 # Open interactive visualization
 result.show()
 ```
@@ -139,12 +142,12 @@ def main():
     
     # Display results
     print(f"\nExtraction Results:")
-    print(f"  Nodes: {len(result.data.nodes)}")
-    print(f"  Edges: {len(result.data.edges)}")
+    print(f"  Nodes: {len(result.nodes)}")
+    print(f"  Edges: {len(result.edges)}")
 
     # List nodes
     print("\nNodes found:")
-    for node in result.data.nodes:
+    for node in result.nodes:
         print(f"  - {node.name} ({node.type})")
     
     # Build index and search

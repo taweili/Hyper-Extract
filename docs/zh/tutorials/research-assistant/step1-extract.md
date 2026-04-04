@@ -102,12 +102,12 @@ def main():
     
     # 显示结果
     print(f"\n提取完成:")
-    print(f"  节点: {len(result.data.nodes)}")
-    print(f"  边: {len(result.data.edges)}")
+    print(f"  节点: {len(result.nodes)}")
+    print(f"  边: {len(result.edges)}")
     
     # 显示样例节点
     print("\n样例概念:")
-    for node in result.data.nodes[:5]:
+    for node in result.nodes[:5]:
         print(f"  - {node.name} ({node.type})")
     
     # 保存

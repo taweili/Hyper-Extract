@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '要素类型：事故场景/响应动作/资源'
-          en: 'Element type: accident scenario/response action/resource'
+          zh: '要素类型：事故场景/响应动作/资源/责任人/应急设备等'
+          en: 'Element type: accident_scenario/response_action/resource/responsible_person/emergency_equipment, etc.'
         required: true
       - name: description
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：触发/执行/需要'
-          en: 'Relation type: triggers/executed_by/requires'
+          zh: '关系类型：触发/执行/需要/通知/协调/上报等'
+          en: 'Relation type: triggers/executed_by/requires/notifies/coordinates/reports_to, etc.'
         required: true
       - name: responsible_role
         type: str

@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '要素类型：患者特征/诊断/治疗/结果'
-          en: 'Element type: patient characteristic/diagnosis/treatment/outcome'
+          zh: '要素类型：患者特征/诊断/症状/体征/治疗/药物/手术/结果/预后等'
+          en: 'Element type: patient_characteristic/diagnosis/symptom/sign/treatment/medication/surgery/outcome/prognosis, etc.'
         required: true
       - name: description
         type: str
@@ -67,8 +67,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：适用于/禁忌联合'
-          en: 'Relation type: indicates/contraindicated_with'
+          zh: '关系类型：适用于/禁忌联合/导致/改善/首选方案/替代方案等'
+          en: 'Relation type: indicated_for/contraindicated_with/leads_to/improves/first_line/alternative, etc.'
         required: true
 
 guideline:

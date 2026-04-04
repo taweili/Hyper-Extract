@@ -170,6 +170,9 @@ he show ./output/
 
 Or in Python:
 ```python
+# Build index for interactive search/chat in visualization
+result.build_index()
+
 result.show()
 ```
 

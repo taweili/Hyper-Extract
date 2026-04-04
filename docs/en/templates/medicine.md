@@ -191,11 +191,13 @@ for i in interactions:
 ka = Template.create("medicine/anatomy_graph", "en")
 anatomy = ka.parse(textbook_chapter)
 
-# Visualize
+# Build index for interactive visualization
+anatomy.build_index()
+
+# Visualize with search/chat capabilities
 anatomy.show()
 
 # Search
-anatomy.build_index()
 results = anatomy.search("nerves in hand")
 ```
 

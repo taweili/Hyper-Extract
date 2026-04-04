@@ -19,15 +19,15 @@
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 # 初始提取
 result = ka.parse(initial_text)
-print(f"初始: {len(result.data.nodes)} 个节点")
+print(f"初始: {len(result.nodes)} 个节点")
 
 # 添加更多内容
 result.feed_text(additional_text)
-print(f"Feed 后: {len(result.data.nodes)} 个节点")
+print(f"Feed 后: {len(result.nodes)} 个节点")
 ```
 
 ---
@@ -37,7 +37,7 @@ print(f"Feed 后: {len(result.data.nodes)} 个节点")
 ### 随着时间构建知识
 
 ```python
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 kb = ka.parse(early_life_text)
 
 # 添加职业信息
@@ -46,7 +46,10 @@ kb.feed_text(career_text)
 # 添加晚年
 kb.feed_text(later_years_text)
 
-# 最终结果组合所有时期
+# 在 feed 新数据后重建索引
+kb.build_index()
+
+# 最终结果组合所有时期（支持交互式搜索/对话）
 kb.show()
 ```
 
@@ -58,7 +61,7 @@ kb = ka.parse(documents[0])
 
 for doc in documents[1:]:
     kb.feed_text(doc)
-    print(f"已添加文档，现在有 {len(kb.data.nodes)} 个节点")
+    print(f"已添加文档，现在有 {len(kb.nodes)} 个节点")
 ```
 
 ### 使用新信息更新
@@ -136,9 +139,9 @@ kb.dump("./kb_v2/")
 ### 4. 监控增长
 
 ```python
-initial_count = len(kb.data.nodes)
+initial_count = len(kb.nodes)
 kb.feed_text(new_text)
-new_count = len(kb.data.nodes)
+new_count = len(kb.nodes)
 
 print(f"添加了 {new_count - initial_count} 个新节点")
 ```
@@ -154,7 +157,7 @@ from hyperextract import Template
 from pathlib import Path
 
 def build_knowledge_base(source_dir, output_dir):
-    ka = Template.create("general/biography_graph", "en")
+    ka = Template.create("general/biography_graph", "zh")
     
     # 获取所有文本文件
     files = sorted(Path(source_dir).glob("*.md"))
@@ -171,7 +174,7 @@ def build_knowledge_base(source_dir, output_dir):
     for file in files[1:]:
         print(f"添加 {file.name}...")
         kb.feed_text(file.read_text())
-        print(f"  现在有 {len(kb.data.nodes)} 个节点")
+        print(f"  现在有 {len(kb.nodes)} 个节点")
     
     # 为搜索/聊天构建索引
     print("构建搜索索引...")
@@ -258,7 +261,7 @@ for batch in chunks(documents, batch_size=5):
 规范化实体名称：
 
 ```python
-# 不要"Nikola Tesla"和"Tesla"混用
+# 不要"苏轼"和"苏东坡"混用
 # 使用一致的命名
 ```
 

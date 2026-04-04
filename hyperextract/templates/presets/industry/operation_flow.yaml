@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '步骤类型：动作/检查/切换'
-          en: 'Step type: action/inspection/switch'
+          zh: '步骤类型：动作/检查/切换/确认步骤/异常处理等'
+          en: 'Step type: action/check/switch/confirmation_step/exception_handling, etc.'
         required: true
       - name: equipment_state
         type: str
@@ -61,8 +61,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：后续/触发/导致'
-          en: 'Relation type: next/triggers/results_in'
+          zh: '关系类型：后续/触发/导致/检查/条件为真/条件为假等'
+          en: 'Relation type: followed_by/triggers/leads_to/checks/if_true/if_false, etc.'
         required: true
       - name: description
         type: str

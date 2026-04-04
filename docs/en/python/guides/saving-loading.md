@@ -64,7 +64,7 @@ ka = Template.create("general/biography_graph", "en")
 ka.load("./my_kb/")
 
 # Use
-print(f"Loaded {len(ka.data.nodes)} nodes")
+print(f"Loaded {len(ka.nodes)} nodes")
 ```
 
 ### Verify Loaded Data
@@ -76,8 +76,8 @@ ka.load("./my_kb/")
 if ka.empty():
     print("Warning: No data loaded")
 else:
-    print(f"Nodes: {len(ka.data.nodes)}")
-    print(f"Edges: {len(ka.data.edges)}")
+    print(f"Nodes: {len(ka.nodes)}")
+    print(f"Edges: {len(ka.edges)}")
 ```
 
 ---

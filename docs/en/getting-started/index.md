@@ -18,7 +18,7 @@ Welcome to Hyper-Extract! This guide will help you get up and running quickly, w
     - Need to batch process files
     - Prefer terminal workflows
     
-    **Start here:** [:octicons-arrow-right-24: Installation](installation.md) → [:octicons-arrow-right-24: CLI Quickstart](cli-quickstart.md)
+    **Start here:** [Installation](installation.md) [:octicons-arrow-right-24: CLI Quickstart](cli-quickstart.md)
 
 -   :material-language-python:{ .lg .middle } __I want to use Python__
 
@@ -30,7 +30,7 @@ Welcome to Hyper-Extract! This guide will help you get up and running quickly, w
     - Need to integrate with existing code
     - Want full programmatic control
     
-    **Start here:** [:octicons-arrow-right-24: Installation](installation.md) → [:octicons-arrow-right-24: Python Quickstart](python-quickstart.md)
+    **Start here:** [Installation](installation.md) [:octicons-arrow-right-24: Python Quickstart](python-quickstart.md)
 
 </div>
 

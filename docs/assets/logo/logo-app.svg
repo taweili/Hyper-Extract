@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
   <!-- Dark background rounded rectangle for app icon / avatar -->
   <rect width="500" height="500" rx="40" fill="#0D0715"/>
-  <g transform="translate(0, -20)">
+  <g transform="translate(0, -35)">
     <polyline points="250,150 150,200 150,300 250,350" fill="none" stroke="#7A52BD" stroke-width="15" stroke-dasharray="16, 20" stroke-linecap="round" stroke-linejoin="round"/>
     <polyline points="250,150 350,200 350,300 250,350" fill="none" stroke="#B275FF" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
     <line x1="250" y1="250" x2="160" y2="198" stroke="#7A52BD" stroke-width="12" stroke-linecap="round" stroke-dasharray="16, 20"/>
@@ -13,7 +13,7 @@
     <circle cx="350" cy="200" r="10" fill="#FFFFFF"/>
     <circle cx="350" cy="300" r="10" fill="#FFFFFF"/>
   </g>
-  <text x="250" y="440" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="8">
+  <text x="250" y="420" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="8">
     HYPER<tspan fill="#A259FF">EXTRACT</tspan>
   </text>
 </svg>

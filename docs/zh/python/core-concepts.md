@@ -89,10 +89,10 @@ ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # 访问图谱数据
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"Node: {node.name}")
 
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
@@ -220,7 +220,10 @@ ka = Template.create("general/biography_graph", "en")
 # 2. 提取
 result = ka.parse(text)
 
-# 3. 使用
+# 3. 构建索引以支持搜索/对话功能
+result.build_index()
+
+# 4. 使用
 result.show()
 ```
 

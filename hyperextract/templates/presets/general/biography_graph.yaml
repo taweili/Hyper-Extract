@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型，如人物、地点、组织、作品、事件、成就等'
-          en: 'Entity type, such as person, location, organization, work, event, achievement, etc.'
+          zh: '实体类型，如：人物/地点/组织/作品/事件/成就/荣誉/职位等'
+          en: 'Entity type, e.g., person/location/organization/work/event/achievement/honor/position, etc.'
         required: true
       - name: description
         type: str
@@ -55,14 +55,14 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型，用简洁词语概括两个实体之间的连接方式'
-          en: 'Relation type, concisely describing the connection between two entities'
+          zh: '关系类型，用简洁词语概括两个实体之间的连接方式。例如：师从/任职于/发明/创作/获得荣誉/亲属关系/合作关系/影响等'
+          en: 'Relation type, concisely describing the connection between two entities. Examples: mentored_by/employed_by/invented/created/received_honor/related_to/collaborated_with/influenced, etc.'
         required: true
       - name: time
         type: str
         description:
-          zh: '关系对应的时间；无明确时间时可留空'
-          en: 'Time associated with the relation; can be left empty if no explicit time'
+          zh: '关系对应的时间；无明确时间时可留空。例如：1985年/20岁时/任职期间/2020年代初等'
+          en: 'Time associated with the relation; can be left empty if no explicit time. Examples: 1985/at_age_20/during_tenure/early_2020s, etc.'
         required: false
       - name: description
         type: str
@@ -123,4 +123,4 @@ identifiers:
 
 display:
   entity_label: '{name}'
-  relation_label: '{type}'
+  relation_label: '{type}@{time}'

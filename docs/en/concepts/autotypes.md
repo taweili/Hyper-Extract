@@ -330,14 +330,16 @@ result = ka.parse(text)
 # Incremental update
 result.feed_text(more_text)
 
-# Search (requires index)
+# Build index (required for search, chat, and interactive visualization)
 result.build_index()
+
+# Search
 results = result.search("query")
 
-# Chat (requires index)
+# Chat
 response = result.chat("question")
 
-# Visualization
+# Visualization (interactive with search/chat capabilities)
 result.show()
 
 # Persistence

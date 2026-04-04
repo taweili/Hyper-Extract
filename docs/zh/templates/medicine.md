@@ -191,11 +191,13 @@ for i in interactions:
 ka = Template.create("medicine/anatomy_graph", "en")
 anatomy = ka.parse(textbook_chapter)
 
-# 可视化
+# 构建索引以支持交互式可视化
+anatomy.build_index()
+
+# 可视化（支持搜索/对话功能）
 anatomy.show()
 
 # 搜索
-anatomy.build_index()
 results = anatomy.search("手部神经")
 ```
 

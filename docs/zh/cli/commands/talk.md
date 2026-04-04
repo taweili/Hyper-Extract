@@ -43,31 +43,29 @@ he talk KA_PATH [OPTIONS]
 ### 单个问题
 
 ```bash
-he talk ./output/ -q "特斯拉的主要成就是什么？"
+he talk ./output/ -q "苏轼的主要成就是什么？"
 ```
 
 **输出：**
 ```
-Query: 特斯拉的主要成就是什么？
+Query: 苏轼的主要成就是什么？
 Knowledge Abstract: ./output/
 Top K: 3
 
-Nikola Tesla made numerous groundbreaking contributions to electrical 
-engineering. His major achievements include:
+苏轼在文学、艺术领域取得了卓越成就，主要贡献包括：
 
-1. Development of the alternating current (AC) electrical system, which 
-   became the dominant method of power transmission worldwide.
+1. 开创了豪放词派，《念奴娇·赤壁怀古》成为千古名篇，
+   对后世词坛影响深远。
 
-2. Invention of the Tesla coil, used in radio technology and electrical 
-   resonant circuits.
+2. 与黄庭坚并称"苏黄"，诗歌清新豪健；书法为"宋四家"之首，
+   《黄州寒食诗帖》被誉为"天下第三行书"。
 
-3. Contributions to the development of X-ray imaging and wireless 
-   communication technologies.
+3. 散文为"唐宋八大家"之一，其《赤壁赋》等作品至今仍被广泛传诵。
 
 Retrieved context:
-1. Nikola Tesla: Serbian-American inventor, electrical engineer...
-2. AC Power System: Type: invention, Description: System for alternating...
-3. Tesla Coil: Type: invention, Description: Resonant transformer circuit...
+1. 苏轼: 北宋文学家、书画家，号东坡居士...
+2. 《念奴娇·赤壁怀古》: 类型: 作品, 描述: 豪放词代表作...
+3. 黄州: 类型: 地点, 描述: 苏轼被贬之地，东坡居士名号由来...
 ```
 
 ### 交互模式
@@ -84,18 +82,17 @@ Knowledge Abstract: ./output/
 Template: general/biography_graph
 Top K: 3
 
-> 谁是 Nikola Tesla？
-Nikola Tesla was a Serbian-American inventor, electrical engineer, 
-mechanical engineer, and futurist best known for his contributions 
-to the design of the modern alternating current (AC) electricity 
-supply system.
+> 苏轼是谁？
+苏轼（1037-1101），字子瞻，号东坡居士，是北宋时期最杰出的
+文学家、书画家、政治家，唐宋八大家之一。
 
-> 他什么时候出生的？
-Nikola Tesla 于 1856 年 7 月 10 日出生在克罗地亚的 Smiljan。
+> 他是什么时候出生的？
+苏轼于 1037 年出生于眉州眉山（今四川眉山）。
 
-> 他与爱迪生的关系如何？
-Tesla 于 1884 年在纽约市为 Thomas Edison 工作。由于在直流电（DC）
-和交流电（AC）电力系统方面的不同观点，他们的关系存在争议。
+> 他与王安石的关系如何？
+苏轼与王安石政见不合。王安石推行新法时，苏轼多次上书批评，
+认为新法过于激进，损害百姓利益。1079年因此发生"乌台诗案"，
+苏轼被贬黄州。
 
 > exit
 Goodbye!
@@ -144,7 +141,7 @@ he talk ./contract_kb/ -q "终止条件是什么？"
 ### 历史研究
 
 ```bash
-he talk ./bio_kb/ -q "哪些事件导致了特斯拉的经济困难？"
+he talk ./bio_kb/ -q "哪些事件导致了苏轼的政治生涯坎坷？"
 ```
 
 ---
@@ -160,7 +157,7 @@ he talk ./bio_kb/ -q "哪些事件导致了特斯拉的经济困难？"
 
 ## 更好答案的技巧
 
-1. **要具体** — "特斯拉创造了什么发明？" vs "告诉我关于特斯拉的事"
+1. **要具体** — "苏轼创作了哪些词作？" vs "告诉我关于苏轼的事"
 2. **追问** — 通过对话构建上下文
 3. **调整 top-k** — 对于复杂问题使用 `-n 5` 或更高
 4. **检查来源** — 审查 "Retrieved context" 的准确性

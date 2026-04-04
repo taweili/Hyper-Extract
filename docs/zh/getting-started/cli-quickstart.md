@@ -1,97 +1,198 @@
 # CLI 快速入门
 
-使用命令行从终端提取知识。
+使用命令行在 5 分钟内完成首次知识提取。
 
 ---
 
 ## 前置要求
 
-- Hyper-Extract 已安装
-- API 密钥已配置
-
-→ 如果尚未完成，请查看[安装指南](installation.md)
+- [Hyper-Extract 已安装](installation.md)
+- 一个待提取的文本文档（我们将使用示例）
 
 ---
 
-## 快速示例
+## 第 1 步：配置 API 密钥
 
-### 1. 从文档提取知识
+运行以下命令配置 API 密钥：
 
 ```bash
-he parse tesla.md -t general/biography_graph -o ./output/ -l en
+he config init -k YOUR_OPENAI_API_KEY
 ```
 
-这将从 `tesla.md` 中提取知识图谱并保存到 `./output/` 目录。
+这会在 `~/.he/config.toml` 创建配置文件，只需配置一次。
 
-### 2. 可视化结果
+---
+
+## 第 2 步：下载示例文档
+
+```bash
+# 下载示例传记
+curl -o sushi.md https://raw.githubusercontent.com/yifanfeng97/hyper-extract/main/examples/zh/sushi.md
+```
+
+或创建一个简单的测试文件：
+
+```bash
+cat > sample.txt << 'EOF'
+苏轼，字子瞻，号东坡居士，是北宋时期最杰出的文学家、书画家、政治家。
+他与父亲苏洵、弟弟苏辙并称"三苏"，同列唐宋八大家。
+
+苏轼于1037年出生于眉州眉山。1057年科举中举，受欧阳修赏识。
+后因乌台诗案被贬黄州，创作了大量千古传诵的名篇。
+
+代表作：《念奴娇·赤壁怀古》《水调歌头·明月几时有》《赤壁赋》
+
+苏轼一生宦海浮沉，历任杭州、密州、徐州、湖州等地知州。
+在杭州任上，他疏浚西湖，修筑苏堤，留下"欲把西湖比西子"的千古名句。
+晚年因新党执政被贬至惠州、儋州，仍心系百姓，兴办学堂，传播中原文化。
+
+其文学成就横跨诗、词、文、赋，书法位列"宋四家"之首，
+绘画开文人画先河，是中国历史上罕见的全才式人物。
+EOF
+```
+
+---
+
+## 第 3 步：提取知识
+
+运行 `parse` 命令提取知识：
+
+```bash
+he parse sushi.md -t general/biography_graph -o ./output/ -l zh
+```
+
+参数说明：
+- `-t general/biography_graph` — 使用传记图谱模板
+- `-o ./output/` — 保存结果到输出目录
+- `-l zh` — 使用中文处理
+
+**输出示例：**
+```
+Input: sushi.md
+Output: ./output/
+Template: general/biography_graph
+Language: en
+Build Index: Yes
+
+Template resolved: Biography Graph Template
+✓ Knowledge extracted to ./output/
+
+What's next?
+  he show ./output/                    # 可视化知识图谱
+  he search ./output/ "keyword"        # 语义搜索
+  he talk ./output/ -i                 # 交互式对话
+```
+
+---
+
+## 第 4 步：可视化知识图谱
 
 ```bash
 he show ./output/
 ```
 
-### 3. 搜索知识库
+这会在浏览器中打开交互式可视化，显示：
+- **实体**（人物、地点、事件）作为节点
+- **关系** 作为连接节点的边
+
+![知识图谱可视化](../../assets/zh_show.png)
+
+---
+
+## 第 5 步：搜索知识库
 
 ```bash
-he search ./output/ "AC motor invention"
+he search ./output/ "苏轼的代表作有哪些"
 ```
 
-### 4. 与知识库对话
+**输出示例：**
+```
+Found 3 result(s):
+
+Result 1:
+{
+  "name": "苏轼",
+  "type": "人物",
+  "description": "北宋文学家、书画家，号东坡居士"
+}
+...
+```
+
+---
+
+## 第 6 步：与知识库对话
+
+交互模式：
 
 ```bash
-he talk ./output/ -q "What were Tesla's major inventions?"
+he talk ./output/ -i
+```
+
+或提问单个问题：
+
+```bash
+he talk ./output/ -q "用三句话总结苏轼的生平"
+```
+
+---
+
+## 第 7 步：增量添加知识
+
+有更多文档？无需重新处理即可添加：
+
+```bash
+he feed ./output/ additional_document.md
+```
+
+然后可视化更新后的知识：
+
+```bash
+he show ./output/
 ```
 
 ---
 
 ## 完整工作流程
 
-```mermaid
-graph LR
-    A[Document] -->|he parse| B[Knowledge Base]
-    B -->|he show| C[Visualize]
-    B -->|he search| D[Search]
-    B -->|he talk| E[Chat]
-    B -->|he feed| B[Update]
-```
-
-1. **Parse** — 从文档提取知识
-2. **Show** — 可视化知识图谱
-3. **Search** — 查找特定信息
-4. **Talk** — 关于内容进行对话
-5. **Feed** — 增量添加更多文档
-
----
-
-## 常用命令
-
-### 解析文档
+以下是典型的工作流程：
 
 ```bash
-# 使用模板
-he parse doc.md -t general/biography_graph -o ./out/ -l en
+# 1. 提取知识
+he parse document.md -t general/biography_graph -o ./output/ -l en
 
-# 使用方法
-he parse doc.md -m light_rag -o ./out/
-```
+# 2. 可视化
+he show ./output/
 
-### 构建索引
+# 3. 搜索
+he search ./output/ "your query"
 
-```bash
-# 构建搜索索引（搜索和聊天需要）
+# 4. 对话
+he talk ./output/ -i
+
+# 5. 添加更多文档
+he feed ./output/ another_document.md
+
+# 6. 如需重新构建索引
 he build-index ./output/
-```
-
-### 查看信息
-
-```bash
-# 查看知识库统计
-he info ./output/
 ```
 
 ---
 
 ## 下一步
 
-- 深入了解 [CLI 命令](../cli/index.md)
-- 浏览 [模板库](../templates/index.md)
-- 理解 [核心概念](../concepts/index.md)
+- [CLI 工作流程指南](../cli/workflow.md) — 完整工作流程演示
+- [所有 CLI 命令](../cli/index.md) — 详细命令参考
+- [模板库](../templates/index.md) — 找到适合您用例的模板
+
+---
+
+## 故障排除
+
+**"No API key found"**
+→ 运行 `he config init -k YOUR_API_KEY`
+
+**"Template not found"**
+→ 使用 `he list template` 查看可用模板
+
+**"Output directory already exists"**
+→ 添加 `-f` 标志强制覆盖，或选择不同的输出路径

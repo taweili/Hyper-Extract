@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '概念类型：实体/抽象概念/过程/关系'
-          en: 'Concept type: entity/abstract/process/relation'
+          zh: '概念类型：实体/抽象概念/过程/关系等'
+          en: 'Concept type: entity/abstract/process/relation, etc.'
         required: true
       - name: definition
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型，用简洁词语概括两个概念之间的连接方式'
-          en: 'Relation type, concisely describing the connection between two concepts'
+          zh: '关系类型，用简洁词语概括两个概念之间的连接方式。例如：属于/包含/导致/相关/对立/示例/扩展等'
+          en: 'Relation type, concisely describing the connection between two concepts. Examples: is_a/part_of/causes/related_to/opposite/example_of/extends, etc.'
         required: true
       - name: description
         type: str

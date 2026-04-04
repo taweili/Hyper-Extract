@@ -6,16 +6,16 @@ Hyper-Extract requires **Python 3.11+**.
 
 ## Install from PyPI
 
-=== "pip"
-
-    ```bash
-    pip install hyper-extract
-    ```
-
 === "uv (recommended)"
 
     ```bash
     uv pip install hyper-extract
+    ```
+
+=== "pip"
+
+    ```bash
+    pip install hyper-extract
     ```
 
 === "conda"
@@ -36,65 +36,6 @@ You should see something like:
 
 ```
 Hyper-Extract CLI version 0.1.0
-```
-
----
-
-## Optional Dependencies
-
-=== "Anthropic Claude Support"
-
-    ```bash
-    pip install hyper-extract[anthropic]
-    ```
-
-=== "Google Gemini Support"
-
-    ```bash
-    pip install hyper-extract[google]
-    ```
-
-=== "All Optional Dependencies"
-
-    ```bash
-    pip install hyper-extract[all]
-    ```
-
----
-
-## Configuration
-
-Before using Hyper-Extract, you need to configure your LLM API credentials.
-
-### Option 1: Using CLI (Recommended)
-
-```bash
-he config init -k YOUR_OPENAI_API_KEY
-```
-
-This creates a configuration file at `~/.he/config.toml`.
-
-### Option 2: Using Environment Variables
-
-```bash
-export OPENAI_API_KEY=your-api-key
-export OPENAI_BASE_URL=https://api.openai.com/v1  # Optional
-```
-
-### Option 3: Using .env File (Python Only)
-
-Create a `.env` file in your project root:
-
-```
-OPENAI_API_KEY=your-api-key
-OPENAI_BASE_URL=https://api.openai.com/v1
-```
-
-Then load it in your Python code:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
 ```
 
 ---

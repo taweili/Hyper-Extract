@@ -77,7 +77,10 @@ he parse proxy.md -t finance/ownership_graph -l en
 
 **Visualization:**
 ```python
-result.show()  # Shows ownership network
+# Build index for interactive search/chat in visualization
+result.build_index()
+
+result.show()  # Shows ownership network with interactive features
 ```
 
 ---

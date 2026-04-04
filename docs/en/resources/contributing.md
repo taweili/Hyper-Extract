@@ -130,7 +130,7 @@ ka = Template.create("domain/my_template", "en")
 result = ka.parse(test_text)
 
 # Verify output
-assert len(result.data.nodes) > 0
+assert len(result.nodes) > 0
 ```
 
 ### Submitting Templates

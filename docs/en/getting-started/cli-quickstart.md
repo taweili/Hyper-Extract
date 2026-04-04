@@ -7,12 +7,23 @@ Get your first knowledge extraction running in 5 minutes using the terminal.
 ## Prerequisites
 
 - [Hyper-Extract installed](installation.md)
-- API key configured (via `he config init` or environment variable)
 - A text file to extract from (we'll use an example)
 
 ---
 
-## Step 1: Download Sample Document
+## Step 1: Configure API Key
+
+Run the following command to configure your API key:
+
+```bash
+he config init -k YOUR_OPENAI_API_KEY
+```
+
+This creates a configuration file at `~/.he/config.toml`. You only need to do this once.
+
+---
+
+## Step 2: Download Sample Document
 
 ```bash
 # Download a sample biography
@@ -30,12 +41,24 @@ contributions to the design of the modern alternating current
 
 Born: July 10, 1856, Smiljan, Croatia
 Died: January 7, 1943, New York City, NY
+
+Tesla immigrated to the United States in 1884 and briefly worked 
+with Thomas Edison before the two parted ways due to conflicting 
+business and scientific interests. He later established his own 
+laboratory and developed numerous revolutionary inventions, 
+including the Tesla coil, induction motor, and wireless transmission 
+technologies.
+
+Despite his brilliance, Tesla struggled financially in his later years
+and died impoverished in a New York hotel room. His legacy was 
+largely overlooked during his lifetime but has since been recognized 
+worldwide, with the Tesla unit of magnetic flux density named in his honor.
 EOF
 ```
 
 ---
 
-## Step 2: Extract Knowledge
+## Step 3: Extract Knowledge
 
 Run the `parse` command to extract knowledge:
 
@@ -67,7 +90,7 @@ What's next?
 
 ---
 
-## Step 3: Visualize the Knowledge Graph
+## Step 4: Visualize the Knowledge Graph
 
 ```bash
 he show ./output/
@@ -77,9 +100,11 @@ This opens an interactive visualization in your browser, showing:
 - **Entities** (people, places, events) as nodes
 - **Relationships** as edges connecting the nodes
 
+![Knowledge Graph Visualization](../../assets/en_show.png)
+
 ---
 
-## Step 4: Search Your Knowledge Base
+## Step 5: Search Your Knowledge Base
 
 ```bash
 he search ./output/ "What were Tesla's major inventions?"
@@ -100,7 +125,7 @@ Result 1:
 
 ---
 
-## Step 5: Chat with Your Knowledge
+## Step 6: Chat with Your Knowledge
 
 Interactive mode:
 
@@ -116,7 +141,7 @@ he talk ./output/ -q "Summarize Tesla's career in three sentences"
 
 ---
 
-## Step 6: Incrementally Add Knowledge
+## Step 7: Incrementally Add Knowledge
 
 Got more documents? Add them without reprocessing:
 

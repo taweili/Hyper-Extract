@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型：案件/条款/法规'
-          en: 'Entity type: case/provision/regulation'
+          zh: '实体类型：案件/条款/法规/司法解释/指导意见等'
+          en: 'Entity type: case/provision/regulation/judicial_interpretation/guiding_opinion, etc.'
         required: true
       - name: court
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：引用/区分/推翻'
-          en: 'Relation type: cites/distinguished_from/overruled_by'
+          zh: '关系类型：引用/区分/推翻/遵循/参照等'
+          en: 'Relation type: cites/distinguished_from/overruled_by/follows/refers_to, etc.'
         required: true
       - name: description
         type: str

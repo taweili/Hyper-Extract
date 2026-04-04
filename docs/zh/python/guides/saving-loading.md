@@ -20,7 +20,7 @@ Hyper-Extract 提供序列化支持：
 ```python
 from hyperextract import Template
 
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 result = ka.parse(text)
 
 # 保存到目录
@@ -58,13 +58,13 @@ result.dump("./my_kb/")
 from hyperextract import Template
 
 # 创建模板（必须与原始匹配）
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 # 加载保存的数据
 ka.load("./my_kb/")
 
 # 使用
-print(f"加载了 {len(ka.data.nodes)} 个节点")
+print(f"加载了 {len(ka.nodes)} 个节点")
 ```
 
 ### 验证加载的数据
@@ -76,8 +76,8 @@ ka.load("./my_kb/")
 if ka.empty():
     print("警告：未加载数据")
 else:
-    print(f"节点: {len(ka.data.nodes)}")
-    print(f"边: {len(ka.data.edges)}")
+    print(f"节点: {len(ka.nodes)}")
+    print(f"边: {len(ka.edges)}")
 ```
 
 ---
@@ -243,16 +243,16 @@ class KnowledgeBaseManager:
 manager = KnowledgeBaseManager()
 
 # 保存
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 result = ka.parse(text)
-manager.save(result, "tesla_biography")
+manager.save(result, "苏轼传记")
 
 # 列出
-print(manager.list())  # ['tesla_biography']
+print(manager.list())  # ['苏轼传记']
 
 # 加载
-kb = manager.load("tesla_biography")
-print(kb.chat("特斯拉发明了什么？"))
+kb = manager.load("苏轼传记")
+print(kb.chat("苏轼创作了哪些代表作？"))
 ```
 
 ---
@@ -263,7 +263,7 @@ print(kb.chat("特斯拉发明了什么？"))
 
 ```python
 # 使用模板 X 保存
-ka = Template.create("general/biography_graph", "en")
+ka = Template.create("general/biography_graph", "zh")
 
 # 使用相同模板加载
 ka2 = Template.create("general/biography_graph", "en")
@@ -296,7 +296,7 @@ except FileNotFoundError:
 
 ```python
 # 好
-result.dump("./kb/tesla_2024_01_15/")
+result.dump("./kb/sushi_2024_01_15/")
 
 # 避免
 result.dump("./kb/temp/")

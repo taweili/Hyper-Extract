@@ -21,8 +21,8 @@ output:
   - name: type
     type: str
     description:
-      zh: '列表项的类型或分类标签。'
-      en: 'Type or category label of the list item.'
+      zh: '列表项的类型或分类标签。例如：技术栈/功能模块/风险项/依赖项/约束条件/里程碑/交付物等'
+      en: 'Type or category label of the list item. Examples: tech_stack/feature_module/risk_item/dependency/constraint/milestone/deliverable, etc.'
     required: false
   - name: description
     type: str

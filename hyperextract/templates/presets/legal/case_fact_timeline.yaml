@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '实体类型：事实/证据'
-          en: 'Entity type: fact/evidence'
+          zh: '实体类型：事实/证据/证人/物证/书证/鉴定意见/勘验笔录等'
+          en: 'Entity type: fact/evidence/witness/physical_evidence/documentary_evidence/expert_opinion/inspection_record, etc.'
         required: true
       - name: description
         type: str
@@ -55,14 +55,14 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：先于/证明/争议'
-          en: 'Relation type: preceded_by/proves/disputes'
+          zh: '关系类型：先于/证明/争议/确认/否认/采信/排除等'
+          en: 'Relation type: precedes/proves/disputed/confirmed/denied/admitted/excluded, etc.'
         required: true
       - name: time
         type: str
         description:
-          zh: '事实发生日期'
-          en: 'Fact occurrence date'
+          zh: '事实发生日期。例如：2024-01-15/2024年1月/案发当日等'
+          en: 'Fact occurrence date. Examples: 2024-01-15/January_2024/day_of_incident, etc.'
         required: false
       - name: disputed
         type: str

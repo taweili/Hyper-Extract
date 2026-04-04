@@ -7,7 +7,6 @@ Get your first knowledge extraction running in 5 minutes using Python.
 ## Prerequisites
 
 - [Hyper-Extract installed](installation.md)
-- API key configured (via `.env` file or environment variable)
 
 ---
 
@@ -37,13 +36,6 @@ Create a `.env` file:
 echo "OPENAI_API_KEY=your-api-key" > .env
 ```
 
-Or set it in your code:
-
-```python
-import os
-os.environ["OPENAI_API_KEY"] = "your-api-key"
-```
-
 ---
 
 ## Step 3: Create Your First Extraction Script
@@ -70,19 +62,34 @@ contributions to the design of the modern alternating current
 
 Born: July 10, 1856, Smiljan, Croatia
 Died: January 7, 1943, New York City, NY
+
+Tesla immigrated to the United States in 1884 and briefly worked 
+with Thomas Edison before the two parted ways due to conflicting 
+business and scientific interests. He later established his own 
+laboratory and developed numerous revolutionary inventions, 
+including the Tesla coil, induction motor, and wireless transmission 
+technologies.
+
+Despite his brilliance, Tesla struggled financially in his later years
+and died impoverished in a New York hotel room. His legacy was 
+largely overlooked during his lifetime but has since been recognized 
+worldwide, with the Tesla unit of magnetic flux density named in his honor.
 """
 
 # Extract knowledge
 result = ka.parse(text)
 
 # Access the extracted data
-print(f"Nodes: {len(result.data.nodes)}")
-print(f"Edges: {len(result.data.edges)}")
+print(f"Nodes: {len(result.nodes)}")
+print(f"Edges: {len(result.edges)}")
 
 # Print first node
-if result.data.nodes:
-    node = result.data.nodes[0]
+if result.nodes:
+    node = result.nodes[0]
     print(f"\nFirst node: {node.name} ({node.type})")
+
+# Build index for search/chat capabilities
+result.build_index()
 
 # Visualize
 result.show()
@@ -107,6 +114,8 @@ First entity: Nikola Tesla (person)
 
 And a browser window will open showing the interactive knowledge graph.
 
+![Knowledge Graph Visualization](../../assets/en_show.png)
+
 ---
 
 ## Step 5: Working with Results
@@ -115,11 +124,11 @@ Access different parts of the extraction:
 
 ```python
 # Iterate over all nodes
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"- {node.name}: {node.description}")
 
 # Iterate over all edges
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"- {edge.source} --{edge.type}--> {edge.target}")
 
 # Search within the knowledge base
@@ -160,6 +169,9 @@ They had a contentious relationship due to differing views on DC vs AC power.
 
 # Feed adds to existing knowledge
 result.feed_text(additional_text)
+
+# Rebuild index after feeding new data
+result.build_index()
 
 # Visualize the updated graph
 result.show()
@@ -203,8 +215,8 @@ def main():
     
     # Print summary
     print(f"\nExtraction complete:")
-    print(f"  - Nodes: {len(result.data.nodes)}")
-    print(f"  - Edges: {len(result.data.edges)}")
+    print(f"  - Nodes: {len(result.nodes)}")
+    print(f"  - Edges: {len(result.edges)}")
     
     # Build search index
     print("Building search index...")

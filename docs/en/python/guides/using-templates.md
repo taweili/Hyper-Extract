@@ -156,11 +156,14 @@ with open("biography.md") as f:
     result = ka.parse(f.read())
 
 # Access timeline data
-for edge in result.data.edges:
+for edge in result.edges:
     if hasattr(edge, 'time'):
         print(f"{edge.time}: {edge.source} -> {edge.target}")
 
-result.show()  # Visualize life timeline
+# Build index for interactive visualization
+result.build_index()
+
+result.show()  # Visualize life timeline with search/chat
 ```
 
 ### Pattern 2: Financial Report

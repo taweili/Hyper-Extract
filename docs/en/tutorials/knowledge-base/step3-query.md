@@ -124,13 +124,13 @@ Commands:
             return
         
         print("\nKnowledge Base Statistics:")
-        print(f"  Nodes: {len(self.kb.data.nodes)}")
-        print(f"  Edges: {len(self.kb.data.edges)}")
+        print(f"  Nodes: {len(self.kb.nodes)}")
+        print(f"  Edges: {len(self.kb.edges)}")
         print(f"  Template: {self.manager.config.template}")
 
         # Node types
         from collections import Counter
-        types = Counter(n.type for n in self.kb.data.nodes)
+        types = Counter(n.type for n in self.kb.nodes)
         print("\nNode Types:")
         for t, count in types.most_common():
             print(f"  {t}: {count}")

@@ -156,11 +156,14 @@ with open("biography.md") as f:
     result = ka.parse(f.read())
 
 # 访问时间线数据
-for edge in result.data.edges:
+for edge in result.edges:
     if hasattr(edge, 'time'):
         print(f"{edge.time}: {edge.source} -> {edge.target}")
 
-result.show()  # 可视化生平时间线
+# 构建索引以支持交互式可视化
+result.build_index()
+
+result.show()  # 可视化生平时间线（支持搜索/对话功能）
 ```
 
 ### 模式 2：财务报告

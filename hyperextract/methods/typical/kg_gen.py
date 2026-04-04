@@ -169,7 +169,7 @@ class KG_Gen(AutoGraph[NodeSchema, EdgeSchema]):
         self,
         graph_data: AutoGraphSchema[NodeSchema, EdgeSchema],
         threshold: float = 0.9,
-    ):
+    ) -> AutoGraphSchema[NodeSchema, EdgeSchema]:
         """Internal helper to apply SemHash deduplication on a graph data object.
 
         Args:

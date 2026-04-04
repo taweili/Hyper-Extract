@@ -1,9 +1,5 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../assets/logo/logo-horizontal-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="../assets/logo/logo-horizontal.svg">
-    <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
-  </picture>
+  <img alt="Hyper-Extract Logo" src="../assets/logo/logo-horizontal.svg" width="500">
 </div>
 
 <br/>
@@ -153,20 +149,24 @@ Hyper-Extract follows a **three-layer architecture**:
 
 ```mermaid
 graph TD
-    A[Your Document] --> B[Template / Method]
-    B --> C[Auto-Type]
-    C --> D[Structured Knowledge]
-    
-    subgraph "Layer 3: Templates"
-    B
+    A[Your Document] --> B[CLI / Python API]
+    B --> C[Template]
+    B --> D[Method]
+    C --> E[Auto-Type]
+    D --> E
+    E --> F[Structured Knowledge]
+
+    subgraph "Layer 3: Templates & Methods"
+        C
+        D
     end
-    
-    subgraph "Layer 2: Methods"
-    B
+
+    subgraph "Layer 2: Core Engine"
+        E
     end
-    
-    subgraph "Layer 1: Auto-Types"
-    C
+
+    subgraph "Layer 1: Output"
+        F
     end
 ```
 

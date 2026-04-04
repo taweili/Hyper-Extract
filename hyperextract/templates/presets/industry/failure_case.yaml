@@ -26,8 +26,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '要素类型：故障现象/原因/措施'
-          en: 'Element type: phenomenon/cause/measure'
+          zh: '要素类型：故障现象/根本原因/直接原因/修复措施/预防措施等'
+          en: 'Element type: symptom/root_cause/direct_cause/repair_measure/preventive_measure, etc.'
         required: true
       - name: description
         type: str
@@ -55,8 +55,8 @@ output:
       - name: type
         type: str
         description:
-          zh: '关系类型：caused_by/resolved_by/prevented_by'
-          en: 'Relation type: caused_by/resolved_by/prevented_by'
+          zh: '关系类型：由...导致/由...修复/由...预防/表现为/引起等'
+          en: 'Relation type: caused_by/resolved_by/prevented_by/manifests_as/leads_to, etc.'
         required: true
       - name: lesson
         type: str

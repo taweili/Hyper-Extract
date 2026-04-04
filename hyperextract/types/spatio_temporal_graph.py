@@ -334,6 +334,8 @@ class AutoSpatioTemporalGraph(AutoGraph[NodeSchema, EdgeSchema]):
             extraction_mode=self.extraction_mode,
             node_strategy_or_merger=self.node_merger,
             edge_strategy_or_merger=self.edge_merger,
+            node_label_extractor=self._node_label_extractor,
+            edge_label_extractor=self._edge_label_extractor,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             max_workers=self.max_workers,

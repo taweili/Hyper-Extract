@@ -21,8 +21,8 @@ output:
   - name: type
     type: str
     description:
-      zh: '实体类型，如人物、机构、地点、物品、概念、事件、其他。'
-      en: 'Entity type, such as person, organization, location, object, concept, event, other.'
+      zh: '实体类型。例如：人物/机构/地点/物品/概念/事件/产品/服务/其他等'
+      en: 'Entity type. Examples: person/organization/location/object/concept/event/product/service/other, etc.'
   - name: description
     type: str
     description:

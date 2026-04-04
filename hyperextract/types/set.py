@@ -12,6 +12,7 @@ from typing import (
     Generic,
     Optional,
     Callable,
+    Iterator,
     TYPE_CHECKING,
 )
 from pathlib import Path
@@ -449,10 +450,10 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
         """Returns a user-friendly string representation."""
         return f"AutoSet with {len(self)} unique {self.item_schema.__name__} items"
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ItemSchema]:
         """Enables iteration over all items in the set.
 
-        Returns:
+        Yields:
             Iterator over all unique items.
 
         Examples:
@@ -556,9 +557,6 @@ class AutoSet(BaseAutoType[AutoSetSchema[ItemSchema]], Generic[ItemSchema]):
 
     def pop(self) -> ItemSchema:
         """Removes and returns an arbitrary item from the set.
-
-        Args:
-            None
 
         Returns:
             The removed item.

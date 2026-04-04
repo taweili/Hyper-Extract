@@ -18,7 +18,7 @@
     - 需要批量处理文件
     - 更喜欢终端工作流程
     
-    **从这里开始：** [:octicons-arrow-right-24: 安装](installation.md) → [:octicons-arrow-right-24: CLI 快速入门](cli-quickstart.md)
+    **从这里开始：** [安装](installation.md) [:octicons-arrow-right-24: CLI 快速入门](cli-quickstart.md)
 
 -   :material-language-python:{ .lg .middle } __我想使用 Python__
 
@@ -30,7 +30,7 @@
     - 需要与现有代码集成
     - 想要完全的程序化控制
     
-    **从这里开始：** [:octicons-arrow-right-24: 安装](installation.md) → [:octicons-arrow-right-24: Python 快速入门](python-quickstart.md)
+    **从这里开始：** [安装](installation.md) [:octicons-arrow-right-24: Python 快速入门](python-quickstart.md)
 
 </div>
 

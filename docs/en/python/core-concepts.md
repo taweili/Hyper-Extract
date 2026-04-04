@@ -89,10 +89,10 @@ ka = Template.create("general/knowledge_graph", "en")
 result = ka.parse(text)
 
 # Access graph data
-for node in result.data.nodes:
+for node in result.nodes:
     print(f"Node: {node.name}")
 
-for edge in result.data.edges:
+for edge in result.edges:
     print(f"{edge.source} --{edge.type}--> {edge.target}")
 ```
 
@@ -220,7 +220,10 @@ ka = Template.create("general/biography_graph", "en")
 # 2. Extract
 result = ka.parse(text)
 
-# 3. Use
+# 3. Build index for search/chat capabilities
+result.build_index()
+
+# 4. Use
 result.show()
 ```
 
