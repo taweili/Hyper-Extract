@@ -3,6 +3,7 @@
 import pytest
 from pydantic import BaseModel, Field
 from typing import Optional
+from ontomem.merger import MergeStrategy
 
 from hyperextract.types import AutoSet
 from tests.fixtures import KeywordSchema
@@ -52,6 +53,7 @@ class TestAutoSetDedup:
             llm_client=llm_client,
             embedder=embedder,
             key_extractor=lambda x: x.term,
+            strategy_or_merger=MergeStrategy.MERGE_FIELD,
         )
 
         auto_set.add(KeywordItemSchema(term="Python", category="Programming"))

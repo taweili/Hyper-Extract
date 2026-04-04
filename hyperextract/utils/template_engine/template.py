@@ -8,6 +8,7 @@ from typing import Dict, Optional, Any
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 
+from hyperextract.types.base import BaseAutoType
 from hyperextract.methods import get_method_cfg
 
 from .gallery import Gallery

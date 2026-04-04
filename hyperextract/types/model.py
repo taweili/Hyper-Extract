@@ -2,7 +2,10 @@
 
 from pathlib import Path
 from datetime import datetime
-from typing import List, Any, Type, Callable, Union
+from typing import List, Any, Type, Callable, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .list import AutoList
 from ontomem.merger import MergeStrategy, create_merger, BaseMerger
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings

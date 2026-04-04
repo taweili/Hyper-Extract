@@ -1,6 +1,6 @@
 [project]
 name = "hyperextract"
-version = "0.1.0"
+version = "0.1.1"
 description = "An intelligent, LLM-powered knowledge extraction and evolution framework with semantic search capabilities"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -90,3 +90,6 @@ exclude = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["hyperextract"]
+
+[tool.ruff.lint]
+ignore = ["E731"]

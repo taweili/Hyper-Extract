@@ -497,7 +497,7 @@ class Cog_RAG:
         print("2. Theme Layer (主题层：宏观主题及其参与者)")
         
         try:
-            choice = input(f"请输入选项 [1/2]: ").strip()
+            choice = input("请输入选项 [1/2]: ").strip()
         except EOFError:
             choice = "1"
             

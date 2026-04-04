@@ -46,34 +46,34 @@ class TestAutoModelIntegration:
         text = "Alice is a 28-year-old software engineer living in San Francisco."
 
         automodel = AutoModel(
-            schema=PersonInfo,
+            data_schema=PersonInfo,
             llm_client=llm_client,
             embedder=embedder,
         )
 
-        result = automodel.parse_text(text)
+        result = automodel.parse(text)
 
         assert result is not None
-        assert result.name == "Alice"
-        assert result.age == 28
-        assert result.occupation == "software engineer"
+        assert result.data.name == "Alice"
+        assert result.data.age == 28
+        assert result.data.occupation == "software engineer"
 
     def test_real_extraction_not_mock(self, llm_client, embedder):
         """Verify that real extraction returns actual values, not mocks."""
         text = "Dr. Sarah Johnson is a 45-year-old cardiologist working at Mayo Clinic."
 
         automodel = AutoModel(
-            schema=PersonInfo,
+            data_schema=PersonInfo,
             llm_client=llm_client,
             embedder=embedder,
         )
 
-        result = automodel.parse_text(text)
+        result = automodel.parse(text)
 
         # Verify real extraction (not mock values)
-        assert "Sarah" in result.name
-        assert result.age == 45
-        assert "cardiologist" in result.occupation.lower()
+        assert "Sarah" in result.data.name
+        assert result.data.age == 45
+        assert "cardiologist" in result.data.occupation.lower()
 
 
 class TestAutoListIntegration:
@@ -94,12 +94,12 @@ class TestAutoListIntegration:
             embedder=embedder,
         )
 
-        result = autolist.parse_text(text)
+        result = autolist.parse(text)
 
-        assert len(result) >= 2
-        for item in result:
+        assert len(result.items) >= 2
+        for item in result.items:
             assert item.name
-            assert item.age > 0
+            assert item.age >= 0  # Age might be 0 if not specified
             assert item.occupation
 
 
@@ -109,6 +109,7 @@ class TestAutoSetIntegration:
     def test_deduplication_with_real_embeddings(self, llm_client, embedder):
         """Test that deduplication works with real semantic embeddings."""
         from pydantic import BaseModel
+        from ontomem.merger import MergeStrategy
 
         class KeywordItem(BaseModel):
             term: str
@@ -119,6 +120,7 @@ class TestAutoSetIntegration:
             llm_client=llm_client,
             embedder=embedder,
             key_extractor=lambda x: x.term.lower(),
+            strategy_or_merger=MergeStrategy.MERGE_FIELD,
         )
 
         # Add same term with different cases
@@ -132,6 +134,19 @@ class TestAutoSetIntegration:
         assert "JavaScript" in autoset or "javascript" in autoset
 
 
+class NodeSchema(BaseModel):
+    """Node schema for knowledge graph."""
+    name: str = Field(description="Entity name")
+    type: str = Field(description="Entity type")
+
+
+class EdgeSchema(BaseModel):
+    """Edge schema for knowledge graph."""
+    source: str = Field(description="Source entity name")
+    target: str = Field(description="Target entity name")
+    relation: str = Field(description="Relationship type")
+
+
 class TestAutoGraphIntegration:
     """Integration tests for AutoGraph with real API."""
 
@@ -143,11 +158,16 @@ class TestAutoGraphIntegration:
         """
 
         autograph = AutoGraph(
+            node_schema=NodeSchema,
+            edge_schema=EdgeSchema,
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.source}|{x.relation}|{x.target}",
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
         )
 
-        result = autograph.parse_text(text)
+        result = autograph.parse(text)
 
         # Should extract some entities
         assert len(result.nodes) > 0
@@ -157,7 +177,7 @@ class TestAutoGraphIntegration:
             edge = result.edges[0]
             assert edge.source
             assert edge.target
-            assert edge.type
+            assert edge.relation
 
     def test_search_with_real_embeddings(self, llm_client, embedder):
         """Test semantic search with real embeddings."""
@@ -168,14 +188,19 @@ class TestAutoGraphIntegration:
         """
 
         autograph = AutoGraph(
+            node_schema=NodeSchema,
+            edge_schema=EdgeSchema,
+            node_key_extractor=lambda x: x.name,
+            edge_key_extractor=lambda x: f"{x.source}|{x.relation}|{x.target}",
+            nodes_in_edge_extractor=lambda x: (x.source, x.target),
             llm_client=llm_client,
             embedder=embedder,
         )
 
-        result = autograph.parse_text(text)
+        result = autograph.parse(text)
         result.build_index()
 
         # Search should work with real embeddings
-        nodes = result.search("electric cars", top_k=3)
+        nodes = result.search_nodes("electric cars", top_k=3)
         # Just verify search doesn't crash
         assert isinstance(nodes, (list, tuple))

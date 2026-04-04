@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to deploy (e.g., 0.1.0 or latest)"
+        description: "Version to deploy (e.g., 0.1.1 or latest)"
         required: false
         default: "latest"
       alias:
@@ -51,7 +51,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install --system mkdocs-material mkdocs-static-i18n mkdocstrings[python] pymdown-extensions mike
+          uv venv
+          uv pip install mkdocs-material mkdocs-static-i18n mkdocstrings[python] pymdown-extensions mike
+          uv pip install -e .
 
       - name: Configure Git
         run: |
@@ -67,12 +69,12 @@ jobs:
           ALIAS="${{ github.event.inputs.alias }}"
 
           if [ -n "$ALIAS" ]; then
-            mike deploy --update-aliases "$VERSION" "$ALIAS"
+            uv run mike deploy --update-aliases "$VERSION" "$ALIAS"
           else
-            mike deploy "$VERSION"
+            uv run mike deploy "$VERSION"
           fi
 
-          mike set-default latest
+          uv run mike set-default latest
 
       - name: Export gh-pages site
         run: |

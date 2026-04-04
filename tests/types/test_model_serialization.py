@@ -1,6 +1,7 @@
 """Unit tests for AutoModel serialization functionality."""
 
 import json
+import os
 import tempfile
 import shutil
 from pathlib import Path
@@ -40,6 +41,7 @@ class TestAutoModelSerialization:
 
         assert file_path.exists()
 
+    @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Requires real LLM")
     def test_dump_data_contains_correct_data(self, llm_client, embedder):
         """Test that dumped data contains correct information."""
         model = AutoModel(
@@ -138,6 +140,7 @@ class TestAutoModelSerialization:
         assert "created_at" in new_model.metadata
         assert "updated_at" in new_model.metadata
 
+    @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Requires real LLM")
     def test_dump_and_load_full(self, llm_client, embedder):
         """Test full dump/load cycle."""
         model = AutoModel(

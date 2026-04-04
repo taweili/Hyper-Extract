@@ -41,7 +41,7 @@ from .utils.template_engine import Template
 from .utils.logging import configure_logging, get_logger, set_log_level
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Yifan Feng"
 __email__ = "evanfeng97@gmail.com"
 

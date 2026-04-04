@@ -1,5 +1,6 @@
 """Unit tests for AutoModel merge functionality."""
 
+import os
 import pytest
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -45,6 +46,7 @@ class TestAutoModelMerge:
 
         assert result is None
 
+    @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Requires real LLM")
     def test_merge_batch_data_multiple_items(self, llm_client, embedder):
         """Test merge_batch_data with multiple items."""
         model = AutoModel(
@@ -94,6 +96,7 @@ class TestAutoModelMerge:
 class TestAutoModelWithComplexSchema:
     """Test AutoModel with more complex schemas."""
 
+    @pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Requires real LLM")
     def test_with_biography_schema(self, llm_client, embedder):
         """Test AutoModel with BiographySchema."""
         model = AutoModel(
