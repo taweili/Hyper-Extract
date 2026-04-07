@@ -19,6 +19,7 @@
 [![Python版本](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![开源协议](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![状态](https://img.shields.io/badge/status-active-success)]()
+[![文档](https://img.shields.io/badge/docs-online-blue)](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/)
 
 <br/>
 
@@ -264,10 +265,10 @@ display:
 
 ## 📚 相关文档
 
-- [完整文档](https://hyper-extract.github.io/zh/) - 完整文档站点
-- [English Documentation](https://hyper-extract.github.io/en/) - English Documentation
-- [CLI 指南](https://hyper-extract.github.io/zh/cli/) - 命令行界面
-- [模板画廊](https://hyper-extract.github.io/zh/templates/) - 可用模板
+- [完整文档](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/) - 完整文档站点
+- [English Documentation](https://yifanfeng97.github.io/Hyper-Extract/latest/) - English Documentation
+- [CLI 指南](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/cli/) - 命令行界面
+- [模板画廊](./hyperextract/templates/presets/) - 可用模板
 - [示例代码](./examples/) - 可运行示例
 
 ## 🤝 参与贡献与协议

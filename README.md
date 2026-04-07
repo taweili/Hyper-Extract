@@ -19,6 +19,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success)]()
+[![Docs](https://img.shields.io/badge/docs-online-blue)](https://yifanfeng97.github.io/Hyper-Extract/latest/)
 
 <br/>
 
@@ -263,10 +264,10 @@ display:
 
 ## 📚 Related Documentation
 
-- [Full Documentation](https://hyper-extract.github.io/en/) - Complete documentation site
-- [中文文档](https://hyper-extract.github.io/zh/) - 中文文档
-- [CLI Guide](https://hyper-extract.github.io/en/guides/cli/) - Command-line interface
-- [Template Gallery](https://hyper-extract.github.io/en/reference/template-gallery/) - Available templates
+- [Full Documentation](https://yifanfeng97.github.io/Hyper-Extract/latest/) - Complete documentation site
+- [中文文档](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/) - 中文文档
+- [CLI Guide](https://yifanfeng97.github.io/Hyper-Extract/latest/guides/cli/) - Command-line interface
+- [Template Gallery](./hyperextract/templates/presets/) - Available templates
 - [Example Code](./examples/) - Working examples
 
 ## 🤝 Contributing & License
