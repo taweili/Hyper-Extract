@@ -1,10 +1,12 @@
 <div align="center">
 
+<a href="https://yifanfeng97.github.io/Hyper-Extract/latest/zh/">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/logo-horizontal-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo/logo-horizontal.svg">
   <img alt="Hyper-Extract Logo" src="docs/assets/logo/logo-horizontal.svg" width="600">
 </picture>
+</a>
 
 <br/>
 <br/>
@@ -266,7 +268,6 @@ display:
 ## 📚 相关文档
 
 - [完整文档](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/) - 完整文档站点
-- [English Documentation](https://yifanfeng97.github.io/Hyper-Extract/latest/) - English Documentation
 - [CLI 指南](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/cli/) - 命令行界面
 - [模板画廊](./hyperextract/templates/presets/) - 可用模板
 - [示例代码](./examples/) - 可运行示例

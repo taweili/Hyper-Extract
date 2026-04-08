@@ -51,7 +51,7 @@ Hyper-Extract 需要 **Python 3.11+**。
     您应该看到类似输出：
 
     ```
-    Hyper-Extract CLI version 0.1.1
+    Hyper-Extract CLI version 0.1.2.dev0
     ```
 
 === "Python"

@@ -1,10 +1,12 @@
 <div align="center">
 
+<a href="https://yifanfeng97.github.io/Hyper-Extract/latest/">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo/logo-horizontal-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo/logo-horizontal.svg">
   <img alt="Hyper-Extract Logo" src="docs/assets/logo/logo-horizontal.svg" width="600">
 </picture>
+</a>
 
 <br/>
 <br/>
@@ -264,9 +266,8 @@ display:
 
 ## 📚 Related Documentation
 
-- [Full Documentation](https://yifanfeng97.github.io/Hyper-Extract/latest/) - Complete documentation site
-- [中文文档](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/) - 中文文档
-- [CLI Guide](https://yifanfeng97.github.io/Hyper-Extract/latest/guides/cli/) - Command-line interface
+- [Documentation](https://yifanfeng97.github.io/Hyper-Extract/latest/) - Complete documentation site
+- [CLI Guide](https://yifanfeng97.github.io/Hyper-Extract/latest/cli/) - Command-line interface
 - [Template Gallery](./hyperextract/templates/presets/) - Available templates
 - [Example Code](./examples/) - Working examples
 
