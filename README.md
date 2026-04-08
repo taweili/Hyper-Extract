@@ -275,3 +275,7 @@ display:
 
 Contributions are welcome! Please submit Issues and PRs.
 Licensed under **Apache-2.0**.
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yifanfeng97/Hyper-Extract&type=Date)](https://star-history.com/#yifanfeng97/Hyper-Extract&Date)

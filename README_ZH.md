@@ -276,3 +276,7 @@ display:
 
 热烈欢迎社区提交 Issues 和 PRs。
 项目基于 **Apache-2.0** 协议开源。
+
+## ⭐ Star 历史趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yifanfeng97/Hyper-Extract&type=Date)](https://star-history.com/#yifanfeng97/Hyper-Extract&Date)
