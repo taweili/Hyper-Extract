@@ -51,7 +51,7 @@ If you want to use Hyper-Extract in your Python code:
     You should see something like:
 
     ```
-    Hyper-Extract CLI version 0.1.2
+    Hyper-Extract CLI version 0.1.3.dev0
     ```
 
 === "Python"
