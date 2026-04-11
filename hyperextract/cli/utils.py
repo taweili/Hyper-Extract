@@ -116,10 +116,10 @@ def get_template_from_ka(ka_path: Path) -> Tuple[str, str]:
     Raises:
         ValueError: If template not found and no local yaml file exists
     """
-    from .config import load_kb_metadata
+    from .config import load_ka_metadata
     from hyperextract.utils.template_engine import Gallery
 
-    metadata = load_kb_metadata(ka_path)
+    metadata = load_ka_metadata(ka_path)
     if metadata is None:
         raise ValueError(f"No metadata.json found in Knowledge Abstract: {ka_path}")
 
