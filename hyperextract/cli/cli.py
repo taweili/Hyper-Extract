@@ -11,6 +11,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt
 
 from hyperextract.utils.template_engine import Gallery, Template
+from hyperextract.utils.logging import configure_logging, get_logger
 
 from .utils import (
     LOGO,
@@ -28,6 +29,7 @@ from .config import (
 from .commands import list_app, config_app
 
 console = Console()
+logger = get_logger("he")
 
 app = typer.Typer(
     name="he",
@@ -50,7 +52,16 @@ def main(
         help="Show version information",
         is_eager=True,
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Enable verbose logging of key processes and execution stages",
+        is_eager=True,
+    ),
 ):
+    if verbose:
+        configure_logging(level="DEBUG")
+        ctx.obj = {"verbose": True}
     """Hyper-Extract CLI - Transform document into knowledge-abstract."""
     if version:
         from . import __version__
@@ -232,7 +243,9 @@ def parse(
     ),
 ):
     """Extract knowledge from text to a new directory."""
+    logger.info("command=parse input=%s output=%s template=%s lang=%s", input, output, template or "auto", lang or "auto")
     validate_config()
+    logger.info("stage=config_validated")
 
     if method:
         template = f"method/{method}"
@@ -279,6 +292,7 @@ def parse(
         if template_config is None:
             raise ValueError(f"Template '{template}' not found")
         console.print(f"[green]Template resolved:[/green] {template_config.name}")
+        logger.info("stage=template_resolved template=%s", template_config.name)
     except ValueError as e:
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
@@ -293,6 +307,7 @@ def parse(
         task = progress.add_task("Creating template instance...", total=None)
 
         ka = Template.create(template, lang)
+        logger.info("stage=template_created")
 
         if input_path.is_dir():
             progress.update(task, description="Processing directory...")
@@ -314,6 +329,7 @@ def parse(
 
             progress.update(task, description="Extracting knowledge...")
             ka.feed_text(combined_text)
+            logger.info("stage=knowledge_extracted chars=%d", len(combined_text))
         else:
             progress.update(task, description="Reading input...")
             text = read_input(input)
@@ -321,6 +337,7 @@ def parse(
 
             progress.update(task, description="Extracting knowledge...")
             ka.feed_text(text)
+            logger.info("stage=knowledge_extracted chars=%d", len(text))
 
         progress.update(task, description="Saving data...")
 
@@ -336,13 +353,16 @@ def parse(
                 )
 
         ka.dump(output_path)
+        logger.info("stage=data_saved output=%s", output_path)
 
         if not no_index:
             progress.update(task, description="Building search index...")
             ka.build_index()
             console.print("[dim]Index built successfully[/dim]")
+            logger.info("stage=index_built")
             progress.update(task, description="Saving index...")
             ka.dump(output_path)
+            logger.info("stage=index_saved")
 
     console.print()
     console.print(
@@ -379,6 +399,7 @@ def parse(
 @app.command(name="show")
 def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")):
     """Visualize Knowledge Abstract using OntoSight."""
+    logger.info("command=show ka_path=%s", ka_path)
     path = validate_ka_with_data(ka_path)
 
     template, lang = get_template_from_ka(path)
@@ -399,9 +420,11 @@ def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
             raise typer.Exit(1)
 
     console.print("[bold blue]Visualizing with OntoSight...[/bold blue]")
+    logger.info("stage=visualizing")
 
     try:
         ka.show()
+        logger.info("stage=visualization_complete")
     except Exception as e:
         console.print(f"[red]Error during visualization:[/red] {e}")
         raise typer.Exit(1)
@@ -417,6 +440,7 @@ def show(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")
 @app.command(name="info")
 def info(ka_path: str = typer.Argument(..., help="Knowledge Abstract directory")):
     """View Knowledge Abstract information and statistics."""
+    logger.info("command=info ka_path=%s", ka_path)
     import json
 
     path = validate_ka_with_data(ka_path)
@@ -470,6 +494,7 @@ def search(
     top_k: int = typer.Option(3, "--top-k", "-n", help="Number of results"),
 ):
     """Semantic search in Knowledge Abstract."""
+    logger.info("command=search ka_path=%s query=%s top_k=%d", ka_path, query, top_k)
     import json
 
     validate_config()
@@ -497,6 +522,7 @@ def search(
 
             progress.update(task, description="Searching...")
             results = ka.search(query, top_k=top_k)
+            logger.info("stage=search_complete results=%d", len(results))
 
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
@@ -583,6 +609,7 @@ def talk(
     ),
 ):
     """Chat with Knowledge Abstract."""
+    logger.info("command=talk ka_path=%s query=%s interactive=%s", ka_path, query or "loop", interactive)
     validate_config()
 
     path = validate_ka_with_index(ka_path)
@@ -656,6 +683,7 @@ def feed(
     lang: Optional[str] = typer.Option(None, "--lang", "-l", help="Language"),
 ):
     """Append knowledge to an existing Knowledge Abstract."""
+    logger.info("command=feed ka_path=%s input=%s", ka_path, input)
     validate_config()
 
     output_path = validate_ka_path(ka_path)
@@ -700,9 +728,11 @@ def feed(
 
         progress.update(task, description="Appending knowledge...")
         ka.feed_text(text)
+        logger.info("stage=knowledge_appended chars=%d", len(text))
 
         progress.update(task, description="Saving data...")
         ka.dump(output_path)
+        logger.info("stage=data_saved")
 
     console.print()
     console.print(
@@ -722,6 +752,7 @@ def build_index(
     force: bool = typer.Option(False, "--force", "-f", help="Force rebuild"),
 ):
     """Build vector index for Knowledge Abstract."""
+    logger.info("command=build-index ka_path=%s force=%s", ka_path, force)
     validate_config()
 
     path = validate_ka_with_data(ka_path)
@@ -759,9 +790,11 @@ def build_index(
 
             progress.update(task, description="Building index...")
             ka.build_index()
+            logger.info("stage=index_built")
 
             progress.update(task, description="Saving index...")
             ka.dump(path)
+            logger.info("stage=index_saved")
 
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
