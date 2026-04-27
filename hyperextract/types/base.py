@@ -10,6 +10,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from hyperextract.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -243,18 +247,25 @@ class BaseAutoType(ABC, Generic[T]):
 
     def _extract_data(self, text: str) -> T:
         """Internal: Unified extraction logic (Chunking -> LLM -> Merge)."""
+        logger.debug("stage=extract_start input_chars=%d chunk_size=%d", len(text), self.chunk_size)
 
         if len(text) <= self.chunk_size:
+            logger.debug("stage=extract_single_chunk")
             extracted_data = self.data_extractor.invoke({"source_text": text})
             extracted_data_list = [extracted_data]
         else:
             chunks = self.text_splitter.split_text(text)
+            logger.debug("stage=text_split num_chunks=%d", len(chunks))
             inputs = [{"source_text": chunk} for chunk in chunks]
+            logger.debug("stage=llm_batch_start max_concurrency=%d", self.max_workers)
             extracted_data_list = self.data_extractor.batch(
                 inputs, config={"max_concurrency": self.max_workers}
             )
+            logger.debug("stage=llm_batch_complete results=%d", len(extracted_data_list))
 
+        logger.debug("stage=merge_start num_items=%d", len(extracted_data_list))
         merged_data = self.merge_batch_data(extracted_data_list)
+        logger.debug("stage=extract_complete")
         return merged_data
 
     def parse(self, text: str) -> "BaseAutoType[T]":
@@ -292,10 +303,13 @@ class BaseAutoType(ABC, Generic[T]):
         Returns:
             Self (the current instance).
         """
+        logger.debug("stage=feed_text_start input_chars=%d", len(text))
         extracted_data = self._extract_data(text)
+        logger.debug("stage=extract_done")
 
         # Use UPDATE hook instead of manual merge+set
         self._update_data_state(extracted_data)
+        logger.debug("stage=data_merged")
 
         self.metadata["updated_at"] = datetime.now()
 

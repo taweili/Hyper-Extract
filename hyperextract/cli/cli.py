@@ -328,6 +328,7 @@ def parse(
             console.print(f"[dim]Total input: {len(combined_text)} characters[/dim]")
 
             progress.update(task, description="Extracting knowledge...")
+            logger.debug("stage=feed_text_invoked")
             ka.feed_text(combined_text)
             logger.info("stage=knowledge_extracted chars=%d", len(combined_text))
         else:
@@ -336,6 +337,7 @@ def parse(
             console.print(f"[dim]Input text: {len(text)} characters[/dim]")
 
             progress.update(task, description="Extracting knowledge...")
+            logger.debug("stage=feed_text_invoked")
             ka.feed_text(text)
             logger.info("stage=knowledge_extracted chars=%d", len(text))
 
@@ -727,6 +729,7 @@ def feed(
         console.print(f"[dim]Input text: {len(text)} characters[/dim]")
 
         progress.update(task, description="Appending knowledge...")
+        logger.debug("stage=feed_text_invoked")
         ka.feed_text(text)
         logger.info("stage=knowledge_appended chars=%d", len(text))
 
