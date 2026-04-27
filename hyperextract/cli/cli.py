@@ -52,20 +52,11 @@ def main(
         help="Show version information",
         is_eager=True,
     ),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        help="Enable verbose logging of key processes and execution stages",
-        is_eager=True,
-    ),
 ):
     # Configure logging after all imports complete so dependency loggers
     # (e.g. ontosight) don't override our level settings.
-    if verbose:
-        configure_logging(level="DEBUG")
-        ctx.obj = {"verbose": True}
-    else:
-        configure_logging()
+    # Log level is controlled solely by the HYPER_EXTRACT_LOG_LEVEL env var.
+    configure_logging()
     if version:
         from . import __version__
 
